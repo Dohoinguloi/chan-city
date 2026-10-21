@@ -1,0 +1,15 @@
+{
+  "name": "chan-city-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Server multiplayer cho Chande Bootcamp (Chan City): đăng nhập, hồ sơ, WebSocket thời gian thực",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "bots": "node bots.js"
+  },
+  "engines": { "node": ">=22.13" },
+  "dependencies": {
+    "ws": "8.18.3"
+  }
+}

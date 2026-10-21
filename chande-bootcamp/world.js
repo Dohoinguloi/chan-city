@@ -22,15 +22,19 @@ function buildRoom(){
   put(A.shelf(),10,4,{name:'Kệ sách'}); solid.push([9,2,10,3]);
   put(A.potPlant(),12.5,9.5); solid.push([12,9,12,9]);
   put(A.doorTile(),7,11,{id:'door',flat:true});
+  // phòng riêng ở Hà Nội: góc tắm, ổ sạc, laptop (chợ online, học kỹ năng, chat online, làm remote)
+  put(A.shower(),2,9.95); solid.push([1,8,2,9]); put(A.charger(false),3.6,2.6,{flat:true}); put(A.laptop(),7.6,3.5,{sort:4.1*T});
   const inter=[
     {id:'phone',x:5.6*T,y:4*T,label:'Nghe máy',r:22},
-    {id:'bed',x:2*T,y:5.2*T,label:'Xem',r:22,say:['Chăn còn ấm lắm...','Nhưng Chande Bootcamp không đợi người ngủ nướng.']},
-    {id:'pc',x:6.5*T,y:4.4*T,label:'Xem',r:20,say:['Màn hình đang mở file Figma "Đôn Chề Var Bản Làng".','Style pixel này phải chơi thật mới biết.']},
-    {id:'wardrobe',x:12*T,y:4.4*T,label:'Xem',r:20,say:['Cardigan đen, áo len cổ lọ, dây chuyền bạc.','Chuẩn bài Mèn Mén.']},
+    {id:'bed',x:2*T,y:5.2*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi'},
+    {id:'laptop',x:7.2*T,y:4.4*T,label:'Mở laptop',r:20,do:'hub'},
+    {id:'wardrobe',x:12*T,y:4.4*T,label:'Tủ quần áo',r:20,do:'wardrobe'},
     {id:'shelf',x:10*T,y:4.4*T,label:'Xem',r:20,say:['Một chồng sách UX, một cuốn "Đi Hoà Bình mùa nào đẹp".']},
-    {id:'door',x:7*T,y:10.3*T,label:'Ra cửa',r:22},
+    {id:'shower',x:2.2*T,y:8.6*T,label:'Tắm',r:20,do:'ra',act:'tam'},
+    {id:'charger',x:3.6*T,y:3.4*T,label:'Sạc điện thoại',r:18,do:'ra',act:'sac'},
+    {id:'door',x:7*T,y:10.3*T,label:'Ra cửa (gọi Grab)',r:22,do:'grab'},
   ];
-  return {name:'Phòng Mèn Mén',W,H,grid:g,obj,solid,inter,spawn:{x:4.5*T,y:7*T},indoor:true,phone:ph};
+  return {name:'Phòng của bạn',W,H,grid:g,obj,solid,inter,spawn:{x:4.5*T,y:7*T},indoor:true,phone:ph,music:'music_room'};
 }
 
 /* ---------- Map 1: Chande Bootcamp (Ké Retreat) ---------- */
@@ -76,6 +80,13 @@ function buildRetreat(){
   // bể bơi khu dưới: deck gỗ, viền đá, nước
   rect(30,75,36,85,'K'); rect(31,76,35,84,'E'); rect(32,77,34,83,'L');
 
+  // mặt tiền cổng: quán cơm + cafe (phía Tây), tiệm nông sản + shop quần áo (phía Đông), vườn rau sau tiệm
+  rect(14,87,27,94,'G',['F']); rect(47,75,67,94,'G',['F']); line([[54,94],[54,86]],0,'P');
+  for(const p of SHARED.FARM.plots) set(Math.floor(p.x),Math.floor(p.y),'Y');
+  // Nhà giải trí cạnh Deck ngắm cảnh + lối gỗ từ Deck sang cửa
+  rect(11,36,19,44,'G',['F']); rect(15,42,19,43,'K');
+  // nhà tắm chung cạnh khu cắm trại
+  rect(55,24,59,30,'G',['F']);
   // nhà (ô 'B' = chân nhà, không đi qua được)
   const B=[];
   const bld=(name,x0,y0,x1,y1,o)=>{ rect(x0,y0,x1,y1,'B'); B.push({name,x0,y0,x1,y1,o}); };
@@ -88,6 +99,12 @@ function buildRetreat(){
   bld('Nhà Chiềng 1',41,33,43,35,{roof:'thatch',wall:'wood',doors:[18],windows:[4],rail:true,stoneBase:true});
   bld('Nhà Chiềng 2',44,33,46,35,{roof:'thatch',wall:'wood',doors:[18],windows:[4],rail:true,stoneBase:true});
   bld('Nhà Mái Đá',42,37,45,39,{roof:'stone',wall:'stone',doors:[26],windows:[8]});
+  bld('Tiệm nông sản Ké',49,89,53,91,{shop:true,roof:'tile',wall:'ochre',doors:[30],windows:[6,50],sign:'NONG SAN',awning:'#5a8d64'});
+  bld('Shop Chande',55,89,59,91,{shop:true,roof:'tile',wall:'stone',doors:[30],windows:[6,50],sign:'SHOP',awning:'#c4382e'});
+  bld('Quán cơm Ven Hồ',16,89,20,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'QUAN COM'});
+  bld('Cafe Bến Hồ',22,89,26,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'CAFE',awning:'#3f6e9a'});
+  bld('Nhà giải trí',13,38,18,41,{shop:true,roof:'stone',wall:'stone',doors:[40],windows:[8,70],sign:'GIAI TRI',awning:'#8c231f'});
+  bld('Nhà tắm chung',56,26,57,27,{shop:true,roof:'thatch',wall:'wood',doors:[8],sign:'TAM'});
   const tents=[{name:'Lều 1',x0:30,y0:72,x1:32,y1:74},{name:'Lều 2',x0:26,y0:74,x1:28,y1:76}];
   for(const t of tents) rect(t.x0,t.y0,t.x1,t.y1,'B');
 
@@ -95,7 +112,7 @@ function buildRetreat(){
   const obj=[], solid=[];
   const put=(spr,tx,ty,o={})=>{ const it={spr,x:Math.round(tx*T),y:Math.round(ty*T),...o}; obj.push(it); return it; };
   for(const b of B){ const w=(b.x1-b.x0+1)*T-4, h=(b.y1-b.y0+1)*T;
-    put(A.house({w,wallH:22,roofH:Math.max(22,h-14),...b.o}),(b.x0+b.x1+1)/2,b.y1+1,{name:b.name,house:true}); }
+    put((b.o.shop?A.shop:A.house)({w,wallH:22,roofH:Math.max(22,h-14),...b.o}),(b.x0+b.x1+1)/2,b.y1+1,{name:b.name,house:true}); }
   put(A.tent({w:44,flag:'#c4382e'}),31.5,75,{name:'Lều 1'}); put(A.tent({w:44,flag:'#3f7a8a'}),27.5,77,{name:'Lều 2'});
   put(A.gate(),39.5,95,{name:'Cổng',front:true});
   for(const [x,c] of [[47,'#e07a3c'],[50,'#5a8d64'],[53,'#3f7a8a']]){ put(A.platform(),x+.5,27.6); put(A.domeTent(c),x+.5,27.2); solid.push([x,26,x,26]); }
@@ -117,6 +134,14 @@ function buildRetreat(){
   // xe 4 bánh: dưới cổng và trên bãi đỗ cạnh Nhà Mái Đá
   const carLow=put(A.car(),46.2,96.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
   rect(48,40,51,41,'G',['F']); solid.push([45,96,47,96],[48,41,50,41]);
+  // vườn rau Ké: hàng rào gỗ, chừa lối vào ở giữa phía Nam
+  for(let x=48;x<=67;x++){ put(A.fence(false),x+.5,76.2); solid.push([x,76,x,76]); if(x!==54){ put(A.fence(false),x+.5,86.2); solid.push([x,86,x,86]); } }
+  for(let y=77;y<=85;y++){ put(A.fence(true),48.5,y+.6); put(A.fence(true),67.5,y+.6); solid.push([48,y,48,y],[67,y,67,y]); }
+  put(A.signPost('VUON RAU'),55.6,87.6);
+  // lễ tân 24h ở Nhà Rếch 2 (Cộng đồng)
+  put(A.receptionDesk(),47.6,90.4); solid.push([46,90,48,90]); put(A.signPost('LE TAN'),49.4,88.8);
+  // bàn ghế trước quán cơm, cafe; biển Grab ở cổng
+  put(A.table(),15.0,93.8); put(A.table(),27.6,93.8); put(A.grabSign(),36.6,96.0);
   // dây đèn vàng như ảnh thực địa (vẽ lúc render)
   const lights=[[[36.5,78.5],[41.3,92.5]],[[36.5,73],[36.5,78.5]],[[29,41.8],[36.7,41]],[[36.7,41],[40.5,41.3]],[[33.6,36],[29,41.8]]];
 
@@ -217,22 +242,23 @@ const COINS=[[24,40.2],[30.5,35.6],[47.8,30],[52,26.3],[55.6,35],[44.6,43.3],[22
 /* ---------- Hội thoại ---------- */
 // mỗi dòng: [người nói ('me' = Mèn Mén, id NPC), câu]
 const DIALOG={
-  call:[['phap','Alo Mén à? Dậy chưa?'],['me','VÃI Ò... mới 8 giờ sáng thứ Bảy mà.'],['phap','Cả hội lên Ké Retreat ở Đà Bắc, Hoà Bình hết rồi. Hôm nay khai mạc Chande Bootcamp đấy!'],
-    ['phap','Ra cửa đi, xe đón ở đầu ngõ. Lên tới Cổng thì tìm tao.'],['me','Ok ok, 2 tiếng rưỡi nữa gặp.']],
-  phap_hello:[['phap','Mén! Lên tới rồi à. Chào mừng tới Chande Bootcamp ở Ké Retreat.'],
+  call:[['phap','Alo {name} à? Dậy chưa?'],['me','VÃI Ò... mới sáng ra mà.'],['phap','Cả hội lên Ké Retreat ở Đà Bắc, Hoà Bình hết rồi. Hôm nay khai mạc Chande Bootcamp đấy!'],
+    ['phap','Mở app Grab (bấm G) gọi xe, chuyến này tao bao. Lên tới Cổng thì tìm tao.'],['me','Ok ok, 2 tiếng rưỡi nữa gặp.']],
+  phap_hello:[['phap','{name}! Lên tới rồi à. Chào mừng tới Chande Bootcamp ở Ké Retreat.'],
     ['phap','Đây là Cổng. Đi thẳng lên là Nhà Ngói, mấy Nhà Rếch với bể bơi. Theo Đường bộ chừng 10 phút là lên khu trên.'],
     ['phap','Trên đó có Nhà ăn, Deck ngắm cảnh, Nhà Ngủ, Nhà Chiềng, Nhà Mái Đá. Xa nhất là Nền khu cắm trại.'],
-    ['phap','Lười leo thì có xe 4 bánh ngay ngoài Cổng, 150.000đ một lượt. Bấm M để xem bản đồ.'],
+    ['phap','Lười leo thì có xe 4 bánh ngay ngoài Cổng: lên dốc miễn phí, xuống dốc 150.000đ. Bấm M để xem bản đồ.'],
+    ['phap','Nhớ ghé lễ tân ở Nhà Rếch 2 thuê phòng. Đêm không có chỗ ngủ là mệt lắm. Ngày đầu tao bao 100.000đ.'],
     ['phap','Cả hội đang ở rải rác khắp nơi, đứa nào cũng có việc nhờ mày. Làm xong có EXP, tiền với đồ hay.'],
     ['phap','À mà... con beagle nhà tao vừa sổng dây chạy lên đồi rồi! Tìm hộ tao với.']],
   phap_wait:[['phap','Con beagle hay chạy lên Nền khu cắm trại tít trên đỉnh. Bấm M xem đường.']],
-  phap_done:[['phap','Ơ về rồi! Mén đỉnh thật. Cầm lấy cái này cho nó gặm.'],['phap','Từ giờ giữ Shift để chạy nhé. Vui quá, tao hoá Saiyan luôn!']],
+  phap_done:[['phap','Ơ về rồi! {name} đỉnh thật. Cầm lấy cái này cho nó gặm.'],['phap','Từ giờ giữ Shift để chạy nhé. Vui quá, tao hoá Saiyan luôn!']],
   phap_after:[['phap','Đôn Chề ở chỗ lửa trại, Khá Bảnh ở bể bơi. Phú Lê, Kenny với Huy Phan thì ở khu trên.']],
   beagle_found:[['me','Ê beagle! Về thôi, Pháp đang lo sốt vó kìa.'],['beagle','Gâu! Gâu!']],
-  khabanh_offer:[['khabanh','Ê Mén! Bể bơi đẹp thế này mà không có nhạc thì quẩy kiểu gì?'],['khabanh','Tao để quên cái loa bluetooth ở Lều 1 rồi. Lấy hộ tao cái.']],
+  khabanh_offer:[['khabanh','Ê {name}! Bể bơi đẹp thế này mà không có nhạc thì quẩy kiểu gì?'],['khabanh','Tao để quên cái loa bluetooth ở Lều 1 rồi. Lấy hộ tao cái.']],
   khabanh_wait:[['khabanh','Loa ở trước Lều 1 ấy, ngay trên bể bơi.']],
   khabanh_done:[['khabanh','Lên nhạc! Nhìn tao này...'],['khabanh','QUẨY! Học được rồi đấy, bấm Q mà quẩy.']],
-  khabanh_after:[['khabanh','Quẩy lên Mén ơi!']],
+  khabanh_after:[['khabanh','Quẩy lên {name} ơi!']],
   donche_offer:[['donche','Tối nay đốt lửa trại ở sân Nhà Rếch. Mà thiếu củi.'],['donche','Gom giúp tao 5 bó củi khô dọc Đường bộ lên đồi nhé.']],
   donche_wait:[['donche','Mới có {wood}/5 bó thôi à? Đi dọc bậc đá giữa rừng ấy.']],
   donche_done:[['donche','Đủ củi rồi. Tối nay cháy to.'],['donche','Mẹo của tao: bấm Space để lướt cho nhanh.']],
@@ -252,7 +278,7 @@ const DIALOG={
   huyphan_wait:[['huyphan','Mới có {paper}/3 tờ. Gió thổi mạnh lắm.']],
   huyphan_done:[['huyphan','Đủ rồi! Site này phải lên Site of the Day.'],['huyphan','Tặng mày bí kíp: bấm K... HOÁ HOKAGE AWWWARDS!']],
   huyphan_after:[['huyphan','Awwwards ơi chờ anh.']],
-  finale:[['phap','Mén làm xong hết việc của cả hội rồi!'],['phap','Ngày 1 của Chande Bootcamp coi như thành công. Tối nay lửa trại ở sân Nhà Rếch nhé!']],
+  finale:[['phap','{name} làm xong hết việc của cả hội rồi!'],['phap','Ngày 1 của Chande Bootcamp coi như thành công. Tối nay lửa trại ở sân Nhà Rếch nhé!'],['phap','Mai rảnh thì nộp đơn vào Everfit ở Hà Nội, hoặc bay vào nông trại bác Trang ở Đà Lạt chơi.']],
 };
 
 window.WORLD={buildRoom,buildRetreat,CHARS,NPCS,SKILLS,ITEMS,QUESTS,PICKUPS,SPOTS,COINS,DIALOG,BEAGLE_SPOT,CHICKEN_HOME};

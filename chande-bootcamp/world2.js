@@ -1,0 +1,204 @@
+/* Chan City — các map mới: tiệm nông sản, Shop Chande, Nhà giải trí (chia bàn), 6 loại phòng thuê ở Ké,
+   văn phòng Everfit (map 2, theo ảnh văn phòng), nông trại bác Trang ở Đà Lạt (map 3), trường đua ngựa. Toạ độ theo ô 16px. */
+(function(){
+const A=ART, T=A.T, SD=SHARED;
+
+// khung phòng: tường 2 hàng trên, viền quanh, cửa ở giữa cạnh dưới
+function shell(W,H,floor='O',wall='H'){ const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<=1||y===H-1||x===0||x===W-1?wall:floor));
+  const m=Math.floor(W/2); g[H-1][m-1]=floor; g[H-1][m]=floor; return g; }
+function kit(){ const obj=[], solid=[], inter=[];
+  const put=(spr,tx,ty,o={})=>{ const it={spr,x:Math.round(tx*T),y:Math.round(ty*T),...o}; obj.push(it); return it; };
+  const block=(x0,y0,x1,y1)=>solid.push([x0,y0,x1,y1]);
+  const act=(x,y,label,o,r=20)=>inter.push({x:x*T,y:y*T,label,r,...o});
+  return {obj,solid,inter,put,block,act}; }
+const exitAt=(K,W,H,label='Ra ngoài')=>K.act(W/2,H-.7,label,{do:'exit'},24);
+
+/* ---------- tiệm nông sản, shop quần áo, Nhà giải trí ---------- */
+function buildInterior(kind){ const I=SD.INTERIORS[kind], W=I.W, H=I.H, K=kit(), {put,block,act}=K;
+  const g=shell(W,H,kind==='club'?'O':'O');
+  if(kind==='nongsan'){
+    for(let y=5;y<=7;y++) for(let x=4;x<=9;x++) g[y][x]='M';
+    put(A.counter(64,'#a7744c'),7,4.7); block(5,4,8,4);
+    put(A.shelf2(['#5fae46','#d9463a','#f2c43d','#e88a2e','#e8d8b4','#8cc95a']),2.6,3.2); block(1,2,3,2);
+    put(A.shelf2(['#e8d8b4','#c9a35e','#5fae46','#3f8a3a']),11.4,3.2); block(10,2,12,2);
+    for(const [x,y,c] of [[2,6.6,'#d9463a'],[2,8.2,'#f2c43d'],[12,6.6,'#5fae46'],[12,8.2,'#e88a2e']]){ put(A.basket(c),x,y); }
+    put(A.label('TIEM NONG SAN KE','#2e5b38','#f4e6c4'),7,1.6,{flat:true});
+  }
+  if(kind==='quanao'){
+    for(let y=5;y<=7;y++) for(let x=4;x<=9;x++) g[y][x]='M';
+    put(A.counter(56,'#3a3a48'),7,4.7); block(5,4,8,4);
+    put(A.rack(['#f1f1ee','#2b282e','#5a7d4a','#f2a6b8','#c4382e']),2.8,4); block(1,3,3,3);
+    put(A.rack(['#4d6f99','#26252b','#b9a27a','#c8a77d','#dfe6ef']),11.2,4); block(10,3,12,3);
+    put(A.rack(['#4d6a8a','#c2a77d','#6b7280','#c45a6a','#2b282e']),2.8,8.2); block(1,7,3,7);
+    put(A.mirror(),12,8.6); block(11,8,12,8);
+    put(A.label('SHOP CHANDE','#8c231f','#fff3d6'),7,1.6,{flat:true});
+  }
+  if(kind==='club'){
+    for(let y=3;y<=14;y++) for(let x=9;x<=17;x++) g[y][x]='M';
+    for(const t of SD.CLUB.tables){
+      if(t.game==='chess'){ put(A.chessTable(),t.x,t.y+.4); block(Math.floor(t.x)-1,Math.floor(t.y),Math.floor(t.x)+1,Math.floor(t.y)); }
+      if(t.game==='poker'){ put(A.pokerTable(),t.x,t.y+1); block(Math.floor(t.x)-2,Math.floor(t.y)-1,Math.floor(t.x)+1,Math.floor(t.y)); }
+      if(t.game==='masoi'){ put(A.roundTable(),t.x,t.y+1.2); block(Math.floor(t.x)-1,Math.floor(t.y)-1,Math.floor(t.x)+1,Math.floor(t.y)); }
+      put(A.label({chess:'CO VUA',poker:'POKER',masoi:'MA SOI'}[t.game]+(t.game==='masoi'?'':' '+t.id.slice(1)),'#2a1a10','#ffd84a'),t.x,t.y-1.4,{flat:true});
+      act(t.x,t.y+(t.game==='chess'?.9:1.8),'Ngồi '+t.name.toLowerCase(),{do:'table',id:t.id},40); }
+    put(A.barCounter(),20.5,2.9,{flat:false}); block(18,2,23,2);
+    for(const [x,y] of [[1.6,3],[24.4,3],[1.6,15.4],[24.4,15.4]]) put(A.palm(),x,y);
+    put(A.label('NHA GIAI TRI','#8c231f','#fff3d6'),13,1.6,{flat:true});
+  }
+  if(kind!=='club'){ /* NPC đứng sau quầy được thêm từ SHARED.NPCS */ }
+  exitAt(K,W,H);
+  return {name:I.name,W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:I.spawn.x*T,y:I.spawn.y*T},indoor:true,music:kind==='club'?'music_retreat':'music_room'}; }
+
+/* ---------- phòng thuê ở Ké (nội thất theo từng loại) ---------- */
+function buildStay(type){ const R=SD.ROOMS[type], [W,H]=R.size, K=kit(), {put,block,act}=K;
+  const floor={leu:'K',rech:'J',maida:'U'}[type]||'O', g=shell(W,H,floor,type==='leu'?'N':'H');
+  const ra=(x,y,a,label,r=20)=>act(x,y,label,{do:'ra',act:a},r);
+  const bathroom=(x0,y0,x1,y1)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) g[y][x]='I'; };
+  if(type==='leu'){
+    put(A.sleepBag(),3,5.6); block(2,4,3,5); ra(3.6,5.6,'nghi','Chui túi ngủ');
+    put(A.lantern(),6,3.4); put(A.charger(true),7.4,3.6,{flat:true}); ra(7.4,3.8,'sac','Sạc dự phòng',18);
+    act(6,5.4,'Điện thoại',{do:'phone'},22);
+  }
+  if(type==='nhangu'){
+    bathroom(8,2,9,3); put(A.shower(),9,4.1); block(8,2,9,3); ra(8.6,4.4,'tam','Tắm');
+    put(A.bedSingle(),2.4,5.4); block(2,3,2,5); ra(3.4,5,'nghi','Nghỉ ngơi');
+    put(A.fan(),5,3.6); put(A.charger(false),4,2.6,{flat:true}); ra(4,3.4,'sac','Sạc điện thoại',18);
+    put(A.towel(),6.6,2.8,{flat:true}); act(5.6,5.6,'Điện thoại',{do:'phone'},22);
+  }
+  if(type==='rech'){
+    bathroom(9,2,10,3); put(A.shower(),10,4.1); block(9,2,10,3); ra(9.6,4.4,'tam','Tắm');
+    put(A.netBed(),3,6.2); block(2,3,3,5); ra(4.2,5.4,'nghi','Nghỉ ngơi');
+    put(A.fan(),5.4,3.6); put(A.kettleTable(),7,6.6); block(6,6,7,6); put(A.charger(false),5.6,2.6,{flat:true}); ra(5.8,3.6,'sac','Sạc điện thoại',18);
+    put(A.windowWall(),7.4,2,{flat:true}); act(7,7.4,'Điện thoại',{do:'phone'},22);
+  }
+  if(type==='ngoi'){
+    bathroom(9,2,10,3); put(A.shower(),10,4.1); block(9,2,10,3); ra(9.6,4.4,'tam','Tắm');
+    put(A.bedDouble('#c9a87a'),3,6.2); block(2,3,3,5); ra(4.4,5.6,'nghi','Nghỉ ngơi');
+    put(A.aircon(),5,1.6,{flat:true}); put(A.wardrobe(),7.2,4); block(6,2,7,3); put(A.charger(false),4.6,2.6,{flat:true}); ra(4.8,3.6,'sac','Sạc điện thoại',18);
+    put(A.kettleTable(),7.6,6.8); block(7,6,8,6); act(6.4,7.2,'Điện thoại',{do:'phone'},22);
+  }
+  if(type==='maida'){
+    bathroom(10,2,11,3); put(A.shower(),11,4.1); block(10,2,11,3); ra(10.6,4.4,'tam','Tắm nước nóng');
+    put(A.bedDouble('#a9b8c8'),3,6.2); block(2,3,3,5); ra(4.4,5.6,'nghi','Nghỉ ngơi');
+    put(A.aircon(),5.4,1.6,{flat:true}); put(A.sofa('#7a6a5a',40),7.6,7.2); block(7,6,8,6); put(A.windowWall(),7.6,2,{flat:true});
+    put(A.charger(false),5,2.6,{flat:true}); ra(5.2,3.6,'sac','Sạc điện thoại',18); act(7.6,7.6,'Điện thoại (sofa)',{do:'phone'},24);
+  }
+  if(type==='chieng'){
+    bathroom(1,2,4,3); put(A.lakeWindow(),2.6,2,{flat:true}); put(A.bathtub(),2.6,4.1); block(1,2,4,3); ra(2.6,4.6,'tam','Ngâm bồn cạnh cửa sổ',24);
+    put(A.bedDouble('#e8d8b4'),6.4,6.4); put(A.bedDouble('#e8d8b4'),9.4,6.4); block(5,4,10,5); ra(7.9,7,'nghi','Nghỉ ngơi',26);
+    put(A.aircon(),8,1.6,{flat:true}); put(A.lakeWindow(),8,2,{flat:true}); put(A.kettleTable(),12.4,4.4); block(12,4,12,4);
+    put(A.charger(false),5,2.6,{flat:true}); ra(5.4,3.4,'sac','Sạc điện thoại',18);
+    for(let y=6;y<=8;y++) for(let x=12;x<=13;x++) g[y][x]='K';
+    put(A.balcony(36),12.9,6.1); act(12.8,7.4,'Ban công nhìn hồ (điện thoại)',{do:'phone'},24);
+  }
+  exitAt(K,W,H,'Ra khỏi phòng');
+  return {name:R.name,W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:R.spawn.x*T,y:R.spawn.y*T},indoor:true,music:'music_room',room:type}; }
+
+/* ---------- Map 2: văn phòng Everfit ---------- */
+function buildOffice(){ const O=SD.OFFICE, W=O.W, H=O.H, K=kit(), {put,block,act}=K;
+  const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<=1?'V':(y===H-1||x===0||x===W-1)?'H':'Z'));
+  // phòng sếp vách kính góc phải trên
+  for(let y=2;y<=9;y++) g[y][27]='g'; for(let x=27;x<W-1;x++) if(x!==30&&x!==31) g[10][x]='g';
+  // 2 bàn dài trắng + ghế trắng (chỗ ngồi của 10 nhân viên)
+  for(const ty of [5.6,10.6]){ put(A.longTable(176),9.5,ty); block(4,Math.floor(ty)-1,14,Math.floor(ty)-1);
+    for(let x=5;x<=13;x+=2){ put(A.whiteChair(),x,ty-1.5); put(A.whiteChair(),x,ty+1.1); } }
+  O.desks.forEach(([x,y],i)=>act(x,y,`Bàn làm việc số ${i+1}`,{do:'desk',desk:i},16));
+  // tường cây xanh giữa phòng
+  put(A.plantWall(100),16.5,8.3); block(16,3,17,7); act(O.spots.plants.x,O.spots.plants.y,'Tường cây xanh',{do:'spot',where:'plants'},22);
+  // bàn gỗ dài + ghế (họp)
+  put(A.woodTable(88),22.5,6); block(20,5,25,5); act(O.spots.meeting.x,O.spots.meeting.y,'Bàn họp gỗ',{do:'spot',where:'meeting'},26);
+  // góc sofa kem + bàn trà hoa đỏ
+  put(A.sofa('#ece4d2',64),22,12.6); block(20,11,23,11); put(A.sofa('#ece4d2',48),27,15.4); block(26,14,28,14); put(A.coffeeTable(true),24.6,14.4); block(24,13,25,13);
+  put(A.sofa('#c4382e',30),19.6,15.6);
+  for(const [x,y] of [[2,3],[25.4,3.2],[18.6,3.2],[32,12],[32,18.8],[15.6,18.8]]) { put(A.palm(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
+  // phòng sếp
+  put(A.bossDesk(),30.5,6.8); block(29,6,31,6); act(O.spots.boss.x,O.spots.boss.y,'Phòng sếp',{do:'spot',where:'boss'},24);
+  // pantry
+  put(A.pantry(),30.5,15.6); block(28,14,32,14); act(O.spots.pantry.x,O.spots.pantry.y,'Pantry',{do:'spot',where:'pantry'},24);
+  // lễ tân + thang máy + biển thoát hiểm + máy in
+  put(A.counter(64,'#d8c4a2'),8,16.6); block(6,16,9,16); put(A.label('EVERFIT','#1c1516','#f4f1ea'),8,13.4,{flat:true});
+  put(A.elevator(),2.6,20.2); block(1,18,3,19); put(A.exitSign(),5.6,17.2,{flat:true}); put(A.printer(),14,16.4); block(13,15,14,15);
+  act(2.6,19,'Thang máy (gọi Grab)',{do:'grab'},26);
+  return {name:'Văn phòng Everfit · Hà Nội',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:O.spawn.x*T,y:O.spawn.y*T},indoor:true,music:'music_room',office:true}; }
+
+/* ---------- Map 3: nông trại bác Trang (Đà Lạt) ---------- */
+function buildDalat(){ const D=SD.DALAT, W=D.W, H=D.H, K=kit(), {put,block,act}=K;
+  const g=Array.from({length:H},()=>Array(W).fill('G'));
+  const set=(x,y,t)=>{ if(x>=0&&y>=0&&x<W&&y<H) g[y][x]=t; }, rect=(x0,y0,x1,y1,t)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) set(x,y,t); };
+  // rừng thông bao quanh
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(x<3||x>76||y<2) g[y][x]='F';
+  rect(62,43,76,48,'F'); rect(3,64,30,69,'F'); rect(50,66,76,69,'F');
+  // đường đất
+  rect(39,6,41,69,'P'); rect(3,28,77,29,'P'); rect(3,49,77,50,'P'); rect(4,59,38,60,'P'); rect(42,52,43,58,'P');
+  // ô trồng (luống đất)
+  for(const p of D.plots) set(Math.floor(p.x),Math.floor(p.y),'Y');
+  // ao cá hồi, ao tôm, hồ câu
+  rect(47,55,53,57,'W'); rect(47,61,53,63,'W');
+  for(let y=50;y<69;y++) for(let x=50;x<77;x++){ const d=((x+.5-D.lake.x)/D.lake.rx)**2+((y+.5-D.lake.y)/D.lake.ry)**2; if(d<=1) g[y][x]='W'; else if(d<=1.25) g[y][x]='D'; }
+  // nhà (ô B)
+  const B=[], bld=(name,x0,y0,x1,y1,o)=>{ rect(x0,y0,x1,y1,'B'); B.push({name,x0,y0,x1,y1,o}); };
+  bld('Nhà bác Trang',36,2,44,4,{roof:'tile',wall:'wood',doors:[64],windows:[10,40,100,120],sign:'NHA BAC TRANG'});
+  bld('Kho hàng',29,3,33,5,{roof:'stone',wall:'wood',doors:[30],sign:'KHO'});
+  bld('Trại bò sữa',48,31,54,33,{roof:'tile',wall:'wood',doors:[44],sign:'TRAI BO SUA',awning:'#c4382e'});
+  bld('Chuồng gà',63,31,66,32,{roof:'tile',wall:'wood',doors:[22],sign:'CHUONG GA'});
+  bld('Chuồng lợn',70,31,75,33,{roof:'stone',wall:'wood',doors:[38],sign:'CHUONG LON'});
+  bld('Trại ngựa',48,8,55,10,{roof:'tile',wall:'wood',doors:[52],windows:[10,90],sign:'TRAI NGUA',awning:'#8a5d3b'});
+  bld('Trường đua ngựa',46,18,52,21,{roof:'stone',wall:'stone',doors:[48],sign:'TRUONG DUA',awning:'#f2c43d'});
+  bld('Quán cô Lan',25,53,31,55,{roof:'thatch',wall:'wood',open:true,tables:true,sign:'QUAN CO LAN'});
+  for(const b of B){ const w=(b.x1-b.x0+1)*T-4, h=(b.y1-b.y0+1)*T; put(A.shop({w,wallH:22,roofH:Math.max(22,h-14),...b.o}),(b.x0+b.x1+1)/2,b.y1+1,{name:b.name,house:true}); }
+  // nhà kính dâu tây treo phủ lên luống
+  put(A.greenhouse(176,98),11,46.6,{over:true});
+  // hàng rào: đồng cỏ bò (cổng phía trên), sân gà, chuồng lợn, đồng cỏ ngựa (cổng bên trái)
+  const fenceBox=(x0,y0,x1,y1,gaps,white)=>{ const f=white?A.whiteFence:A.fence;
+    for(let x=x0;x<=x1;x++) for(const y of [y0,y1]) if(!gaps.some(([gx,gy])=>gx===x&&gy===y)){ put(f(false),x+.5,y+.2); block(x,y,x,y); }
+    for(let y=y0+1;y<y1;y++) for(const x of [x0,x1]) if(!gaps.some(([gx,gy])=>gx===x&&gy===y)){ put(f(true),x+.5,y+.6); block(x,y,x,y); } };
+  fenceBox(46,35,61,44,[[55,35],[56,35]],true); fenceBox(62,34,69,40,[[65,34]],false); fenceBox(69,35,77,41,[[72,35]],false);
+  fenceBox(57,7,77,25,[[57,12],[57,13]],true);
+  put(A.windmill(0),59,34.4,{id:'windmill'}); block(58,33,59,33);
+  // cà phê, chè, hoa trang trí
+  for(let y=8;y<=26;y+=2) for(let x=33;x<=37;x++) put(A.teaBush(),x+.5,y+.6);
+  for(const [x,y,c] of [[18.5,31],[31,31],[18.5,37.6],[31,37.6]]) put(A.crop('hoa',2,'8fa4e8'),x,y);
+  // chợ + quầy hàng + bếp
+  const sh=D.shops;
+  put(A.stall('#5a8d64',['#5fae46','#f08a2e','#6e9a6a']),sh.tiem_rau.x,57.5); block(7,56,9,56);
+  put(A.stall('#c4382e',['#d9665a','#f4ead8','#f2b0a8']),sh.tiem_thit.x,57.5); block(13,56,15,56);
+  put(A.stall('#f2c43d',['#f4ead8','#c4382e','#e8d8b4']),sh.tiem_kho.x,57.5); block(19,56,21,56);
+  put(A.stove(),D.stove.x,57.4); block(31,57,31,57); act(D.stove.x,58.3,'Bếp quán cô Lan',{do:'stove'},26);
+  put(A.signPost('NHAN HANG'),D.market.x-1.6,60.4); for(const [x,y] of [[12,61.6],[12.9,61.9],[15.6,61.7]]) put(A.crate(),x,y);
+  act(D.market.x,D.market.y,'Điểm nhận hàng chợ',{do:'market'},30);
+  for(const [x,y] of [[30.6,6.4],[33.6,6.6],[34.4,7.6]]) put(A.crate(),x,y); act(D.warehouse.x,D.warehouse.y,'Kho hàng nông trại',{do:'warehouse'},30);
+  act(D.track.x,D.track.y,'Vào trường đua',{do:'track'},30);
+  // ao + hồ
+  act(D.pens.ca.x,D.pens.ca.y,'Ao cá hồi',{do:'pen',k:'ca'},30); act(D.pens.tom.x,D.pens.tom.y,'Ao tôm càng',{do:'pen',k:'tom'},30);
+  act(D.pens.bo.x,D.pens.bo.y,'Đồng cỏ bò sữa',{do:'pen',k:'bo'},34); act(D.pens.ga.x,D.pens.ga.y,'Sân gà',{do:'pen',k:'ga'},30); act(D.pens.lon.x,D.pens.lon.y,'Chuồng lợn',{do:'pen',k:'lon'},30);
+  // cổng + bến xe
+  put(A.signPost('NONG TRAI BAC TRANG','#2e5b38'),38,64.8); put(A.busStop(),44.6,66.6); block(43,65,45,65); put(A.grabSign(),36.4,67);
+  // thông
+  const pines=[...Array(6)].map((_,i)=>A.pine(i,.9+(i%3)*.12));
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const h=A.hash(x,y,77); if(g[y][x]==='F'&&h<.55) put(pines[Math.floor(A.hash(x,y,5)*pines.length)],x+.5,y+1,{tree:true});
+    else if(g[y][x]==='G'&&h<.012&&!near(g,x,y)) { put(pines[Math.floor(h*500)%pines.length],x+.5,y+1,{tree:true}); block(x,y,x,y); } }
+  function near(g,x,y){ for(let dy=-2;dy<=2;dy++) for(let dx=-2;dx<=2;dx++){ const r=g[y+dy]; if(!r||r[x+dx]!=='G') return true; } return false; }
+  const zones=[{name:'Cổng nông trại',x0:34,y0:61,x1:46,y1:69},{name:'Chợ nông trại',x0:4,y0:51,x1:33,y1:63},{name:'Ao cá hồi · ao tôm',x0:45,y0:53,x1:55,y1:65},{name:'Hồ câu cá',x0:54,y0:52,x1:76,y1:66},
+    {name:'Vườn rau',x0:4,y0:30,x1:17,y1:38},{name:'Vườn hoa',x0:18,y0:30,x1:31,y1:38},{name:'Nhà kính dâu tây',x0:4,y0:39,x1:17,y1:48},
+    {name:'Trại bò sữa',x0:45,y0:30,x1:61,y1:45},{name:'Chuồng gà',x0:62,y0:30,x1:69,y1:41},{name:'Chuồng lợn',x0:69,y0:30,x1:77,y1:42},
+    {name:'Đồi cà phê',x0:4,y0:6,x1:17,y1:27},{name:'Vườn bơ · hồng',x0:18,y0:6,x1:32,y1:17},{name:'Rừng cao su',x0:18,y0:17,x1:32,y1:27},{name:'Đồi chè',x0:32,y0:6,x1:38,y1:27},
+    {name:'Nhà bác Trang',x0:28,y0:2,x1:46,y1:8},{name:'Trại ngựa',x0:45,y0:6,x1:56,y1:17},{name:'Đồng cỏ ngựa',x0:57,y0:6,x1:77,y1:26},{name:'Trường đua ngựa',x0:45,y0:17,x1:56,y1:24}];
+  const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),...zones.filter(z=>!B.some(b=>b.name===z.name)).map(z=>({name:z.name,x:(z.x0+z.x1)/2,y:(z.y0+z.y1)/2}))];
+  return {name:'Nông trại bác Trang · Đà Lạt',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,zones,labels,lights:[],spawn:{x:D.spawn.x*T,y:D.spawn.y*T},music:'music_retreat',outdoor:true}; }
+
+/* ---------- trường đua ngựa ---------- */
+const TRACK={W:60,H:30,x0:5,x1:54,lanes:[9,11,13,15,17,19]};
+function buildTrack(){ const {W,H}=TRACK, K=kit(), {put,block,act}=K;
+  const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<1||x<1||x>=W-1?'F':y<7?'A':y<=21?'C':'G'));
+  for(let x=1;x<W-1;x++){ put(A.rail(16),x+.5,7.4); put(A.rail(16),x+.5,22.4); block(x,7,x,7); block(x,22,x,22); }
+  put(A.grandstand(W*T-40),W/2,6.4); block(1,1,W-2,5);
+  put(A.finishLine(14*T),TRACK.x1+.3,21.9,{flat:true});
+  for(const y of TRACK.lanes) put(A.label(String(TRACK.lanes.indexOf(y)+1),'#f4f1ea','#1c1516'),3.2,y+.6,{flat:true});
+  put(A.signPost('DANG KY DUA'),24,24.4); put(A.signPost('CUOC'),36,24.4);
+  act(24,25,'Đăng ký đua / cược',{do:'race'},40); act(36,25,'Đăng ký đua / cược',{do:'race'},40);
+  for(let x=1;x<W-1;x++){ if(x===29||x===30) continue; put(A.fence(false),x+.5,28.2); block(x,28,x,28); }
+  act(29.5,28.6,'Ra nông trại',{do:'exit'},28);
+  return {name:'Trường đua ngựa · Đà Lạt',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:30*T,y:25.5*T},music:'music_retreat',outdoor:true,track:TRACK}; }
+
+Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,TRACK});
+})();

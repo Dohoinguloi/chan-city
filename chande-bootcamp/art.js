@@ -46,6 +46,7 @@ const C={
   stone:['#9b968c','#86817a','#aaa59b','#5d5852'], pave:['#cbc6ba','#a9a396','#ddd8cd'],
   floor:['#b98a5c','#a37548','#c99a6a','#8e6239'], wall:['#eadfca','#d7c8ad','#8c6b4a','#4a3c34'], rug:['#b5483c','#8f3328','#e8c38a']};
 const WALKABLE=new Set(['G','P','S','R','D','K','E','T','O','M','Q','C']);
+const TILE_EXT={};   // tile bổ sung (art2.js)
 // vẽ 1 ô; nb(dx,dy) trả loại ô hàng xóm; frame dùng cho nước
 function drawTile(g,t,tx,ty,nb,frame=0){
   const X=tx*T, Y=ty*T, P=painter(g);
@@ -134,7 +135,7 @@ function drawTile(g,t,tx,ty,nb,frame=0){
     if(below==='O'||below==='M'){ P.rect(X,Y,T,T,C.wall[0]); for(let x=0;x<T;x+=8) P.rect(X+x,Y,1,T-4,C.wall[1]); P.rect(X,Y+T-4,T,4,C.wall[2]); P.rect(X,Y+T-4,T,1,'#a8865f'); }
     else { P.rect(X,Y,T,T,C.wall[3]); P.rect(X,Y,T,1,'#62524a'); }
     break; }
-  default: P.rect(X,Y,T,T,'#ff00ff');
+  default: if(TILE_EXT[t]){ TILE_EXT[t](g,X,Y,tx,ty,nb,frame,P,dither); break; } P.rect(X,Y,T,T,'#ff00ff');
   }
 }
 // viền mép ô + vài cọng cỏ lấn mép
@@ -298,6 +299,6 @@ function icon(name,scale=1){ const c=cv(14,14), g=c.getContext('2d'); g.translat
   outline(c); if(scale===1) return c; const s=cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; }
 function pickup(name){ const c=icon(name); return {c,ax:7,ay:13}; }
 
-window.ART={T,WALKABLE,drawTile,outline,hash,cv,tree,bamboo,bush,bigleaf,rock,potPlant,house,tent,domeTent,gate,car,umbrella,lounger,bench,table,bonfire,sign,lamp,kayak,platform,chicken,
+window.ART={T,WALKABLE,TILE_EXT,GL,C,painter,sprite,edges,rgb,drawTile,outline,hash,cv,tree,bamboo,bush,bigleaf,rock,potPlant,house,tent,domeTent,gate,car,umbrella,lounger,bench,table,bonfire,sign,lamp,kayak,platform,chicken,
   bed,desk,phone,wardrobe,shelf,windowWall,poster,chair,doorTile,icon,pickup,textW,drawText,sparkleMarker};
 })();

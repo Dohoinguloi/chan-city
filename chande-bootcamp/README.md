@@ -1,57 +1,48 @@
-# Chande Bootcamp
+# Chan City (game)
 
-Game top-down pixel art. Map 1 dựng theo mặt bằng thật của Ké Retreat (Đà Bắc, Hoà Bình).
+Game top-down pixel art nhiều người chơi, chạy theo giờ Việt Nam thật. Cần server trong [`../server`](../server) (xem README gốc để chạy và gửi link).
 
-## Chạy game
+## Vào game
 
-Game đọc sprite nhân vật từ `../pixel-sprite-forge/characters/`, nên phải mở qua server từ thư mục gốc dự án:
-
-```bash
-python3 -m http.server 8780 --directory /Users/kaixa/Projects/Kaixa-Poster
-```
-
-Rồi mở http://localhost:8780/chande-bootcamp/
+1. Đăng nhập bằng Google (nếu server có `GOOGLE_CLIENT_ID`) hoặc tên + mật khẩu.
+2. Tạo nhân vật: giới tính, tên, kiểu tóc, màu tóc, màu da, bộ đồ khởi đầu.
+3. Bắt đầu ở phòng riêng tại Hà Nội. Pháp gọi điện, mở Grab (G) đi Ké Retreat, chuyến đầu Pháp bao.
 
 ## Điều khiển
 
 | Phím | Việc |
 | --- | --- |
-| WASD / ↑↓←→ | Đi |
-| E / Enter | Nói chuyện, nhặt đồ, chụp ảnh, đi xe |
-| M | Bản đồ Ké Retreat (hoặc bấm vào minimap góc phải dưới) |
-| N | Bật/tắt tiếng (cũng có nút cạnh đồng hồ) |
-| Esc | Menu (âm thanh, chơi lại) |
-| T | Nói "VÃI Ò" (có từ đầu) |
-| Shift | Chạy nhanh (thưởng của Pháp) |
-| Q | Quẩy (Khá Bảnh) |
-| Space | Lướt (Đôn Chề) |
-| R | Gồng (Phú Lê) |
-| V | Soi xu 6 giây (Kenny Ho) |
-| K | Hoá Hokage Awwwards (Huy Phan) |
+| WASD / ↑↓←→ | Đi · Shift chạy (sau khi có skill) |
+| E | Nói chuyện, nhặt đồ, vào nhà, dùng đồ, tương tác với người chơi khác |
+| Enter | Chat với người xung quanh |
+| G | Gọi Grab đi map khác (mất phí, cần pin điện thoại) |
+| P | Chụp ảnh sống ảo ở chỗ đẹp, về phòng up lấy like |
+| I | Túi đồ · M bản đồ · N tắt tiếng · Esc menu |
+| H | Lên/xuống ngựa (nông trại Đà Lạt) |
+| T Q R K V Space | Skill: nói "VÃI Ò", quẩy, gồng, hoá Hokage, soi xu, lướt |
+| Space / J / X | Vật tay (bấm liên tục) · đấm khi đánh nhau · buông tay / bỏ cuộc |
 
-## Cốt truyện demo
+## Luật chính
 
-1. Mèn Mén ở phòng riêng, điện thoại reo. Pháp rủ lên Ké Retreat.
-2. Ra cửa → xe đưa từ Hà Nội lên Đà Bắc → tới Cổng Ké Retreat.
-3. Pháp chào ở Cổng rồi nhờ tìm con beagle chạy lạc lên Nền khu cắm trại.
-4. Năm người còn lại mỗi người một nhiệm vụ. Hoàn thành nhận EXP, tiền VNĐ, đồ và skill:
-
-| Người giao | Ở đâu | Nhiệm vụ | Thưởng |
-| --- | --- | --- | --- |
-| Pháp | Cổng | Tìm beagle ở Nền khu cắm trại | 80 EXP · 200.000đ · Xương gặm · Chạy nhanh |
-| Khá Bảnh | Bể bơi | Lấy loa bluetooth ở Lều 1 | 70 EXP · 100.000đ · Vòng tay bạc · Quẩy |
-| Đôn Chề | Sân lửa trại | Gom 5 bó củi dọc Đường bộ | 60 EXP · 150.000đ · Bật lửa · Lướt (đốt lửa trại) |
-| Phú Lê | Nhà ăn khu trên | Cá sông Đà, Gà đồi, Cơm lam | 100 EXP · 500.000đ · Dây chuyền vàng · Gồng |
-| Kenny Ho | Deck ngắm cảnh | Chụp 3 view: Bến hồ, Cổng, Nền cắm trại | 80 EXP · 200.000đ · Kính râm · Soi xu |
-| Huy Phan | Nhà Chiềng | Nhặt 3 tờ wireframe | 120 EXP · 300.000đ · Nón Hokage · Hoá Hokage |
-
-Xe 4 bánh ở ngoài Cổng và cạnh Nhà Mái Đá: 150.000đ/lượt (giá thật của khu nghỉ). Xong cả 6 việc là hết Ngày 1.
+- **Giờ thật:** giờ trong game là giờ Việt Nam. Ngày đêm đổi theo giờ thật.
+- **Ăn uống:** mỗi ngày 3 bữa (6–10h, 11–14h, 17–21h). Bỏ bữa thì đói, đi chậm và nhận ít EXP hơn; ăn bù được. Trà đá, cafe tăng EXP vài phút.
+- **Nhu cầu:** năng lượng, sạch sẽ, pin điện thoại giảm dần. Về phòng để nghỉ, tắm, sạc.
+- **Phòng:** mỗi người thuê 1 phòng ở Ké qua lễ tân ở Nhà Rếch 2. Phòng trả tiền theo ngày, rẻ nhất 100.000đ. Gõ cửa phòng người khác thì chủ phải đang ở trong và đồng ý; được chủ cho ngủ lại thì mới dùng giường, nhà tắm, ổ sạc.
+- **Phòng riêng (Hà Nội):** dùng laptop để vào chợ online (mua bán đồ với người khác), học kỹ năng, chat online, làm remote.
+- **Ké Retreat:** 6 nhiệm vụ của cả hội, quán ăn, cafe, shop quần áo, tiệm nông sản, câu cá, kayak (150.000đ/giờ), hái hoa lá cho cô Ké.
+  - Vườn rau: mua hạt, gieo, bán cho cô Ké. Rau chín mà quá 90 giây chưa thu thì người khác cướp được 50%.
+  - Nhà giải trí cạnh Deck: cờ vua, poker, ma sói có cược tiền.
+- **Everfit (Hà Nội):** nộp đơn, phỏng vấn 3 câu, công ty tối đa 10 người. Mỗi ngày làm 3 task, 3 ngày nhận lương 1 lần. Nghỉ Thứ Bảy, Chủ Nhật; 2 ngày remote.
+- **Nông trại bác Trang (Đà Lạt):**
+  - Trồng rau, hoa, dâu tây, cà phê, cây ăn quả, cao su.
+  - Nuôi bò sữa, gà, lợn, cá hồi, tôm.
+  - Phụ cô Lan đi chợ mua nguyên liệu rồi nấu.
+  - Chăn ngựa, cưỡi ngựa chở hàng.
+  - Trường đua: thuê ngựa, cá cược, đua kiểu Audition.
 
 ## File
 
-- `art.js`: toàn bộ pixel art (tile, nhà, cây, đồ vật, icon) vẽ bằng code, viền đen 1px như ref.
-- `world.js`: map phòng + map Ké Retreat (toạ độ theo mặt bằng), NPC, nhiệm vụ, hội thoại, skill, đồ.
-- `game.js`: engine (di chuyển 3 hướng, va chạm, camera, hội thoại, nhiệm vụ, HUD, minimap, bản đồ, âm thanh, lưu game vào localStorage).
-
-Nhân vật có sprite 3 hướng (nghiêng, nhìn xuống, nhìn lên), lấy từ sheet trong `pixel-sprite-forge/characters` (tag `idle/walk/run`, `*_down`, `*_up`). NPC quay mặt về phía Mèn Mén khi đến gần.
-- `audio/`: nhạc nền và hiệu ứng do Magnific tạo.
+- `shared/data.js`: luật, giá, map, nhiệm vụ. Dùng chung cho server và trình duyệt. `shared/chess.js`: luật cờ vua.
+- `game.js`: engine (cảnh, di chuyển, người chơi khác, HUD, ngày đêm). `ui.js`: các bảng giao diện. `lobby.js`: đăng nhập + tạo nhân vật. `net.js`: kết nối server.
+- `avatar.js`: dựng nhân vật người chơi từ template của `pixel-sprite-forge`.
+- `world.js`, `world2.js`: các map. `art.js`, `art2.js`: pixel art vẽ bằng code. `audio/`: nhạc, tiếng do Magnific tạo.
