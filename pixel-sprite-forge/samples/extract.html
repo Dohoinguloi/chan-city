@@ -1,0 +1,57 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Ref extractor</title>
+<body style="margin:0;background:#faf7ed">
+<canvas id="ov"></canvas>
+<script>
+// Đọc lưới pixel không đều của ảnh ref (AI vẽ) bằng quy hoạch động trên năng lượng cạnh,
+// rồi lấy màu chiếm ưu thế ở lõi mỗi ô. Kết quả: lưới pixel gốc của từng nhân vật.
+async function extract(src){
+  const img=await new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=src});
+  const W=img.naturalWidth,H=img.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;
+  const g=c.getContext('2d');g.drawImage(img,0,0);const d=g.getImageData(0,0,W,H).data;
+  const si=(30*W+(W>>1))*4, bg=[d[si],d[si+1],d[si+2]];
+  const isBg=(x,y)=>{const i=(y*W+x)*4;return Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2])<45;};
+  const diff=(i,j)=>Math.abs(d[i]-d[j])+Math.abs(d[i+1]-d[j+1])+Math.abs(d[i+2]-d[j+2]);
+  const occ=[];for(let x=0;x<W;x++){let n=0;for(let y=20;y<H-20;y++) if(!isBg(x,y)) n++; occ.push(n);}
+  const chars=[];let s=-1;for(let x=8;x<W-8;x++){ if(occ[x]>8&&s<0) s=x; if((occ[x]<=8||x===W-9)&&s>=0){ if(x-s>100) chars.push([s,x-1]); s=-1; } }
+  const boxes=chars.map(([a,b])=>{let t=H,bt=0;for(let y=20;y<H-20;y++)for(let x=a;x<=b;x++) if(!isBg(x,y)){if(y<t)t=y;if(y>bt)bt=y;} return [a,b,t,bt];});
+  function fit(E,a,b,mn=14,mx=23){ const n=b+1; const best=new Float64Array(n+1).fill(-1e18), prev=new Int32Array(n+1).fill(-1); best[a]=0;
+    for(let p=a+mn;p<=n;p++) for(let q=p-mx;q<=p-mn;q++){ if(q<a||best[q]<-1e17) continue; const v=best[q]+(E[p]||0); if(v>best[p]){best[p]=v;prev[p]=q;} }
+    let end=n; for(let p=n-4;p<=n;p++) if(best[p]>best[end]) end=p; const cuts=[]; for(let p=end;p!==-1;p=prev[p]){cuts.push(p); if(p===a) break;} return cuts.reverse(); }
+  const sm=E=>{const o=new Float64Array(E.length);for(let i=1;i<E.length-1;i++) o[i]=E[i]+.5*(E[i-1]+E[i+1]);return o;};
+  return boxes.map(([a,b,t,bt])=>{
+    const ce=new Float64Array(W+2), re=new Float64Array(H+2);
+    for(let y=t;y<=bt;y++)for(let x=a+1;x<=b;x++){const i=(y*W+x)*4; if(diff(i,i-4)>50) ce[x]++;}
+    for(let y=t+1;y<=bt;y++)for(let x=a;x<=b;x++){const i=(y*W+x)*4; if(diff(i,i-W*4)>50) re[y]++;}
+    const xs=fit(sm(ce),a,b), ys=fit(sm(re),t,bt), grid=[];
+    for(let r=0;r<ys.length-1;r++){ const row=[]; for(let q=0;q<xs.length-1;q++){
+      const x0=xs[q],x1=xs[q+1],y0=ys[r],y1=ys[r+1];
+      const ix0=Math.round(x0+(x1-x0)*.28), ix1=Math.round(x1-(x1-x0)*.28), iy0=Math.round(y0+(y1-y0)*.28), iy1=Math.round(y1-(y1-y0)*.28);
+      const m=new Map(); let n=0,nb=0;
+      for(let y=iy0;y<=iy1;y++)for(let x=ix0;x<=ix1;x++){const i=(y*W+x)*4; n++;
+        if(Math.abs(d[i]-bg[0])+Math.abs(d[i+1]-bg[1])+Math.abs(d[i+2]-bg[2])<14){nb++;continue;}
+        const k=(d[i]>>3)<<10|(d[i+1]>>3)<<5|(d[i+2]>>3); let e=m.get(k); if(!e){e=[0,0,0,0];m.set(k,e);} e[0]++;e[1]+=d[i];e[2]+=d[i+1];e[3]+=d[i+2];}
+      if(nb>n*.5){row.push(null);continue;} let bb=null; for(const e of m.values()) if(!bb||e[0]>bb[0]) bb=e;
+      row.push([bb[1]/bb[0]|0,bb[2]/bb[0]|0,bb[3]/bb[0]|0]); }
+      grid.push(row);}
+    return grid;
+  });
+}
+async function loadTpl(){ await new Promise(r=>{const s=document.createElement('script');s.src='../templates.js?'+Date.now();s.onload=r;document.head.appendChild(s);}); }
+function renderTpl(o,colors={}){ const T=RefTemplate, rows=T.compose(o), cols={};
+  for(const k in colors) cols[k]=typeof colors[k]==='string'?T.hx(colors[k]):colors[k];
+  const pal=T.palette(cols); return rows.map(r=>r.map(ch=>ch==='.'?null:pal[ch]||[255,0,255])); }
+function draw(grids,z){
+  const ov=document.getElementById('ov'), wsum=grids.reduce((s,g)=>s+g[0].length*z+40,0);
+  ov.width=wsum; ov.height=Math.max(...grids.map(g=>g.length))*z+30; const g=ov.getContext('2d');
+  g.fillStyle='#faf7ed'; g.fillRect(0,0,ov.width,ov.height); let ox=10;
+  for(const gr of grids){ gr.forEach((row,r)=>row.forEach((c,q)=>{ if(!c) return; g.fillStyle=`rgb(${c})`; g.fillRect(ox+q*z,10+r*z,z,z); }));
+    g.strokeStyle='rgba(0,120,255,.25)'; for(let x=0;x<=gr[0].length;x++){g.beginPath();g.moveTo(ox+x*z+.5,10);g.lineTo(ox+x*z+.5,10+gr.length*z);g.stroke();}
+    for(let y=0;y<=gr.length;y++){g.beginPath();g.moveTo(ox,10+y*z+.5);g.lineTo(ox+gr[0].length*z,10+y*z+.5);g.stroke();}
+    g.fillStyle='#555';g.font='9px monospace'; for(let y=0;y<gr.length;y+=1) g.fillText(y,ox-9>0?ox-12:0,10+y*z+10);
+    for(let x=0;x<gr[0].length;x++) g.fillText(x%10,ox+x*z+3,10+gr.length*z+11);
+    ox+=gr[0].length*z+40; }
+}
+</script>
+</body>

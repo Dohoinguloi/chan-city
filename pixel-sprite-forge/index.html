@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pixel Sprite Forge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: sidebar điều khiển bên trái | xưởng bên phải: nguồn → sprite → animation → sân thử + thông số engine */
+:root{
+  --bg:#16121b; --panel:#1f1a26; --panel2:#2a2333; --line:#3a3146; --fg:#efe7dd; --muted:#a397ad;
+  --accent:#46b9a4; --accent-ink:#0b231e; --warn:#e66a55; --check1:#e6dccb; --check2:#efe8da;
+  --f-display:'Pixelify Sans','Courier New',monospace;
+  --f-body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.5 var(--f-body)}
+header.top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+.brand{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:.02em;margin:0}
+.brand b{color:var(--accent);font-weight:700}
+.tag{color:var(--muted);font-size:13px;margin:0}
+.app{display:grid;grid-template-columns:310px minmax(0,1fr)}
+aside{border-right:1px solid var(--line);padding:4px 16px 24px;position:sticky;top:0;height:100vh;overflow:auto}
+main{padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px;align-content:start;min-width:0}
+@media (max-width:900px){.app{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+.grp{display:grid;gap:10px;padding-block:14px;border-bottom:1px dashed var(--line)}
+.grp h3{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0}
+label.row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-size:13px;align-items:center}
+label.row input[type=range]{grid-column:1/-1;width:100%}
+label.row select{grid-column:1/-1}
+label.chk{display:flex;gap:8px;align-items:center;font-size:13px}
+output{font:12px var(--f-mono);color:var(--accent);font-variant-numeric:tabular-nums}
+input[type=range],input[type=checkbox]{accent-color:var(--accent)}
+select,input[type=text],input[type=number]{font:13px var(--f-body);background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:6px 8px;width:100%}
+input[type=color]{width:34px;height:30px;padding:0;border:1px solid var(--line);border-radius:4px;background:var(--panel2)}
+.btn{font:500 13px var(--f-body);background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-weight:600}
+.btn[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.sm{padding:3px 8px;font-size:12px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.hint{color:var(--muted);font-size:12.5px;margin:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;display:grid;gap:10px;min-width:0;align-content:start}
+.card h2{font:500 17px var(--f-display);margin:0;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;text-wrap:balance}
+.card h2 small{font:12px var(--f-mono);color:var(--muted)}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px}
+@media (max-width:1150px){.row2{grid-template-columns:1fr}}
+.checker{background-color:var(--check2);background-image:conic-gradient(var(--check1) 25%,transparent 0 50%,var(--check1) 0 75%,transparent 0);background-size:16px 16px}
+canvas{image-rendering:pixelated;display:block;max-width:100%}
+.stage{display:flex;justify-content:center;align-items:center;min-height:240px;border-radius:4px;overflow:auto;padding:8px}
+#srcCanvas{max-height:440px;width:auto;height:auto;cursor:crosshair}
+#editor{cursor:crosshair;touch-action:none}
+.anims{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.anim{background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:8px;display:grid;gap:6px}
+.anim .stage{min-height:0;height:150px;padding:4px}
+.anim .hd{display:flex;justify-content:space-between;align-items:center;font:12px var(--f-mono);gap:6px}
+.anim .hd b{font-weight:500;color:var(--fg)}
+.anim .hd span{color:var(--muted)}
+.anim label{display:flex;align-items:center;gap:6px;font:12px var(--f-mono);color:var(--muted)}
+.anim input{width:58px;padding:3px 6px}
+dl.spec{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;margin:0;font-size:13px}
+dl.spec dt{color:var(--muted)}
+dl.spec dd{margin:0;font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+dl.spec .sec{grid-column:1/-1;font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.12em;color:var(--accent);padding-top:8px;border-top:1px dashed var(--line);margin-top:4px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.swatches{display:flex;flex-wrap:wrap;gap:4px}
+.colgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+.colin{display:flex;align-items:center;gap:6px;font-size:12.5px}
+.colin input{width:28px;height:24px}
+.colin.set span::after{content:" •";color:var(--accent)}
+.sw{width:22px;height:22px;border-radius:3px;border:1px solid var(--line);cursor:pointer;padding:0}
+.sw[aria-pressed=true]{outline:2px solid var(--fg);outline-offset:1px}
+#play{width:100%;height:300px;border-radius:4px;background:var(--panel2)}
+#play:focus{outline:none;box-shadow:0 0 0 2px var(--accent)}
+kbd{font:11px var(--f-mono);background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:0 5px}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:20px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);font-weight:600;padding:8px 14px;border-radius:4px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.on{opacity:1}
+body.drag::after{content:"Thả ảnh vào đây";position:fixed;inset:0;display:grid;place-items:center;font:700 28px var(--f-display);background:rgba(22,18,27,.85);color:var(--accent);border:3px dashed var(--accent);z-index:30}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="brand">Pixel <b>Sprite</b> Forge</h1>
+  <p class="tag">Ảnh → sprite pixel chibi → animation + sprite sheet cho game</p>
+</header>
+<div class="app">
+<aside>
+  <div class="grp">
+    <h3>1 · Nhân vật</h3>
+    <label class="row">Danh sách nhân vật
+      <select id="preset" data-k="preset"><option value="">— Theo ảnh nhập —</option><option value="menmen">Mèn Mén</option><option value="phule">Phú Lê</option><option value="donche">Đôn Chề</option><option value="khabanh">Khá Bảnh</option><option value="kennyho">Kenny Ho</option><option value="huyphan">Huy Phan</option><option value="phap">Pháp</option></select>
+    </label>
+    <label class="row" id="formRow" hidden>Form đầu
+      <select id="form" data-k="form"></select>
+    </label>
+    <p class="hint">Chọn nhân vật có sẵn, hoặc nhập ảnh để tạo nhân vật mới.</p>
+    <div class="btns">
+      <label class="btn pri" for="file">Nhập ảnh…</label>
+      <input id="file" type="file" accept="image/*" hidden>
+      <button class="btn" id="sampleBtn" type="button">Ảnh mẫu</button>
+    </div>
+    <p class="hint">Kéo thả hoặc dán (⌘V) ảnh. Ảnh nhiều nhân vật: bấm vào nhân vật cần tách, giữ Shift để chọn thêm.</p>
+    <label class="row">Xoá nền
+      <select id="bg" data-k="bg"><option value="auto">Tự động (loang từ mép)</option><option value="global">Xoá mọi pixel cùng màu nền</option><option value="none">Giữ nguyên</option></select>
+    </label>
+    <label class="row">Độ nhạy màu nền <output></output><input id="bgTol" type="range" min="4" max="120" data-k="bgTol"></label>
+  </div>
+
+  <div class="grp">
+    <h3>2 · Khung &amp; tỉ lệ</h3>
+    <label class="row">Khung frame
+      <select id="frame" data-k="frame"><option value="32x48">32 × 48 (RPG Maker)</option><option value="32x32">32 × 32</option><option value="48x64">48 × 64</option><option value="64x64">64 × 64</option><option value="auto">Tự do (theo chiều cao)</option></select>
+    </label>
+    <label class="row">Chiều cao sprite (chế độ tự do) <output></output><input id="height" type="range" min="12" max="128" data-k="height"></label>
+    <label class="chk"><input id="chibi" type="checkbox" data-k="chibi"> Chibi: phóng to đầu</label>
+    <label class="row">Đầu chiếm (% chiều cao) <output></output><input id="headFrac" type="range" min="0.3" max="0.6" step="0.01" data-k="headFrac"></label>
+    <label class="row">Vạch cổ trên ảnh gốc <output></output><input id="neck" type="range" min="0" max="0.55" step="0.01" data-k="neck"></label>
+    <p class="hint">Kéo vạch cổ về 0 để tự dò. Vạch đỏ trên ảnh nguồn là chỗ cắt đầu/thân.</p>
+    <label class="row">Độ bè thân <output></output><input id="stub" type="range" min="1" max="2.2" step="0.05" data-k="stub"></label>
+  </div>
+
+  <div class="grp">
+    <h3>3 · Màu &amp; độ phẳng</h3>
+    <label class="row">Cách chuyển
+      <select id="style" data-k="style"><option value="template">Template chung như ref (phân tích + mặc đồ)</option><option value="material">Phân tích vật liệu, flat 2 tông</option><option value="direct">Lấy mẫu trực tiếp (giữ chi tiết)</option></select>
+    </label>
+    <div id="tplBox" style="display:grid;gap:10px">
+      <p class="hint">Mọi nhân vật dùng chung khung 20×35 vẽ lại từ ref: đầu to, 3/4 nhìn phải, mắt 1×2, tay gần 3px. Ảnh chỉ cho màu và kiểu đồ; tool tự đoán, sai thì chỉnh ở đây.</p>
+      <label class="row">Tóc / mũ <select id="hair" data-k="hair"><option value="auto">Tự đoán</option><option value="swept">Vuốt lệch (như ref vest)</option><option value="messy">Rối (như ref kính)</option><option value="fringe">Mái dày, hai bên cạo</option><option value="undercut">Undercut</option><option value="shag">Rối dài phủ tai (như Pháp cam)</option><option value="bowl">Tóc nấm mái bằng</option><option value="fade">Phồng, hai bên fade (như Kenny Ho)</option><option value="buzz">Đầu đinh</option><option value="bald">Đầu trọc</option><option value="cap">Mũ lưỡi trai</option><option value="ponytail">Đuôi ngựa (như ref y tá)</option><option value="long">Tóc dài xoã</option><option value="bun">Búi tóc</option><option value="afro">Xoăn bồng</option></select></label>
+      <label class="row">Áo <select id="top" data-k="top"><option value="auto">Tự đoán</option><option value="tee">Áo thun tay ngắn</option><option value="long">Áo tay dài</option><option value="jacket">Áo khoác</option><option value="cardigan">Cardigan mở rộng</option><option value="suit">Vest + sơ mi + cà vạt</option></select></label>
+      <label class="row">Quần <select id="bottom" data-k="bottom"><option value="auto">Tự đoán</option><option value="pants">Quần dài</option><option value="shorts">Quần short</option><option value="skirt">Váy</option></select></label>
+      <label class="row">Kính <select id="glasses" data-k="glasses"><option value="auto">Tự đoán</option><option value="yes">Kính cận</option><option value="sun">Kính râm</option><option value="no">Không</option></select></label>
+      <label class="row">Cổ lọ <select id="turtle" data-k="turtle"><option value="auto">Tự đoán</option><option value="yes">Có</option><option value="no">Không</option></select></label>
+      <label class="row">Dây chuyền <select id="chain" data-k="chain"><option value="auto">Tự đoán</option><option value="yes">Có</option><option value="no">Không</option></select></label>
+      <label class="row">Khẩu trang <select id="mask" data-k="mask"><option value="auto">Tự đoán</option><option value="yes">Có</option><option value="no">Không</option></select></label>
+      <div class="btns">
+        <label class="chk"><input id="brows" type="checkbox" data-k="brows"> Chân mày</label>
+        <label class="chk"><input id="earring" type="checkbox" data-k="earring"> Khuyên tai</label>
+        <label class="chk"><input id="watch" type="checkbox" data-k="watch"> Đồng hồ</label>
+        <label class="chk"><input id="bracelet" type="checkbox" data-k="bracelet"> Vòng tay vàng</label>
+        <label class="chk"><input id="tattoo" type="checkbox" data-k="tattoo"> Xăm tay</label>
+        <label class="chk"><input id="print" type="checkbox" data-k="print"> Hình in ngực</label>
+        <label class="chk"><input id="plaid" type="checkbox" data-k="plaid"> Áo caro</label>
+        <label class="chk"><input id="floral" type="checkbox" data-k="floral"> Sơ mi hoa</label>
+        <label class="chk"><input id="tie" type="checkbox" data-k="tie"> Cà vạt (áo thun / tay dài)</label>
+        <label class="chk"><input id="capPattern" type="checkbox" data-k="capPattern"> Hoạ tiết mũ</label>
+        <label class="chk"><input id="capWeb" type="checkbox" data-k="capWeb"> Sọc xanh-đỏ mũ</label>
+        <label class="chk"><input id="leather" type="checkbox" data-k="leather"> Quần da bóng</label>
+        <label class="chk"><input id="rips" type="checkbox" data-k="rips"> Jean rách gối</label>
+        <label class="chk"><input id="cigarette" type="checkbox" data-k="cigarette"> Điếu thuốc</label>
+        <label class="chk"><input id="prop" type="checkbox" data-k="prop"> Cầm đồ đỏ (khi quẩy)</label>
+        <label class="chk"><input id="quay" type="checkbox" data-k="quay"> Tư thế Quẩy</label>
+        <label class="chk"><input id="noi" type="checkbox" data-k="noi"> Nói (khung chat VÃI Ò)</label>
+        <label class="chk"><input id="hokage" type="checkbox" data-k="hokage"> Hoá Hokage Awwwards</label>
+        <label class="chk"><input id="idcard" type="checkbox" data-k="idcard"> Thẻ đeo cổ</label>
+      </div>
+      <label class="row">Thú cưng <select id="pet" data-k="pet"><option value="">Không</option><option value="beagle">Chó beagle (đi theo)</option></select></label>
+      <label class="row">Râu <select id="beard" data-k="beard"><option value="auto">Theo nhân vật</option><option value="none">Không</option><option value="mustache">Ria mép</option><option value="goatee">Ria + chòm cằm</option></select></label>
+      <label class="row">Miệng <select id="mouth" data-k="mouth"><option value="line">Thẳng</option><option value="smirk">Nhếch mép</option><option value="smile">Cười tươi</option></select></label>
+      <div class="colgrid" id="colGrid">
+        <label class="colin"><input type="color" id="col-skin" data-g="skin"><span>Da</span></label><label class="colin"><input type="color" id="col-hair" data-g="hair"><span>Tóc</span></label><label class="colin"><input type="color" id="col-cap" data-g="cap"><span>Mũ</span></label><label class="colin"><input type="color" id="col-top" data-g="top"><span>Áo / khoác</span></label><label class="colin"><input type="color" id="col-inner" data-g="inner"><span>Áo trong</span></label><label class="colin"><input type="color" id="col-shirt" data-g="shirt"><span>Sơ mi</span></label><label class="colin"><input type="color" id="col-tie" data-g="tie"><span>Cà vạt</span></label><label class="colin"><input type="color" id="col-pants" data-g="pants"><span>Quần</span></label><label class="colin"><input type="color" id="col-shoes" data-g="shoes"><span>Giày</span></label><label class="colin"><input type="color" id="col-gold" data-g="gold"><span>Dây chuyền</span></label><label class="colin"><input type="color" id="col-mask" data-g="mask"><span>Khẩu trang</span></label><label class="colin"><input type="color" id="col-print" data-g="print"><span>Hình in / chỉ đỏ</span></label><label class="colin"><input type="color" id="col-line" data-g="line"><span>Sọc caro</span></label><label class="colin"><input type="color" id="col-tattoo" data-g="tattoo"><span>Mực xăm 1</span></label><label class="colin"><input type="color" id="col-tattoo2" data-g="tattoo2"><span>Mực xăm 2</span></label><label class="colin"><input type="color" id="col-buckle" data-g="buckle"><span>Khoá thắt lưng</span></label><label class="colin"><input type="color" id="col-watch" data-g="watch"><span>Đồng hồ</span></label>
+      </div>
+      <button class="btn sm" id="colReset" type="button">Màu theo ảnh</button>
+    </div>
+    <p class="hint" id="styleHint">Mỗi khối (da, tóc, áo, quần…) có 1 màu nền + 1 màu bóng. Số màu = tổng số tông, nên số vật liệu bằng một nửa.</p>
+    <label class="row">Ngưỡng đổ bóng <output></output><input id="shadeTh" type="range" min="0" max="50" data-k="shadeTh"></label>
+    <label class="chk"><input id="light" type="checkbox" data-k="light"> Bóng theo hướng sáng (trên-trái)</label>
+    <label class="row">Bảng màu
+      <select id="palette" data-k="palette"><option value="auto">Tự tính từ ảnh</option><option value="sweetie16">Sweetie 16</option><option value="endesga32">Endesga 32</option><option value="pico8">PICO-8</option><option value="gb">Game Boy</option></select>
+    </label>
+    <label class="row">Số màu <output></output><input id="colors" type="range" min="2" max="32" data-k="colors"></label>
+    <label class="row">Lấy mẫu
+      <select id="down" data-k="down"><option value="dominant">Màu chiếm ưu thế (gọn)</option><option value="average">Trung bình (mượt)</option><option value="nearest">Điểm giữa (ảnh đã là pixel)</option></select>
+    </label>
+    <label class="row">Giữ nét tối (mắt, chân mày) <output></output><input id="detail" type="range" min="0" max="0.6" step="0.02" data-k="detail"></label>
+    <label class="row">Bão hoà <output></output><input id="sat" type="range" min="0.5" max="1.8" step="0.05" data-k="sat"></label>
+    <label class="row">Tương phản <output></output><input id="con" type="range" min="0.6" max="1.6" step="0.02" data-k="con"></label>
+    <label class="row">Làm phẳng texture <output></output><input id="flat" type="range" min="0" max="4" step="1" data-k="flat"></label>
+    <label class="chk"><input id="cleanup" type="checkbox" data-k="cleanup"> Dọn pixel lẻ</label>
+  </div>
+
+  <div class="grp">
+    <h3>4 · Viền</h3>
+    <label class="row">Viền ngoài
+      <select id="outline" data-k="outline"><option value="dark">Tối theo màu kề (kiểu RPG)</option><option value="black">Đen</option><option value="none">Không</option></select>
+    </label>
+    <label class="chk"><input id="outline8" type="checkbox" data-k="outline8"> Viền góc chéo (dày hơn)</label>
+    <label class="chk"><input id="inner" type="checkbox" data-k="inner"> Nét trong tách khối</label>
+    <label class="row">Độ khác màu để kẻ nét trong <output></output><input id="innerTh" type="range" min="10" max="120" data-k="innerTh"></label>
+    <label class="chk"><input id="legLine" type="checkbox" data-k="legLine"> Kẻ nét giữa 2 chân</label>
+  </div>
+  <div class="grp">
+    <h3>Mặt theo ref</h3>
+    <label class="chk"><input id="eyes" type="checkbox" data-k="eyes"> Vẽ lại mắt 1×2 px + miệng 2 px</label>
+    <label class="row">Hướng mặt
+      <select id="look" data-k="look"><option value="right">3/4 nhìn sang phải</option><option value="front">Chính diện</option></select>
+    </label>
+    <label class="row">Che phủ tối thiểu <output></output><input id="alphaThr" type="range" min="0.1" max="0.9" step="0.05" data-k="alphaThr"></label>
+  </div>
+
+  <div class="grp">
+    <h3>5 · Rig animation</h3>
+    <label class="row">Vạch hông (chân bắt đầu) <output></output><input id="waist" type="range" min="0.45" max="0.92" step="0.01" data-k="waist"></label>
+    <label class="row">Nhân vật nhìn về
+      <select id="face" data-k="face" data-num><option value="1">Phải</option><option value="-1">Trái</option></select>
+    </label>
+    <label class="row">Kiểu bước
+      <select id="walk" data-k="walk"><option value="front">Chính diện (nhấc chân)</option><option value="side">Nghiêng (sải chân)</option></select>
+    </label>
+  </div>
+
+  <div class="grp">
+    <h3>6 · Xuất</h3>
+    <label class="row">Tên file<input id="name" type="text" data-k="name" style="grid-column:1/-1"></label>
+    <label class="row">Phóng to khi xuất
+      <select id="scale" data-k="scale" data-num><option value="1">×1 (gốc, dùng cho engine)</option><option value="2">×2</option><option value="4">×4</option><option value="8">×8</option></select>
+    </label>
+    <div class="btns">
+      <button class="btn pri" id="exSheet" type="button">Sprite sheet PNG</button>
+      <button class="btn" id="exJson" type="button">JSON</button>
+      <button class="btn" id="exSingle" type="button">Sprite đơn</button>
+      <button class="btn" id="cpJson" type="button">Chép JSON</button>
+    </div>
+    <p class="hint">JSON theo định dạng Aseprite (frames + frameTags), đọc được bằng Phaser, Godot importer, Unity Aseprite importer.</p>
+  </div>
+</aside>
+
+<main>
+  <div class="row2">
+    <section class="card">
+      <h2>Ảnh nguồn <small id="srcInfo">–</small></h2>
+      <div class="stage checker"><canvas id="srcCanvas" width="10" height="10"></canvas></div>
+      <div class="btns"><button class="btn sm" id="selAll" type="button">Dùng tất cả nhân vật</button></div>
+    </section>
+    <section class="card">
+      <h2>Sprite <small id="sprInfo">–</small></h2>
+      <div class="tools">
+        <button class="btn sm" data-tool="pen" aria-pressed="true" type="button">Bút</button>
+        <button class="btn sm" data-tool="erase" aria-pressed="false" type="button">Tẩy</button>
+        <button class="btn sm" data-tool="fill" aria-pressed="false" type="button">Đổ màu</button>
+        <button class="btn sm" data-tool="pick" aria-pressed="false" type="button">Hút màu</button>
+        <input type="color" id="penColor" aria-label="Màu bút">
+        <button class="btn sm" id="undo" type="button">Hoàn tác</button>
+        <button class="btn sm" id="clearEd" type="button">Bỏ chỉnh sửa</button>
+      </div>
+      <div class="stage" id="edWrap"><canvas id="editor" class="checker" width="10" height="10"></canvas></div>
+      <div class="tools">
+        <div class="swatches" id="swatches"></div>
+      </div>
+      <div class="tools">
+        <span class="hint">Thay màu ô đang chọn bằng</span><input type="color" id="replColor" aria-label="Màu thay thế"><button class="btn sm" id="replBtn" type="button">Thay toàn bộ</button>
+      </div>
+      <p class="hint">Chuột phải = tẩy. Đường đứt xanh là vạch hông, đường dọc là chỗ tách 2 chân để rig bước đi.</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Animation <small id="animInfo">–</small></h2>
+    <div class="anims" id="anims"></div>
+  </section>
+
+  <div class="row2">
+    <section class="card">
+      <h2>Sân thử <small><label class="chk" style="display:inline-flex"><input type="checkbox" id="showHit"> hitbox</label></small></h2>
+      <div class="tools">
+        <button class="btn sm" data-mode="platform" aria-pressed="true" type="button">Platformer</button>
+        <button class="btn sm" data-mode="top" aria-pressed="false" type="button">Top-down</button>
+        <span class="hint">Bấm vào sân rồi dùng <kbd>←</kbd><kbd>→</kbd>/<kbd>A</kbd><kbd>D</kbd> đi, <kbd>Shift</kbd> chạy, <kbd>Space</kbd> nhảy, <kbd>J</kbd> đánh, <kbd>H</kbd> trúng đòn, <kbd>Q</kbd> quẩy, <kbd>T</kbd> nói, <kbd>K</kbd> hoá Hokage, <kbd>F</kbd> hoá Saiyan đổi form</span>
+      </div>
+      <canvas id="play" tabindex="0" aria-label="Sân thử nhân vật"></canvas>
+    </section>
+    <section class="card">
+      <h2>Thông số cho engine</h2>
+      <dl class="spec" id="spec"></dl>
+    </section>
+  </div>
+</main>
+</div>
+<div id="toast" role="status"></div>
+
+<script src="templates.js"></script>
+<script>
+(()=>{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const S={bg:'auto',bgTol:40,frame:'32x48',height:48,chibi:true,headFrac:0.44,neck:0,stub:1.35,
+  style:'template',preset:'menmen',hair:'auto',top:'auto',bottom:'auto',glasses:'auto',mask:'auto',chain:'auto',turtle:'auto',earring:false,watch:false,brows:true,bracelet:false,tattoo:false,print:false,plaid:false,capPattern:false,capWeb:false,leather:false,rips:false,cigarette:false,prop:false,quay:false,noi:false,floral:false,tie:false,hokage:false,idcard:false,form:'',beard:'auto',pet:'',mouth:'line',col:{},shadeTh:12,light:true,palette:'auto',colors:12,down:'dominant',detail:0.28,sat:1.15,con:1.08,flat:4,cleanup:true,
+  outline:'dark',outline8:false,inner:true,innerTh:45,legLine:true,eyes:true,look:'right',alphaThr:0.45,waist:0.74,face:1,walk:'front',
+  name:'men_men',scale:1,fps:{idle:4,walk:8,run:12,jump:10,attack:12,hurt:8,quay:8,noi:6,hokage:8,saiyan:8,idle_down:4,walk_down:8,run_down:12,idle_up:4,walk_up:8,run_up:12,beagle_idle:6,beagle_walk:8,beagle_run:12,beagle_sit:3}};
+const LEVEL={bg:3,bgTol:3,frame:2,height:2,chibi:2,headFrac:2,neck:2,stub:2,palette:2,colors:2,down:2,detail:2,style:2,preset:2,hair:2,top:2,bottom:2,glasses:2,mask:2,chain:2,turtle:2,earring:2,watch:2,brows:2,bracelet:2,tattoo:2,print:2,plaid:2,capPattern:2,capWeb:2,leather:2,rips:2,cigarette:2,prop:2,quay:2,noi:2,floral:2,tie:2,hokage:2,idcard:2,form:2,beard:2,pet:1,mouth:2,shadeTh:2,light:2,sat:2,con:2,flat:2,cleanup:2,inner:2,innerTh:2,legLine:1,eyes:2,look:2,alphaThr:2,outline:1,outline8:1,waist:1,face:1,walk:1,name:0,scale:0};
+const PALETTES={
+  pico8:['000000','1d2b53','7e2553','008751','ab5236','5f574f','c2c3c7','fff1e8','ff004d','ffa300','ffec27','00e436','29adff','83769c','ff77a8','ffccaa'],
+  sweetie16:['1a1c2c','5d275d','b13e53','ef7d57','ffcd75','a7f070','38b764','257179','29366f','3b5dc9','41a6f6','73eff7','f4f4f4','94b0c2','566c86','333c57'],
+  endesga32:['be4a2f','d77643','ead4aa','e4a672','b86f50','733e39','3e2731','a22633','e43b44','f77622','feae34','fee761','63c74d','3e8948','265c42','193c3e','124e89','0099db','2ce8f5','ffffff','c0cbdc','8b9bb4','5a6988','3a4466','262b44','181425','ff0044','68386c','b55088','f6757a','e8b796','c28569'],
+  gb:['0f380f','306230','8bac0f','9bbc0f']};
+
+// màu đóng gói little-endian cho Uint32 trên ImageData
+const pk=(r,g,b,a=255)=>((a<<24)|(b<<16)|(g<<8)|r)>>>0;
+const cR=v=>v&255, cG=v=>(v>>>8)&255, cB=v=>(v>>>16)&255, cA=v=>v>>>24;
+const lum=v=>.299*cR(v)+.587*cG(v)+.114*cB(v);
+const hex=v=>'#'+[cR(v),cG(v),cB(v)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const fromHex=h=>{h=h.replace('#','');return pk(parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16));};
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+function dist(r1,g1,b1,r2,g2,b2){const rm=(r1+r2)/2,dr=r1-r2,dg=g1-g2,db=b1-b2;return (2+rm/256)*dr*dr+4*dg*dg+(2+(255-rm)/256)*db*db;}
+const distV=(a,b)=>dist(cR(a),cG(a),cB(a),cR(b),cG(b),cB(b));
+
+/* ---------- Bind controls ---------- */
+$$('[data-k]').forEach(el=>{
+  const k=el.dataset.k;
+  if(el.type==='checkbox') el.checked=S[k]; else el.value=S[k];
+  const out=el.closest('label')?.querySelector('output');
+  const show=()=>{ if(out) out.textContent=fmt(k,S[k]); };
+  show();
+  el.addEventListener(el.type==='text'?'change':'input',()=>{
+    let v=el.type==='checkbox'?el.checked:(el.type==='range'||'num' in el.dataset)?+el.value:el.value;
+    S[k]=v; show(); syncDisabled(); schedule(LEVEL[k]);
+  });
+});
+function fmt(k,v){
+  if(k==='neck'&&!v) return 'tự dò';
+  if(k==='detail') return v? Math.round(v*100)+'%':'tắt';
+  if(k==='headFrac'||k==='neck'||k==='waist'||k==='alphaThr') return Math.round(v*100)+'%';
+  if(k==='height') return v+' px';
+  if(k==='sat'||k==='con'||k==='stub') return '×'+(+v).toFixed(2);
+  if(k==='flat') return v? v+' lượt':'tắt';
+  return String(v);
+}
+function syncDisabled(){
+  const mat=S.style==='material';
+  $('#colors').disabled=!mat&&S.palette!=='auto'; $('#palette').disabled=mat; $('#down').disabled=mat;
+  $('#shadeTh').disabled=!mat; $('#light').disabled=!mat; $('#styleHint').hidden=!mat;
+  $('#tplBox').hidden=S.style!=='template';
+  $('#height').disabled=S.frame!=='auto';
+  ['#headFrac','#neck','#stub'].forEach(s=>$(s).disabled=!S.chibi);
+}
+syncDisabled();
+
+/* ---------- Bảng template: nhãn, màu từng phần, dựng sẵn ---------- */
+const LBL={swept:'tóc vuốt lệch',messy:'tóc rối',fringe:'mái dày cạo hai bên',undercut:'undercut',fade:'phồng fade',shag:'tóc rối dài',bowl:'tóc nấm',buzz:'đầu đinh',bald:'đầu trọc',cap:'mũ lưỡi trai',
+  ponytail:'đuôi ngựa',long:'tóc dài',bun:'búi tóc',afro:'xoăn bồng',tee:'áo thun',jacket:'áo khoác',cardigan:'cardigan',suit:'vest + cà vạt',
+  pants:'quần dài',shorts:'quần short',skirt:'váy',glasses:'kính',mask:'khẩu trang',chain:'dây chuyền',turtle:'cổ lọ',earring:'khuyên tai',watch:'đồng hồ',
+  bracelet:'vòng vàng',tattoo:'xăm tay',print:'hình in',plaid:'caro',capPattern:'hoạ tiết mũ',capWeb:'sọc mũ',leather:'quần da',rips:'jean rách',cigarette:'điếu thuốc',prop:'cầm đồ',quay:'quẩy',noi:'nói',floral:'sơ mi hoa',tie:'cà vạt',hokage:'hoá Hokage',idcard:'thẻ đeo'};
+LBL.long_top='áo tay dài'; LBL.sun='kính râm';
+function syncTplUI(){
+  if(!lastAn||!lastAn.opts) return;
+  const o=lastAn.opts, g=lastAn.guess||{}, pr=S.preset?RefTemplate.presetData(S.preset,S.form):null;
+  for(const k of ['hair','top','bottom','glasses','mask','chain','turtle']){
+    const el=$('#'+k), op=el&&el.querySelector('option[value="auto"]'); if(!op) continue;
+    const v=o[k], lab=typeof v==='boolean'?(v?'có':'không'):(k==='top'&&v==='long'?LBL.long_top:LBL[v]||v);
+    op.textContent=(pr?'Theo '+pr.name:g[k]!==undefined?'Tự đoán':'Mặc định')+` (${lab})`; }
+  $$('#colGrid input').forEach(inp=>{ const gname=inp.dataset.g, key=RefTemplate.GROUPS[gname][0], c=lastAn.pal&&lastAn.pal[key];
+    if(c&&document.activeElement!==inp) inp.value='#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');
+    inp.closest('.colin').classList.toggle('set',!!S.col[gname]); });
+}
+$$('#colGrid input').forEach(inp=>inp.addEventListener('input',()=>{ S.col[inp.dataset.g]=inp.value.slice(1); schedule(2); }));
+$('#colReset').onclick=()=>{ S.col={}; schedule(2); };
+const DETAIL_KEYS=['earring','watch','bracelet','tattoo','print','plaid','capPattern','capWeb','leather','rips','cigarette','prop','quay','noi','floral','tie','hokage','idcard'];
+function applyPreset(){
+  for(const k of ['hair','top','bottom','glasses','mask','chain','turtle']){ S[k]='auto'; $('#'+k).value='auto'; }
+  S.col={}; const base=RefTemplate.PRESETS[S.preset];
+  if(base&&base.forms){ if(!base.forms[S.form]) S.form=Object.keys(base.forms)[0];
+    $('#form').innerHTML=Object.entries(base.forms).map(([k,f])=>`<option value="${k}">${f.label}</option>`).join(''); $('#form').value=S.form; }
+  $('#formRow').hidden=!(base&&base.forms);
+  const pr=RefTemplate.presetData(S.preset,S.form), po=pr?pr.opts:{};
+  for(const k of DETAIL_KEYS){ S[k]=!!po[k]; $('#'+k).checked=S[k]; }
+  S.brows=po.brows!==false; $('#brows').checked=S.brows; S.mouth=po.mouth||'line'; $('#mouth').value=S.mouth; S.beard='auto'; $('#beard').value='auto'; S.pet=po.pet||''; $('#pet').value=S.pet;
+  if(pr){ S.name=pr.file; $('#name').value=pr.file; S.style='template'; $('#style').value='template'; syncDisabled(); }
+  if(!RAW) $('#srcInfo').textContent=pr?`Chưa có ảnh · đang xem ${pr.name}`:'Chưa có ảnh';
+}
+$('#preset').addEventListener('input',()=>{ S.form=''; applyPreset(); });
+$('#form').addEventListener('input',applyPreset);
+
+let raf=0,pending=0;
+function schedule(l){ if(l==null) return; pending=Math.max(pending,l); if(!raf) raf=requestAnimationFrame(run); }
+function run(){ raf=0; const l=pending; pending=0;
+  const presetOnly=S.style==='template'&&S.preset;
+  if(!RAW&&!presetOnly) return;
+  if(presetOnly&&(!RAW||selSet.size===0&&!SRC)){ if(l>=2) stageTpl(null); if(l>=1) stageC(); return; }
+  if(l>=3) stageA(); if(l>=2) stageB(); if(l>=1) stageC(); }
+
+/* ---------- Stage A: nền + tách nhân vật ---------- */
+let RAW=null, SRC=null, srcBase=null, autoPick=false; const selSet=new Set();
+function setImage(img){
+  let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+  const k=Math.min(1,1000/Math.max(w,h)); w=Math.max(1,Math.round(w*k)); h=Math.max(1,Math.round(h*k));
+  const c=document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d');
+  g.imageSmoothingEnabled=k<1; g.drawImage(img,0,0,w,h);
+  RAW={w,h,data:g.getImageData(0,0,w,h).data}; selSet.clear(); autoPick=true;
+  if(S.preset){ S.preset=''; $('#preset').value=''; applyPreset(); }
+  schedule(3);
+}
+function stageA(){
+  const {w,h,data}=RAW, n=w*h, mask=new Uint8Array(n);
+  for(let i=0;i<n;i++) mask[i]=data[i*4+3]>127?1:0;
+  if(S.bg!=='none'){
+    const bgs=[];
+    for(const [x,y] of [[0,0],[w-1,0],[0,h-1],[w-1,h-1]]){
+      const j=(y*w+x)*4; if(data[j+3]<128) continue;
+      const c=[data[j],data[j+1],data[j+2]];
+      if(!bgs.some(b=>Math.abs(b[0]-c[0])+Math.abs(b[1]-c[1])+Math.abs(b[2]-c[2])<24)) bgs.push(c);
+    }
+    if(bgs.length){
+      const t=S.bgTol;
+      const isBg=i=>{const j=i*4;for(const b of bgs){if(Math.abs(data[j]-b[0])<=t&&Math.abs(data[j+1]-b[1])<=t&&Math.abs(data[j+2]-b[2])<=t)return true;}return false;};
+      if(S.bg==='global'){ for(let i=0;i<n;i++) if(mask[i]&&isBg(i)) mask[i]=0; }
+      else{
+        const seen=new Uint8Array(n), st=new Int32Array(n); let sp=0;
+        const push=i=>{ if(seen[i]) return; seen[i]=1; if(!mask[i]||isBg(i)) st[sp++]=i; };
+        for(let x=0;x<w;x++){push(x);push((h-1)*w+x);}
+        for(let y=0;y<h;y++){push(y*w);push(y*w+w-1);}
+        while(sp){const i=st[--sp]; mask[i]=0; const x=i%w;
+          if(x>0)push(i-1); if(x<w-1)push(i+1); if(i>=w)push(i-w); if(i<n-w)push(i+w);}
+      }
+    }
+  }
+  const labels=new Int32Array(n), comps=[null], st=new Int32Array(n);
+  for(let i=0;i<n;i++){
+    if(!mask[i]||labels[i]) continue;
+    const id=comps.length; let sp=0; st[sp++]=i; labels[i]=id;
+    let size=0,x0=w,y0=h,x1=0,y1=0;
+    while(sp){const j=st[--sp]; size++; const x=j%w,y=(j/w)|0;
+      if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;
+      const nb=[x>0?j-1:-1,x<w-1?j+1:-1,j-w,j+w];
+      for(const q of nb){ if(q>=0&&q<n&&mask[q]&&!labels[q]){labels[q]=id; st[sp++]=q;} } }
+    comps.push({id,size,x0,y0,x1,y1});
+  }
+  const minSize=Math.max(20,n*0.0015);
+  comps.forEach(c=>{ if(c) c.sig=c.size>=minSize; });
+  SRC={w,h,mask,labels,comps};
+  for(const id of [...selSet]) if(!comps[id]||!comps[id].sig) selSet.delete(id);
+  if(autoPick){ // ảnh mới: mặc định chọn nhân vật lớn nhất
+    autoPick=false; let big=null; for(const c of comps) if(c&&c.sig&&(!big||c.size>big.size)) big=c;
+    if(big&&comps.filter(c=>c&&c.sig).length>1) selSet.add(big.id); }
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const im=new ImageData(w,h); im.data.set(data);
+  for(let i=0;i<n;i++) if(!mask[i]) im.data[i*4+3]=Math.round(data[i*4+3]*.12);
+  c.getContext('2d').putImageData(im,0,0); srcBase=c;
+}
+function drawSource(){
+  const cv=$('#srcCanvas'); if(!SRC) return;
+  cv.width=SRC.w; cv.height=SRC.h; const g=cv.getContext('2d');
+  g.drawImage(srcBase,0,0);
+  const lw=Math.max(2,Math.round(SRC.w/300)); g.lineWidth=lw;
+  const sig=SRC.comps.filter(c=>c&&c.sig);
+  for(const c of sig){
+    const on=selSet.size?selSet.has(c.id):true;
+    g.strokeStyle=on?css('--accent'):'rgba(239,231,221,.35)'; g.setLineDash(on?[]:[lw*3,lw*3]);
+    g.strokeRect(c.x0-lw,c.y0-lw,c.x1-c.x0+1+lw*2,c.y1-c.y0+1+lw*2);
+  }
+  if(S.chibi){ // vạch cổ của từng vùng được chọn
+    g.setLineDash([lw*4,lw*3]); g.strokeStyle=css('--warn');
+    for(const c of sig){ if(selSet.size&&!selSet.has(c.id)) continue;
+      const y=c.y0+(c.y1-c.y0)*(S.neck||lastNeck); g.beginPath(); g.moveTo(c.x0,y); g.lineTo(c.x1,y); g.stroke(); }
+  }
+  g.setLineDash([]);
+  $('#srcInfo').textContent=`${RAW.w}×${RAW.h} · ${sig.length} vùng${selSet.size?' · chọn '+selSet.size:''}`;
+}
+$('#srcCanvas').addEventListener('click',e=>{
+  if(!SRC) return; const cv=e.currentTarget, r=cv.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)*cv.width/r.width), y=Math.floor((e.clientY-r.top)*cv.height/r.height);
+  let id=SRC.labels[y*SRC.w+x];
+  if(!id||!SRC.comps[id].sig){ id=0; let best=1e18;
+    for(const c of SRC.comps){ if(!c||!c.sig) continue;
+      if(x>=c.x0&&x<=c.x1&&y>=c.y0&&y<=c.y1){const a=(c.x1-c.x0)*(c.y1-c.y0); if(a<best){best=a;id=c.id;}} } }
+  if(!id) return;
+  if(e.shiftKey){ selSet.has(id)?selSet.delete(id):selSet.add(id); } else { selSet.clear(); selSet.add(id); }
+  schedule(2);
+});
+$('#selAll').onclick=()=>{selSet.clear(); schedule(2);};
+
+/* ---------- Stage B: pixel hoá ---------- */
+let BASE=null,B=null,editKey='',edits=new Map(),undoSt=[],lastNeck=.33;
+function frameDims(){ if(S.frame==='auto') return null; const [fw,fh]=S.frame.split('x').map(Number); return {fw,fh}; }
+function outlinePad(){ return S.outline==='none'||S.style==='template'?0:1; }
+
+const DARK=85;
+// lấy mẫu một vùng nguồn (sx0..sx1, sy0..sy1 thực) vào ô đích
+function sampleBlock(fx0,fx1,fy0,fy1,use){
+  const {w:W,mask,labels}=SRC, data=RAW.data;
+  const ix0=Math.floor(fx0), iy0=Math.floor(fy0);
+  const ix1=Math.max(ix0+1,Math.ceil(fx1)), iy1=Math.max(iy0+1,Math.ceil(fy1));
+  let total=0,cnt=0,sr=0,sg=0,sb=0,dk=0,dr=0,dg=0,db=0; const bk=S.down==='dominant'||S.style==='material'?new Map():null; let cen=-1;
+  const cx=Math.floor((fx0+fx1)/2), cy=Math.floor((fy0+fy1)/2);
+  for(let y=iy0;y<iy1;y++){ if(y<0||y>=SRC.h) continue;
+    for(let x=ix0;x<ix1;x++){ if(x<0||x>=W) continue; total++;
+      const i=y*W+x; if(!mask[i]||!use[labels[i]]) continue; cnt++;
+      const j=i*4, r=data[j],g=data[j+1],b=data[j+2];
+      if(bk){const key=S.flat?(r>>5)<<6|(g>>5)<<3|(b>>5):(r>>4)<<8|(g>>4)<<4|(b>>4); let e=bk.get(key); if(!e){e=[0,0,0,0];bk.set(key,e);} e[0]++;e[1]+=r;e[2]+=g;e[3]+=b;}
+      else {sr+=r;sg+=g;sb+=b;}
+      if(cen<0||(x===cx&&y===cy)) cen=j;
+      if(.299*r+.587*g+.114*b<DARK){dk++;dr+=r;dg+=g;db+=b;}
+    } }
+  if(!total||cnt/total<S.alphaThr) return 0;
+  // giữ nét tối nhỏ (mắt, chân mày, miệng) khi chúng chiếm đủ phần ô
+  if(S.detail&&dk&&dk/cnt>=S.detail&&dk<cnt) return pk(dr/dk|0,dg/dk|0,db/dk|0);
+  if(S.down==='nearest'){const d=RAW.data;return pk(d[cen],d[cen+1],d[cen+2]);}
+  if(bk){let best=null;for(const e of bk.values()) if(!best||e[0]>best[0]) best=e; return pk(best[1]/best[0]|0,best[2]/best[0]|0,best[3]/best[0]|0);}
+  return pk(sr/cnt|0,sg/cnt|0,sb/cnt|0);
+}
+function stageB(){
+  const comps=SRC.comps, use=new Uint8Array(comps.length); let any=false;
+  let x0=1e9,y0=1e9,x1=-1,y1=-1;
+  for(const c of comps){ if(!c||!c.sig||(selSet.size&&!selSet.has(c.id))) continue; use[c.id]=1; any=true;
+    x0=Math.min(x0,c.x0); y0=Math.min(y0,c.y0); x1=Math.max(x1,c.x1); y1=Math.max(y1,c.y1); }
+  if(!any){ BASE=B=null; drawSource(); clearOutputs('Không tìm thấy nhân vật. Thử giảm độ nhạy màu nền hoặc chọn "Giữ nguyên".'); return; }
+  const cw=x1-x0+1, ch=y1-y0+1, o=outlinePad(), fd=frameDims();
+  // vạch cổ: 0 = tự dò hàng hẹp nhất giữa đầu và vai
+  let neckRatio=S.neck;
+  if(!neckRatio){ const {w:W,mask,labels}=SRC; let best=1e9, by=y0+ch*.33;
+    for(let y=Math.round(y0+ch*.2);y<=Math.round(y0+ch*.55);y++){ let n=0;
+      for(let x=x0;x<=x1;x++){ const i=y*W+x; if(mask[i]&&use[labels[i]]) n++; }
+      if(n<best){best=n;by=y;} }
+    neckRatio=(by-y0)/ch; }
+  lastNeck=neckRatio;
+  if(S.style==='template') return stageTpl(S.preset?null:analyze(use,x0,y0,x1,y1,neckRatio));
+  // chiều cao/rộng tối đa trong khung, chừa viền + biên cho animation
+  let H=fd? fd.fh-2*o-1 : S.height; const maxW=fd? fd.fw-2*o-2 : 1e9;
+  let px,w,h;
+  const build=(H)=>{
+    if(!S.chibi){
+      const w=Math.max(1,Math.round(cw*H/ch)); const px=new Uint32Array(w*H);
+      for(let y=0;y<H;y++) for(let x=0;x<w;x++)
+        px[y*w+x]=sampleBlock(x0+x*cw/w,x0+(x+1)*cw/w,y0+y*ch/H,y0+(y+1)*ch/H,use);
+      return {px,w,h:H};
+    }
+    // chibi: đầu và thân được lấy mẫu với tỉ lệ khác nhau
+    const neckY=y0+ch*neckRatio, headSrc=neckY-y0, bodySrc=y1+1-neckY;
+    const hH=Math.max(2,Math.round(H*S.headFrac)), bH=Math.max(2,H-hH);
+    const sh=hH/headSrc, sbV=bH/bodySrc, sbH=Math.min(sh,sbV*S.stub);
+    const hW=Math.max(1,Math.round(cw*sh)), bW=Math.max(1,Math.round(cw*sbH));
+    const w=Math.max(hW,bW), px=new Uint32Array(w*H);
+    const hx=Math.floor((w-hW)/2), bx=Math.floor((w-bW)/2);
+    for(let y=0;y<hH;y++) for(let x=0;x<hW;x++)
+      px[y*w+x+hx]=sampleBlock(x0+x/sh,x0+(x+1)/sh,y0+y/sh,y0+(y+1)/sh,use);
+    for(let y=0;y<bH;y++) for(let x=0;x<bW;x++){
+      const v=sampleBlock(x0+x/sbH,x0+(x+1)/sbH,neckY+y/sbV,neckY+(y+1)/sbV,use);
+      if(v) px[(y+hH)*w+x+bx]=v; }
+    return {px,w,h:H};
+  };
+  ({px,w,h}=build(H));
+  if(w>maxW){ H=Math.max(8,Math.floor(H*maxW/w)); ({px,w,h}=build(H)); }
+  // chỉnh màu
+  for(let i=0;i<px.length;i++){ const v=px[i]; if(!v) continue;
+    let r=cR(v),g=cG(v),b=cB(v); const l=.299*r+.587*g+.114*b;
+    r=l+(r-l)*S.sat; g=l+(g-l)*S.sat; b=l+(b-l)*S.sat;
+    r=(r-128)*S.con+128; g=(g-128)*S.con+128; b=(b-128)*S.con+128;
+    px[i]=pk(clamp(r|0,0,255),clamp(g|0,0,255),clamp(b|0,0,255)); }
+  if(S.style==='material') px=materialize(px,w,h);
+  else { px=quantize(px); for(let k=0;k<S.flat;k++) px=flatten(px,w,h); }
+  if(S.cleanup) px=cleanup(px,w,h);
+  if(S.inner&&S.style!=='material') px=innerLines(px,w,h);
+  if(S.eyes) px=refFace(px,w,h,S.chibi?Math.round(h*S.headFrac):Math.round(h*neckRatio));
+  finishB(px,w,h,null);
+}
+let lastAn=null;
+function stageTpl(an){ const res=resolveAn(an); res.guess=an?an.guess:null; return finishB(renderTemplate(res),TW,TH,res); }
+function finishB(px,w,h,an){
+  lastAn=an;
+  const key=w+'x'+h; if(key!==editKey){ edits.clear(); undoSt=[]; editKey=key; }
+  BASE={w,h,px}; applyEdits(); drawSource();
+}
+function quantize(px){
+  let pal;
+  if(S.palette!=='auto') pal=PALETTES[S.palette].map(fromHex);
+  else{
+    const hm=new Map();
+    for(const v of px){ if(!v) continue; const key=v&0xf8f8f8; const e=hm.get(key); if(e){e[0]+=cR(v);e[1]+=cG(v);e[2]+=cB(v);e[3]++;} else hm.set(key,[cR(v),cG(v),cB(v),1]); }
+    const hist=[...hm.values()].map(e=>[e[0]/e[3],e[1]/e[3],e[2]/e[3],e[3]]);
+    pal=kmeans(hist,S.colors).map(c=>pk(c[0]|0,c[1]|0,c[2]|0));
+  }
+  const cache=new Map(), o=new Uint32Array(px.length);
+  for(let i=0;i<px.length;i++){ const v=px[i]; if(!v) continue;
+    let r=cache.get(v); if(r===undefined){ let bd=1e18; for(const p of pal){const d=distV(v,p); if(d<bd){bd=d;r=p;}} cache.set(v,r); }
+    o[i]=r; }
+  return o;
+}
+/* Phân tích vật liệu: gom pixel thành các khối (da, tóc, áo…), làm mượt nhãn,
+   rồi tô lại mỗi khối bằng 2 tông: màu nền + màu bóng (ánh sáng từ trên-trái). */
+function materialize(px,w,h){
+  const n=px.length, hm=new Map();
+  for(const v of px){ if(!v) continue; const key=v&0xf8f8f8; const e=hm.get(key); if(e){e[0]+=cR(v);e[1]+=cG(v);e[2]+=cB(v);e[3]++;} else hm.set(key,[cR(v),cG(v),cB(v),1]); }
+  const hist=[...hm.values()].map(e=>[e[0]/e[3],e[1]/e[3],e[2]/e[3],e[3]]);
+  const K=Math.max(2,Math.round(S.colors/2));
+  const cen=kmeans(hist,K), lab=new Int16Array(n).fill(-1);
+  const near=v=>{let b=0,bd=1e18; for(let c=0;c<cen.length;c++){const d=dist(cR(v),cG(v),cB(v),...cen[c]); if(d<bd){bd=d;b=c;}} return b;};
+  for(let i=0;i<n;i++) if(px[i]) lab[i]=near(px[i]);
+  // vật liệu tối nhất (mắt, nét) không bị làm mượt mất
+  const darkest=cen.reduce((b,c,i)=>(.299*c[0]+.587*c[1]+.114*c[2])<(.299*cen[b][0]+.587*cen[b][1]+.114*cen[b][2])?i:b,0);
+  for(let p=0;p<S.flat;p++){ const o=lab.slice();
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, l=lab[i]; if(l<0||l===darkest) continue;
+      const t=new Array(cen.length).fill(0); let same=0;
+      for(const [dx,dy] of N8){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const q=lab[Y*w+X]; if(q<0) continue; t[q]++; if(q===l) same++;}
+      let bc=0,bl=l; t.forEach((k,j)=>{ if(k>bc){bc=k;bl=j;} });
+      if(bl!==l&&bc>=4&&same<=2) o[i]=bl; }
+    lab.set(o); }
+  // màu nền mỗi vật liệu = trung bình thành viên; độ sáng trung bình để chia tông
+  const acc=cen.map(()=>[0,0,0,0,0]);
+  for(let i=0;i<n;i++){ const l=lab[i]; if(l<0) continue; const v=px[i], a=acc[l]; a[0]+=cR(v);a[1]+=cG(v);a[2]+=cB(v);a[3]+=lum(v);a[4]++; }
+  const base=acc.map(a=>a[4]?pk(a[0]/a[4]|0,a[1]/a[4]|0,a[2]/a[4]|0):0);
+  const mean=acc.map(a=>a[4]?a[3]/a[4]:0);
+  const shade=base.map(v=>pk(cR(v)*.7|0,cG(v)*.68|0,Math.min(255,cB(v)*.78+12)|0));
+  const o=new Uint32Array(n);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, l=lab[i]; if(l<0) continue;
+    if(mean[l]<55){ o[i]=base[l]; continue; }                       // vật liệu rất tối: 1 tông
+    let sh=lum(px[i])<mean[l]-S.shadeTh;
+    if(S.light){ const r=x+1<w?lab[i+1]:-1, d=y+1<h?lab[i+w]:-1, lf=x>0?lab[i-1]:-1;
+      if(r!==l&&lf===l&&x>1&&lab[i-2]===l) sh=true;                 // mép phải của khối đủ dày
+      if(d<0&&y>0&&lab[i-w]===l) sh=true; }                          // đáy hình
+    o[i]=sh?shade[l]:base[l]; }
+  // nét trong: ranh giới giữa hai vật liệu khác hẳn nhau → 1px tối (giống ref chia khối đầu/thân/tay)
+  if(S.inner){ const line=o.slice();
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, l=lab[i]; if(l<0||l===darkest) continue;
+      for(const [dx,dy] of [[1,0],[0,1]]){ const X=x+dx,Y=y+dy; if(X>=w||Y>=h) continue; const q=lab[Y*w+X];
+        if(q<0||q===l||q===darkest) continue;
+        if(distV(base[l],base[q])<S.innerTh*S.innerTh*9) continue;
+        // tô nét lên khối tối hơn để khối sáng (da, áo trắng) giữ nguyên diện tích
+        const j=mean[l]<=mean[q]?i:Y*w+X, v=o[j];
+        line[j]=pk(cR(v)*.32+8|0,cG(v)*.26+5|0,cB(v)*.32+12|0); } }
+    return line; }
+  return o;
+}
+/* ---------- Template chung lấy từ ref (templates.js) ----------
+   Mọi nhân vật dùng cùng khung 20×35 của ref: đầu to 3/4 nhìn phải, mắt 1×2, tay gần 3px / tay xa 2px.
+   Ảnh nguồn chỉ cho màu + kiểu tóc/áo/quần/phụ kiện; chỗ nào tool đoán sai thì chỉnh ở bảng Template. */
+const TW=RefTemplate.W, TH=RefTemplate.H;
+const rgb=v=>[cR(v),cG(v),cB(v)];
+function analyze(use,x0,y0,x1,y1,nr){
+  const {w:W,mask,labels}=SRC, d=RAW.data, cw=x1-x0+1, ch=y1-y0+1;
+  const dom=(fx0,fy0,fx1,fy1,filter,skinT=isSkin,darkPref=.45)=>{
+    const X0=Math.round(x0+cw*fx0),X1=Math.round(x0+cw*fx1),Y0=Math.round(y0+ch*fy0),Y1=Math.round(y0+ch*fy1);
+    const step=Math.max(1,Math.floor(Math.min(X1-X0,Y1-Y0)/48)); const m=new Map(); let tot=0,pass=0,sk=0,dk=0,dr=0,dg=0,db=0,gd=0;
+    for(let y=Y0;y<=Y1;y+=step) for(let x=X0;x<=X1;x+=step){ if(x<0||y<0||x>=W||y>=SRC.h) continue;
+      const i=y*W+x; if(!mask[i]||!use[labels[i]]) continue; tot++;
+      const j=i*4, v=pk(d[j],d[j+1],d[j+2]); if(filter&&!filter(v)) continue; pass++;
+      if(skinT(v)) sk++;
+      if(d[j]>170&&d[j+1]>120&&d[j+2]<110&&d[j]-d[j+2]>70) gd++;
+      if(lum(v)<55){ dk++; dr+=d[j]; dg+=d[j+1]; db+=d[j+2]; continue; }   // viền đen của ảnh gốc
+      const key=(d[j]>>5)<<6|(d[j+1]>>5)<<3|(d[j+2]>>5); let e=m.get(key); if(!e){e=[0,0,0,0];m.set(key,e);} e[0]++;e[1]+=d[j];e[2]+=d[j+1];e[3]+=d[j+2]; }
+    let b=null; for(const e of m.values()) if(!b||e[0]>b[0]) b=e;
+    const r={frac:tot?pass/tot:0, skinFrac:pass?sk/pass:0, darkFrac:pass?dk/pass:0, goldFrac:pass?gd/pass:0};
+    // vùng gần như toàn đen (áo đen, quần da) thì mới lấy màu đen
+    r.c=dk&&(!b||dk>pass*darkPref)?pk(dr/dk|0,dg/dk|0,db/dk|0):b?pk(b[1]/b[0]|0,b[2]/b[0]|0,b[3]/b[0]|0):0;
+    return r;
+  };
+  const body=t=>nr+(1-nr)*t;
+  const skin=dom(.15,nr*.3,.85,nr*.95,isSkin);
+  const skinC=skin.c||pk(243,177,148), near=v=>distV(v,skinC)<2600, nearL=v=>distV(v,skinC)<6000, far=v=>!nearL(v);
+  const top=dom(.3,0,.7,nr*.16,null,near);
+  const hairC=dom(.1,0,.9,nr*.45,far,isSkin,.75), capC=dom(.25,0,.75,nr*.3,null,isSkin,.75);
+  const side=dom(.02,nr*.3,.28,nr*.7,far,isSkin,.75);
+  const brow=dom(.4,nr*.33,.8,nr*.5,null,nearL);
+  const lowSide=dom(0,nr*.8,.22,body(.15),null,nearL);
+  const maskR=dom(.4,nr*.68,.75,nr*.9);
+  const neck=dom(.4,body(0),.6,body(.06),null,nearL);
+  const center=dom(.42,body(.06),.58,body(.4)), sideL=dom(.2,body(.08),.35,body(.38)), sideR=dom(.65,body(.08),.8,body(.38));
+  const wide=dom(.34,body(.1),.66,body(.38));
+  const tie=dom(.47,body(.08),.53,body(.36));
+  const chainR=dom(.3,body(0),.7,body(.25));
+  const sleeveL=dom(0,body(.14),.16,body(.34),null,nearL), sleeveR=dom(.84,body(.14),1,body(.34),null,nearL);
+  const legs=dom(.25,body(.78),.75,body(.9),null,nearL);
+  const pants=dom(.28,body(.62),.72,body(.82));
+  const shoes=dom(.05,body(.93),.95,1,null,isSkin,.75);
+
+  const rowW=(a,b)=>{let mx=0; for(let y=Math.round(y0+ch*a);y<=Math.round(y0+ch*b);y++){let l=-1,r=-1; for(let x=x0;x<=x1;x++){const i=y*W+x; if(mask[i]&&use[labels[i]]){if(l<0)l=x; r=x;}} if(l>=0) mx=Math.max(mx,r-l);} return mx;};
+  const capScore=rowW(nr*.25,nr*.5)/Math.max(1,rowW(nr*.6,nr*.85));
+  const g={};
+  g.mask=maskR.c&&!isSkin(maskR.c)&&lum(maskR.c)>110&&Math.abs(cR(maskR.c)-cB(maskR.c))<40;
+  const longHair=lowSide.c&&hairC.c&&lowSide.skinFrac<.2&&distV(lowSide.c,hairC.c)<3000;
+  g.hair=capScore>1.12?'cap':top.skinFrac>.5?'bald':longHair?'long':brow.skinFrac<.45?'fringe':'swept';
+  const sideC=sideL.c||sideR.c, inner=center.c;
+  const jacket=sideC&&inner&&distV(sideC,inner)>6000&&!isSkin(inner);
+  g.top=jacket?(lum(inner)>170&&tie.c&&distV(tie.c,inner)>6000?'suit':distV(wide.c,inner)<2500?'cardigan':'jacket')
+    :(sleeveL.skinFrac+sleeveR.skinFrac)/2>.22?'tee':'long';
+  g.turtle=neck.skinFrac<.08&&neck.darkFrac<.25&&g.top!=='suit';
+  g.bottom=legs.skinFrac>.35?'shorts':'pants';
+  g.glasses=false;   // mắt, mày, viền đen dễ bị nhầm thành kính → để người dùng bật tay
+  g.chain=chainR.goldFrac>.03;
+  const cols={skin:skinC, hair:g.hair==='cap'?(side.c||hairC.c):hairC.c, cap:capC.c,
+    top:jacket?sideC:(center.c||wide.c), inner:inner, shirt:inner, tie:tie.c, pants:pants.c, shoes:shoes.c,
+    mask:g.mask?maskR.c:0};
+  const colors={}; for(const k in cols) if(cols[k]) colors[k]=rgb(stylize(cols[k]));
+  return {guess:g, colors};
+}
+function stylize(v){ let r=cR(v),g=cG(v),b=cB(v); const l=.299*r+.587*g+.114*b;
+  r=l+(r-l)*S.sat; g=l+(g-l)*S.sat; b=l+(b-l)*S.sat; r=(r-128)*S.con+128; g=(g-128)*S.con+128; b=(b-128)*S.con+128;
+  return pk(clamp(r|0,0,255),clamp(g|0,0,255),clamp(b|0,0,255)); }
+// gộp: dựng sẵn → phân tích ảnh → chỉnh tay (ưu tiên cao nhất)
+function resolveAn(an){
+  const g=an?an.guess:{}, opts={}, pr=S.preset?RefTemplate.presetData(S.preset,S.form):null;
+  const pick=(k,def)=>S[k]!=='auto'?S[k]:pr&&pr.opts[k]!==undefined?pr.opts[k]:g[k]!==undefined?g[k]:def;
+  opts.hair=pick('hair','swept'); opts.top=pick('top','tee'); opts.bottom=pick('bottom','pants');
+  for(const k of ['glasses','mask','chain','turtle']){ const v=pick(k,false); opts[k]=v==='sun'?'sun':v===true||v==='yes'; }
+  for(const k of DETAIL_KEYS) opts[k]=S[k]; opts.brows=S.brows; opts.mouth=S.mouth; opts.beard=S.beard==='auto'?(pr&&pr.opts.beard)||false:S.beard==='none'?false:S.beard;
+  if(pr&&pr.forms){ const ks=Object.keys(pr.forms), nk=ks[(ks.indexOf(pr.form)+1)%ks.length], tp=RefTemplate.presetData(S.preset,nk);   // biến hình sang form kế
+    opts.saiyan={toOpts:{hair:tp.opts.hair,beard:tp.opts.beard,mouth:tp.opts.mouth},toHair:RefTemplate.hx(tp.colors.hair),toForm:nk}; }
+  const colors={};
+  if(pr) for(const k in pr.colors) colors[k]=RefTemplate.hx(pr.colors[k]);
+  else if(an) Object.assign(colors,an.colors);
+  for(const k in S.col) if(S.col[k]) colors[k]=RefTemplate.hx(S.col[k]);
+  return {opts,colors};
+}
+function renderTemplate(res){
+  const rows=RefTemplate.compose(res.opts), pal=RefTemplate.palette(res.colors), px=new Uint32Array(TW*TH);
+  for(let y=0;y<TH;y++) for(let x=0;x<TW;x++){ const ch=rows[y][x]; if(ch==='.') continue; const c=pal[ch]||[255,0,255]; px[y*TW+x]=pk(c[0],c[1],c[2]); }
+  res.pal=pal; return px;
+}
+/* Chuẩn hoá mặt theo ref: mắt 1×2 px, mặt 3/4 nhìn sang phải (hoặc chính diện), miệng 2 px. */
+const isSkin=v=>{const r=cR(v),g=cG(v),b=cB(v);return r>110&&r>=g&&g>=b-8&&r-b>28&&r-g<90;};
+function refFace(px,w,h,headH){
+  headH=clamp(headH,4,h);
+  const rows=[]; let top=-1,bot=-1;
+  for(let y=0;y<headH;y++){ let l=-1,r=-1,n=0; for(let x=0;x<w;x++) if(isSkin(px[y*w+x])){ if(l<0)l=x; r=x; n++; }
+    rows.push({l,r,n}); if(n>=3){ if(top<0) top=y; bot=y; } }
+  if(top<0||bot-top<3) return px;
+  const cnt=new Map(); for(let y=top;y<=bot;y++) for(let x=0;x<w;x++){const v=px[y*w+x]; if(isSkin(v)) cnt.set(v,(cnt.get(v)||0)+1);}
+  const skin=[...cnt].sort((a,b)=>b[1]-a[1])[0][0];
+  const eyeY=top+Math.max(1,Math.round((bot-top)*.38));
+  const er=rows[Math.min(eyeY,rows.length-1)]; if(er.l<0||er.r-er.l<5) return px;
+  const fl=er.l, fw=er.r-er.l+1, o=px.slice();
+  // xoá nét tối cũ quanh hàng mắt (mắt, kính mờ, nhiễu)
+  for(let y=Math.max(top,eyeY-1);y<=Math.min(bot,eyeY+2);y++) for(let x=fl+1;x<fl+fw-1;x++){ const i=y*w+x; if(o[i]&&lum(o[i])<95) o[i]=skin; }
+  const eye=pk(28,16,24), ex=S.look==='right'?[.42,.76]:[.28,.68];
+  for(const f of ex){ const x=fl+Math.round((fw-1)*f); for(const y of [eyeY,eyeY+1]) if(y<h&&o[y*w+x]) o[y*w+x]=eye; }
+  // miệng: 2 px tông tối của da, chỉ khi chỗ đó còn là da (không bị khẩu trang che)
+  const my=eyeY+Math.max(3,Math.round((bot-eyeY)*.6)), mx=fl+Math.round((fw-1)*(S.look==='right'?.6:.46));
+  if(my<=bot&&isSkin(o[my*w+mx])&&isSkin(o[my*w+mx+1])){ const m=pk(cR(skin)*.72|0,cG(skin)*.55|0,cB(skin)*.55|0); o[my*w+mx]=m; o[my*w+mx+1]=m; }
+  return o;
+}
+function kmeans(hist,k){
+  if(!hist.length) return [];
+  if(hist.length<=k) return hist.map(h=>h.slice(0,3));
+  const C=[hist.reduce((a,b)=>b[3]>a[3]?b:a).slice(0,3)];
+  const md=hist.map(h=>dist(h[0],h[1],h[2],...C[0]));
+  while(C.length<k){ let bi=-1,bs=0;
+    for(let j=0;j<hist.length;j++){const s=md[j]*Math.sqrt(hist[j][3]); if(s>bs){bs=s;bi=j;}}
+    if(bi<0) break; const c=hist[bi].slice(0,3); C.push(c);
+    for(let j=0;j<hist.length;j++){const d=dist(hist[j][0],hist[j][1],hist[j][2],...c); if(d<md[j]) md[j]=d;} }
+  const as=new Int32Array(hist.length).fill(-1);
+  for(let it=0;it<16;it++){ let ch=0; const sum=C.map(()=>[0,0,0,0]);
+    for(let j=0;j<hist.length;j++){ const h=hist[j]; let b=0,bd=1e18;
+      for(let c=0;c<C.length;c++){const d=dist(h[0],h[1],h[2],...C[c]); if(d<bd){bd=d;b=c;}}
+      if(as[j]!==b){as[j]=b;ch++;} const s=sum[b]; s[0]+=h[0]*h[3]; s[1]+=h[1]*h[3]; s[2]+=h[2]*h[3]; s[3]+=h[3]; }
+    for(let c=0;c<C.length;c++) if(sum[c][3]) C[c]=[sum[c][0]/sum[c][3],sum[c][1]/sum[c][3],sum[c][2]/sum[c][3]];
+    if(!ch) break; }
+  return C;
+}
+const N8=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]], N4=[[0,-1],[-1,0],[1,0],[0,1]];
+// lọc đa số: xoá hoa văn/texture, giữ lại các màu tối nhất (mắt, nét)
+function flatten(px,w,h){
+  const lums=[...new Set(px)].filter(v=>v).sort((a,b)=>lum(a)-lum(b)); const keep=new Set(lums.slice(0,2));
+  const o=px.slice();
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, v=px[i]; if(!v||keep.has(v)) continue;
+    const t=new Map(); let same=0;
+    for(const [dx,dy] of N8){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const n=px[Y*w+X]; if(!n) continue; if(n===v) same++; t.set(n,(t.get(n)||0)+1);}
+    let bc=0,bv=0; for(const [c,k] of t) if(k>bc){bc=k;bv=c;}
+    if(bv!==v&&bc>=5&&same<=2) o[i]=bv; }
+  return o;
+}
+function cleanup(px,w,h){
+  const o=px.slice();
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, v=px[i];
+    let op4=0; for(const [dx,dy] of N4){const X=x+dx,Y=y+dy; if(X>=0&&Y>=0&&X<w&&Y<h&&px[Y*w+X]) op4++;}
+    const t=new Map(); let same=0,op8=0;
+    for(const [dx,dy] of N8){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const n=px[Y*w+X]; if(!n) continue; op8++; if(n===v) same++; t.set(n,(t.get(n)||0)+1);}
+    let bc=0,bv=0; for(const [c,k] of t) if(k>bc){bc=k;bv=c;}
+    if(!v){ if(op8>=7&&op4===4) o[i]=bv; continue; }   // lỗ thủng giữa thân
+    if(op4===0){ o[i]=0; continue; }                  // pixel mồ côi
+    if(same===0&&bc>=6&&distV(v,bv)<9000) o[i]=bv;     // nhiễu gần màu, giữ lại chi tiết tương phản (mắt)
+  }
+  return o;
+}
+function innerLines(px,w,h){
+  const o=px.slice();
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ const i=y*w+x, v=px[i]; if(!v) continue; const l=lum(v);
+    for(const [dx,dy] of N4){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=w||Y>=h) continue; const n=px[Y*w+X];
+      if(n&&lum(n)-l>70){o[i]=pk(cR(v)*.68|0,cG(v)*.68|0,cB(v)*.72|0); break;} } }
+  return o;
+}
+function applyEdits(){ if(!BASE) return; B={w:BASE.w,h:BASE.h,px:BASE.px.slice()}; edits.forEach((v,i)=>{B.px[i]=v;}); }
+
+/* ---------- Outline ---------- */
+const OUT_BLACK=pk(24,17,28);
+function applyOutline(buf,W,H){
+  if(S.outline==='none'||S.style==='template') return buf;
+  const src=buf.slice(), dirs=S.outline8?N8:N4;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const i=y*W+x; if(src[i]) continue;
+    let r=0,g=0,b=0,k=0;
+    for(const [dx,dy] of dirs){const X=x+dx,Y=y+dy; if(X<0||Y<0||X>=W||Y>=H) continue; const n=src[Y*W+X]; if(n){r+=cR(n);g+=cG(n);b+=cB(n);k++;}}
+    if(!k) continue;
+    buf[i]=S.outline==='black'?OUT_BLACK:pk(Math.min(255,r/k*.28+10)|0,Math.min(255,g/k*.22+6)|0,Math.min(255,b/k*.28+14)|0); }
+  return buf;
+}
+
+/* ---------- Stage C: rig + animation + sheet ---------- */
+let C=null;
+function animDefs(a){
+  const r=2*a;
+  const walk=S.walk==='side'
+    ?[{lL:{dx:-a},lR:{dx:a},up:a},{lL:{dy:-a}},{lL:{dx:a},lR:{dx:-a},up:a},{lR:{dy:-a}}]
+    :[{lL:{dy:-a}},{up:a},{lR:{dy:-a}},{up:a}];
+  const run=S.walk==='side'
+    ?[{lL:{dx:-r},lR:{dx:r},up:a,upDx:a},{lL:{dy:-r},upDx:a},{lL:{dx:r},lR:{dx:-r},up:a,upDx:a},{lR:{dy:-r},upDx:a}]
+    :[{lL:{dy:-r},dy:-a},{up:a},{lR:{dy:-r},dy:-a},{up:a}];
+  return [
+    {name:'idle',loop:true,frames:[{},{},{up:a},{up:a}]},
+    {name:'walk',loop:true,frames:walk},
+    {name:'run',loop:true,frames:run},
+    {name:'jump',loop:false,frames:[{sx:1.08,sy:.88},{sx:.94,sy:1.08},{lL:{dy:-a},lR:{dy:-a}},{sx:1.06,sy:.92}]},
+    {name:'attack',loop:false,frames:[{upDx:-a},{upDx:2*a+1,lL:{dx:a}},{upDx:a}]},
+    {name:'hurt',loop:false,frames:[{tint:'w',dx:-a},{tint:'r',dx:-a},{}]},
+  ];
+}
+function stageC(){
+  if(!B){ return; }
+  const {w,h}=B; let px=B.px; const o=outlinePad(), a=Math.max(1,Math.round(h/40));
+  const tpl=S.style==='template';
+  const waistY=tpl?28:clamp(Math.round(h*S.waist),1,h-1);   // template: chân bắt đầu ở hàng 28
+  // chỗ tách chân: cột ít pixel nhất ở vùng giữa phần chân
+  const cnt=new Array(w).fill(0); let mx=0,mn=0;
+  for(let y=waistY;y<h;y++) for(let x=0;x<w;x++) if(px[y*w+x]){cnt[x]++; mx+=x; mn++;}
+  const cm=mn?mx/mn:w/2; let splitX=Math.round(cm), best=1e9;
+  for(let x=Math.round(w*.3);x<=Math.round(w*.7);x++){ const s=cnt[x]*10+Math.abs(x-cm); if(s<best){best=s;splitX=x;} }
+  if(tpl) splitX=11;
+  if(S.legLine&&!tpl){ px=px.slice(); // nét tối giữa hai chân, từ đáy quần trở xuống
+    for(let y=waistY+1;y<h;y++){ const i=y*w+splitX, v=px[i]; if(v&&px[i-1]&&px[i+1]) px[i]=pk(cR(v)*.3+8|0,cG(v)*.25+5|0,cB(v)*.3+12|0); } }
+  const fd=frameDims();
+  let fw,fh;
+  if(fd){ fw=fd.fw; fh=fd.fh; }
+  else { fw=w+2*(o+2*a+1); fh=h+o+Math.ceil(h*.1)+1+o; fw+=fw%2; }
+  const ox=Math.floor((fw-w)/2), oy=fh-o-h;
+  const defs=animDefs(a), face=S.face;
+  const render=f=>{
+    const buf=new Uint32Array(fw*fh);
+    const put=(x,y,v)=>{ if(x>=0&&y>=0&&x<fw&&y<fh) buf[y*fw+x]=v; };
+    const gdx=f.dx||0, gdy=f.dy||0;
+    if(f.sx){ const nw=Math.max(1,Math.round(w*f.sx)), nh=Math.min(fh-o,Math.max(1,Math.round(h*f.sy)));
+      const x0=ox+Math.floor((w-nw)/2), y0=oy+h-nh;
+      for(let Y=0;Y<nh;Y++) for(let X=0;X<nw;X++){ const v=px[Math.floor(Y*h/nh)*w+Math.floor(X*w/nw)]; if(v) put(x0+X,y0+Y,v); }
+    } else {
+      const L=f.lL||{}, R=f.lR||{};
+      for(let y=waistY;y<h;y++) for(let x=0;x<w;x++){ const v=px[y*w+x]; if(!v) continue; const p=x<splitX?L:R;
+        put(ox+x+face*((p.dx||0)+gdx), oy+y+(p.dy||0)+gdy, v); }
+      for(let y=0;y<waistY;y++) for(let x=0;x<w;x++){ const v=px[y*w+x]; if(!v) continue;
+        put(ox+x+face*(gdx+(f.upDx||0)), oy+y+gdy+(f.up||0), v); }
+    }
+    if(f.tint){ const [tr,tg,tb,m]=f.tint==='w'?[255,255,255,.8]:[255,60,60,.5];
+      for(let i=0;i<buf.length;i++){const v=buf[i]; if(v) buf[i]=pk(cR(v)+(tr-cR(v))*m|0,cG(v)+(tg-cG(v))*m|0,cB(v)+(tb-cB(v))*m|0);} }
+    return applyOutline(buf,fw,fh);
+  };
+  const toCanvas=buf=>{const c=document.createElement('canvas'); c.width=fw; c.height=fh; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(buf.buffer),fw,fh),0,0); return c;};
+  const anims=defs.map(d=>({...d,canv:d.frames.map(f=>toCanvas(render(f)))}));
+  const PADX=6;
+  // nhìn xuống (mặt trước) và nhìn lên (sau lưng): đứng, đi, chạy — vẽ từ template, cùng khung với dáng nghiêng
+  if(tpl&&lastAn&&lastAn.opts&&lastAn.pal){ const pal=lastAn.pal;
+    const paintV=grid=>{ const buf=new Uint32Array(fw*fh); grid.forEach((row,gy)=>row.forEach((ch,gx)=>{ if(ch==='.') return; const c=pal[ch]||[255,0,255];
+      const x=ox+gx, y=oy+gy; if(x>=0&&y>=0&&x<fw&&y<fh) buf[y*fw+x]=pk(c[0],c[1],c[2]); })); return toCanvas(buf); };
+    for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RefTemplate.viewFrames(lastAn.opts,view);
+      for(const k of ['idle','walk','run']) anims.push({name:`${k}_${suf}`,loop:true,frames:vf[k],canv:vf[k].map(paintV)}); } }
+  // tư thế vẽ riêng từ template (tay/chân thay đổi hình dáng, không chỉ dịch khối)
+  if(tpl&&lastAn&&lastAn.opts&&lastAn.pal) for(const name of Object.keys(RefTemplate.POSES)){ if(!lastAn.opts[name]) continue;
+    const fr=RefTemplate.poseFrames(name,lastAn.opts), pal=lastAn.pal;
+    const paint=(f,skipTop)=>{ const buf=new Uint32Array(fw*fh), top=f.padTop||0;
+      f.grid.forEach((row,gy)=>{ if(skipTop&&gy<top) return; row.forEach((ch,gx)=>{ if(ch==='.') return; const c=(f.palExtra&&f.palExtra[ch])||pal[ch]||[255,0,255];
+        const x=ox-f.pad+(face===1?gx:row.length-1-gx), y=oy-top+gy+f.bob; if(x>=0&&y>=0&&x<fw&&y<fh) buf[y*fw+x]=pk(c[0],c[1],c[2]); }); });
+      return toCanvas(buf); };
+    const an={name,loop:name!=='hokage'&&name!=='saiyan',frames:fr,canv:fr.map(f=>paint(f,false))};
+    if(name==='noi'){ // thân không khung chat (để sân thử / engine vẽ khung chat riêng, không bị lật chữ)
+      an.body=fr.map(f=>paint(f,true));
+      const Bg=RefTemplate.bubble(lastAn.opts.say||RefTemplate.SPEECH.text), bc=document.createElement('canvas'); bc.width=Bg[0].length; bc.height=Bg.length;
+      const bctx=bc.getContext('2d'), im=bctx.createImageData(bc.width,bc.height);
+      Bg.forEach((r,y)=>r.forEach((ch,x)=>{ if(ch==='.') return; const c=pal[ch], i=(y*bc.width+x)*4; im.data[i]=c[0]; im.data[i+1]=c[1]; im.data[i+2]=c[2]; im.data[i+3]=255; }));
+      bctx.putImageData(im,0,0);
+      an.bubble={canvas:bc,x:ox-PADX+RefTemplate.SPEECH.x,y:oy-fr[0].padTop,text:lastAn.opts.say||RefTemplate.SPEECH.text}; }
+    anims.push(an); }
+  const cols=Math.max(...anims.map(a=>a.frames.length)), rows=anims.length;
+  const sheet=document.createElement('canvas'); sheet.width=cols*fw; sheet.height=rows*fh;
+  const sg=sheet.getContext('2d'); anims.forEach((an,r)=>an.canv.forEach((c,i)=>sg.drawImage(c,i*fw,r*fh)));
+  // thú cưng: sheet riêng, khung riêng
+  let pet=null; const PT=tpl&&S.pet&&RefTemplate.PETS[S.pet];
+  if(PT){ const fr=PT.build(), pal={}; for(const k in PT.palette) pal[k]=RefTemplate.hx(PT.palette[k]);
+    const pw=RefTemplate.PET_W, ph=RefTemplate.PET_H;
+    const toC=G=>{ const c=document.createElement('canvas'); c.width=pw; c.height=ph; const g=c.getContext('2d'), im=g.createImageData(pw,ph);
+      G.forEach((r,y)=>r.forEach((ch,x)=>{ if(ch==='.') return; const v=pal[ch]||[255,0,255], i=(y*pw+x)*4; im.data[i]=v[0]; im.data[i+1]=v[1]; im.data[i+2]=v[2]; im.data[i+3]=255; }));
+      g.putImageData(im,0,0); return c; };
+    const pa=Object.entries(fr).map(([k,v])=>({name:`${S.pet}_${k}`,key:k,loop:true,frames:v,canv:v.map(toC)}));
+    const pcols=Math.max(...pa.map(a=>a.canv.length)), ps=document.createElement('canvas'); ps.width=pcols*pw; ps.height=pa.length*ph;
+    const pg2=ps.getContext('2d'); pa.forEach((a,r)=>a.canv.forEach((c,i)=>pg2.drawImage(c,i*pw,r*ph)));
+    pet={kind:S.pet,name:PT.name,fw:pw,fh:ph,anims:pa,sheet:ps,cols:pcols,rows:pa.length,pivot:{x:pw/2,y:ph-1}}; }
+  // hitbox thân: các cột có ít nhất 35% pixel so với cột dày nhất
+  const colN=new Array(w).fill(0); let top=h;
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++) if(px[y*w+x]){colN[x]++; if(y<top) top=y;}
+  const cmax=Math.max(...colN); let cx0=0,cx1=w-1;
+  while(cx0<w-1&&colN[cx0]<cmax*.35) cx0++; while(cx1>0&&colN[cx1]<cmax*.35) cx1--;
+  const cut=Math.round(h*.08);
+  const hit={x:ox+cx0,y:oy+top+cut,w:cx1-cx0+1,h:h-top-cut};
+  const fwid=Math.max(2,Math.round(hit.w*.8)), fhgt=Math.max(2,Math.round(h*.18));
+  const feet={x:Math.round(fw/2-fwid/2),y:oy+h-fhgt,w:fwid,h:fhgt};
+  const pivot={x:fw/2,y:oy+h};
+  C={fw,fh,ox,oy,w,h,o,a,waistY,splitX,anims,sheet,cols,rows,hit,feet,pivot,pet,colors:new Set([...px].filter(v=>v)).size};
+  computeMove();
+  buildAnimCards(); drawEditor(); renderPalette(); renderSpec();
+  let desc='';
+  if(lastAn&&lastAn.opts){ const o=lastAn.opts, acc=['glasses','mask','chain','turtle',...DETAIL_KEYS].filter(k=>o[k]).map(k=>k==='glasses'&&o[k]==='sun'?LBL.sun:LBL[k]);
+    desc=` · ${LBL[o.hair]} · ${o.top==='long'?LBL.long_top:LBL[o.top]} · ${LBL[o.bottom]}`+(acc.length?' · '+acc.join(', '):''); syncTplUI(); }
+  $('#sprInfo').textContent=`${w}×${h} px · ${C.colors} màu · frame ${fw}×${fh}`+desc;
+  $('#animInfo').textContent=`${anims.length} chuyển động · sheet ${cols}×${rows} ô · ${sheet.width}×${sheet.height} px`;
+}
+function computeMove(){
+  if(!C) return; const h=C.h;
+  const jumpH=Math.round(h*1.25), tA=.38;
+  C.move={walk:Math.round(.175*h*S.fps.walk), run:Math.round(.2*h*S.fps.run), jumpH, g:Math.round(2*jumpH/(tA*tA)), v0:Math.round(2*jumpH/tA)};
+}
+function clearOutputs(msg){
+  C=null; $('#anims').innerHTML=`<p class="empty">${msg}</p>`; $('#spec').innerHTML='';
+  const ed=$('#editor'); ed.width=10; ed.height=10; $('#swatches').innerHTML='';
+  $('#sprInfo').textContent='–'; $('#animInfo').textContent='–';
+}
+
+/* ---------- Animation cards ---------- */
+const NAMES_VI={idle:'Đứng thở',walk:'Đi bộ',run:'Chạy',jump:'Nhảy',attack:'Đánh',hurt:'Trúng đòn',quay:'Quẩy',noi:'Nói',hokage:'Hoá Hokage Awwwards',saiyan:'Hoá Saiyan (đổi form)',idle_down:'Đứng · nhìn xuống',walk_down:'Đi xuống',run_down:'Chạy xuống',idle_up:'Đứng · nhìn lên',walk_up:'Đi lên',run_up:'Chạy lên',beagle_idle:'Beagle vẫy đuôi',beagle_walk:'Beagle đi',beagle_run:'Beagle chạy',beagle_sit:'Beagle ngồi'};
+let cardEls={};
+const cardList=()=>C?[...C.anims,...(C.pet?C.pet.anims:[])]:[];
+function buildAnimCards(){
+  const box=$('#anims');
+  const list=cardList(), names=list.map(a=>a.name).join(',');
+  if(!box.querySelector('.anim')||box.dataset.names!==names){ box.innerHTML=''; cardEls={}; box.dataset.names=names;
+    for(const an of list){
+      const d=document.createElement('div'); d.className='anim';
+      d.innerHTML=`<div class="hd"><b>${an.name}</b><span>${NAMES_VI[an.name]||''}</span></div><div class="stage checker"><canvas></canvas></div><div class="hd"><label>fps <input type="number" min="1" max="30" value="${S.fps[an.name]}" id="fps-${an.name}"></label><span class="fc"></span></div>`;
+      box.appendChild(d);
+      d.querySelector('input').addEventListener('input',e=>{ const v=clamp(+e.target.value||1,1,30); S.fps[an.name]=v; computeMove(); renderSpec(); });
+      cardEls[an.name]={cv:d.querySelector('canvas'),fc:d.querySelector('.fc'),shown:-1};
+    } }
+  const z=Math.max(1,Math.floor(Math.min(136/C.fh,136/C.fw)));
+  for(const an of list){ const e=cardEls[an.name], c0=an.canv[0]; e.cv.width=c0.width*z; e.cv.height=c0.height*z; e.z=z; e.shown=-1;
+    e.fc.textContent=`${an.frames.length} frame${an.loop?' · lặp':''}`; }
+}
+function tickCards(t){
+  if(!C) return;
+  for(const an of cardList()){ const e=cardEls[an.name]; if(!e) continue; const n=an.frames.length;
+    const k=Math.floor(t/1000*S.fps[an.name]); const f=an.loop?k%n:Math.min(n-1,k%(n+4));
+    if(f===e.shown) continue; e.shown=f; const g=e.cv.getContext('2d');
+    g.imageSmoothingEnabled=false; g.clearRect(0,0,e.cv.width,e.cv.height); g.drawImage(an.canv[f],0,0,e.cv.width,e.cv.height); }
+}
+
+/* ---------- Editor ---------- */
+let tool='pen', penColor=pk(24,17,28), selSw=0, Ze=8, stroke=null;
+const ed=$('#editor');
+function drawEditor(){
+  if(!B||!C) return; const {w,h}=B, W=w+2, H=h+2;
+  const buf=new Uint32Array(W*H); for(let y=0;y<h;y++) for(let x=0;x<w;x++) buf[(y+1)*W+x+1]=B.px[y*w+x];
+  applyOutline(buf,W,H);
+  const avail=Math.max(120,$('#edWrap').clientWidth-16);
+  Ze=clamp(Math.floor(Math.min(avail/W,440/H)),2,28);
+  ed.width=W*Ze; ed.height=H*Ze; ed.style.backgroundSize=`${Ze*2}px ${Ze*2}px`;
+  const t=document.createElement('canvas'); t.width=W; t.height=H; t.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(buf.buffer),W,H),0,0);
+  const g=ed.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(t,0,0,ed.width,ed.height);
+  if(Ze>=6){ g.strokeStyle='rgba(255,255,255,.07)'; g.lineWidth=1; g.beginPath();
+    for(let x=0;x<=W;x++){g.moveTo(x*Ze+.5,0);g.lineTo(x*Ze+.5,ed.height);} for(let y=0;y<=H;y++){g.moveTo(0,y*Ze+.5);g.lineTo(ed.width,y*Ze+.5);} g.stroke(); }
+  g.strokeStyle=css('--accent'); g.lineWidth=2; g.setLineDash([Ze*.6,Ze*.4]); g.beginPath();
+  const wy=(C.waistY+1)*Ze; g.moveTo(0,wy); g.lineTo(ed.width,wy);
+  const sx=(C.splitX+1)*Ze; g.moveTo(sx,wy); g.lineTo(sx,ed.height); g.stroke(); g.setLineDash([]);
+  if($('#showHit').checked){ g.strokeStyle='rgba(230,106,85,.9)'; g.lineWidth=2;
+    const hx=(C.hit.x-C.ox+1)*Ze, hy=(C.hit.y-C.oy+1)*Ze; g.strokeRect(hx,hy,C.hit.w*Ze,C.hit.h*Ze); }
+}
+function renderPalette(){
+  const cols=[...new Set(B.px)].filter(v=>v).sort((a,b)=>lum(a)-lum(b)); const box=$('#swatches'); box.innerHTML='';
+  for(const v of cols){ const b=document.createElement('button'); b.type='button'; b.className='sw'; b.style.background=hex(v); b.title=hex(v);
+    b.setAttribute('aria-label','Màu '+hex(v)); b.setAttribute('aria-pressed',v===selSw); b.onclick=()=>{ selSw=v; setPen(v); setTool('pen'); renderPalette(); }; box.appendChild(b); }
+}
+function setPen(v){ penColor=v; $('#penColor').value=hex(v); }
+function setTool(t){ tool=t; $$('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tool===t)); }
+$$('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+$('#penColor').value=hex(penColor); $('#penColor').oninput=e=>{penColor=fromHex(e.target.value);};
+$('#replColor').value='#e8b796';
+function edPos(e){ const r=ed.getBoundingClientRect(); return {x:Math.floor((e.clientX-r.left)*ed.width/r.width/Ze)-1, y:Math.floor((e.clientY-r.top)*ed.height/r.height/Ze)-1}; }
+const inB=p=>B&&p.x>=0&&p.y>=0&&p.x<B.w&&p.y<B.h;
+function paint(p,t){ if(inB(p)) edits.set(p.y*B.w+p.x,t==='erase'?0:penColor); }
+function commit(){ applyEdits(); schedule(1); }
+function pushUndo(){ undoSt.push(new Map(edits)); if(undoSt.length>80) undoSt.shift(); }
+ed.addEventListener('contextmenu',e=>e.preventDefault());
+ed.addEventListener('pointerdown',e=>{
+  if(!B) return; e.preventDefault(); const p=edPos(e); const t=e.button===2?'erase':tool; if(!inB(p)) return;
+  if(t==='pick'){ const v=B.px[p.y*B.w+p.x]; if(v){ setPen(v); selSw=v; setTool('pen'); renderPalette(); } return; }
+  pushUndo();
+  if(t==='fill'){ const tgt=B.px[p.y*B.w+p.x], st=[p.y*B.w+p.x], seen=new Uint8Array(B.px.length);
+    while(st.length){ const i=st.pop(); if(seen[i]||B.px[i]!==tgt) continue; seen[i]=1; edits.set(i,penColor); const x=i%B.w;
+      if(x>0)st.push(i-1); if(x<B.w-1)st.push(i+1); if(i>=B.w)st.push(i-B.w); if(i<B.px.length-B.w)st.push(i+B.w); }
+    commit(); return; }
+  stroke={t,last:p}; paint(p,t); ed.setPointerCapture(e.pointerId); commit();
+});
+ed.addEventListener('pointermove',e=>{ if(!stroke) return; const p=edPos(e); let {x:x0,y:y0}=stroke.last;
+  const dx=Math.abs(p.x-x0), dy=-Math.abs(p.y-y0), sx=x0<p.x?1:-1, sy=y0<p.y?1:-1; let err=dx+dy;
+  for(;;){ paint({x:x0,y:y0},stroke.t); if(x0===p.x&&y0===p.y) break; const e2=2*err; if(e2>=dy){err+=dy;x0+=sx;} if(e2<=dx){err+=dx;y0+=sy;} }
+  stroke.last=p; commit(); });
+ed.addEventListener('pointerup',()=>{stroke=null;}); ed.addEventListener('pointercancel',()=>{stroke=null;});
+$('#undo').onclick=()=>{ if(undoSt.length){ edits=undoSt.pop(); commit(); } };
+$('#clearEd').onclick=()=>{ if(edits.size){ pushUndo(); edits.clear(); commit(); } };
+$('#replBtn').onclick=()=>{ if(!B||!selSw) return toast('Chọn một ô màu trước'); pushUndo(); const nv=fromHex($('#replColor').value);
+  B.px.forEach((v,i)=>{ if(v===selSw) edits.set(i,nv); }); selSw=nv; commit(); };
+window.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&document.activeElement.tagName!=='INPUT'){ e.preventDefault(); $('#undo').click(); } });
+
+/* ---------- Spec ---------- */
+function renderSpec(){
+  if(!C) return; const {fw,fh,pivot:p,hit,feet,move:m,cols,rows}=C, sc=S.scale;
+  const py=p.y/fh, ppu=[16,24,32,48,64].reduce((a,b)=>Math.abs(b-C.h/1.5)<Math.abs(a-C.h/1.5)?b:a);
+  const rowsDL=[
+    ['sec','Kích thước'],
+    ['Sprite',`${C.w} × ${C.h} px · ${C.colors} màu`],
+    ['Frame',`${fw} × ${fh} px`],
+    ['Sheet',`${cols} cột × ${rows} hàng = ${cols*fw*sc} × ${rows*fh*sc} px (×${sc})`],
+    ['Thứ tự hàng',C.anims.map((a,i)=>`${i}:${a.name}`).join('  ')],
+    ['sec','Điểm neo & va chạm (toạ độ trong frame)'],
+    ['Pivot (chân)',`(${p.x}, ${p.y}) · chuẩn hoá (0.5, ${py.toFixed(3)})`],
+    ['Hitbox thân',`x ${hit.x}, y ${hit.y}, w ${hit.w}, h ${hit.h}`],
+    ['Hộp chân',`x ${feet.x}, y ${feet.y}, w ${feet.w}, h ${feet.h} (top-down)`],
+    ['Rig',`hông y=${C.waistY}, tách chân x=${C.splitX}, biên độ ${C.a} px`],
+    ['sec','Chuyển động (px/giây, theo frame ×1)'],
+    ['Đi / chạy',`${m.walk} / ${m.run} px/s (khớp nhịp ${S.fps.walk} / ${S.fps.run} fps)`],
+    ['Nhảy',`cao ${m.jumpH} px · v₀ ${m.v0} px/s · gravity ${m.g} px/s²`],
+    ['sec','Engine'],
+    ['Godot',`Sprite2D hframes=${cols} vframes=${rows} · offset=(0, ${fh/2-p.y}) · frame = hàng×${cols}+i`],
+    ['Unity',`Sprite Mode Multiple, Grid ${fw}×${fh} · PPU ${ppu} · Pivot Custom (0.5, ${((fh-p.y)/fh).toFixed(3)}) · Filter Point, No compression`],
+    ['Phaser',`spritesheet frameWidth ${fw*sc}, frameHeight ${fh*sc} · setOrigin(0.5, ${py.toFixed(3)})`],
+    ['Hướng trái/phải','Lật ngang (flipX) quanh tâm frame; ảnh gốc nhìn về '+(S.face===1?'phải':'trái')],
+    ...(C.pet?[['sec','Thú cưng'],['Sprite',`${C.pet.name} · frame ${C.pet.fw}×${C.pet.fh} · sheet ${C.pet.cols}×${C.pet.rows} (${C.pet.anims.map(a=>a.key).join(', ')})`],
+      ['Đi theo',`sau lưng chủ ${Math.round(C.fw*.75)} px · xa hơn ${Math.round(C.fw*1.6)} px thì chạy · đứng yên 2.5 s thì ngồi`]]:[]),
+  ];
+  $('#spec').innerHTML=rowsDL.map(([k,v])=>k==='sec'?`<div class="sec">${v}</div>`:`<dt>${k}</dt><dd>${v}</dd>`).join('');
+}
+
+/* ---------- Playground ---------- */
+const play=$('#play'), pg=play.getContext('2d'), low=document.createElement('canvas'), lg=low.getContext('2d');
+const P={x:40,y:0,vy:0,ground:true,facing:1,act:null,actT:0,land:0,pre:0,mode:'platform',anim:'',t:0,init:false};
+const keys=new Set();
+play.addEventListener('keydown',e=>{ const k=e.key.toLowerCase();
+  if(['arrowleft','arrowright','arrowup','arrowdown',' '].includes(k)) e.preventDefault();
+  if(!keys.has(k)){
+    if((k===' '||(P.mode==='platform'&&(k==='w'||k==='arrowup')))&&P.ground&&!P.act&&P.mode==='platform') P.pre=.06;
+    if(k==='j'&&!P.act){P.act='attack';P.actT=0;}
+    if(k==='h'){P.act='hurt';P.actT=0;}
+    if(k==='q'&&anim('quay')&&!P.act){P.act='quay';P.actT=0;}
+    if(k==='t'&&anim('noi')&&!P.act){P.act='noi';P.actT=0;}
+    if(k==='k'&&anim('hokage')&&!P.act){P.act='hokage';P.actT=0;}
+    if(k==='f'&&!P.act){ if(anim('saiyan')){ P.act='saiyan'; P.actT=0; } else switchForm(); }
+  }
+  keys.add(k); });
+play.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+play.addEventListener('blur',()=>keys.clear());
+play.addEventListener('pointerdown',()=>play.focus());
+$$('[data-mode]').forEach(b=>b.onclick=()=>{ P.mode=b.dataset.mode; $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b)); P.init=false; play.focus(); });
+$('#showHit').onchange=()=>drawEditor();
+const anim=n=>C.anims.find(a=>a.name===n);
+function switchForm(){ const base=RefTemplate.PRESETS[S.preset]; if(!base||!base.forms) return;
+  const ks=Object.keys(base.forms); S.form=ks[(ks.indexOf(S.form)+1)%ks.length]; $('#form').value=S.form; applyPreset(); schedule(2); }
+const PET={x:0,y:0,facing:1,anim:'idle',t:0,still:0,init:false};
+function step(dt){
+  if(!C) return;
+  const Z=clamp(Math.floor(150/C.fh),1,8), cw=Math.max(200,play.clientWidth);
+  const lw=Math.ceil(cw/Z), lh=Math.ceil(300/Z);
+  if(low.width!==lw||low.height!==lh){ low.width=lw; low.height=lh; }
+  if(play.width!==lw*Z||play.height!==lh*Z){ play.width=lw*Z; play.height=lh*Z; }
+  const groundY=lh-Math.max(4,Math.round(lh*.16)), m=C.move;
+  if(!P.init){ P.x=lw/2; P.y=P.mode==='platform'?groundY:lh*.65; P.vy=0; P.ground=true; P.init=true; }
+  const k=s=>s.some(x=>keys.has(x));
+  let dx=(k(['arrowright','d'])?1:0)-(k(['arrowleft','a'])?1:0);
+  let dy=P.mode==='top'?(k(['arrowdown','s'])?1:0)-(k(['arrowup','w'])?1:0):0;
+  const running=keys.has('shift'), sp=running?m.run:m.walk;
+  if(P.act){ P.actT+=dt; const a=anim(P.act); const dur=P.act==='noi'?2:P.act==='hokage'?a.frames.length/S.fps.hokage+1.5:P.act==='saiyan'?a.frames.length/S.fps.saiyan+.3:a.frames.length/S.fps[P.act];
+    if(P.actT>=dur){ const done=P.act; P.act=null; if(done==='saiyan') switchForm(); } }
+  if(P.act==='attack'||P.act==='saiyan'||P.act==='hokage'){dx=0;dy=0;}
+  if(P.act==='hurt'){dx=-P.facing*.6;dy=0;}
+  else if(dx) P.facing=Math.sign(dx);
+  if(P.mode==='top'){ const len=Math.hypot(dx,dy)||1; P.x+=dx/len*sp*dt; P.y=clamp(P.y+dy/len*sp*dt,C.fh*.6,lh-2); }
+  else{
+    if(P.pre>0){P.pre-=dt; if(P.pre<=0){P.vy=-m.v0; P.ground=false;}}
+    P.x+=dx*sp*dt;
+    if(!P.ground){P.vy+=m.g*dt; P.y+=P.vy*dt; if(P.y>=groundY){P.y=groundY;P.vy=0;P.ground=true;P.land=.09;}} else P.y=groundY;
+    if(P.land>0) P.land-=dt;
+  }
+  P.x=clamp(P.x,C.fw/2,lw-C.fw/2);
+  let name,fi; const moving=dx!==0||dy!==0;
+  if(P.act){ name=P.act; const n=anim(name).frames.length, k=Math.floor(P.actT*S.fps[name]); fi=anim(name).loop?k%n:Math.min(n-1,k); }
+  else if(P.mode==='platform'&&P.pre>0){name='jump';fi=0;}
+  else if(P.mode==='platform'&&!P.ground){name='jump';fi=P.vy<-m.v0*.25?1:2;}
+  else if(P.land>0){name='jump';fi=3;}
+  else { name=moving?(running?'run':'walk'):'idle'; if(P.anim!==name){P.anim=name;P.t=0;} P.t+=dt; fi=Math.floor(P.t*S.fps[name])%anim(name).frames.length; }
+  // vẽ cảnh
+  lg.fillStyle=css('--panel2'); lg.fillRect(0,0,lw,lh);
+  if(P.mode==='platform'){
+    lg.fillStyle=css('--line'); lg.fillRect(0,groundY,lw,lh-groundY);
+    lg.fillStyle=css('--accent'); lg.fillRect(0,groundY,lw,1);
+    lg.fillStyle=css('--check1'); for(let x=0;x<lw;x+=16) lg.fillRect(x,groundY+3,1,lh);
+  } else {
+    for(let y=0;y<lh;y+=16) for(let x=0;x<lw;x+=16){ lg.fillStyle=((x+y)/16)%2?css('--check1'):css('--check2'); lg.fillRect(x,y,16,16); }
+  }
+  // thú cưng chạy theo sau lưng nhân vật: xa thì chạy, gần thì đi, đứng yên lâu thì ngồi
+  let petDraw=null;
+  if(C.pet){ const pt=C.pet, follow=C.fw*.75;
+    if(!PET.init){ PET.x=P.x-follow; PET.y=P.mode==='platform'?groundY:P.y; PET.init=true; }
+    const tx=P.x-P.facing*follow, ty=P.mode==='platform'?groundY:P.y+2, ddx=tx-PET.x, ddy=ty-PET.y, dist=Math.hypot(ddx,ddy);
+    let pa='idle';
+    if(dist>3){ const v=dist>C.fw*1.6?m.run*1.15:m.walk*1.05, st=Math.min(dist,v*dt); PET.x+=ddx/dist*st; PET.y+=ddy/dist*st;
+      if(Math.abs(ddx)>.5) PET.facing=Math.sign(ddx); pa=dist>C.fw*1.6?'run':'walk'; PET.still=0; }
+    else { PET.still+=dt; PET.facing=P.x>=PET.x?1:-1; pa=PET.still>2.5?'sit':'idle'; }
+    if(P.mode==='platform') PET.y=groundY;
+    if(PET.anim!==pa){ PET.anim=pa; PET.t=0; } PET.t+=dt;
+    const A2=pt.anims.find(a=>a.key===pa), fi2=Math.floor(PET.t*S.fps[A2.name])%A2.canv.length;
+    petDraw=()=>{ const Xp=Math.round(PET.x-pt.pivot.x), Yp=Math.round(PET.y-pt.pivot.y);
+      lg.fillStyle='rgba(0,0,0,.25)'; lg.beginPath(); lg.ellipse(Math.round(PET.x),Math.round(PET.y),7,1.5,0,0,7); lg.fill();
+      lg.save(); if(PET.facing<0){ lg.translate(Xp+pt.fw,Yp); lg.scale(-1,1); } else lg.translate(Xp,Yp); lg.drawImage(A2.canv[fi2],0,0); lg.restore(); };
+    if(P.mode!=='top'||PET.y<=P.y) { petDraw(); petDraw=null; } }
+  const shY=P.mode==='platform'?groundY:P.y, shW=Math.max(4,C.hit.w*(P.mode==='platform'?1-(groundY-P.y)/(m.jumpH*1.4):1));
+  lg.fillStyle='rgba(0,0,0,.3)'; lg.beginPath(); lg.ellipse(Math.round(P.x),shY,Math.max(2,shW/2),Math.max(1,C.h/24),0,0,7); lg.fill();
+  const A=anim(name), fc=(A.body||A.canv)[fi], X=Math.round(P.x-C.pivot.x), Y=Math.round(P.y-C.pivot.y), flip=P.facing!==S.face;
+  lg.save(); if(flip){ lg.translate(X+C.fw,Y); lg.scale(-1,1); } else lg.translate(X,Y);
+  lg.drawImage(fc,0,0);
+  if($('#showHit').checked){ lg.strokeStyle='rgba(230,106,85,.95)'; lg.lineWidth=1; lg.strokeRect(C.hit.x+.5,C.hit.y+.5,C.hit.w-1,C.hit.h-1);
+    lg.strokeStyle='rgba(70,185,164,.95)'; lg.strokeRect(C.feet.x+.5,C.feet.y+.5,C.feet.w-1,C.feet.h-1); }
+  lg.restore();
+  if(name==='noi'&&A.bubble){ const b=A.bubble, bw=b.canvas.width;   // khung chat vẽ riêng, không lật chữ
+    lg.drawImage(b.canvas, flip?X+C.fw-b.x-bw:X+b.x, Y+b.y); }
+  if(petDraw) petDraw();
+  pg.imageSmoothingEnabled=false; pg.drawImage(low,0,0,play.width,play.height);
+}
+let lastT=0;
+function loop(t){ requestAnimationFrame(loop); const dt=Math.min(.05,(t-lastT)/1000||0); lastT=t; tickCards(t); step(dt); }
+requestAnimationFrame(loop);
+
+/* ---------- Export ---------- */
+function scaled(src,k){ const c=document.createElement('canvas'); c.width=src.width*k; c.height=src.height*k; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(src,0,0,c.width,c.height); return c; }
+function download(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); }
+const fname=()=>(S.name||'character').replace(/[^\w\-]+/g,'_');
+function buildPetJSON(){
+  const pt=C.pet, k=S.scale, frames={}, tags=[]; let idx=0;
+  pt.anims.forEach((an,r)=>{ const from=idx;
+    an.canv.forEach((_,i)=>{ frames[`${pt.kind}_${an.key}_${i}`]={frame:{x:i*pt.fw*k,y:r*pt.fh*k,w:pt.fw*k,h:pt.fh*k},rotated:false,trimmed:false,
+      spriteSourceSize:{x:0,y:0,w:pt.fw*k,h:pt.fh*k},sourceSize:{w:pt.fw*k,h:pt.fh*k},duration:Math.round(1000/S.fps[an.name])}; idx++; });
+    tags.push({name:an.key,from,to:idx-1,direction:'forward',loop:true,row:r,fps:S.fps[an.name]}); });
+  return {frames,meta:{app:'Pixel Sprite Forge',version:'1.0',image:`${pt.kind}_sheet${k>1?'@'+k+'x':''}.png`,format:'RGBA8888',
+    size:{w:pt.sheet.width*k,h:pt.sheet.height*k},scale:String(k),frameTags:tags,grid:{frameWidth:pt.fw*k,frameHeight:pt.fh*k,columns:pt.cols,rows:pt.rows},
+    pivot:{x:pt.pivot.x*k,y:pt.pivot.y*k},facing:'right',owner:fname(),
+    follow:{offsetX:Math.round(C.fw*.75)*k,walkBelow:Math.round(C.fw*1.6)*k,sitAfter:2.5,note:'Đi sau lưng chủ cách offsetX; xa hơn walkBelow thì chạy; đứng yên quá sitAfter giây thì ngồi.'}}};
+}
+function buildJSON(){
+  const k=S.scale, frames={}, tags=[]; let idx=0;
+  C.anims.forEach((an,r)=>{ const from=idx;
+    an.frames.forEach((_,i)=>{ frames[`${fname()}_${an.name}_${i}`]={frame:{x:i*C.fw*k,y:r*C.fh*k,w:C.fw*k,h:C.fh*k},rotated:false,trimmed:false,
+      spriteSourceSize:{x:0,y:0,w:C.fw*k,h:C.fh*k},sourceSize:{w:C.fw*k,h:C.fh*k},duration:Math.round(1000/S.fps[an.name])}; idx++; });
+    tags.push({name:an.name,from,to:idx-1,direction:'forward',loop:an.loop,row:r,fps:S.fps[an.name]}); });
+  const sc=o=>({x:o.x*k,y:o.y*k,w:o.w*k,h:o.h*k});
+  return {frames,meta:{app:'Pixel Sprite Forge',version:'1.0',image:`${fname()}_sheet${k>1?'@'+k+'x':''}.png`,format:'RGBA8888',
+    size:{w:C.sheet.width*k,h:C.sheet.height*k},scale:String(k),frameTags:tags,
+    grid:{frameWidth:C.fw*k,frameHeight:C.fh*k,columns:C.cols,rows:C.rows},
+    pivot:{x:C.pivot.x*k,y:C.pivot.y*k,nx:.5,ny:+(C.pivot.y/C.fh).toFixed(4)},
+    hitbox:sc(C.hit),feetBox:sc(C.feet),facing:S.face===1?'right':'left',
+    ...(()=>{ const t=C.anims.find(a=>a.bubble); return t?{speech:{anim:t.name,text:t.bubble.text,image:`${fname()}_bubble.png`,x:t.bubble.x*k,y:t.bubble.y*k,w:t.bubble.canvas.width*k,h:t.bubble.canvas.height*k,note:'Sheet đã vẽ sẵn khung chat. Khi lật nhân vật (flipX), ẩn khung trong sheet bằng frame body hoặc vẽ ảnh khung chat này riêng ở x = frameWidth - x - w để chữ không bị ngược.'}}:{}; })(),
+    movement:{walkSpeed:C.move.walk*k,runSpeed:C.move.run*k,jumpVelocity:C.move.v0*k,gravity:C.move.g*k,unit:'px/s'}}};
+}
+$('#exSheet').onclick=()=>{ if(!C) return; scaled(C.sheet,S.scale).toBlob(b=>{download(b,`${fname()}_sheet${S.scale>1?'@'+S.scale+'x':''}.png`);toast('Đã xuất sprite sheet');});
+  const t=C.anims.find(a=>a.bubble); if(t) scaled(t.bubble.canvas,S.scale).toBlob(b=>download(b,`${fname()}_bubble${S.scale>1?'@'+S.scale+'x':''}.png`));
+  if(C.pet) scaled(C.pet.sheet,S.scale).toBlob(b=>download(b,`${C.pet.kind}_sheet${S.scale>1?'@'+S.scale+'x':''}.png`)); };
+$('#exSingle').onclick=()=>{ if(!C) return; scaled(C.anims[0].canv[0],S.scale).toBlob(b=>{download(b,`${fname()}${S.scale>1?'@'+S.scale+'x':''}.png`);toast('Đã xuất sprite');}); };
+$('#exJson').onclick=()=>{ if(!C) return; download(new Blob([JSON.stringify(buildJSON(),null,2)],{type:'application/json'}),`${fname()}_sheet.json`);
+  if(C.pet) download(new Blob([JSON.stringify(buildPetJSON(),null,2)],{type:'application/json'}),`${C.pet.kind}_sheet.json`); toast('Đã xuất JSON'); };
+$('#cpJson').onclick=()=>{ if(!C) return; navigator.clipboard.writeText(JSON.stringify(buildJSON(),null,2)).then(()=>toast('Đã chép JSON'),()=>toast('Trình duyệt chặn chép, dùng nút JSON')); };
+
+/* ---------- Input ---------- */
+function loadFile(f){ if(!f||!f.type.startsWith('image/')) return toast('File này không phải ảnh');
+  const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{ setImage(img); URL.revokeObjectURL(url); };
+  img.onerror=()=>toast('Không đọc được ảnh này'); img.src=url;
+  S.name=f.name.replace(/\.[^.]+$/,'')||'character'; $('#name').value=S.name; }
+$('#file').onchange=e=>loadFile(e.target.files[0]);
+window.addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag');});
+window.addEventListener('dragleave',e=>{ if(!e.relatedTarget) document.body.classList.remove('drag'); });
+window.addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drag');loadFile(e.dataTransfer.files[0]);});
+window.addEventListener('paste',e=>{ const it=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/')); if(it) loadFile(it.getAsFile()); });
+window.addEventListener('resize',()=>{ if(C) drawEditor(); });
+let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1800); }
+const cssCache={}; function css(v){ return cssCache[v]||(cssCache[v]=getComputedStyle(document.documentElement).getPropertyValue(v).trim()); }
+
+/* ---------- Ảnh mẫu (vẽ vector, độ phân giải cao) ---------- */
+function sampleImage(){
+  const c=document.createElement('canvas'); c.width=480; c.height=720; const g=c.getContext('2d');
+  const rr=(x,y,w,h,r)=>{g.beginPath(); g.roundRect?g.roundRect(x,y,w,h,r):g.rect(x,y,w,h); g.fill();};
+  g.fillStyle='#f1eadb'; g.fillRect(0,0,480,720);
+  g.fillStyle='#2d3350'; rr(168,470,66,170,18); rr(246,470,66,170,18);
+  g.fillStyle='#4a2c22'; rr(156,622,84,42,16); rr(240,622,84,42,16);
+  const gr=g.createLinearGradient(140,0,340,0); gr.addColorStop(0,'#35a094'); gr.addColorStop(1,'#1f6b66');
+  g.fillStyle=gr; rr(140,330,200,170,40); rr(102,342,58,112,26); rr(320,342,58,112,26);
+  g.fillStyle='#f0b48c'; rr(108,436,46,64,22); rr(326,436,46,64,22);
+  g.fillStyle='#8a7f72'; g.fillRect(146,470,188,16);
+  g.fillStyle='#e7a27c'; g.beginPath(); g.ellipse(118,252,22,30,0,0,7); g.ellipse(362,252,22,30,0,0,7); g.fill();
+  g.fillStyle='#f3bb94'; g.beginPath(); g.ellipse(240,245,120,128,0,0,7); g.fill();
+  g.fillStyle='#2a2230'; g.beginPath(); g.ellipse(240,200,134,108,0,Math.PI,0); g.fill();
+  g.fillRect(106,196,30,70); g.fillRect(344,196,30,70);
+  g.beginPath(); g.moveTo(106,200); for(let i=0;i<=8;i++) g.lineTo(106+i*33.5,i%2?186:214); g.lineTo(374,200); g.fill();
+  g.strokeStyle='#1b1418'; g.lineWidth=11; g.beginPath(); g.arc(192,258,32,0,7); g.moveTo(320,258); g.arc(288,258,32,0,7); g.moveTo(224,256); g.lineTo(256,256); g.stroke();
+  g.fillStyle='#1b1418'; g.fillRect(186,250,12,18); g.fillRect(282,250,12,18);
+  g.fillStyle='#e07f74'; g.fillRect(226,318,28,8);
+  return c;
+}
+$('#sampleBtn').onclick=()=>{ S.name='sample'; $('#name').value='sample'; setImage(sampleImage()); };
+window.PSF={setImage,S,schedule,selSet,refresh(l){pending=Math.max(pending,l);run();},get C(){return C;},get SRC(){return SRC;},get an(){return lastAn;},buildJSON,buildPetJSON};
+// mở đầu bằng nhân vật dựng sẵn Mèn Mén; nhập ảnh để tạo nhân vật mới
+applyPreset();
+schedule(2);
+})();
+</script>
+</body>
+</html>

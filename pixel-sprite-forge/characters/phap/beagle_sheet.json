@@ -1,0 +1,365 @@
+{
+  "frames": {
+    "beagle_idle_0": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 167
+    },
+    "beagle_idle_1": {
+      "frame": {
+        "x": 24,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 167
+    },
+    "beagle_idle_2": {
+      "frame": {
+        "x": 48,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 167
+    },
+    "beagle_idle_3": {
+      "frame": {
+        "x": 72,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 167
+    },
+    "beagle_walk_0": {
+      "frame": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 125
+    },
+    "beagle_walk_1": {
+      "frame": {
+        "x": 24,
+        "y": 18,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 125
+    },
+    "beagle_walk_2": {
+      "frame": {
+        "x": 48,
+        "y": 18,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 125
+    },
+    "beagle_walk_3": {
+      "frame": {
+        "x": 72,
+        "y": 18,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 125
+    },
+    "beagle_run_0": {
+      "frame": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 83
+    },
+    "beagle_run_1": {
+      "frame": {
+        "x": 24,
+        "y": 36,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 83
+    },
+    "beagle_run_2": {
+      "frame": {
+        "x": 48,
+        "y": 36,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 83
+    },
+    "beagle_run_3": {
+      "frame": {
+        "x": 72,
+        "y": 36,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 83
+    },
+    "beagle_sit_0": {
+      "frame": {
+        "x": 0,
+        "y": 54,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 333
+    },
+    "beagle_sit_1": {
+      "frame": {
+        "x": 24,
+        "y": 54,
+        "w": 24,
+        "h": 18
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "sourceSize": {
+        "w": 24,
+        "h": 18
+      },
+      "duration": 333
+    }
+  },
+  "meta": {
+    "app": "Pixel Sprite Forge",
+    "version": "1.0",
+    "image": "beagle_sheet.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 96,
+      "h": 72
+    },
+    "scale": "1",
+    "frameTags": [
+      {
+        "name": "idle",
+        "from": 0,
+        "to": 3,
+        "direction": "forward",
+        "loop": true,
+        "row": 0,
+        "fps": 6
+      },
+      {
+        "name": "walk",
+        "from": 4,
+        "to": 7,
+        "direction": "forward",
+        "loop": true,
+        "row": 1,
+        "fps": 8
+      },
+      {
+        "name": "run",
+        "from": 8,
+        "to": 11,
+        "direction": "forward",
+        "loop": true,
+        "row": 2,
+        "fps": 12
+      },
+      {
+        "name": "sit",
+        "from": 12,
+        "to": 13,
+        "direction": "forward",
+        "loop": true,
+        "row": 3,
+        "fps": 3
+      }
+    ],
+    "grid": {
+      "frameWidth": 24,
+      "frameHeight": 18,
+      "columns": 4,
+      "rows": 4
+    },
+    "pivot": {
+      "x": 12,
+      "y": 17
+    },
+    "facing": "right",
+    "owner": "phap_xanh",
+    "follow": {
+      "offsetX": 24,
+      "walkBelow": 51,
+      "sitAfter": 2.5,
+      "note": "Đi sau lưng chủ cách offsetX; xa hơn walkBelow thì chạy; đứng yên quá sitAfter giây thì ngồi."
+    }
+  }
+}

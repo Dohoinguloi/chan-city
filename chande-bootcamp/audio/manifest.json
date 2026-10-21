@@ -1,0 +1,19 @@
+{
+ "music_room": "music_room.m4a",
+ "music_retreat": "music_retreat.m4a",
+ "phone_ring": "phone_ring.mp3",
+ "blip": "blip.mp3",
+ "quest_accept": "quest_accept.mp3",
+ "quest_complete": "quest_complete.mp3",
+ "coin": "coin.mp3",
+ "level_up": "level_up.mp3",
+ "item_pickup": "item_pickup.mp3",
+ "door": "door.mp3",
+ "step1": "step1.mp3",
+ "step2": "step2.mp3",
+ "dash": "dash.mp3",
+ "dog_bark": "dog_bark.mp3",
+ "car_4wd": "car_4wd.mp3",
+ "poof": "poof.mp3",
+ "power_up": "power_up.mp3"
+}
