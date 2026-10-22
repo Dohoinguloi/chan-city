@@ -991,7 +991,7 @@ const enhKind=k=>MU.weapons[k]?'weapon':(MU.legacy[k]||Object.values(MU.cls).som
    Quái đi lang thang quanh ổ, người lại gần (aggro ô) thì lao vào đánh: vung đòn có báo trước, chạy ra khỏi tầm là né; đuổi xa ổ quá leash ô thì quay về hồi máu.
    Hạ quái: EXP, tiền, EXP MU chia theo phần sát thương; người đánh nhiều nhất được chiến lợi phẩm (bán cho Phù Thuỷ Cường Hoá) và có tỉ lệ rơi Ngọc Cường Hoá.
    Cổng xuống rừng: cổng Nam quảng trường, lối Nam Đầm Rồng, lối Nam Bãi Phế Liệu. Lính Cát hoang cũng sống trong rừng (LINHCAT.maps.mu). */
-MU.forest={respawn:12,leash:8,aggro:3.6,windup:.45,mat:.4,gem:t=>.012+t*.004,gemHt:t=>t>=7?.0015:0,
+MU.forest={respawn:30,leash:8,aggro:3.6,windup:.45,mat:.4,gem:t=>.012+t*.004,gemHt:t=>t>=7?.0015:0,
   // tile: nền khu (1 rừng đêm · 2 đầm rêu · 3 đất đá · 4 đất cháy); kind: melee / ranged (bắn đạn, né được) / float (lơ lửng xuyên vật cản)
   mobs:{
     slime:{name:'Slime Bí Ngô',lv:3,spd:1.2,range:1.3,every:2.2,hpM:.9,atkM:.9,n:3,mat:'vo_bi_ngo',kind:'melee',zone:{name:'Đồi Bí Ngô',x0:2,x1:31,y0:31,y1:43,tile:'G'}},
