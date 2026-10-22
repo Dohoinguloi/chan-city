@@ -163,7 +163,8 @@ function enterScene(m){ const d=sceneData(m.s,m.room);
   banner(m.s==='stay'?(m.own?'Phòng của bạn · ':'Phòng của '+m.host+' · ')+S.map.name:S.map.name);
   if(m.s==='room'&&!G.flags.called) ringTimer=2.2;
   if(m.ride) travelAnim(m.ride);
-  AUTO=null; if(ROUTE) setTimeout(runRoute,500); if(homeAfterExit&&m.s==='retreat'){ homeAfterExit=false; setTimeout(goHome,300); } else homeAfterExit=false;
+  AUTO=null; if(NEED_AFTER&&(m.s==='room'||String(m.s).startsWith('stay')||(m.s==='retreat'&&NEED_AFTER==='clean'))){ const k=NEED_AFTER; NEED_AFTER=null; setTimeout(()=>needGo(k),600); } else if(m.s!=='retreat') NEED_AFTER=null;
+  if(ROUTE) setTimeout(runRoute,500); if(homeAfterExit&&m.s==='retreat'){ homeAfterExit=false; setTimeout(goHome,300); } else homeAfterExit=false;
   UI.closeAll&&UI.closeAll(); renderHUD(); }
 
 /* ---------- va chạm ---------- */
@@ -399,6 +400,32 @@ function questGo(id){ if(id==='herd') return herdGo(); const q=Q[id]; if(!q) ret
   if(q.need){ if(q.need.chicken&&!(G.items.chicken>0)&&!G.flags.chicken) return walkTo(chick.x/T,chick.y/T,'Gà đồi');
     const p=near(SD.PICKUPS.map((p,i)=>({...p,i})).filter(p=>p.quest===id&&!G.flags.picked[p.i])); if(p) return walkTo(p.x,p.y,SD.ITEMS[p.item].name); }
   toast('Mở bản đồ (M) xem đường nhé','quest'); }
+// năng lượng / sạch sẽ / pin sắp cạn, đến giờ ăn: báo 1 lần mỗi mốc (dưới 25, dưới 10; hồi trên 35 thì reset) + nút tự đi làm ở bảng chỉ số
+const NEED_HELP={energy:{low:'Năng lượng sắp cạn',how:'về phòng ngủ một giấc (giường / túi ngủ), hoặc uống nước tăng lực, bơi ở bể bơi Ké',act:'nghi',btn:'😴 Đi ngủ'},
+  clean:{low:'Người bẩn rồi',how:'tắm ở phòng, nhà tắm chung cạnh khu cắm trại, hoặc bơi ở bể bơi Ké',act:'tam',btn:'🚿 Đi tắm'},
+  battery:{low:'Pin điện thoại sắp hết',how:'về phòng cắm sạc ở ổ cạnh giường',act:'sac',btn:'🔋 Sạc pin'}};
+let NEED_AFTER=null; const NEED_LV={};
+function needsCheck(n){ const acts=[], t=NET.now();
+  for(const k of Object.keys(NEED_HELP)){ const v=n[k], H=NEED_HELP[k], lv=v<10?2:v<25?1:0, was=NEED_LV[k]||0;
+    if(lv>was){ toast(`${lv>1?'⚠️ ':''}<b>${H.low}</b> (${Math.round(v)}%): ${H.how}. Bấm <b>${H.btn}</b> ở bảng chỉ số để tự đi.`,'lock'); if(lv>1) sfx('blip',.4); }
+    NEED_LV[k]=v>=35?0:Math.max(was,lv); if(v<25) acts.push([k,H.btn,v<10]); }
+  const ms=SD.mealStatus(G.meals,t), now=ms.find(m=>m.st==='now'), hung=SD.hunger(G.meals,t), key=now?now.name:hung?'doi'+hung:'';
+  if(key&&NEED_LV.meal!==key) toast(now?`🍚 Đến giờ <b>${now.name.toLowerCase()}</b> (${now.from}:00–${now.to}:00): ra quán ăn kẻo đói. Bấm <b>🍚 Đi ăn</b> để tự đi tới quán gần nhất.`:`🍚 <b>Đang đói</b> (bỏ ${hung} bữa): ăn bù ở quán. Bấm <b>🍚 Đi ăn</b>.`,'lock');
+  NEED_LV.meal=key; if(key) acts.push(['eat','🍚 Đi ăn',hung>1]);
+  const html=acts.map(([k,label,crit])=>`<button class="needGo${crit?' crit':''}" type="button" data-k="${k}">${label} ➜</button>`).join('');
+  if(html!==needsCheck.h){ needsCheck.h=html; $('#hudNeedsAct').innerHTML=html; } }
+function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
+  if(S.kind==='room'||(S.kind==='stay'&&S.own)){ const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act===H.act);
+    if(it) return walkTo(it.x/T,it.y/T,it.label,()=>interact({type:'obj',it,label:it.label}));   // gọi đúng việc (ngủ/tắm/sạc), không lấy điểm gần nhất (dễ trúng điện thoại)
+    if(k==='clean'){ toast('Lều không có chỗ tắm: ra nhà tắm chung cạnh khu cắm trại','quest'); NEED_AFTER=k; homeAfterExit=false; return act({t:'exit'}); } }
+  if(k==='clean'&&S.kind==='retreat'&&(!stay||SD.ROOMS[stay].bath==='chung')){ const B=SD.BATHHOUSE; return walkTo(B.x,B.y+.6,'Nhà tắm chung',()=>interact({type:'bath',label:'Tắm ở nhà tắm chung'})); }
+  if(stay&&S.kind!=='room'&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map))){ NEED_AFTER=k; return goHome(); }
+  NEED_AFTER=k; toast(`${H.low}: ${H.how}. Gọi Grab về phòng ở Hà Nội (hoặc phòng đã thuê ở Ké)`,'quest'); UI.grab(); }
+// đi ăn: quán gần nhất ở map này (NPC bán hàng có thực đơn)
+function eatGo(){ const shops=npcs.filter(n=>{ const d=SD.NPCS.find(x=>x.id===n.id), pc=d&&d.place&&SD.PLACES[d.place]; return pc&&(pc.menu||[]).length; }).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));
+  if(shops.length) return walkToNpc(shops[0].id);
+  toast('Map này không có quán ăn. Về Ké (quán cơm, nhà ăn khu trên, bánh mì Dân Tổ) hoặc thị trấn Đà Lạt: bấm G gọi Grab','quest'); }
+document.addEventListener('click',e=>{ const b=e.target.closest('.needGo'); if(!b) return; e.stopPropagation(); b.blur(); needGo(b.dataset.k); });
 // chăn ngựa: chưa ăn cỏ thì tự dắt ra giữa đồng cỏ (vào tới nơi là tự cho ăn), ăn xong thì dắt về anh Phong
 function herdGo(){ UI.closeAll&&UI.closeAll(); if(!HERD) return; if(S.kind!=='dalat'){ toast('Đàn ngựa ở trại anh Phong, Đà Lạt: bấm G gọi Grab','quest'); return; }
   if(HERD.phase==='go'){ const z=SD.DALAT.pasture; if(inPasture()){ toast('Đứng yên trong đồng cỏ cho ngựa gặm cỏ '+SD.HORSE.herd.dur+' giây','quest'); return; } return walkTo((z.x0+z.x1)/2,(z.y0+z.y1)/2,'Đồng cỏ'); }
@@ -1068,6 +1095,7 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   $('#hudMoney').textContent=fmt(G.money);
   const L=SD.RULES.levels, lo=L[G.level-1]||0, hi=L[G.level]||lo+1; $('#hudLevel').textContent='Cấp '+G.level+' · '+G.name+' · 📚 '+((G.stats||{}).know||0);
   $('#hudExp').style.width=Math.min(100,(G.exp-lo)/(hi-lo)*100)+'%'; $('#hudExpTxt').textContent=`${G.exp}/${hi} EXP`;
+  needsCheck(G.needs);
   const n=G.needs; for(const [k,id] of [['energy','#barEnergy'],['clean','#barClean'],['battery','#barBattery']]){ const v=Math.round(n[k]); $(id).style.width=v+'%'; $(id).classList.toggle('low',v<20); $(id+'T').textContent=v; }
   const ms=SD.mealStatus(G.meals,NET.now()); $('#hudMeals').innerHTML=ms.map(m=>`<span class="meal ${m.st}" title="${m.name} ${m.from}:00–${m.to}:00">${m.name.replace('Bữa ','')}</span>`).join('');
   const h=SD.hunger(G.meals,NET.now()), bf=[]; if(h) bf.push(`<span class="bad">Đói: -${Math.round((1-SD.RULES.hungrySpeed[h])*100)}% tốc độ, -${Math.round((1-SD.RULES.hungryExp[h])*100)}% EXP</span>`);
@@ -1201,6 +1229,7 @@ NET.listen('task',m=>{ if(m.cancel){ TASK=null; toast('Đã dừng việc đang 
   if(m.done){ TASK=null; if(m.msg) toast(esc(m.msg),'item'); if(m.act==='herd'&&HERD) HERD.phase='back'; return; }
   TASK={act:m.act,name:m.name,start:performance.now(),end:performance.now()+m.sec*1000,anim:{nghi:'sleep',tam:'shower',tiktok:'phone',songao:'phone',shisha:'shisha',work:'work',hoc:'work',cook:'cook',herd:'',swim:'swim'}[m.act]||'',walk:m.act==='herd'}; });
 NET.listen('bite',()=>{ UI.fishBite&&UI.fishBite(); });
+NET.listen('online',m=>{ $('#hudPlayersN').textContent=m.n; }); $('#hudPlayers').addEventListener('click',e=>{ e.currentTarget.blur(); UI.online(); });
 NET.listen('lands',m=>{ LANDS=m.list||[]; }); NET.listen('stays',m=>{ STAYS=m.v||{}; }); NET.listen('pcar',m=>{ PCAR=m; if(m.driving!==NET.pid&&P.pcar){ P.pcar=false; } if(m.out||!m.driving) P.incar=false; }); NET.listen('moto',m=>{ if(m.off){ P.moto=null; } }); NET.listen('herds',m=>{ HERDS=m.list||[]; }); NET.listen('dogs',m=>{ DOGLIST=m.list||[]; });
 NET.listen('wild',m=>{ const od=WDINO, oc=WCROC; WDINO=m.dino; WCROC=m.croc; if(WDINO&&od&&od.k===WDINO.k){ WDINO.dx=od.dx; WDINO.dy=od.dy; } if(WCROC&&oc){ WCROC.dx=oc.dx; WCROC.dy=oc.dy; } });
 NET.listen('mega',m=>{ const old=MEGA; MEGA=m.v; if(MEGA&&old){ MEGA.dx=old.dx; MEGA.dy=old.dy; } });

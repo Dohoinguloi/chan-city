@@ -59,6 +59,9 @@ on('och',(pl,m)=>{ const msg=clean(m.m); if(!msg) return {err:'Tin trống'}; if
   const out={t:'och',from:pl.prof.name,fid:pl.pid,m:msg,at:t};
   if(m.to){ const q=players.get(m.to|0); if(!q) return {err:'Người đó đã offline'}; send(q,{...out,dm:true}); send(pl,{...out,dm:true,toName:q.prof.name}); return {}; }
   C.broadcastAll(out); return {}; });
+// số người đang online: gửi cho mọi người mỗi khi đổi (HUD góc trên), người mới vào map cũng nhận
+let lastOnline=-1; hook('slow',()=>{ const n=players.size; if(n===lastOnline) return; lastOnline=n; C.broadcastAll({t:'online',n}); });
+hook('enter',pl=>send(pl,{t:'online',n:players.size}));
 on('who',pl=>({list:[...players.values()].map(q=>({id:q.pid,n:q.prof.name,lv:q.prof.level,where:S.DEST[S.SCENE_DEST[kindOf(q.scene)]]?.name||''}))}));
 on('opt',(pl,m)=>{ if(typeof m.noSocial==='boolean'){ pl.prof.opts.noSocial=m.noSocial; markDirty(pl); } return {opts:pl.prof.opts}; });
 

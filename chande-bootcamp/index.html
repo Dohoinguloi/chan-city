@@ -69,6 +69,10 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #minimap{position:fixed;right:12px;bottom:12px;padding:4px;cursor:pointer;display:grid;gap:2px}
 #hudNav{position:fixed;right:12px;bottom:160px;z-index:2;flex-direction:column;align-items:stretch} #hudNav .muteBtn{justify-content:space-between} body.nomini #hudNav{bottom:12px}   /* nút Xếp hạng / Về phòng / Vườn & chuồng ngay trên minimap */
 #miniCv{display:block;width:160px;height:112px;image-rendering:pixelated;border:1px solid var(--ink)}
+#hudNeedsAct{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px} #hudNeedsAct:empty{display:none}
+.needGo{font:16px/1.1 var(--f);padding:2px 7px;background:#6b2a2a;color:#fff3d6;border:2px solid #1c1516;cursor:var(--cur-hand),pointer} .needGo:hover{background:#8a3a34} .needGo.crit{background:#a8322a;animation:keyPulse .6s steps(2) infinite}
+#hudPlayers{display:flex;align-items:center;gap:6px;color:#fff3d6;font:inherit;cursor:var(--cur-hand),pointer} #hudPlayers .dot{width:8px;height:8px;background:#5fe06a;box-shadow:0 0 0 2px #1c1516;animation:keyPulse 1.2s steps(2) infinite}
+.olist .row .you{color:var(--gold)}
 #keyHint{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:6;display:flex;gap:14px;align-items:center;padding:6px 14px;background:rgba(28,21,22,.86);border:2px solid var(--gold);color:#fff3d6;font-size:19px;pointer-events:none;white-space:nowrap}
 #keyHint b{color:var(--gold);font-weight:normal;margin-right:4px} #keyHint kbd{margin-right:5px;font-size:18px} #keyHint .hot kbd{animation:keyPulse .5s steps(2) infinite}
 @keyframes keyPulse{50%{filter:brightness(1.35);transform:translateY(-2px)}}
@@ -289,6 +293,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="hudQuests" class="panel hud"></div>
 <div id="hudRight">
   <div class="hudTop"><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
+  <button id="hudPlayers" class="panel" type="button" title="Ai đang online · bấm xem danh sách"><span class="dot" aria-hidden="true"></span><span id="hudPlayersN">1</span> online</button>
   <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
   <div id="hudMoneyBox" class="panel"><span id="hudMoney">0đ</span></div></div>
   <div id="hudLvlBox" class="panel"><div class="row2"><span id="hudLevel">Cấp 1</span><span id="hudExpTxt">0 EXP</span></div><div class="bar"><div id="hudExp"></div></div></div>
@@ -296,7 +301,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div class="need"><span>Năng lượng</span><div class="bar"><div id="barEnergy"></div></div><span id="barEnergyT">100</span></div>
     <div class="need"><span>Sạch sẽ</span><div class="bar"><div id="barClean"></div></div><span id="barCleanT">100</span></div>
     <div class="need"><span>Pin</span><div class="bar"><div id="barBattery"></div></div><span id="barBatteryT">100</span></div>
-    <div id="hudMeals"></div><div id="hudBuffs"></div></div>
+    <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="hudNav" class="hudTop"><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>

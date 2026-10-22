@@ -448,6 +448,12 @@ UI.raceOverlay=(g)=>{ const v=GAME.RACE; if(!v||v.st!=='run'||v.me<0) return; co
   if(judge&&performance.now()-judge.t<900){ g.fillStyle={PERFECT:'#ffd84a',GREAT:'#7de07a',COOL:'#7fe0ff',BAD:'#ff9f2e',MISS:'#ff6a55'}[judge.j]; g.font='40px VT323, monospace'; g.fillText(judge.j+(judge.combo>1?' x'+judge.combo:''),W/2,Y-62); }
   g.font='18px VT323, monospace'; g.fillStyle='#c9b9a6'; g.fillText(raceInput&&raceInput.sent?'Đã bấm':'Gõ mũi tên rồi SPACE ở mốc vàng',W/2,Y+40); };
 
+/* ---------- ai đang online (bấm nút ở góc trên) ---------- */
+let onlineList=null;
+UI.online=()=>{ onlineList=null; NET.req({t:'who'}).then(r=>{ onlineList=r.list||[]; UI.refresh(); });
+  open('Đang online',()=>{ if(!onlineList) return '<p class="muted">Đang tải...</p>'; const L=[...onlineList].sort((a,b)=>(b.id===NET.pid)-(a.id===NET.pid)||b.lv-a.lv);
+    return `<p><b>${L.length}</b> người đang chơi.</p><div class="list olist">${L.map(w=>`<div class="row"><span class="${w.id===NET.pid?'you':''}">${esc(w.n)}${w.id===NET.pid?' (bạn)':''}</span><span class="muted">cấp ${w.lv}${w.where?' · '+esc(w.where):''}</span></div>`).join('')}</div>`; }); };
+
 /* ---------- Ộ i i: khô gà đè tem + shisha ở Nhà giải trí ---------- */
 UI.oii=()=>open('Ộ i i',()=>{ const g=G(), row=id=>{ const q=SD.QUESTS[id], st=g.quests[id], kg=Math.min(g.items.khoga||0,10), sh=(g.qprog||{}).shisha||0;
     const ok=id==='khoga'?kg>=10:sh>=1, prog=id==='khoga'?`Đã gom ${kg}/10 gói.`:'Chưa hút shisha cùng Ộ i i.';

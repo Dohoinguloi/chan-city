@@ -40,6 +40,8 @@ function defaults(name){ return {v:3,name,look:null,owned:{},money:S.RULES.start
 function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]===undefined) p[k]=d[k]; else if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])&&p[k]&&typeof p[k]==='object') for(const j in d[k]) if(p[k][j]===undefined) p[k][j]=d[k][j]; }
   // tiền khởi đầu tăng từ 150.000đ lên 1.000.000đ: tài khoản tạo trước đó được bù 1 lần
   if((p.v||1)<3){ if(p.v) p.money+=1000000-150000; p.v=3; }
+  // tiền khởi điểm lên 2.000.000đ: tài khoản cũ dưới 2 triệu được nâng lên 2 triệu (1 lần)
+  if(!(p.flags&&p.flags.topup2m)){ p.money=Math.max(p.money||0,2000000); p.flags.topup2m=true; }
   // quà admin: tài khoản Mèn mén được cộng 3.000.000đ (1 lần)
   if(String(p.name||name||'').normalize('NFC').toLowerCase()==='mèn mén'.normalize('NFC')&&!(p.flags&&p.flags.gift3m)){ p.money+=3000000; p.flags.gift3m=true; }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
