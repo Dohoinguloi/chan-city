@@ -20,6 +20,16 @@ function text3(P,x,y,s,c,k=1){ for(const ch of s.toUpperCase()){ const m=F3[ch]|
 const w3=(s,k=1)=>s.length*4*k-k;
 
 /* ================= BEARPLUS ================= */
+// logo Bearplus: đầu gấu hình học trắng trên nền đen (toạ độ gốc khung 512), 2 nét mắt gãy khúc tách má với mõm, mũi tam giác khoét
+const BEAR_OUT=[[105,127],[135,135],[258,116],[380,135],[410,125],[440,170],[418,290],[378,348],[334,348],[302,395],[214,395],[182,348],[138,348],[98,290],[75,170]];
+const BEAR_EYE=[[[214,248],[140,232],[128,278],[162,284],[192,332],[184,352]],[[302,248],[376,232],[388,278],[354,284],[324,332],[332,352]]];
+const BEAR_NOSE=[[228,350],[290,350],[259,390]];
+function inPoly(x,y,pts){ let c=false; for(let i=0,j=pts.length-1;i<pts.length;j=i++){ const [xi,yi]=pts[i],[xj,yj]=pts[j]; if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) c=!c; } return c; }
+function segD(x,y,[ax,ay],[bx,by]){ const dx=bx-ax, dy=by-ay, k=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy))); return Math.hypot(x-ax-k*dx,y-ay-k*dy); }
+function bearMark(P,X,Y,w,col='#f2f2f0'){ const s=w/372, h=Math.round(284*s), hw=Math.max(12,.75/s);
+  for(let py=0;py<h;py++) for(let px=0;px<w;px++){ const x=72+(px+.5)/s, y=113+(py+.5)/s; if(!inPoly(x,y,BEAR_OUT)||inPoly(x,y,BEAR_NOSE)) continue;
+    let cut=false; for(const L of BEAR_EYE){ for(let i=0;i<L.length-1;i++) if(segD(x,y,L[i],L[i+1])<hw){ cut=true; break; } if(cut) break; } if(!cut) P.px(X+px,Y+py,col); }
+  return h; }
 A.WALKABLE.add('a');
 // sàn gỗ sồi lát xương cá: mỗi ô 4 khối 8×8, khối chẵn ván ngang, khối lẻ ván dọc
 TE.a=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#c99a64');
@@ -37,10 +47,8 @@ TE.i=(g,X,Y,tx,ty,nb,fr,P)=>{ const below=nb(0,1);
 // neon "bear+" hồng trên tấm nền than, có quầng sáng
 const NEON={b:['10000','10000','11110','10001','10001','10001','11110'],e:['00000','00000','01110','10001','11111','10000','01110'],a:['00000','00000','01110','00001','01111','10001','01111'],
   r:['00000','00000','10110','11001','10000','10000','10000'],'+':['00000','00100','00100','11111','00100','00100','00000']};
-const bpNeon=()=>S(72,24,36,22,(g,P)=>{ P.rect(0,2,72,20,'#1c1a22'); P.rect(1,3,70,18,'#242130'); P.rect(1,3,70,1,'#34303f');
-  let x=6; const lit=[]; for(const ch of 'bear+'){ const m=NEON[ch]; for(let r=0;r<7;r++) for(let c=0;c<5;c++) if(m[r][c]==='1') lit.push([x+c*2,5+r*2]); x+=12; }
-  for(const [px,py] of lit) P.rect(px-1,py-1,4,4,'#4a1e3c'); for(const [px,py] of lit) P.rect(px,py,2,2,'#ff5fa8'); for(const [px,py] of lit) if((px+py)%3===0) P.px(px,py,'#ffd6ea');
-  P.rect(3,21,2,2,'#555'); P.rect(67,21,2,2,'#555'); });
+const bpNeon=()=>S(76,26,38,24,(g,P)=>{ P.rect(0,1,76,23,'#0e0e10'); P.rect(1,2,74,21,'#141416'); P.rect(1,2,74,1,'#2a2a2e');
+  bearMark(P,4,4,24,'#4a4a52'); bearMark(P,4,3,24); text3(P,32,8,'BEARPLUS','#f2f2f0'); P.rect(32,15,39,1,'#3a3a40'); text3(P,32,17,'STUDIO','#8a8a94'); P.rect(3,23,2,2,'#555'); P.rect(71,23,2,2,'#555'); });
 
 // bàn làm việc trắng + iMac (màn hình khác nhau theo v: Figma, code, brand board)
 const bpDesk=(v=0)=>S(42,34,21,31,(g,P)=>{ P.rect(2,18,38,5,'#f4f4f2'); P.rect(2,18,38,1,'#ffffff'); P.rect(2,22,38,1,'#cfcfca'); P.rect(4,23,2,10,'#26262c'); P.rect(36,23,2,10,'#26262c');
@@ -94,7 +102,7 @@ const meetTable=()=>S(70,40,35,30,(g,P)=>{ for(const x of [10,30,50]){ P.rect(x,
   P.rect(4,9,62,20,'#f4f4f2'); P.rect(4,9,62,1,'#ffffff'); P.rect(4,28,62,2,'#cfcfca'); P.rect(6,30,3,8,'#26262c'); P.rect(61,30,3,8,'#26262c');
   P.rect(14,12,12,8,'#c2c6cb'); P.rect(15,13,10,6,'#1e1e24'); P.rect(16,14,4,4,'#ff5fa8'); P.rect(44,14,12,7,'#c2c6cb'); P.rect(45,15,10,5,'#e8eef4'); P.rect(46,16,6,1,'#26262c');
   for(const [x,y] of [[32,13],[36,22],[60,20],[10,22]]){ P.rect(x,y,3,3,'#f4efe6'); P.px(x+1,y,'#7a4a2a'); } P.rect(28,18,9,6,'#fff27a'); });
-const bpTV=()=>S(52,32,26,30,(g,P)=>{ P.rect(0,0,52,30,'#18181c'); P.rect(2,2,48,26,'#f4efe6'); P.rect(2,2,48,7,'#26262c'); text3(P,5,3,'BEAR+','#ff5fa8'); text3(P,27,3,'PITCH','#f4f4f2');
+const bpTV=()=>S(52,32,26,30,(g,P)=>{ P.rect(0,0,52,30,'#18181c'); P.rect(2,2,48,26,'#f4efe6'); P.rect(2,2,48,7,'#0e0e10'); bearMark(P,4,3,7); text3(P,13,3,'BEARPLUS','#f4f4f2');
   P.rect(5,12,18,13,'#ff5fa8'); P.disc(14,18,4,'#ffd84a'); P.rect(26,12,21,2,'#26262c'); P.rect(26,16,17,1,'#8a8a94'); P.rect(26,19,19,1,'#8a8a94'); P.rect(26,22,12,1,'#8a8a94'); P.rect(24,30,4,2,'#2a2a30'); });
 // quầy cà phê: mặt gỗ, thân bê tông, máy espresso bạc đèn đỏ, cối xay, chồng ly, bảng menu
 const coffeeBar=()=>S(66,46,33,44,(g,P)=>{ P.rect(4,0,30,14,'#26262c'); P.rect(5,1,28,12,'#2e3a2e'); text3(P,7,2,'MENU','#f4efe6'); for(let y=8;y<13;y+=2){ P.rect(7,y,14,1,'#c8d0c0'); P.rect(26,y,5,1,'#ffd84a'); }
@@ -126,7 +134,7 @@ const riverWindow=(w=176)=>S(w,30,w/2,29,(g,P)=>{ P.rect(0,0,w,30,'#26262c'); co
   P.rect(X+W*.12|0,13,W*.22|0,2,'#c8ccd2'); for(let x=(X+W*.12|0);x<(X+W*.34|0);x+=6) P.rect(x,15,1,4,'#a8acb2');
   for(let x=0;x<w;x+=44) P.rect(x,0,2,30,'#26262c'); P.rect(0,14,w,1,'rgba(38,38,44,.6)'); P.rect(X,26,W,2,'#d8dce0'); });
 // thảm logo "bear+" ở sảnh
-const logoRug=()=>S(86,30,43,28,(g,P)=>{ P.rect(0,0,86,28,'#26262c'); P.rect(2,2,82,24,'#2e2e36'); let x=8; for(const ch of 'bear+'){ const m=NEON[ch]; for(let r=0;r<7;r++) for(let c=0;c<5;c++) if(m[r][c]==='1') P.rect(x+c*2,6+r*2,2,2,ch==='+'?'#ff5fa8':'#f4f4f2'); x+=14; } },false);
+const logoRug=()=>S(86,34,43,32,(g,P)=>{ P.rect(0,0,86,32,'#0e0e10'); P.rect(2,2,82,28,'#161618'); P.rect(2,2,82,1,'#26262a'); bearMark(P,6,5,30,'#e8e8e4'); text3(P,42,10,'BEAR','#e8e8e4',2); text3(P,42,22,'PLUS','#8a8a94'); },false);
 
 /* ================= VNPT ================= */
 A.WALKABLE.add('l');
@@ -273,7 +281,7 @@ const monstera=()=>S(34,46,17,44,(g,P)=>{ P.rect(9,34,16,10,'#9aa0a6'); P.rect(8
   for(const [x,y,r] of [[17,12,8],[8,20,7],[26,20,7],[12,28,5],[23,29,5],[17,24,6]]){ P.disc(x,y,r,'#2f7a3a'); P.disc(x-1,y-1,r-2,'#3f9a4a'); for(let i=-r+2;i<r-1;i+=3) P.px(x+i,y+1,'#1f5a2a'); P.rect(x,y-r+2,1,r,'#5fba6a'); }
   for(const [x,y] of [[15,10],[20,14],[6,19],[28,21],[11,27]]) P.px(x,y,'#e8f4e0'); P.rect(16,30,2,4,'#2f5a2a'); });
 // góc chụp ảnh với Bé Gấu: phông hồng có chữ bear+, đèn chụp
-const photoCorner=()=>S(56,48,28,46,(g,P)=>{ P.rect(4,0,48,40,'#ff8fc4'); P.rect(4,0,48,2,'#ffb8dc'); for(let i=0;i<9;i++) P.disc(8+i*5,36,3,'#ff5fa8'); text3(P,13,10,'BEAR+','#ffffff',2); P.rect(10,24,36,2,'#ffffff');
+const photoCorner=()=>S(56,48,28,46,(g,P)=>{ P.rect(4,0,48,40,'#0e0e10'); P.rect(4,0,48,2,'#2a2a2e'); for(let i=0;i<9;i++) P.disc(8+i*5,37,3,'#26262a'); bearMark(P,14,5,28); text3(P,13,30,'BEARPLUS','#8a8a94');
   P.rect(0,4,3,42,'#3a3a42'); P.rect(53,4,3,42,'#3a3a42'); P.rect(0,2,6,4,'#26262c'); P.rect(1,3,4,2,'#fff8e8'); P.rect(50,2,6,4,'#26262c'); P.rect(51,3,4,2,'#fff8e8'); P.rect(4,40,48,6,'#e8e8e4'); });
 // VNPT: kệ tờ rơi gói cước, TV MyTV chiếu bóng đá, áp phích 5G
 const brochureRack=()=>S(22,40,11,38,(g,P)=>{ P.rect(3,2,16,34,'#c8d0d8'); P.rect(3,2,16,1,'#e8eef4'); for(let r=0;r<4;r++) for(let c=0;c<2;c++){ const x=5+c*7, y=5+r*8; P.rect(x,y,6,7,['#0b6bc2','#ffd84a','#d23a2e','#2a9a52'][(r+c)%4]); P.rect(x+1,y+1,4,1,'#ffffff'); P.rect(x+1,y+3,3,1,'rgba(255,255,255,.6)'); }
@@ -296,7 +304,7 @@ const ICONS6={
   bowl:P=>{ P.rect(1,6,12,5,'#f4f4f2'); P.rect(2,11,10,1,'#d8d8d4'); P.rect(1,6,12,1,'#2a5ab8'); P.rect(2,5,10,2,'#c06a2a'); P.rect(3,4,3,1,'#d8844a'); P.rect(7,4,3,1,'#e8d080'); P.px(10,4,'#4f9a43'); P.px(4,3,'#4f9a43'); } };
 const oldIcon6=A.icon; A.icon=function(name,scale=1){ const f=ICONS6[name]; if(!f) return oldIcon6(name,scale); const c=A.cv(14,14); f(A.painter(c.getContext('2d'))); A.outline(c);
   if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
-Object.assign(A,{text3,bpNeon,bpDesk,meshChair,moodWall,renderStation,motionDesk,awardShelf,glassWallV,meetTable,bpTV,coffeeBar,bearMascot,bearHead,beanbag,riverWindow,logoRug,
+Object.assign(A,{text3,bearMark,bpNeon,bpDesk,meshChair,moodWall,renderStation,motionDesk,awardShelf,glassWallV,meetTable,bpTV,coffeeBar,bearMascot,bearHead,beanbag,riverWindow,logoRug,
   vnptLogo,vnptCounter,queueBoard,ticketKiosk,waitChairs,simCabinet,serverRack,callDesk,packStand,waterCooler,chargeStation,
   shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,gate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,
   pingPong,designShelf,monstera,photoCorner,brochureRack,myTV,poster5G,plumeria,stoneLantern});

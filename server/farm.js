@@ -37,7 +37,8 @@ on('plant',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), c=S.CROPS[m.crop], 
   let lim=S.FARM.free; { const L=p.keLand, tier=L&&L.paid===C.today()&&S.KE_LAND.find(x=>x.id===L.tier); if(tier) lim=tier.plots; }
   if(dl){ const L=p.land, tier=L&&L.paid===C.today()&&S.DL_LAND.find(x=>x.id===L.tier); if(!tier) return {err:'Chưa thuê đất. Gặp bác Trang để thuê một mảnh'}; lim=tier.plots;
     if(!L.plots||!L.plots.includes(id)){ const o=ownerOf(id); return {err:o?`Mảnh này ${o.n} đang thuê`:'Ô này không thuộc mảnh đất bạn thuê (xem biển tên)'}; } }
-  if(mine(pl.uid,mapOf(id))>=lim) return {err:dl?`Mảnh đất của bạn chỉ có ${lim} ô. Thuê mảnh lớn hơn ở chỗ bác Trang`:`Đang trồng được ${lim} ô ở vườn Ké. Thuê thêm đất của chú Ba (cạnh vườn rau)`};
+  const used=dl?p.land.plots.filter(x=>PLOTS[x]&&PLOTS[x].o===pl.uid).length:mine(pl.uid,mapOf(id));   // Đà Lạt: chỉ đếm ô trong mảnh đang thuê (cây còn sót ở mảnh cũ không chiếm chỗ)
+  if(used>=lim) return {err:dl?`Mảnh đất của bạn chỉ có ${lim} ô. Thuê mảnh lớn hơn ở chỗ bác Trang`:`Đang trồng được ${lim} ô ở vườn Ké. Thuê thêm đất của chú Ba (cạnh vườn rau)`};
   addItem(pl,'hat_'+m.crop,-1); PLOTS[id]={o:pl.uid,n:p.name,c:m.crop,at:now()}; const dg=!dl&&p.dog&&S.DOGS[p.dog.k]; if(dg&&dg.grace) PLOTS[id].g=dg.grace; push(id); return {}; });
 on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=now(); if(!d||!pt) return {err:'Ô trống'};
   if(pl.scene!==mapOf(id)||!near(pl,d.x,d.y,26)) return {err:'Đứng cạnh ô đất'};

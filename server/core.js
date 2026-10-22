@@ -87,7 +87,7 @@ function note(pl,msg,kind){ send(pl,{t:'note',msg,kind:kind||''}); }
 
 /* ---------- cảnh ---------- */
 // thông tin hiển thị của 1 người (gửi cho người khác lần đầu thấy, hoặc khi đổi đồ)
-function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():'',bn:(pl.prof.items.den_bingo||0)>0?1:0}; }   // bn: có đèn bí ngô theo chân
+function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():'',bn:(pl.prof.items.den_bingo||0)>0?1:0,rk:module.exports.rankOf?module.exports.rankOf(pl.uid):0}; }   // rk: hạng top 10 đại gia (lb.js)   // bn: có đèn bí ngô theo chân
 function refreshInfo(pl){ for(const q of players.values()) if(q.sent&&q.sent.has(pl.pid)) q.sent.delete(pl.pid); }
 // chuyển người chơi sang cảnh khác; x,y theo ô
 function moveTo(pl,id,x,y,extra={}){

@@ -810,6 +810,10 @@ function dailyTasks(uid,day,remote){ let h=2166136261; for(const ch of uid+day){
 function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(const ch of 'ot'+uid+day){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h>>>=0;
   if(h%100>=JOB.ot.chance) return null; const pool=Object.keys(WORK_TASKS).filter(k=>WORK_TASKS[k].where==='desk'); return pool[(h>>8)%pool.length]; }
 
+/* ---------- danh hiệu top 10 đại gia (bảng xếp hạng tài sản): hiện óng ánh trên đầu, mỗi hạng 1 hiệu ứng ---------- */
+const TOP_TITLES=[{name:'Minh chủ võ lâm',fx:'gold',edge:'#ffd84a'},{name:'Anh lớn Chande',fx:'silver',edge:'#cfe6ff'},{name:'Hai ngón mạnh nhất',fx:'bronze',edge:'#f0a060'},
+  {name:'Tứ đại thiên vương',fx:'thunder',edge:'#b48aff'},{name:'Ngũ đại tông môn',fx:'rainbow',edge:'#ff8ad8'},{name:'Lục mạch thần kiếm',fx:'sword',edge:'#7fe0ff'},
+  {name:'GOAT',fx:'glitch',edge:'#5fe06a'},{name:'Bát quái thai',fx:'yinyang',edge:'#f4f4f2'},{name:'Cửu trùng thiên',fx:'heaven',edge:'#bfe8ff'},{name:'Thập đại vĩ thú',fx:'fire',edge:'#ff7a1a'}];
 /* ---------- 3 map mới: Bearplus Studio (TP.HCM) · VNPT điểm giao dịch (Hà Nội) · Miếu ông Trường Con (Hải Phòng) ---------- */
 // Bearplus: studio thiết kế nhỏ ở Khánh Hội, Q.4 ("small team, sharp work, no filler"): web, thương hiệu, 3D & motion, UI/UX; nhân vật trong game là hư cấu
 const BEARPLUS={W:34,H:22,level:4,spawn:{x:17,y:20},
@@ -966,5 +970,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });
