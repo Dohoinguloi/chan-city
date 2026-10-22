@@ -1,7 +1,7 @@
 /* Chan City — đăng nhập (Google hoặc chơi thử bằng tên) + tạo nhân vật (giới tính, tên, tóc, màu tóc, da, bộ đồ khởi đầu). */
 (function(){
 const SD=SHARED, $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let CFG={google:null,name:true}, firstScene=null, prof=null;
+let CFG={google:null,name:true}, firstScene=null, prof=null, fresh=false;   // fresh: tên đăng nhập vừa được tạo mới
 NET.listen('scene',m=>{ if(!GAME.started) firstScene=m; });
 NET.listen('me',m=>{ prof=m.p; });
 const msg=t=>{ $('#loginMsg').textContent=t||''; };
@@ -22,7 +22,7 @@ function showLogin(){ $('#login').hidden=false; $('#devBox').hidden=!CFG.name;
   else $('#gBtn').innerHTML='<p class="muted">Đăng nhập Google chưa bật (server chưa có GOOGLE_CLIENT_ID). Xem README để tạo Client ID.</p>'; }
 $('#devGo').onclick=async()=>{ const n=$('#devName').value.trim(), pw=$('#devPw').value; if(n.length<2) return msg('Tên từ 2 ký tự'); if(pw.length<4) return msg('Mật khẩu từ 4 ký tự'); msg('Đang vào...');
   const r=await NET.api('login',{name:n,pw}); if(r.err) return msg(r.err);
-  store.setItem('chan-token',r.token); connect(r.token); };
+  store.setItem('chan-token',r.token); fresh=!!r.created; connect(r.token); };
 $('#devPw').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#devGo').click(); });
 async function connect(token,silent){ let w; try{ w=await NET.connect(token); }catch(e){ store.removeItem('chan-token'); if(!silent) msg(e.message); return false; }
   prof=w.prof; $('#login').hidden=true;
@@ -33,7 +33,7 @@ function go(){ $('#title').hidden=true; GAME.start(prof,firstScene); }
 /* ---------- tạo nhân vật ---------- */
 const C={gender:'nam',name:'',hair:'swept',hairColor:'211c21',skin:'f3b194',starter:'nangdong'};
 function look(){ const st=SD.LOOK.starters.find(s=>s.id===C.starter); return {gender:C.gender,hair:C.hair,hairColor:C.hairColor,skin:C.skin,outfit:{...(C.gender==='nu'&&st.nu?st.nu:st.items)}}; }
-function creator(){ C.name=prof.name&&prof.name!=='Khách'?prof.name.slice(0,16):''; $('#creator').hidden=false; $('#title').classList.add('creating'); renderC(); anim(); }
+function creator(){ C.name=prof.name&&prof.name!=='Khách'?prof.name.slice(0,16):''; $('#creator').hidden=false; $('#cNew').hidden=!fresh; $('#title').classList.add('creating'); renderC(); anim(); }
 function renderC(){ const L=SD.LOOK;
   $('#cGender').innerHTML=L.genders.map(g=>`<button class="tab ${C.gender===g.id?'on':''}" data-g="${g.id}">${g.name}</button>`).join('');
   $('#cHair').innerHTML=L.hair[C.gender].map(([k,n])=>`<button class="tab ${C.hair===k?'on':''}" data-h="${k}">${n}</button>`).join('');
@@ -52,6 +52,8 @@ function anim(){ cancelAnimationFrame(raf); const c=$('#cPreview'), g=c.getConte
     g.fillStyle='#f3ecdc'; g.fillRect(0,0,c.width,c.height); g.fillStyle='rgba(20,30,20,.2)'; g.beginPath(); g.ellipse(c.width/2,c.height-14,40,8,0,0,7); g.fill();
     g.drawImage(f,0,0,32,48,c.width/2-64,c.height-14-192+4*13-52,128,192); };
   raf=requestAnimationFrame(loop); }
+// nhầm tên đăng nhập (vào phải tài khoản mới): đăng xuất, về lại màn đăng nhập
+$('#cBack').onclick=async()=>{ try{ await NET.api('logout',{token:NET.token}); }catch(e){} store.removeItem('chan-token'); location.reload(); };
 $('#cGo').onclick=async()=>{ const n=$('#cName').value.trim(); if(n.length<2){ $('#cMsg').textContent='Đặt tên từ 2 tới 16 ký tự'; return; }
   const r=await NET.req({t:'create',name:n,...look(),outfit:undefined,starter:C.starter}); if(r.err){ $('#cMsg').textContent=r.err; return; }
   prof=r.prof; cancelAnimationFrame(raf); $('#creator').hidden=true; await waitScene(); go(); };

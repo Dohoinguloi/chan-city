@@ -445,8 +445,8 @@ const KE_JOB={max:3,wage:70000,perDay:3,fireAfter:3,room:'nhangu',minLevel:2,tas
 const RECEPTION={x:47.6,y:89.4};   // lễ tân 24h ở Nhà Rếch 2 (Cộng đồng)
 // nhu cầu: mất 1 điểm sau `decay` giây khi đang online
 const NEEDS={energy:{name:'Năng lượng',decay:90},clean:{name:'Sạch sẽ',decay:120},battery:{name:'Pin điện thoại',decay:60}};
-// hết pin ở ngoài: xin cắm sạc nhờ người gần đó (không cần về phòng), mỗi ngày vài lần, chỉ sạc tới mức đủ gọi Grab về
-NEEDS.borrow={max:60,charge:45,dur:15,perDay:4};
+// hết pin ở ngoài: xin cắm sạc nhờ (sạc ké) người gần đó, không cần về phòng. Pin dưới `max`% mới xin được, +`charge`% (tối đa `cap`%), `perDay` lần/ngày
+NEEDS.borrow={max:80,cap:100,charge:80,dur:15,perDay:6};
 const ROOM_ACTS={
   tam:{name:'Tắm',dur:6,host:true},nghi:{name:'Nghỉ ngơi',dur:8,host:true},sac:{name:'Sạc điện thoại',dur:5,host:true},
   tiktok:{name:'Lướt TikTok',dur:5,battery:10,exp:4,daily:10},songao:{name:'Up ảnh sống ảo',dur:4,battery:12,daily:3},

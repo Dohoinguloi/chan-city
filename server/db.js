@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS plots(i TEXT PRIMARY KEY, data TEXT);
 CREATE TABLE IF NOT EXISTS jobs(uid TEXT PRIMARY KEY, data TEXT);
 CREATE TABLE IF NOT EXISTS market(id INTEGER PRIMARY KEY AUTOINCREMENT, seller TEXT, sname TEXT, item TEXT, n INTEGER, price INTEGER, at INTEGER);`);
 try{ db.exec('ALTER TABLE users ADD COLUMN pw TEXT'); }catch(e){}   // mật khẩu cho đăng nhập bằng tên
+try{ db.exec('ALTER TABLE users ADD COLUMN alias TEXT'); }catch(e){}   // bí danh: đăng nhập bằng tên này thì vào tài khoản khác (người chơi quên tên đăng nhập, gõ nhầm tên nhân vật)
 
 const SESSION_DAYS=30;
 const st={

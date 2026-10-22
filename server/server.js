@@ -54,7 +54,7 @@ async function api(req,res,url){
         return json(res,200,{token:db.newSession(u.id),name:g.name}); }catch(e){ return json(res,401,{err:'Đăng nhập Google thất bại: '+e.message}); } }
     if(b.name!==undefined){ if(!NAME_LOGIN) return json(res,403,{err:'Đăng nhập bằng tên đang tắt, dùng Google'}); const n=nameOk(b.name); if(!n) return json(res,400,{err:'Tên từ 2 tới 16 ký tự'});
       const pw=String(b.pw||''); if(pw.length<4||pw.length>64) return json(res,400,{err:'Mật khẩu từ 4 ký tự'});
-      const id='n:'+n.toLowerCase().normalize('NFC'), old=db.user(id);
+      const id0='n:'+n.toLowerCase().normalize('NFC'), u0=db.user(id0), ali=u0&&u0.alias&&db.user(u0.alias), id=ali?ali.id:id0, old=ali||u0;
       if(blocked('id:'+id)) return json(res,429,{err:'Tài khoản này nhập sai nhiều quá, đợi 1 phút'});
       if(old&&old.pw&&!(await checkPw(pw,old.pw))){ fail('ip:'+ip); fail('id:'+id); return json(res,401,{err:'Sai mật khẩu (tên này đã có người dùng)'}); }
       const u=old||db.ensureUser(id,'name','',n); if(!u.pw) db.setPw(id,await hashPw(pw));
