@@ -263,6 +263,15 @@ Object.assign(C,{
     if(s){ U.rect(13,20,13,24,'_'); for(let x=12;x<=16;x+=2) U.put(x,19,'#'); U.put(6,14,'%'); }
     if(v==='back') U.rows(20,26,(x,y,ch)=>{ if(ch!=='O') U.put(x,y,x===9||x===10?'@':']'); });
     LG.hands(U,'S'); LG.legs(U,[']','@'],['@',']']); },
+  // Rắn Biển: áo bơi thể thao đen viền ngọc, quần short bơi xanh dây rút trắng, hình xăm rắn xanh quấn 2 cánh tay, dép tông quai đỏ
+  lg_ranbien(U,v){ const s=v==='side', f=v==='front';
+    U.rows(20,26,(x,y,ch)=>{ if(!'TtqIi'.includes(ch)) return; const top=y<=22&&(s?x>=8:x>=5&&x<=14); U.put(x,y,top?(y===20?'?':']'):ch==='t'||ch==='q'?'s':'S'); });
+    const snake=pts=>{ for(const [x,y] of pts) if(U.body(x,y)) U.put(x,y,'^'); };
+    if(f){ snake([[2,20],[3,21],[4,22],[3,23],[2,24],[3,25],[4,26],[17,20],[16,21],[15,22],[16,23],[17,24],[16,25]]); U.put(4,27,'~'); U.put(15,26,'~'); }
+    if(s){ snake([[14,20],[15,21],[16,22],[15,23],[14,24],[15,25],[16,26],[5,21],[6,22],[5,23]]); U.put(16,27,'~'); }
+    if(v==='back'){ U.rows(21,22,(x,y,ch)=>{ if(ch!=='O'&&x>=3&&x<=16) U.put(x,y,']'); }); snake([[2,20],[3,21],[4,22],[3,23],[2,24],[17,20],[16,21],[15,22]]); }
+    LG.hands(U,'S'); U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,y===27&&(x===9||x===10)&&!s?'#':ch==='p'?'9':'0'); });
+    U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'S'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,y===32?'-':'S'); }); },
   // Min (được 16Typh gọi ra): áo lưới màu kem tay dài, quần short ánh vàng, giày nâu
   mu_min(U,v){ U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?'|':(y%2&&(x<5||x>14))?'S':'/'); }); U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,ch==='p'?'}':'$'); });
     U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'S'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,ch==='f'?'>':'<'); }); },
