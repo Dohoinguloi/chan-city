@@ -46,6 +46,7 @@ function foeMove(f,meSp){ const ms=S.lcMoves(f.sp,f.lv); if(Math.random()<.3) re
   return ms.map(k=>[k,MV[k].pow*MV[k].acc*effOf(MV[k].t,SP[meSp].t)*(MV[k].t===SP[f.sp].t?1.25:1)]).sort((a,b)=>b[1]-a[1])[0][0]; }
 const active=(r,b)=>r.party.find(x=>x.u===b.u);
 function bview(pl){ const b=pl.lcb, r=rec(pl.prof); if(!b) return null; const me=active(r,b);
+  if(me&&me.hp>maxHp(me)) me.hp=maxHp(me);   // chỉ số gốc đổi (cân bằng) thì không để máu vượt mức tối đa mới
   return {kind:b.kind,foe:{sp:b.foe.sp,lv:b.foe.lv,hp:b.foe.hp,max:b.foe.max},me:me&&{u:me.u,sp:me.sp,lv:me.lv,hp:me.hp,max:maxHp(me),exp:me.exp,next:S.lcNext(me.lv),moves:S.lcMoves(me.sp,me.lv)},
     canBall:b.kind==='wild',won:!!b.won,party:r.party.map(x=>({u:x.u,sp:x.sp,lv:x.lv,hp:x.hp,max:maxHp(x)})),need:b.need||null}; }
 function start(pl,kind,sp,lv,extra){ const p=pl.prof, r=rec(p); if(!trained(p)) return {err:'Phải học Huấn luyện Lính Cát ở Trung tâm Lính Cát (thị trấn Đà Bắc) trước'};

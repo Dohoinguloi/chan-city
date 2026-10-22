@@ -7,6 +7,10 @@ const lc=()=>G().lc||{party:[],box:[],dex:{},gone:{}}, trained=()=>!!(G().skills
 const URL_=new Map(), img=(sp,size=48)=>{ const k=sp+'|'+size; if(!URL_.has(k)){ const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(A.linhcat(sp).c,0,0,size,size); URL_.set(k,c.toDataURL()); } return `<img class="lcimg" src="${URL_.get(k)}" width="${size}" height="${size}" alt="">`; };
 const chip=t=>`<span class="lct" style="background:${TY[t].col}">${TY[t].name}</span>`;
 const bar=(v,max,col)=>`<span class="lcbar"><i style="width:${Math.max(0,Math.min(100,Math.round(100*v/max)))}%;background:${col||(v/max>.5?'#5fe06a':v/max>.2?'#ffd84a':'#ff4a3a')}"></i></span>`;
+const effOf=(mt,dt)=>((SD.LC_EFF[mt]||{})[dt]??1);
+// bảng khắc hệ: hệ này đánh mạnh / yếu với hệ nào
+const typeChart=()=>`<div class="lcchart">${Object.keys(TY).map(t=>{ const E=SD.LC_EFF[t]||{}, s=Object.keys(E).filter(k=>E[k]>1), w=Object.keys(E).filter(k=>E[k]<1&&E[k]>0), z=Object.keys(E).filter(k=>E[k]===0);
+  return `<div>${chip(t)} <small>${s.length?'mạnh với '+s.map(k=>TY[k].name).join(', '):''}${w.length?` · yếu với ${w.map(k=>TY[k].name).join(', ')}`:''}${z.length?` · vô dụng với ${z.map(k=>TY[k].name).join(', ')}`:''}</small></div>`; }).join('')}</div>`;
 const req=async m=>{ const r=await NET.req(m); if(r.err) toast(esc(r.err),'lock'); return r; };
 const monRow=(m,extra='')=>`<div class="row lcrow">${img(m.sp,44)}<span><b>${nm(m)}</b> Lv${m.lv} ${chip(SP[m.sp].t)}<br>${bar(m.hp,maxHp(m))} <small>${m.hp}/${maxHp(m)} máu · EXP ${m.exp}/${SD.lcNext(m.lv)}</small><br><small class="muted">${SD.lcMoves(m.sp,m.lv).map(k=>MV[k].name).join(' · ')}</small></span><span class="lcbtns">${extra}</span></div>`;
 
@@ -23,6 +27,7 @@ UI.defPlace('lcgs',()=>UI.open('Giáo sư Cát',()=>{ const r=lc(), dex=r.dex||{
     <p class="muted">Mang theo tối đa ${L.party} con, còn lại gửi ở máy gửi giữ bên phải. Lính Cát hệ Ma chỉ ra ban đêm, Rồng Nhí ở vùng xa phía Đông.</p>
     <h5>Tiến hoá bằng đá (Cát Con từ Lv${SP.cat_con.stoneLv})</h5>${evos.length?evos.map(m=>`<div class="row lcrow">${img(m.sp,40)}<span><b>${nm(m)}</b> Lv${m.lv}</span><span class="lcbtns">${st.map(k=>cnt(k)?btn('lcstone',SD.ITEMS[k].name,{u:m.u,k}):'').join('')||'<small class="muted">Mua đá ở kệ hàng</small>'}</span></div>`).join('')
       :`<p class="muted">Cát Con có 8 hướng tiến hoá: ${st.map(k=>SP[SP.cat_con.stone[k]].name).join(', ')}. Đủ Lv${SP.cat_con.stoneLv} thì mang đá tới đây.</p>`}
+    <h5>Bảng khắc hệ (chiêu khắc hệ gây ×2 sát thương, bị kháng ×0,5, chiêu cùng hệ với Lính Cát +25%)</h5>${typeChart()}
     <div class="lcdex">${wild.map(k=>`<span title="${dex[k]?esc(SP[k].name):'???'}" class="${dex[k]===2?'got':dex[k]?'seen':'unk'}">${img(k,32)}</span>`).join('')}</div>`; },{wide:true}));
 UI.onAct('lclearn',async()=>{ const r=await req({t:'lc',op:'learn'}); if(!r.err){ GAME.sfx('level_up',.6); GAME.bigText('HUẤN LUYỆN VIÊN LÍNH CÁT!'); toast(esc(r.msg),'quest'); } UI.refresh(); });
 UI.onAct('lcstone',async d=>{ const r=await req({t:'lc',op:'stone',u:+d.u,k:d.k}); if(!r.err){ GAME.sfx('level_up',.7); GAME.bigText('TIẾN HOÁ!'); toast(esc(r.msg),'item'); } UI.refresh(); });
@@ -86,7 +91,8 @@ const setMsg=t=>{ const m=$('#lcMsg'); if(m) m.innerHTML=t; };
 function controls(force){ const ctl=$('#lcCtl'); if(!ctl||!BT) return; const v=BT.v; if(BT.end){ ctl.innerHTML=''; return; }
   if(v.won){ ctl.innerHTML=`<div class="lcrow2"><button class="btn sm pri" data-lc="ball" data-k="bong_cat" ${cnt('bong_cat')?'':'disabled'}>🎾 Thu phục bằng Bóng Cát (${cnt('bong_cat')})</button><button class="btn sm" data-lc="ball" data-k="bong_vang" ${cnt('bong_vang')?'':'disabled'}>🟡 Bóng Vàng (${cnt('bong_vang')})</button><button class="btn sm" data-lc="release">👋 Thả đi</button></div>${cnt('bong_cat')+cnt('bong_vang')?'':'<p class="muted">Hết bóng rồi! Mua Bóng Cát ở Trung tâm Lính Cát.</p>'}`; return; }
   if(force||v.need){ ctl.innerHTML=`<p class="muted">Chọn Lính Cát ra sân:</p>`+v.party.filter(x=>x.hp>0&&x.u!==v.me.u).map(x=>`<button class="btn sm pri" data-lc="switch" data-u="${x.u}">${img(x.sp,24)} ${esc(SP[x.sp].name)} Lv${x.lv} · ${x.hp}/${x.max}</button>`).join('')+(force&&!v.need?`<button class="btn sm" data-lc="back">↩ Quay lại</button>`:''); return; }
-  const me=v.me, mvs=me.moves.map(k=>{ const M=MV[k]; return `<button class="btn sm lcmv" data-lc="move" data-mv="${k}" style="--tc:${TY[M.t].col}"><b>${esc(M.name)}</b><small>${TY[M.t].name} · ${M.pow} · ${Math.round(M.acc*100)}%</small></button>`; }).join('');
+  const me=v.me, ft=SP[v.foe.sp].t, mvs=me.moves.map(k=>{ const M=MV[k], e=effOf(M.t,ft), stab=M.t===SP[me.sp].t, tip=e===0?'<em class="e0">×0 không tác dụng</em>':e>1?'<em class="e2">×2 khắc hệ!</em>':e<1?'<em class="e5">×0,5 bị kháng</em>':'';
+    return `<button class="btn sm lcmv" data-lc="move" data-mv="${k}" style="--tc:${TY[M.t].col}"><b>${esc(M.name)}</b><small>${TY[M.t].name}${stab?' · cùng hệ +25%':''} · ${M.pow} · ${Math.round(M.acc*100)}%</small>${tip}</button>`; }).join('');
   ctl.innerHTML=`<div class="lcmoves">${mvs}</div><div class="lcrow2">${v.canBall?`<button class="btn sm" data-lc="ball" data-k="bong_cat" ${cnt('bong_cat')?'':'disabled'}>🎾 Bóng Cát (${cnt('bong_cat')})</button><button class="btn sm" data-lc="ball" data-k="bong_vang" ${cnt('bong_vang')?'':'disabled'}>🟡 Bóng Vàng (${cnt('bong_vang')})</button>`:''}
     <button class="btn sm" data-lc="potion" ${cnt('thuoc_cat')?'':'disabled'}>🧪 Thuốc (${cnt('thuoc_cat')})</button><button class="btn sm" data-lc="sw" ${v.party.filter(x=>x.hp>0).length>1?'':'disabled'}>🔁 Đổi</button><button class="btn sm" data-lc="run">🏃 Chạy</button></div>`; }
 async function act(d){ if(d.lc==='sw') return controls(true); if(d.lc==='back') return controls();
@@ -140,7 +146,8 @@ function loop(){ const cv=$('#lcCv'); if(!BT) return; if(!cv){ if(!BT.end&&!BT.b
 function mon(g,o,x,y,sc,flip,now){ if(o.vis<=0.01) return; const sp=A.linhcat(o.sp,Math.floor(now/400)%2,flip), c=o.white?whiteOf(sp.c):sp.c, lunge=o.lunge&&now-o.lunge<300?Math.sin((now-o.lunge)/300*Math.PI)*14*(flip?1:-1):0;
   const hit=o.hit&&now-o.hit<380, sh=hit?(Math.floor(now/40)%2?3:-3):0; g.save(); g.globalAlpha=o.vis; const w=28*sc*(0.4+.6*o.vis);
   g.fillStyle='rgba(0,0,0,.2)'; g.beginPath(); g.ellipse(x,y+2,w*.35,4,0,0,7); g.fill(); g.drawImage(hit&&Math.floor(now/60)%2?whiteOf(sp.c):c,Math.round(x-w/2+lunge+sh),Math.round(y-w*27/28+o.y),Math.round(w),Math.round(w)); g.restore(); }
-function hpBox(g,o,x,y,me){ const w=128; g.fillStyle='rgba(28,21,22,.86)'; g.fillRect(x,y,w,me?30:24); g.fillStyle='#ffd84a'; g.font='12px VT323, monospace'; g.textAlign='left'; g.fillText(SP[o.sp].name,x+4,y+10); g.textAlign='right'; g.fillStyle='#f4f1ea'; g.fillText('Lv'+o.lv,x+w-4,y+10);
+function hpBox(g,o,x,y,me){ const w=128, t=TY[SP[o.sp].t]; g.fillStyle='rgba(28,21,22,.86)'; g.fillRect(x,y,w,me?30:24); g.fillStyle='#ffd84a'; g.font='12px VT323, monospace'; g.textAlign='left'; g.fillText(SP[o.sp].name,x+4,y+10);
+  const nw=g.measureText(SP[o.sp].name).width, tw=g.measureText(t.name).width+6; g.fillStyle=t.col; g.fillRect(x+8+nw,y+2,tw,10); g.fillStyle='#120c16'; g.fillText(t.name,x+11+nw,y+10); g.textAlign='right'; g.fillStyle='#f4f1ea'; g.fillText('Lv'+o.lv,x+w-4,y+10);
   const k=Math.max(0,o.hp/o.max); g.fillStyle='#3a1a1e'; g.fillRect(x+4,y+14,w-8,5); g.fillStyle=k>.5?'#5fe06a':k>.2?'#ffd84a':'#ff4a3a'; g.fillRect(x+4,y+14,Math.round((w-8)*k),5);
   if(me){ g.textAlign='right'; g.fillStyle='#f4f1ea'; g.fillText(`${Math.max(0,Math.round(o.hp))}/${o.max}`,x+w-4,y+28); } }
 function draw(g,now){ g.imageSmoothingEnabled=false; g.drawImage(bg(),0,0); const s=BT.s;

@@ -755,6 +755,9 @@ LINHCAT.maps={retreat:{spots:LINHCAT.spots},
   dalat:{spots:[[25.5,3.5,2],[13.5,13.5,1],[49.5,13.5,2],[61.5,5.5,2],[5.5,5.5,1]],pool:['sau_nhi','ken_cat','buom_tien','cu_nhi','hoa_hoi','bong_bong','se_nhi','cat_con','mam_nhi']},
   mieu:{spots:[[3.5,3.5,2],[33.5,7.5,2],[13.5,27.5,1]],pool:['khoi_nhi','bong_ma_binh','niem_nhi','doi_nhi','chuot_nhi','ran_nhi','niem_nhi']},
   deo:{spots:[[31.5,5.5,3],[91.5,5.5,3],[151.5,5.5,3],[211.5,5.5,3]],pool:['da_nhi','da_lan','vo_nhi','vo_si','se_nhi','chim_ung','rong_nhi','ran_nhi','da_nhi']}};   // không thả ở trường đua (đang đua ngựa)
+// cân bằng sức mạnh: mọi loài (trừ vật nuôi / thú rừng) đưa tổng chỉ số gốc về cùng mức theo bậc tiến hoá, giữ nguyên dáng chỉ số của loài
+// (bậc 1: 300 · bậc 2 còn tiến hoá: 405 · bậc 2 cuối dòng: 450 · bậc 3: 500 · huyền thoại: 580, vượt trội hẳn)
+for(const s of Object.values(LC_SPECIES)){ if(s.npc) continue; const tgt=s.legend?580:s.st===1?300:s.st===2?(s.evo?405:450):500, sum=s.b.reduce((a,v)=>a+v,0); s.b=s.b.map(v=>Math.max(15,Math.round(v*tgt/sum))); }
 const lcStats=(sp,lv)=>{ const b=LC_SPECIES[sp].b; return {hp:Math.floor(b[0]*2*lv/100)+lv+10,atk:Math.floor(b[1]*2*lv/100)+5,def:Math.floor(b[2]*2*lv/100)+5,spd:Math.floor(b[3]*2*lv/100)+5}; };
 const lcMoves=(sp,lv)=>{ const tm=LC_TYPE_MOVES[LC_SPECIES[sp].t]||LC_TYPE_MOVES.thuong, out=['hu',tm[0]]; if(lv>=10) out.push(tm[1]); if(lv>=22&&!out.includes(tm[2])) out.push(tm[2]); return out; };
 const lcNext=lv=>lv*20;   // EXP lên cấp kế
