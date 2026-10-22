@@ -37,23 +37,31 @@ function defaults(name){ return {v:3,name,look:null,owned:{},money:S.RULES.start
   meals:{day:'',eaten:{}},buff:null,rbuff:null,daily:{day:'',done:{},buoys:{},gameExp:0,tiktok:0,posts:0,herd:0,crates:0,cook:0,slept:false},forage:{},
   needs:{energy:100,clean:100,battery:100},stay:null,sleep:null,photos:[],animals:[],horse:null,cookOrder:null,kayakUntil:0,
   scene:'home',pos:null,opts:{noSocial:false},inbox:[]}; }
+// quà theo tên chỉ tính khi đã tạo nhân vật (tên nhân vật không trùng, xem handlers.create);
+// trước khi tạo, tên tạm lấy từ tên đăng nhập / tên Google nên ai cũng có thể đặt trùng
+const giftName=p=>p.look?String(p.name||''):'';
 function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]===undefined) p[k]=d[k]; else if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])&&p[k]&&typeof p[k]==='object') for(const j in d[k]) if(p[k][j]===undefined) p[k][j]=d[k][j]; }
+  // dọn dữ liệu hỏng do lỗi cũ: tiền / EXP thành NaN, đồ số lượng sai, khoá kiểu "constructor"
+  if(!Number.isFinite(p.money)) p.money=0; if(!Number.isFinite(p.exp)) p.exp=0;
+  for(const [k,n] of Object.entries(p.items)) if(k in Object.prototype||!Number.isFinite(n)||n<=0) delete p.items[k];
+  for(const k of Object.keys(p.owned)) if(k in Object.prototype) delete p.owned[k];
+  if(p.wish&&!Object.hasOwn(S.MIEU.wishes,p.wish.k)) p.wish=null; if(p.stay&&!Object.hasOwn(S.ROOMS,p.stay.room)) p.stay=null;
   // tiền khởi đầu tăng từ 150.000đ lên 1.000.000đ: tài khoản tạo trước đó được bù 1 lần
   if((p.v||1)<3){ if(p.v) p.money+=1000000-150000; p.v=3; }
   // tiền khởi điểm lên 2.000.000đ: tài khoản cũ dưới 2 triệu được nâng lên 2 triệu (1 lần)
   if(!(p.flags&&p.flags.topup2m)){ p.money=Math.max(p.money||0,2000000); p.flags.topup2m=true; }
   // quà admin: tài khoản Mèn mén được cộng 3.000.000đ (1 lần)
-  if(String(p.name||name||'').normalize('NFC').toLowerCase()==='mèn mén'.normalize('NFC')&&!(p.flags&&p.flags.gift3m)){ p.money+=3000000; p.flags.gift3m=true; }
+  if(giftName(p).normalize('NFC').toLowerCase()==='mèn mén'.normalize('NFC')&&!(p.flags&&p.flags.gift3m)){ p.money+=3000000; p.flags.gift3m=true; }
   // quà admin: tài khoản Ben Jr được cộng 2.000.000đ (1 lần)
-  if(String(p.name||name||'').normalize('NFC').toLowerCase()==='ben jr'&&!(p.flags&&p.flags.gift2mBen)){ p.money+=2000000; p.flags.gift2mBen=true; }
+  if(giftName(p).normalize('NFC').toLowerCase()==='ben jr'&&!(p.flags&&p.flags.gift2mBen)){ p.money+=2000000; p.flags.gift2mBen=true; }
   // quà admin: tài khoản Leno được cộng 3.000.000đ (1 lần)
-  if(String(p.name||name||'').normalize('NFC').toLowerCase()==='leno'&&!(p.flags&&p.flags.gift3mLeno)){ p.money+=3000000; p.flags.gift3mLeno=true; }
+  if(giftName(p).normalize('NFC').toLowerCase()==='leno'&&!(p.flags&&p.flags.gift3mLeno)){ p.money+=3000000; p.flags.gift3mLeno=true; }
   // quà admin đợt 2: Leno và Ben Jr mỗi người được cộng 10.000.000đ (1 lần)
-  { const nm=String(p.name||name||'').normalize('NFC').toLowerCase(); if((nm==='leno'||nm==='ben jr')&&!(p.flags&&p.flags.gift10m)){ p.money+=10000000; p.flags.gift10m=true; } }
+  { const nm=giftName(p).normalize('NFC').toLowerCase(); if((nm==='leno'||nm==='ben jr')&&!(p.flags&&p.flags.gift10m)){ p.money+=10000000; p.flags.gift10m=true; } }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
-  if(String(p.name||name||'').toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
+  if(giftName(p).toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
   // skin riêng Kaixa theo ảnh: tóc xám tro dựng, kính vuông tròng xanh, blazer satin đen + dây chuyền, quần ống rộng, đồng hồ (mặc 1 lần, sau tự đổi trong tủ đồ)
-  if(String(p.name||name||'').toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
+  if(giftName(p).toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
     for(const id of ['blazer_kaixa','quan_kaixa','kinh_kaixa','dong_ho','giay_den']) p.owned[id]=1;
     Object.assign(p.look,{gender:'nam',hair:'messy',hairColor:'a59c9a',skin:'eeb896'}); p.look.outfit={...(p.look.outfit||{}),top:'blazer_kaixa',bottom:'quan_kaixa',eyes:'kinh_kaixa',wrist:'dong_ho',shoes:'giay_den'}; }
   p.level=Math.max(p.level||1,S.levelOf(p.exp||0));   // bảng cấp nối dài tới 200: ai đủ EXP thì lên luôn
@@ -66,10 +74,11 @@ function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
 function publicProfile(pl){ return {...pl.prof,pub:pl.pub,pid:pl.pid,extra:pl.extra?pl.extra():null}; }
 
 /* ---------- tiền, đồ, EXP ---------- */
-function take(pl,v){ v=Math.round(v); if(v<0||pl.prof.money<v) return false; pl.prof.money-=v; markDirty(pl); return true; }
-function give(pl,v){ v=Math.round(v); if(v>0){ pl.prof.money+=v; markDirty(pl); for(const f of hooks.money) f(pl,v); } }
+// số không hợp lệ (NaN, chuỗi, Infinity) bị từ chối: trước đây take(NaN) trả true và biến tiền thành NaN
+function take(pl,v){ v=Math.round(v); if(!Number.isFinite(v)||v<0||!(pl.prof.money>=v)) return false; pl.prof.money-=v; markDirty(pl); return true; }
+function give(pl,v){ v=Math.round(v); if(Number.isFinite(v)&&v>0){ pl.prof.money+=v; markDirty(pl); for(const f of hooks.money) f(pl,v); } }
 function has(pl,k,n=1){ return (pl.prof.items[k]||0)>=n; }
-function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]<=0) delete it[k]; markDirty(pl); if(n>0) for(const f of hooks.item) f(pl,k,n); }
+function addItem(pl,k,n=1){ n=Math.round(n); if(typeof k!=='string'||k in Object.prototype||!Number.isFinite(n)||!n) return; const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]<=0) delete it[k]; markDirty(pl); if(n>0) for(const f of hooks.item) f(pl,k,n); }
 // báo một việc vừa làm (đi Grab, ăn bữa, chụp ảnh...) cho các module đếm tiến độ
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
@@ -100,14 +109,16 @@ function refreshInfo(pl){ for(const q of players.values()) if(q.sent&&q.sent.has
 // chuyển người chơi sang cảnh khác; x,y theo ô
 function moveTo(pl,id,x,y,extra={}){
   const old=pl.scene;
-  if(old){ for(const f of hooks.leave) f(pl,old,id); sceneOf(old).delete(pl); }
+  if(old){ for(const f of hooks.leave) runHook(f,pl,old,id); sceneOf(old).delete(pl); }
   pl.scene=id; pl.x=x*T; pl.y=y*T; pl.budget=0; pl.mvAt=now(); pl.task=null; pl.fishing=null; pl.act=0; pl.actUntil=0;
   sceneOf(id).add(pl); pl.sent=new Map();
   const k=kindOf(id); pl.prof.scene=k==='room'?'home':k==='stay'&&id!=='stay:'+pl.uid?'retreat':k; pl.prof.pos={x,y}; markDirty(pl);
   send(pl,{t:'scene',s:k,id,x:pl.x,y:pl.y,...extra});
-  for(const f of hooks.enter) f(pl,id,old);
+  for(const f of hooks.enter) runHook(f,pl,id,old);
 }
+// 1 hook lỗi không được làm hỏng các hook sau hay làm sập server (vd. dữ liệu cũ hỏng trong hồ sơ)
+function runHook(f,...a){ try{ f(...a); }catch(e){ console.error('[hook]',e); } }
 
 module.exports={stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  simPerk,defaults,fixProfile,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
+  simPerk,defaults,fixProfile,runHook,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};

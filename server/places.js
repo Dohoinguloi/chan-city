@@ -125,7 +125,7 @@ function rentRoll(pl){ const p=pl.prof, d=today(); if(!p.stay||p.stay.paid===d||
 hook('login',rentRoll); hook('slow',()=>{ for(const pl of players.values()) if(pl.prof.look) rentRoll(pl); });
 // ai đang thuê nhà nào (cả người offline): hiện tên ngoài cửa nhà ở Ké
 const STAYS=new Map(); for(const p of db.allProfiles()) if(p.stay&&p.stay.paid>=S.addDays(today(),-1)) STAYS.set(p._uid,{room:p.stay.room,n:p.name});
-const staysView=()=>{ const by={}; for(const s of STAYS.values()) (by[s.room]=by[s.room]||[]).push(s.n); return by; };
+const staysView=()=>{ const by={}; for(const s of STAYS.values()) if(Object.hasOwn(S.ROOMS,s.room)) (by[s.room]=by[s.room]||[]).push(s.n); return by; };
 let lastStays=''; hook('slow',()=>{ for(const pl of players.values()){ const st=pl.prof.stay; if(st&&st.paid===today()) STAYS.set(pl.uid,{room:st.room,n:pl.prof.name}); else STAYS.delete(pl.uid); }
   const v=staysView(), s=JSON.stringify(v); if(s!==lastStays){ lastStays=s; C.broadcastScene('retreat',{t:'stays',v}); } });
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'stays',v:staysView()}); });

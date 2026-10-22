@@ -66,14 +66,15 @@ async function api(req,res,url){
 function serveStatic(req,res,url){
   let p; try{ p=decodeURIComponent(url.pathname); }catch(e){ res.writeHead(400); return res.end(); }
   // link gọn: game chạy thẳng ở "/", link cũ /chande-bootcamp/... chuyển về (giữ query); file game tìm trong chande-bootcamp trước
-  if(p==='/chande-bootcamp'||p.startsWith('/chande-bootcamp/')){ res.writeHead(301,{Location:(p.slice(16)||'/')+(url.search||'')}); return res.end(); }
+  // Location lấy từ pathname còn mã hoá %xx (chữ có dấu đã giải mã cho vào header làm sập server), gộp các dấu / ở đầu để không chuyển ra trang ngoài (//evil.com)
+  if(p==='/chande-bootcamp'||p.startsWith('/chande-bootcamp/')){ res.writeHead(301,{Location:'/'+url.pathname.slice(16).replace(/^\/+/,'')+(url.search||'')}); return res.end(); }
   if(p.endsWith('/')) p+='index.html';
   const top=p.split('/')[1]; let file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)); const rel=path.relative(ROOT,file);
   if(rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])){ res.writeHead(404); return res.end('Không tìm thấy'); }
   fs.stat(file,(e,st)=>{ if(e||!st.isFile()){ res.writeHead(404); return res.end('Không tìm thấy'); }
     const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json','.css'].includes(ext);
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
-      const host=String(req.headers['x-forwarded-host']||req.headers.host||'localhost'), proto=String(req.headers['x-forwarded-proto']||(/^(localhost|127\.|\[::1\])/.test(host)?'http':'https')).split(',')[0];
+      const h0=String(req.headers['x-forwarded-host']||req.headers.host||''), host=/^[a-z0-9.\-]+(:\d+)?$|^\[[0-9a-f:]+\](:\d+)?$/i.test(h0)?h0:'localhost', proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim()==='http'||(!req.headers['x-forwarded-proto']&&/^(localhost|127\.|\[::1\])/.test(host))?'http':'https';
       const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
       const body=wantGz(req)?zlib.gzipSync(html):html, enc=body===html?{}:{'Content-Encoding':'gzip'};
       res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
@@ -87,7 +88,7 @@ function serveStatic(req,res,url){
 const server=http.createServer((req,res)=>{ const url=new URL(req.url,'http://x');
   if(url.pathname.startsWith('/api/')) return api(req,res,url).catch(e=>{ console.error(e); json(res,500,{err:'Lỗi server'}); });
   if(req.method!=='GET'&&req.method!=='HEAD'){ res.writeHead(405); return res.end(); }
-  serveStatic(req,res,url); });
+  try{ serveStatic(req,res,url); }catch(e){ console.error(e); if(!res.headersSent){ res.writeHead(500); } res.end(); } });
 
 /* ---------- vào game ---------- */
 // đặt người chơi vào cảnh đã lưu lần trước
@@ -110,13 +111,17 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='stay'){ if(p.stay&&p.stay.paid===today()){ const r=S.ROOMS[p.stay.room]; pl.stayType=p.stay.room; return moveTo(pl,'stay:'+pl.uid,r.spawn.x,r.spawn.y,{room:p.stay.room,host:p.name,own:true}); }
     return moveTo(pl,'retreat',S.SPAWN.retreat.x,S.SPAWN.retreat.y); }
   return at('room:'+pl.uid,S.ROOMS.tro.spawn); }
+// tên nhân vật → uid: tên không được trùng (quà admin, quyền Kaixa... tính theo tên nhân vật)
+const nameKey=n=>String(n||'').normalize('NFC').toLowerCase().replace(/\s+/g,' ').trim();
+const NAMES=new Map(); for(const p of db.allProfiles()) if(p.look&&p.name&&!NAMES.has(nameKey(p.name))) NAMES.set(nameKey(p.name),p._uid);
 handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nhân vật'};
   const L=S.LOOK, g=L.genders.some(x=>x.id===m.gender)?m.gender:null, name=nameOk(m.name);
   if(!g||!name) return {err:'Chọn giới tính và đặt tên (2–16 ký tự)'};
+  const nk=nameKey(name), own=NAMES.get(nk); if(own&&own!==pl.uid) return {err:'Tên nhân vật này đã có người dùng, chọn tên khác nhé'};
   if(!L.hair[g].some(h=>h[0]===m.hair)||!L.hairColors.includes(m.hairColor)||!L.skins.includes(m.skin)) return {err:'Kiểu tóc / màu không hợp lệ'};
   const st=L.starters.find(s=>s.id===m.starter); if(!st) return {err:'Chọn 1 bộ đồ'};
   const outfit={...(g==='nu'&&st.nu?st.nu:st.items)};
-  p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
+  NAMES.set(nk,pl.uid); p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
   markDirty(pl); save(pl); place(pl); return {prof:publicProfile(pl)}; };
 handlers.pong=(pl,m)=>{ if(m.s) pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); };
 // chỉ dùng khi chạy thử tự động (CHAN_TEST=1): dịch chuyển, cho tiền/đồ/skill
@@ -132,6 +137,11 @@ if(process.env.CHAN_TEST==='1') handlers.dbg=(pl,m)=>{ const p=pl.prof;
   markDirty(pl); return {ok:true}; };
 
 /* ---------- WebSocket ---------- */
+// tin có chuỗi / khoá trùng tên thuộc tính sẵn của object ("constructor", "__proto__", "toString"...) bị bỏ:
+// các handler tra bảng kiểu S.SHOP[m.k], tên này trả về hàm của Object → giá NaN, mua free, lưu dữ liệu hỏng làm sập server
+const PROTO=new Set(Object.getOwnPropertyNames(Object.prototype));
+function protoKey(v){ if(typeof v==='string') return PROTO.has(v); if(!v||typeof v!=='object') return false;   // tin tối đa 8KB nên đệ quy không sâu quá
+  for(const k of Object.keys(v)) if(PROTO.has(k)||protoKey(v[k])) return true; return false; }
 // nén permessage-deflate: gói vị trí JSON lặp nhiều nên nén được mấy lần, giảm băng thông khi chạy qua tunnel
 const wss=new WebSocketServer({server,path:'/ws',maxPayload:8*1024,perMessageDeflate:{threshold:1024,zlibDeflateOptions:{level:1,memLevel:7},concurrencyLimit:64}});
 wss.on('connection',(ws,req)=>{
@@ -143,21 +153,21 @@ wss.on('connection',(ws,req)=>{
     lastChat:0,bucket:{n:40,t:now()},rtt:80,over:0};
   players.set(pl.pid,pl); byUid.set(uid,pl);
   const d=today(); if(prof.daily.day!==d) prof.daily=freshDaily(d);
-  for(const f of hooks.login) f(pl);
+  for(const f of hooks.login) C.runHook(f,pl);
   send(pl,{t:'welcome',pid:pl.pid,pub:pl.pub,prof:publicProfile(pl),now:now(),online:players.size});
-  if(prof.look) place(pl);
+  if(prof.look) try{ place(pl); }catch(e){ console.error('[place]',e); }
   ws.on('message',raw=>{
     const b=pl.bucket, t=now(); b.n=Math.min(40,b.n+(t-b.t)*.03); b.t=t;                  // 30 tin/giây, dồn tối đa 40
     if(b.n<1){ if(++pl.over>200) ws.close(); return; } b.n--; pl.over=0; perf.in++;
-    let m; try{ m=JSON.parse(raw); }catch(e){ return; } if(!m||typeof m.t!=='string') return;
-    const h=handlers[m.t]; if(!h) return;
+    let m; try{ m=JSON.parse(raw); }catch(e){ return; } if(!m||typeof m.t!=='string'||protoKey(m)) return;
+    const h=Object.hasOwn(handlers,m.t)&&handlers[m.t]; if(typeof h!=='function') return;
     if(!pl.prof.look&&m.t!=='create'&&m.t!=='pong') return;
     let r; try{ r=h(pl,m); }catch(e){ console.error('['+m.t+']',e); r={err:'Lỗi server'}; }
     if(m.rid) send(pl,{t:'re',rid:m.rid,...(r||{})}); });
   ws.on('close',()=>drop(pl));
 });
-function drop(pl){ if(!players.has(pl.pid)) return; for(const f of hooks.logout) f(pl);
-  if(pl.scene){ for(const f of hooks.leave) f(pl,pl.scene,null); C.sceneOf(pl.scene).delete(pl); }
+function drop(pl){ if(!players.has(pl.pid)) return; for(const f of hooks.logout) C.runHook(f,pl);
+  if(pl.scene){ for(const f of hooks.leave) C.runHook(f,pl,pl.scene,null); C.sceneOf(pl.scene).delete(pl); }
   save(pl); players.delete(pl.pid); if(byUid.get(pl.uid)===pl) byUid.delete(pl.uid); }
 
 /* ---------- vòng lặp ---------- */
@@ -177,5 +187,7 @@ setInterval(()=>{ const d=today();
 setInterval(()=>{ for(const pl of players.values()) send(pl,{t:'png',s:now()}); },5000);
 function shutdown(){ console.log('Đang lưu…'); for(const pl of players.values()) save(pl); process.exit(0); }
 process.on('SIGINT',shutdown); process.on('SIGTERM',shutdown);
+// lỗi chưa bắt được ở đâu đó (hook, timer...): ghi log rồi chạy tiếp, không để 1 người chơi làm mọi người rớt mạng
+process.on('uncaughtException',e=>console.error('[uncaught]',e));
 
 server.listen(PORT,()=>console.log(`Chan City server: http://localhost:${PORT}  (Google: ${GOOGLE_CLIENT_ID?'bật':'chưa cấu hình'}, đăng nhập bằng tên: ${NAME_LOGIN?'bật':'tắt'})`));

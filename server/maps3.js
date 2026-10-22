@@ -72,10 +72,12 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
   if(op==='server'){ const d=p.daily; if(d.vnserver) return {msg:'Phòng máy chủ chạy êm, đèn xanh nhấp nháy đều'}; d.vnserver=1; const g=C.gainExp(pl,15); markDirty(pl);
     return {msg:`Bạn đứng ngắm phòng máy chủ: hàng trăm đèn nháy, quạt làm mát ù ù. Học thêm được chút kiến thức mạng (+${g.exp} EXP)`}; }
   if(op==='call'){ const ct=V.desks[m.i|0]; if(!ct||!near(pl,ct[0],ct[1]+.9,28)) return {err:'Ngồi vào bàn tổng đài'}; const d=p.daily;
-    if((d.vncall||0)>=V.shifts) return {err:`Hôm nay trực đủ ${V.shifts} ca rồi`}; pl._call={k:0,ok:0,list:shuffle([...CALLS.keys()]).slice(0,V.shift)}; return callQ(pl); }
+    if(pl._call) return callQ(pl);   // đang trong ca: hỏi lại câu hiện tại, không mở ca mới
+    if((d.vncall||0)>=V.shifts) return {err:`Hôm nay trực đủ ${V.shifts} ca rồi`}; d.vncall=(d.vncall||0)+1;   // vào ca là tính 1 ca (bỏ dở rồi vào lại không được trả lời lại câu đầu lấy tiền mãi)
+    pl._call={k:0,ok:0,list:shuffle([...CALLS.keys()]).slice(0,V.shift)}; markDirty(pl); return callQ(pl); }
   if(op==='answer'){ const c=pl._call; if(!c) return {err:'Chưa vào ca'}; const right=(m.a|0)===c.right; if(right){ c.ok++; give(pl,V.callPay.vnd); C.gainExp(pl,V.callPay.exp); }
     const good=CALLS[c.list[c.k]][1]; c.k++; if(c.k<c.list.length){ markDirty(pl); return {right,good,next:callQ(pl),ok:c.ok}; }
-    pl._call=null; const d=p.daily; d.vncall=(d.vncall||0)+1; if(active(p,'vn_call')&&c.ok>=4) q.vn_call=1; markDirty(pl); P.stat(pl,'calls',c.ok);
+    pl._call=null; if(active(p,'vn_call')&&c.ok>=4) q.vn_call=1; markDirty(pl); P.stat(pl,'calls',c.ok);
     return {right,good,done:true,ok:c.ok,of:c.list.length}; }
   return {err:'?'}; });
 
@@ -135,7 +137,7 @@ on('pickup',(pl,m)=>{ const c=pl.call, t=now(); if(!c||t>c.until) return {err:'C
   const fare=Math.round(S.grabFare(S.SCENE_DEST[kindOf(pl.scene)]||'home',S.SCENE_DEST[kindOf(o.scene)])*(1-(C.simPerk(pl.prof).grab||0))); if(fare&&!take(pl,fare)) return {err:`Grab tới đó ${S.fmt(fare)}, ví không đủ`};
   C.moveTo(pl,o.scene,o.x/C.T+.8,o.y/C.T+.4,{ride:{from:S.SCENE_DEST[kindOf(pl.scene)]||'home',to:S.SCENE_DEST[kindOf(o.scene)],fare}}); note(o,`📞 ${pl.prof.name} đang Grab tới chỗ bạn!`,'quest'); return {msg:'Đang tới'}; });
 // điều ước buộc ở cây đa: hôm sau vào game là linh nghiệm
-hook('login',pl=>{ const p=pl.prof, w=p.wish; if(!w||w.day>=today()) return; const def=S.MIEU.wishes[w.k]; p.wish=null; if(!def) return; const g=def.gift;
+hook('login',pl=>{ const p=pl.prof, w=p.wish; if(!w||w.day>=today()) return; const def=Object.hasOwn(S.MIEU.wishes,w.k)&&S.MIEU.wishes[w.k]; p.wish=null; if(!def||!def.gift) return; const g=def.gift;
   if(g.vnd) give(pl,g.vnd); if(g.exp) C.gainExp(pl,g.exp); if(g.item) addItem(pl,g.item); if(g.energy) p.needs.energy=Math.min(100,p.needs.energy+g.energy); markDirty(pl);
   setTimeout(()=>{ if(pl.prof) note(pl,`🎋 Dải lụa cầu ${def.name} ở cây đa miếu ông Trường Con đã linh nghiệm: ${g.vnd?'+'+S.fmt(g.vnd):g.exp?'+'+g.exp+' EXP':g.item?'nhận '+S.ITEMS[g.item].name:'+'+g.energy+' năng lượng'}!`,'quest'); },3000); });
 module.exports={};
