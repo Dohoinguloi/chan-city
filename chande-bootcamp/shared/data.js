@@ -784,6 +784,46 @@ const HW_SETS=[['hw_witch','Phù thuỷ',{top:'long',bottom:'skirt'},{top:'5b2a8
   ['hw_pumpkin','Bí ngô',{top:'long'},{top:'3a7a3a',pants:'2a4a2a',shoes:'1c2a1c'}],['hw_zombie','Thây ma',{top:'tee'},{skin:'9ab890',hair:'3a4a30',top:'5a7a9a',pants:'6a5040',shoes:'3a3030'}],
   ['hw_cowboy','Cao bồi',{top:'tee'},{top:'c84a3a',pants:'4a6a9a',shoes:'6a4228'}]];
 for(const [id,name,opts,colors] of HW_SETS) CLOTHES[id]={name:'Đồ Halloween: '+name,slot:'top',price:0,hidden:true,hw:true,set:id,opts,colors};
+/* ---------- Lavi Studio (TP.HCM): studio thiết kế của Linh Manh + 2 bé cún Bé Mực (Malamute) và Bé Bơ (Golden) ----------
+   Linh Manh giao việc typography, layout, vibe code: làm ở đúng chỗ trong studio, có câu đố kiến thức (đúng ≥2/3 mới qua).
+   2 bé cún giấu nhiệm vụ bí mật: vuốt ve Bé Mực đủ 3 lần trong ngày, lục kệ sách mẫu chữ, ban đêm ngồi cạnh bát ăn. */
+const LAVI={W:32,H:22,spawn:{x:16,y:20},desks:[[11,9.6],[15,9.6],[19,9.6]],muc:{x:9.4,y:16},bo:{x:23.6,y:15.6},night:[22,4],
+  spots:{type:{x:7.6,y:4.8,label:'Tường chữ: bảng kerning'},grid:{x:15.6,y:4.8,label:'Bảng lưới layout 12 cột'},specimen:{x:24,y:4.8,label:'Kệ sách mẫu chữ'},
+    vibe:{x:26.4,y:11.4,label:'Góc vibe code'},screen:{x:4.6,y:11.4,label:'Màn chiếu thuyết trình'},bowl:{x:12.6,y:17.6,label:'Bát ăn của 2 bé cún'},sofa:{x:20,y:18,label:'Khe ghế sofa'}},
+  tasks:{lv_kern:{at:'type',dur:10,label:'Căn kerning chữ LAVI',quiz:'typo'},lv_grid:{at:'grid',dur:12,label:'Dựng lưới 12 cột',quiz:'layout'},lv_vibe:{at:'vibe',dur:12,label:'Vibe code landing page'},
+    lv_launch:{at:'screen',dur:15,label:'Thuyết trình ra mắt website Lavi'},sq_bua_khuya:{at:'bowl',dur:10,label:'Đổ hạt cho 2 bé ăn khuya',night:true}},
+  secrets:{sofa:{q:'sq_xuong',item:'xuong_muc'},specimen:{q:'sq_no_bo',item:'no_bo'},bowl:{q:'sq_bua_khuya',how:'night'}},
+  vibeSteps:['Viết prompt cho AI dựng khung landing page','Sửa lỗi nút bấm bị lệch trên điện thoại','Deploy lên mạng, chạy ngon lành'],
+  quiz:{typo:[{q:'Kerning là chỉnh cái gì?',a:['Khoảng cách giữa từng cặp chữ','Độ đậm của chữ','Khoảng cách giữa các dòng'],ok:0},
+      {q:'Đoạn văn dài trên web nên dùng line-height khoảng bao nhiêu?',a:['1.0','1.4 đến 1.6','2.5'],ok:1},
+      {q:'Font serif khác sans-serif ở đâu?',a:['Serif có chân ở đầu nét chữ','Serif luôn in nghiêng','Sans-serif chỉ có chữ hoa'],ok:0},
+      {q:'Một trang nên dùng tối đa mấy họ font?',a:['1 đến 2 họ font','5 họ font','Càng nhiều càng đẹp'],ok:0},
+      {q:'Chữ quá dài 1 dòng (hơn 90 ký tự) thì sao?',a:['Mắt khó dò dòng, nên giữ 50 đến 75 ký tự','Càng dài càng dễ đọc','Không ảnh hưởng gì'],ok:0}],
+    layout:[{q:'Lưới 12 cột phổ biến vì sao?',a:['Chia được 2, 3, 4, 6 cột linh hoạt','Vì 12 là số may mắn','Vì màn hình rộng 12 inch'],ok:0},
+      {q:'Khoảng trắng (whitespace) để làm gì?',a:['Cho nội dung thở, dễ nhìn hơn','Để tiết kiệm mực','Không để làm gì, nên lấp đầy'],ok:0},
+      {q:'Muốn làm nổi tiêu đề nhất trang thì?',a:['To, đậm, nhiều khoảng trắng quanh','Cùng cỡ với chữ thường','Viết bằng màu trùng nền'],ok:0},
+      {q:'Gutter trong lưới layout là gì?',a:['Khe hở giữa các cột','Lề trên cùng','Tên một loại font'],ok:0},
+      {q:'Căn chỉnh (alignment) đều tay giúp gì?',a:['Bố cục gọn, có trật tự','Làm chậm trang web','Không giúp gì'],ok:0}]},
+  lines:{be_muc:['Gâu! (Bé Mực vẫy đuôi, áo sơ mi caro hơi xộc xệch)','Gâu gâu! (Bé Mực đánh hơi quanh ghế sofa)','Ư ử... (Bé Mực nhìn về phía sofa như muốn nói gì đó)'],
+    be_bo:['Gâu~ (Bé Bơ xoay một vòng khoe váy)','(Bé Bơ dụi đầu vào tay bạn, chiếc nơ trên đầu đâu mất rồi?)','Gâu! (Bé Bơ chạy ra phía kệ sách rồi quay lại nhìn bạn)']}};
+Object.assign(QUESTS,{
+  lv_kern:{giver:'linhmanh',title:'Kerning chữ LAVI',desc:'Ra tường chữ căn kerning cho logo LAVI (10 giây), rồi trả lời 3 câu typography của Linh Manh.',prog:1,reward:{exp:240,vnd:300000}},
+  lv_grid:{giver:'linhmanh',after:'lv_kern',title:'Lưới layout 12 cột',desc:'Ra bảng lưới dựng layout 12 cột cho landing page (12 giây), trả lời 3 câu về layout.',prog:1,reward:{exp:280,vnd:350000}},
+  lv_vibe:{giver:'linhmanh',after:'lv_grid',title:'Vibe code landing page',desc:'Ra góc vibe code làm 3 bước: viết prompt cho AI, sửa lỗi giao diện điện thoại, deploy (mỗi bước 12 giây).',prog:3,reward:{exp:360,vnd:450000}},
+  lv_launch:{giver:'linhmanh',after:'lv_vibe',title:'Ra mắt website Lavi',desc:'Thuyết trình website mới trên màn chiếu cho cả studio (15 giây).',prog:1,reward:{exp:500,vnd:800000}},
+  sq_xuong:{giver:'be_muc',secret:true,title:'🔍 Khúc xương bí mật của Bé Mực',desc:'Tìm thấy khúc xương Bé Mực giấu trong khe ghế sofa. Mang trả Bé Mực.',need:{xuong_muc:1},reward:{exp:220,vnd:250000}},
+  sq_no_bo:{giver:'be_bo',secret:true,title:'🔍 Chiếc nơ của Bé Bơ',desc:'Chiếc nơ trắng của Bé Bơ rơi sau kệ sách mẫu chữ. Mang trả Bé Bơ.',need:{no_bo:1},reward:{exp:220,vnd:250000}},
+  sq_bua_khuya:{giver:'linhmanh',secret:true,title:'🔍 Bữa khuya của 2 bé',desc:'Nửa đêm 2 bé cún ngồi chầu bát ăn. Đổ hạt cho 2 bé (10 giây, chỉ ban đêm) rồi báo Linh Manh.',prog:1,reward:{exp:300,vnd:350000}},
+  sq_dao:{giver:'be_bo',secret:true,title:'🔍 Đi dạo với Bé Mực và Bé Bơ',desc:'Vuốt ve Bé Mực đủ 3 lần, 2 bé đòi đi dạo! Dắt 2 bé ra cửa studio đứng hóng gió 15 giây rồi về báo Bé Bơ.',prog:1,reward:{exp:280,vnd:300000}}});
+LAVI.spots.door={x:16,y:20.4,label:'Cửa studio'}; LAVI.tasks.sq_dao={at:'door',dur:15,label:'Dắt 2 bé đi dạo hóng gió'}; LAVI.talkSecret={be_muc:'sq_dao'};
+NPCS.push({id:'linhmanh',scene:'lavi',x:19.6,y:13,place:'linhmanh'},{id:'lv_mem',scene:'lavi',x:13,y:13.2,place:'lvmem'},
+  {id:'be_muc',scene:'lavi',x:LAVI.muc.x,y:LAVI.muc.y,place:'lvdog',obj:true},{id:'be_bo',scene:'lavi',x:LAVI.bo.x,y:LAVI.bo.y,place:'lvdog',obj:true});
+Object.assign(CLOTHES,{blazer_lm:{name:'Blazer xanh navy oversize + polo đen',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'1e2a4a',inner:'1c1820'}},
+  quan_lm:{name:'Quần âu xếp ly xanh navy',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'1e2a4a',buckle:'1c1820'}}});
+Object.assign(NPC_LOOKS,{linhmanh:{name:'Linh Manh (Lavi Studio)',look:{gender:'nam',hair:'messy',hairColor:'1c1820',skin:'f0c4a0',outfit:{top:'blazer_lm',bottom:'quan_lm',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  lv_mem:{name:'Designer Lavi',look:{gender:'nu',hair:'long',hairColor:'5a3a2a',skin:'f3c8ae',outfit:{top:'ao_rf_trang',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  be_muc:{name:'Bé Mực (Alaskan)',look:null},be_bo:{name:'Bé Bơ (Golden)',look:null}});
+ITEMS.xuong_muc={name:'Khúc xương của Bé Mực',icon:'bone'}; ITEMS.no_bo={name:'Nơ trắng của Bé Bơ',icon:'bow'};
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -956,7 +996,7 @@ Object.assign(NPC_LOOKS,{
 const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},lumen:{name:'Lumen Studio (Hà Nội)',city:'hn'},yenlang:{name:'120 Yên Lãng · nhà anh Độ (Hà Nội)',city:'hn'},pickle:{name:'Sân pickleball Cầu Giấy (Hà Nội)',city:'hn'},diep:{name:'Phòng của Diệp (Hà Nội)',city:'hn'},
   retreat:{name:'Ké Retreat (Đà Bắc, Hoà Bình)',city:'hb'},dalat:{name:'Nông trại bác Trang (Đà Lạt)',city:'dl'},
   das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true},bearplus:{name:'Bearplus Studio (Khánh Hội, TP.HCM)',city:'hcm',plane:true},
-  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},nghienmotion:{name:'Group Nghiện Motion (Hà Nội)',city:'hn'},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
+  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},nghienmotion:{name:'Group Nghiện Motion (Hà Nội)',city:'hn'},lavi:{name:'Lavi Studio (TP.HCM)',city:'hcm',plane:true},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
 const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,hn_hp:7000,hb_hp:9000,dl_hp:22000,hcm_hp:52000,hp_hp:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
 function grabFare(from,to){ return GRAB[[DEST[from].city,DEST[to].city].sort().join('_')]??0; }
 // khoá học online ở phòng: mất tiền + thời gian, cần đủ cấp
@@ -980,8 +1020,8 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 // cờ trong gói vị trí
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
-const SCENE_DEST={nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_DEST={lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
+const SCENE_SIZE={lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
@@ -1215,5 +1255,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });
