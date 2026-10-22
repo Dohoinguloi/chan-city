@@ -38,7 +38,8 @@ A.beBo=(fr=0)=>S(30,26,15,25,(g,P)=>{ const B='#f0d8a8', Bd='#d8b480';
   ell(P,8,10,6,5,B); ell(P,4,12,3,3,'#f8e8c8'); P.rect(2,8,4,7,Bd); P.rect(12,8,3,6,Bd); eye(P,6,9); eye(P,10,9); P.rect(3,11,2,2,K); P.rect(4,14,3,1,'#c86a7a');
   P.rect(7,3,7,3,'#ffffff'); P.rect(9,4,3,1,'#e8dce0'); P.px(6,4,'#ffffff'); P.px(14,4,'#ffffff');
   P.rect(10,21,3,4,B); P.rect(19,21,3,4,B); for(let i=0;i<4;i++) P.rect(24+(fr?(i%2):0),9+i*2-(fr?1:0),3,3,i===3?'#f8e8c8':B); });
-const ICONS11={bone:P=>{ P.rect(3,6,8,2,'#f4efe6'); P.disc(3,5,2,'#f4efe6'); P.disc(3,8,2,'#f4efe6'); P.disc(11,5,2,'#f4efe6'); P.disc(11,8,2,'#f4efe6'); P.rect(4,6,6,1,'#d8d0c0'); },
+const ICONS11={zentoken:P=>{ P.rect(5,1,4,2,'#7a9a6a'); P.rect(3,3,8,7,'#7a9a6a'); P.rect(5,10,4,2,'#7a9a6a'); P.rect(5,3,4,7,'#a8d898'); P.px(6,4,'#ffffff'); P.rect(6,6,2,2,'#2a2436'); },
+  bone:P=>{ P.rect(3,6,8,2,'#f4efe6'); P.disc(3,5,2,'#f4efe6'); P.disc(3,8,2,'#f4efe6'); P.disc(11,5,2,'#f4efe6'); P.disc(11,8,2,'#f4efe6'); P.rect(4,6,6,1,'#d8d0c0'); },
   bow:P=>{ P.rect(2,4,4,6,'#ffffff'); P.rect(8,4,4,6,'#ffffff'); P.rect(6,5,2,4,'#e8dce0'); P.rect(3,6,2,2,'#e8dce0'); P.rect(9,6,2,2,'#e8dce0'); }};
 const oldIcon11=A.icon; A.icon=function(name,scale=1){ const f=ICONS11[name]; if(!f) return oldIcon11(name,scale); const c=A.cv(14,14); f(A.painter(c.getContext('2d'))); A.outline(c);
   if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };

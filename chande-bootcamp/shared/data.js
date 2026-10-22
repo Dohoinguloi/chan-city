@@ -824,6 +824,27 @@ Object.assign(NPC_LOOKS,{linhmanh:{name:'Linh Manh (Lavi Studio)',look:{gender:'
   lv_mem:{name:'Designer Lavi',look:{gender:'nu',hair:'long',hairColor:'5a3a2a',skin:'f3c8ae',outfit:{top:'ao_rf_trang',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
   be_muc:{name:'Bé Mực (Alaskan)',look:null},be_bo:{name:'Bé Bơ (Golden)',look:null}});
 ITEMS.xuong_muc={name:'Khúc xương của Bé Mực',icon:'bone'}; ITEMS.no_bo={name:'Nơ trắng của Bé Bơ',icon:'bow'};
+/* ---------- Dương Vũ: đi khắp các map quảng cáo Zen Design System, giao nhiệm vụ ẩn ----------
+   Mỗi `period` chuyển sang 1 map trong `stops` (máy khách và server tính giống nhau). Gặp lần đầu lộ ra nhiệm vụ ẩn: đuổi theo anh ở 3 map,
+   nhặt 5 Zen Token giấu ở 5 studio; gặp ở 2 map thì có bài kiểm tra Zen; qua bài kiểm tra thì có việc áp dụng Zen vào file thật ở bàn studio. */
+const DUONGVU={period:8*60e3,stops:[['retreat',43.5,95.6],['lumen',21.5,31.4],['das',17.5,15.4],['bearplus',19.5,17.8],['vnpt',20.5,19.8],['nghienmotion',19.5,19.6],['lavi',18.5,17.8],['yenlang',15,14.4],['mieu',22.5,27.4],['dalat',42.5,65]],
+  lines:['Zen Design System: 1 bộ token, mọi sản phẩm đồng bộ!','Button, Input, Card... đủ 60 component, kéo thả trên Figma là xong!','Đổi màu thương hiệu? Sửa 1 token là cả hệ thống đổi theo!','Dark mode có sẵn, khỏi vẽ lại từng màn hình!','Thiết kế nhanh gấp 3 với Zen Design System. Lại đây mình chỉ cho!'],
+  tokens:[['lumen',17,31.6],['das',12.5,15.6],['bearplus',14.5,17.8],['lavi',13.5,17.6],['nghienmotion',14.5,19.6]],
+  quiz:[{q:'Design token là gì?',a:['Biến lưu màu, cỡ chữ, khoảng cách dùng chung','Một loại tiền ảo','Tên file Figma'],ok:0},
+    {q:'Component có variant để làm gì?',a:['Gộp các trạng thái (thường, hover, tắt) vào 1 component','Để file nặng hơn','Để đổi tên layer'],ok:0},
+    {q:'Đổi màu chủ đạo cho cả sản phẩm nhanh nhất là?',a:['Sửa token màu primary 1 lần','Tô lại từng nút bằng tay','Vẽ lại từ đầu'],ok:0},
+    {q:'Khoảng cách (spacing) nên theo bước nào cho đều?',a:['Bội số của 4 hoặc 8 (4, 8, 16, 24...)','Số ngẫu nhiên','Càng lẻ càng đẹp'],ok:0}],
+  figma:['lumen','lavi','bearplus'],figmaDur:15};
+function dvWhere(ms=Date.now()){ const D=DUONGVU, i=Math.floor(ms/D.period)%D.stops.length, [scene,x,y]=D.stops[i], ph=ms/1000*.35;
+  return {scene,x:x+Math.sin(ph)*1.2,y,bx:x,by:y,next:D.stops[(i+1)%D.stops.length][0],left:D.period-ms%D.period}; }
+Object.assign(QUESTS,{
+  dv_follow:{giver:'duongvu',secret:true,title:'🔍 Đuổi theo Dương Vũ',desc:'Dương Vũ đi khắp nơi quảng cáo Zen Design System. Gặp anh ở 3 map khác nhau (Ké, Lumen, DAS, Bearplus, VNPT, Nghiện Motion, Lavi, Yên Lãng, Miếu, Đà Lạt).',prog:3,reward:{exp:300,vnd:400000}},
+  dv_token:{giver:'duongvu',secret:true,title:'🔍 5 Zen Token thất lạc',desc:'Dương Vũ đánh rơi 5 Zen Token ở 5 studio: Lumen, DAS, Bearplus, Lavi, Nghiện Motion. Nhặt đủ rồi trả anh.',need:{zen_token:5},reward:{exp:400,vnd:600000}},
+  dv_quiz:{giver:'duongvu',secret:true,title:'🔍 Bài kiểm tra Zen',desc:'Trả lời 4 câu về design system của Dương Vũ, đúng từ 3 câu là qua.',prog:1,reward:{exp:300,vnd:350000}},
+  dv_figma:{giver:'duongvu',secret:true,title:'🔍 Áp dụng Zen vào file thật',desc:'Ngồi 1 bàn thiết kế ở Lumen, Lavi hoặc Bearplus, áp dụng Zen Design System vào file Figma của khách (15 giây).',prog:1,reward:{exp:450,vnd:700000}}});
+Object.assign(CLOTHES,{ao_zen:{name:'Áo thun Zen Design System',slot:'top',price:0,hidden:true,opts:{top:'tee',print:true},colors:{top:'f4f2ec',print:'2a2436',line:'7a9a6a'}}});
+NPC_LOOKS.duongvu={name:'Dương Vũ (Zen Design System)',look:{gender:'nam',hair:'fringe',hairColor:'1c1820',skin:'f0c4a0',outfit:{top:'ao_zen',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}};
+ITEMS.zen_token={name:'Zen Token',icon:'zentoken'};
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -1255,5 +1276,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

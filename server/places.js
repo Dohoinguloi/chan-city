@@ -6,7 +6,8 @@ const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
 const inRetreat=pl=>pl.scene==='retreat';
-const nearNpc=(pl,id,r=72)=>{ const n=npc(id); if(!n||kindOf(pl.scene)!==(n.scene||'retreat')) return false; if(!S.NPC_ROAM[id]) return near(pl,n.x,n.y,r);
+const nearNpc=(pl,id,r=72)=>{ if(id==='duongvu'){ const t=now(); for(let k=0;k<=12;k+=3){ const w=S.dvWhere(t-k*1000); if(pl.scene===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Dương Vũ đổi map theo lịch
+  const n=npc(id); if(!n||kindOf(pl.scene)!==(n.scene||'retreat')) return false; if(!S.NPC_ROAM[id]) return near(pl,n.x,n.y,r);
   const t=now(); for(let k=0;k<=12;k++){ const q=S.roamPos(id,t-k*1000); if(near(pl,q.x,q.y,r)) return true; } return false; };   // NPC đi dạo: tính cả chỗ vài giây trước (đang nói chuyện thì NPC vẫn đi tiếp)
 
 /* ---------- việc có thời gian (tắm, nghỉ, học, làm task...) ---------- */
