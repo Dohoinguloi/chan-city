@@ -50,6 +50,11 @@ hook('tick',snapshot);
 
 /* ---------- chat ---------- */
 const clean=s=>String(s||'').replace(/[\u0000-\u001f\u007f<>]/g,'').replace(/\s+/g,' ').trim().slice(0,120);
+// kênh chat tổng (trên thanh đồ): tin tới cả server, giữ 40 tin gần nhất gửi cho người mới vào
+const WCHAT=[];
+on('wchat',(pl,m)=>{ const msg=clean(m.m); if(!msg) return {}; const t=now(); if(t-(pl.lastW||0)<2000) return {err:'Chat chậm thôi, 2 giây 1 tin'}; pl.lastW=t;
+  const e={n:pl.prof.name,lv:pl.prof.level,m:msg,at:t}; WCHAT.push(e); if(WCHAT.length>40) WCHAT.shift(); C.broadcastAll({t:'wchat',...e}); return {}; });
+hook('login',pl=>setTimeout(()=>{ if(pl.prof) send(pl,{t:'wchatlog',list:WCHAT}); },900));
 on('chat',(pl,m)=>{ const msg=clean(m.m); if(!msg) return; const t=now(); if(t-pl.lastChat<700) return; pl.lastChat=t;
   broadcastNear(pl,{t:'chat',id:pl.pid,m:msg},360); });
 // chat online: chỉ gửi được khi đang ở phòng riêng (laptop); nhận ở mọi nơi

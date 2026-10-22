@@ -260,6 +260,8 @@ function canFinish(id){ const q=Q[id]; if(id==='beagle') return G.flags.beagleFo
 async function startQuest(id){ const r=await act({t:'quest',id,op:'start'}); if(!r.err){ sfx('quest_accept',.5); toast(`Nhận nhiệm vụ: <b>${Q[id].title}</b>`,'quest'); } }
 async function finishQuest(id,after){ const r=await act({t:'quest',id,op:'finish'}); if(!r.err){ sfx('quest_complete',.6); after&&after(); } }
 function talk(n){ faceToward(n); const id=n.id, D=Wd.DIALOG;
+  const job=Object.keys(Q).find(k=>{ const j=Q[k].job; return j&&j.npc===id&&j.where===S.kind&&G.quests[k]==='active'&&!(G.qprog||{})[k]; });
+  if(job) return interact({type:'design',id:job,label:Q[job].job.label});   // bấm/chạm thẳng vào NPC có việc Huy Phan (Annie, thầy Huy Tạ...) cũng làm việc luôn, không mở bảng thường
   if(!STORY[id]) return UI.place(n.place,n);
   if(id==='phap'){   // Pháp: chào lần đầu rồi giao việc bắt bướm, sau đó việc "giải toả"
     if(!G.flags.hello){ NET.send({t:'hello'}); say(D.phap_hello); return; }
@@ -755,6 +757,7 @@ function update(dt){
   if(hit('m')){ toggleMap(); return; } if(!$('#mapView').hidden){ if(hit('escape','m')) toggleMap(); return; }
   if(hit('escape')){ UI.menu(); return; }
   if(hit('enter')){ UI.chat(); return; }
+  if(hit('c')){ UI.wchat(); return; }   // C: gõ vào kênh chat tổng
   if(hit('g')){ UI.grab(); return; } if(hit('i')){ UI.bag(); return; } if(hit('b')){ goHome(); return; } if(hit('l')){ UI.leaderboard(); return; } if(hit('u')){ UI.wardrobe(); return; } if(hit('f')){ UI.farm(); return; } if(hit('y')){ UI.daily(); return; }
   if(hit('n','`','~')) toggleSkills();                                 // N: thanh kỹ năng (tiếng bật/tắt bằng nút loa)
   if(hit('p')) act({t:'photo'}).then(r=>{ if(!r.err){ flash=1; sfx('item_pickup',.5); toast(`Đã chụp ảnh sống ảo: <b>${esc(r.name)}</b> · up ảnh ở phòng`,'item'); } });

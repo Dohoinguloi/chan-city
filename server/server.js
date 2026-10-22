@@ -107,6 +107,9 @@ handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nh
   markDirty(pl); save(pl); place(pl); return {prof:publicProfile(pl)}; };
 handlers.pong=(pl,m)=>{ if(m.s) pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); };
 // chỉ dùng khi chạy thử tự động (CHAN_TEST=1): dịch chuyển, cho tiền/đồ/skill
+// giới hạn mỗi ngày game (6 tiếng thật): đổi ngày lúc đang online cũng reset luôn, khỏi phải vào lại
+const freshDaily=d=>({day:d,done:{},buoys:{},gameExp:0,tiktok:0,posts:0,herd:0,crates:0,cook:0,slept:false});
+C.hook('slow',()=>{ const d=today(); for(const pl of players.values()){ const p=pl.prof; if(p&&p.daily&&p.daily.day!==d){ p.daily=freshDaily(d); markDirty(pl); } } });
 if(process.env.CHAN_TEST==='1') handlers.dbg=(pl,m)=>{ const p=pl.prof;
   if(m.money) p.money+=m.money|0; if(m.items) for(const [k,n] of Object.entries(m.items)) C.addItem(pl,k,n|0);
   if(m.skills) for(const k of m.skills) p.skills[k]=true; if(m.level){ p.exp=S.RULES.levels[m.level-1]||0; p.level=m.level; }
@@ -126,7 +129,7 @@ wss.on('connection',(ws,req)=>{
   const pl={pid:C.newPid(),uid,pub:FARM.pubOf(uid),ws,prof,scene:null,x:0,y:0,face:1,view:1,anim:0,act:0,actUntil:0,budget:0,mvAt:now(),sent:new Map(),
     lastChat:0,bucket:{n:40,t:now()},rtt:80,over:0};
   players.set(pl.pid,pl); byUid.set(uid,pl);
-  const d=today(); if(prof.daily.day!==d){ prof.daily={day:d,done:{},buoys:{},gameExp:0,tiktok:0,posts:0,herd:0,crates:0,cook:0,slept:false}; }
+  const d=today(); if(prof.daily.day!==d) prof.daily=freshDaily(d);
   for(const f of hooks.login) f(pl);
   send(pl,{t:'welcome',pid:pl.pid,pub:pl.pub,prof:publicProfile(pl),now:now(),online:players.size});
   if(prof.look) place(pl);

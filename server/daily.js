@@ -2,7 +2,8 @@
 // Lễ hội Bí ngô theo mùa (nhặt bí mọc rải khắp Ké / Đà Lạt, đổi quà với Cô Bí Ngô ở cổng Ké).
 'use strict';
 const C=require('./core'), P=require('./places');
-const {S,on,hook,today,near,kindOf,markDirty,send,note,reward,addItem,has,take}=C;
+const {S,on,hook,near,kindOf,markDirty,send,note,reward,addItem,has,take}=C;
+const today=()=>S.realTime().day;   // điểm danh, 3 việc hằng ngày đổi theo ngày thật (ngày game chỉ 6 tiếng)
 const hsh=s=>{ let h=2166136261; for(const c of String(s)) h=Math.imul(h^c.charCodeAt(0),16777619); return h>>>0; };
 // việc nào đếm theo sự kiện nào (stat / track ở các module khác)
 const EV={fish:'fish',harvest:'harvest',forage:'forage',bug:'bug',meal:'meal',grab:'grab',photo:'photo',pickle:'match',treasure:'treasure',pumpkin:'pumpkin',money:'money',exp:'exp'};

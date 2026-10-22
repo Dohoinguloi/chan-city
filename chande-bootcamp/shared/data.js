@@ -8,6 +8,7 @@ const T=16;
 // foodCd: đồ ăn vặt / đồ uống mua xong phải chờ (phút) mới mua lại được; đồ uống có buff thì chờ hết buff
 const RULES={foodCd:15,
   tzOffsetH:7,                       // giờ Việt Nam
+  timeScale:4, timeEpoch:1792664100000,   // giờ trong game chạy nhanh gấp 4 (1 ngày game = 6 tiếng thật), tính từ mốc này để lúc chuyển ngày giờ không nhảy
   walk:70, run:118, dash:250,        // px/giây
   startMoney:2000000,
   levels:[0,100,250,450,700,1000,1400,2000,2700,3500,4500,6000,8000],maxLevel:200,   // 13 cấp đầu giữ nguyên, từ cấp 14 nối tiếp tới cấp 200 (ngay dưới RULES)
@@ -786,7 +787,11 @@ const SCENE_DEST={nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mi
 const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
-function vnTime(ms=Date.now()){ const d=new Date(ms+RULES.tzOffsetH*3600e3);
+// giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
+const gameMs=(ms=Date.now())=>{ const E=RULES.timeEpoch; return ms<E?ms:E+(ms-E)*RULES.timeScale; };
+function realTime(ms=Date.now()){ const d=new Date(ms+RULES.tzOffsetH*3600e3);
+  return {day:d.toISOString().slice(0,10),h:d.getUTCHours(),m:d.getUTCMinutes(),hf:d.getUTCHours()+d.getUTCMinutes()/60+d.getUTCSeconds()/3600,wd:d.getUTCDay()}; }
+function vnTime(ms=Date.now()){ const d=new Date(gameMs(ms)+RULES.tzOffsetH*3600e3);
   return {day:d.toISOString().slice(0,10),h:d.getUTCHours(),m:d.getUTCMinutes(),hf:d.getUTCHours()+d.getUTCMinutes()/60+d.getUTCSeconds()/3600,wd:d.getUTCDay()}; }
 const WEEKDAYS=['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
 // trạng thái 3 bữa: eaten (đã ăn) / now (đang giờ ăn) / missed (bỏ bữa) / later (chưa tới giờ)
@@ -998,7 +1003,7 @@ const SEASON={halloween:{name:'Lễ hội Bí ngô',from:'10-20',to:'11-03',perH
     {id:'mu',name:'Mũ tím phù thuỷ',cost:12,cloth:'mu_phuthuy',desc:'Mũ tím đội đi chơi lễ, mặc trong Tủ đồ'},
     {id:'ao',name:'Áo bí ngô chấm bi',cost:20,cloth:'ao_bingo',desc:'Áo cam chấm bi đen, chỉ có mùa lễ'},
     {id:'den',name:'Đèn bí ngô theo chân',cost:30,item:'den_bingo',desc:'Quả bí ngô phát sáng lon ton theo sau bạn, ai cũng thấy'}]}};
-function seasonOn(id,ms=Date.now()){ const z=SEASON[id]; if(!z) return false; const md=vnTime(ms).day.slice(5); return z.from<=z.to?md>=z.from&&md<=z.to:md>=z.from||md<=z.to; }
+function seasonOn(id,ms=Date.now()){ const z=SEASON[id]; if(!z) return false; const md=realTime(ms).day.slice(5); return z.from<=z.to?md>=z.from&&md<=z.to:md>=z.from||md<=z.to; }
 // bộ bí ngô đang mọc trong giờ hiện tại (giống nhau ở mọi máy)
 function pumpkinsNow(scene,ms=Date.now()){ const z=SEASON.halloween, sp=z.spots[scene], n=z.perHour[scene]; if(!sp||!seasonOn('halloween',ms)) return {hour:0,list:[]};
   const hour=Math.floor((ms+RULES.tzOffsetH*3600e3)/3600e3), idx=sp.map((p,i)=>[i,((Math.imul(hour+1,2654435761)^Math.imul(i+7,40503))>>>0)%9973]).sort((a,b)=>a[1]-b[1]).slice(0,n).map(a=>a[0]);
@@ -1013,5 +1018,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

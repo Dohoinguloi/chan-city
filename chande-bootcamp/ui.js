@@ -21,7 +21,7 @@ function thumbify(root){ for(const row of root.querySelectorAll('.list:not(.rows
     const w=document.createElement('i'); w.className='rth'+(img.classList.contains('dogi')?' wide':''); w.style.setProperty('--h',TH_HUE(key)); img.replaceWith(w); w.appendChild(img); } }
 UI.isOpen=()=>!box.hidden;
 UI.closeAll=()=>{ cur=null; box.hidden=true; box.classList.remove('full','xwide'); inner.innerHTML=''; stopMini(); };
-UI.blocking=()=>!!cur||!$('#ask').hidden||document.activeElement===$('#chatIn');
+UI.blocking=()=>!!cur||!$('#ask').hidden||document.activeElement===$('#chatIn')||document.activeElement===$('#wcIn');
 $('#panelClose').onclick=()=>UI.closeAll();
 // nút trong bảng: data-a="tên hành động" + data-*
 inner.addEventListener('click',e=>{ const b=e.target.closest('[data-a]'); if(!b||b.disabled) return; const f=ACT[b.dataset.a]; if(f) f(b.dataset,b); });
@@ -51,6 +51,22 @@ UI.chat=()=>{ $('#chatBox').classList.add('typing'); chatIn.hidden=false; chatIn
 chatIn.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ const m=chatIn.value.trim(); if(m) NET.send({t:'chat',m}); chatIn.value=''; chatIn.blur(); }
   if(e.key==='Escape'){ chatIn.value=''; chatIn.blur(); } });
 chatIn.addEventListener('blur',()=>{ chatIn.hidden=true; $('#chatBox').classList.remove('typing'); });
+// kênh chat tổng: tin của cả server hiện trên thanh đồ, phím T để gõ
+const wcLog=$('#wcLog'), wcIn=$('#wcIn'), wcBox=$('#wchat');
+function wcAdd(e){ const d=document.createElement('div'), hm=SD.realTime(e.at), mine=e.n===G().name; if(mine) d.className='me';
+  d.innerHTML=`<small>${String(hm.h).padStart(2,'0')}:${String(hm.m).padStart(2,'0')}</small> <b>${esc(e.n)}</b> <small>Lv${e.lv|0}</small>: ${esc(e.m)}`; d.title=e.n+': '+e.m;
+  const atEnd=wcLog.scrollHeight-wcLog.scrollTop-wcLog.clientHeight<8; wcLog.appendChild(d); while(wcLog.children.length>40) wcLog.firstChild.remove(); if(atEnd||mine) wcLog.scrollTop=wcLog.scrollHeight; }
+let wcUnread=0; const wcShow=$('#wcShow'), wcMark=()=>{ $('#wcNew').textContent=wcUnread?`(${wcUnread} mới)`:''; };
+NET.listen('wchat',e=>{ wcAdd(e); if(e.n!==G().name){ if(wcBox.hidden){ wcUnread++; wcMark(); } wcBox.classList.add('flash'); setTimeout(()=>wcBox.classList.remove('flash'),700); } });
+function wcSetHidden(h){ wcBox.hidden=h; wcShow.hidden=!h; if(!h){ wcUnread=0; wcMark(); wcLog.scrollTop=wcLog.scrollHeight; } try{ localStorage.setItem('chan-wchat',h?'0':'1'); }catch(e){} }
+$('#wcHide').addEventListener('click',e=>{ e.currentTarget.blur(); wcSetHidden(true); }); wcShow.addEventListener('click',e=>{ e.currentTarget.blur(); wcSetHidden(false); });
+try{ if(localStorage.getItem('chan-wchat')==='0') wcSetHidden(true); }catch(e){}
+NET.listen('wchatlog',m=>{ wcLog.innerHTML=''; for(const e of m.list||[]) wcAdd(e); wcLog.scrollTop=wcLog.scrollHeight; });
+UI.wchat=()=>{ if(wcBox.hidden) wcSetHidden(false); wcIn.focus(); };
+wcIn.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ const m=wcIn.value.trim(); if(m) NET.req({t:'wchat',m}).then(r=>{ if(r&&r.err) GAME.toast(esc(r.err),'lock'); }); wcIn.value=''; wcIn.blur(); }
+  if(e.key==='Escape'){ wcIn.value=''; wcIn.blur(); } });
+wcIn.addEventListener('keyup',e=>e.stopPropagation());
+$('#wcFold').addEventListener('click',e=>{ e.currentTarget.blur(); const big=wcBox.classList.toggle('big'); e.currentTarget.textContent=big?'▾':'▴'; wcLog.scrollTop=wcLog.scrollHeight; });
 UI.chatLog=(n,m)=>{ const d=document.createElement('div'); d.innerHTML=`<b>${esc(n)}:</b> ${esc(m)}`; const L=$('#chatLog'); L.appendChild(d); while(L.children.length>7) L.firstChild.remove(); setTimeout(()=>d.classList.add('old'),12000); };
 
 /* ---------- hỏi nhanh (lời mời) ---------- */
@@ -658,7 +674,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
     body+=`<p class="dim">Vào game mỗi ngày để nhận quà, quà to dần tới ngày 7. Lỡ 1 ngày là quay về Ngày 1.</p><div class="d7">${SD.LOGIN7.map((r,i)=>{ const today=i===s-1, st=done(i)?'got':today?'now':'lock';
       const ic=r.chest?ico('ruong_bau'):r.items?ico(Object.keys(r.items)[0]):ico('coin');
       return `<div class="dday ${st}${r.chest?' big':''}"><span>Ngày ${i+1}</span>${ic}<b>${esc(r.label)}</b>${st==='got'?'<i>✔ Đã nhận</i>':today?btn('dlogin','Nhận quà',{},'pri'):'<i>🔒</i>'}</div>`; }).join('')}</div>`; }
-  if(dTab==='quest'){ const nGot=q.list.filter(t=>t.got).length, all=q.list.length&&nGot===q.list.length, vn=SD.vnTime(NET.now()), left=24*60-(vn.h*60+vn.m), cdn=`${Math.floor(left/60)} giờ ${left%60} phút`;
+  if(dTab==='quest'){ const nGot=q.list.filter(t=>t.got).length, all=q.list.length&&nGot===q.list.length, vn=SD.realTime(NET.now()), left=24*60-(vn.h*60+vn.m), cdn=`${Math.floor(left/60)} giờ ${left%60} phút`;
     body+=`<div class="dqhead"><div><b>VIỆC HÔM NAY</b><span>⏳ Làm mới sau ${cdn}</span></div><div class="dqpips">${q.list.map(t=>`<i class="${t.got?'on':t.ok?'ok':''}"></i>`).join('')}<em>${nGot}/${q.list.length}</em></div></div><div class="dq2">`+q.list.map((t,i)=>{ const def=SD.DAYQ.pool[t.id]; if(!def) return '';
       const pct=Math.round(t.n/def.goal*100), seg=def.goal<=10?def.goal:0, kk=v=>v>=1e6?(Math.round(v/1e5)/10+'tr'):v>=1000?Math.round(v/1000)+'K':String(v), num=t.id==='money'||t.id==='exp'?`${kk(t.n)}/${kk(def.goal)}`:`${t.n}/${def.goal}`, st=t.got?'got':t.ok?'ready':'';
       const chips=(def.rw.vnd?`<span class="chip coin"><img src="${GAME.icon64('coin')}" alt="">${fmt(def.rw.vnd)}</span>`:'')+(def.rw.exp?`<span class="chip xp">★ ${def.rw.exp} EXP</span>`:'');
