@@ -11,7 +11,7 @@ Object.assign(A.GL,{S:['.XX','X..','.X.','..X','XX.'],F:['XXX','X..','XX.','X..'
   '·':['.','.','X','.','.'],'-':['..','..','XX','..','..'],'!':['X','X','X','.','X']});
 
 /* ---------- tile mới ---------- */
-for(const k of ['Y','Z','J','U','I','A']) A.WALKABLE.add(k);
+for(const k of ['Y','Z','J','U','I','A','n','L']) A.WALKABLE.add(k);   // L: nước bể bơi, lội xuống được
 const TE=A.TILE_EXT;
 // Y: luống đất xới
 TE.Y=(g,X,Y,tx,ty,nb,fr,P,dither)=>{ dither(['#8a5a3a','#7a4e32','#9c6a46'],.16,.06,80); for(let y=2;y<T;y+=5){ P.rect(X+1,Y+y,T-2,1,'#6a4228'); P.rect(X+1,Y+y+1,T-2,1,'#a67350'); } };
@@ -29,6 +29,8 @@ TE.U=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#a9a49a'); for(let y=0;y<T;y+=8){ 
 TE.I=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#e9f0f2'); for(let k=0;k<T;k+=8){ P.rect(X+k,Y,1,T,'#c4d3d8'); P.rect(X,Y+k,T,1,'#c4d3d8'); } };
 // A: thảm xanh lá (sân cỏ trường đua bên trong)
 TE.A=(g,X,Y,tx,ty,nb,fr,P,dither)=>{ dither(['#5aa040','#4f9238','#68b04a'],.12,.05,81); if((tx+ty)%2===0) P.rect(X,Y,T,T,'rgba(255,255,255,.05)'); };
+// n: sàn LED Phòng Bay (đi được)
+TE.n=(g,X,Y,tx,ty,nb,fr,P)=>{ const cols=['#ff4fa3','#4fd1ff','#ffd84a','#7de07a','#a259ff']; P.rect(X,Y,T,T,'#1a1426'); P.rect(X+1,Y+1,T-2,T-2,cols[(tx*3+ty*2+fr)%5]); P.rect(X+3,Y+3,T-6,T-6,'rgba(255,255,255,.18)'); };
 // N: vách bạt lều (không đi được)
 TE.N=(g,X,Y,tx,ty,nb,fr,P)=>{ const below=nb(0,1); P.rect(X,Y,T,T,below==='N'?'#5a3f2c':'#e9dcc0'); if(below!=='N'){ for(let x=0;x<T;x+=5) P.rect(X+x,Y,1,T,'#d2c2a2'); P.rect(X,Y+T-3,T,3,'#b9a582'); } };
 // g: vách kính phòng sếp (không đi được)
@@ -36,7 +38,7 @@ TE.g=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#e2c9a2'); P.rect(X,Y+5,T,8,'rgba(
 
 /* ---------- tiện ích vẽ ---------- */
 const S=(w,h,ax,ay,fn,ol=true)=>sprite(w,h,ax,ay,fn,ol);
-function label(text,bg='#efe1c0',fg='#5a3a22'){ const tw=A.textW(text); return S(tw+6,9,(tw+6)/2,8,(g,P)=>{ P.rect(0,0,tw+6,8,bg); A.drawText(g,text,3,1,fg); }); }
+function label(text,bg='#efe1c0',fg='#5a3a22'){ const tw=A.textW(text); return S(tw+6,9,Math.floor((tw+6)/2),8,(g,P)=>{ P.rect(0,0,tw+6,8,bg); A.drawText(g,text,3,1,fg); }); }
 function signPost(text,bg='#c08552'){ const tw=A.textW(text); return S(tw+8,22,(tw+8)/2,20,(g,P)=>{ P.rect(tw/2+3,9,2,11,'#6e472c'); P.rect(1,1,tw+6,9,bg); P.rect(1,1,tw+6,1,'rgba(255,255,255,.35)'); A.drawText(g,text,4,3,'#2a1a10'); }); }
 // nhà có biển hiệu (dùng house của art.js rồi gắn biển lên tường)
 function shop(o){ const h=A.house({...o,sign:undefined}), tw=A.textW(o.sign), c=h.c, g=c.getContext('2d'), W=c.width, wy=(o.roofH||30)+1;
@@ -168,6 +170,10 @@ const ICONX={
   ing_tiem_rau:P=>{ P.disc(6,7,3,'#5fae46'); P.rect(5,2,1,4,'#3a7a32'); },
   ing_tiem_thit:P=>{ P.disc(6,7,4,'#d9665a'); P.disc(6,7,2,'#f2b0a8'); },
   ing_tiem_kho:P=>{ P.rect(3,3,7,8,'#f4ead8'); P.rect(3,3,7,2,'#c4382e'); },
+  tr_dong_xu_co:P=>{ P.disc(6,6,4,'#b08a3a'); P.disc(6,6,2,'#8a6a2a'); P.rect(5,5,2,2,'#e8d08a'); },
+  tr_binh_gom:P=>{ P.rect(4,1,4,2,'#3f6e9a'); P.disc(6,7,4,'#e8e0d0'); P.rect(3,6,7,1,'#3f6e9a'); P.px(5,8,'#3f6e9a'); P.px(7,8,'#3f6e9a'); },
+  tr_ngoc_trai:P=>{ P.disc(6,7,4,'#8a8a9a'); P.disc(6,6,2,'#f8f4ff'); P.px(5,5,'#ffffff'); },
+  tr_ruong_bau:P=>{ P.rect(1,4,11,7,'#8a5a36'); P.rect(1,4,11,2,'#a86e44'); P.rect(1,7,11,1,'#e8b83a'); P.rect(5,6,3,3,'#e8b83a'); P.px(3,3,'#ffd84a'); P.px(9,2,'#ffd84a'); },
 };
 for(const [k,c] of Object.entries(SHARED.CROPS)){ const col='#'+c.col; ICONX['crop_'+k]=P=>{ if(c.kind==='hoa'){ P.rect(5,6,2,6,'#4f8a38'); P.disc(6,4,3,col); P.px(6,4,'#ffe066'); } else if(k==='mu_cao_su'){ P.rect(3,4,7,7,'#d8d8d0'); P.rect(3,4,7,2,'#f4f1ea'); } else { P.disc(6,7,4,col); P.px(4,5,'rgba(255,255,255,.6)'); P.rect(6,2,1,2,'#3a7a32'); } }; }
 // gắn icon mới vào bộ icon cũ
@@ -175,7 +181,22 @@ const oldIcon=A.icon;
 A.icon=function(name,scale=1){ if(!ICONX[name]) return oldIcon(name,scale); const c=cv(14,14), g=c.getContext('2d'); g.translate(1,1); ICONX[name](A.painter(g)); g.setTransform(1,0,0,1,0,0); A.outline(c);
   if(scale===1) return c; const s=cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
 
-Object.assign(A,{label,signPost,shop,fence,whiteFence,crop,bush2,receptionDesk,bathHouse,counter,shelf2:shelf,basket,rack,mirror,chessTable,pokerTable,roundTable,barCounter,sofa,coffeeTable,palm,plantWall,
+/* ---------- xe máy, đồn công an ---------- */
+// xe số nhìn nghiêng; wheelie: bánh trước nhấc lên; fallen: xe đổ nằm ngang
+function motorbike(fr=0,col='#c4382e',mode=''){ return S(40,26,16,24,(g,P)=>{ const lift=mode==='wheelie'?7:0, f=fr%2;
+  if(mode==='fallen'){ P.rect(4,16,30,6,col); P.disc(8,21,4,'#2a2a2f'); P.disc(30,19,4,'#2a2a2f'); P.rect(14,14,10,3,'#2a2a2f'); return; }
+  const wb=(x,y)=>{ P.disc(x,y,5,'#2a2a2f'); P.disc(x,y,2,'#9aa0a8'); P.px(x+(f?1:-1),y-3,'#9aa0a8'); };
+  wb(7,19); wb(32,19-lift);
+  for(let x=9;x<31;x++){ const y=Math.round(13-(x-9)*lift/22); P.rect(x,y,1,4,col); }               // thân xe nghiêng theo đầu xe
+  P.rect(11,10-Math.round(lift*.1),11,3,'#2a2a2f'); P.rect(27,8-lift,2,6,'#9aa0a8'); P.rect(25,7-lift,6,2,'#2a2a2f'); P.px(31,10-lift,'#ffd86b'); P.rect(4,15,6,2,'#9aa0a8'); }); }
+const djBooth=()=>S(80,34,40,32,(g,P)=>{ P.rect(1,10,78,22,'#2a2236'); P.rect(1,10,78,3,'#5a4a72'); for(let x=6;x<74;x+=8) P.rect(x,15,5,3,['#ff4fa3','#4fd1ff','#ffd84a','#7de07a'][(x/8|0)%4]); P.disc(22,6,6,'#3a3a48'); P.disc(22,6,2,'#9aa0a8'); P.disc(58,6,6,'#3a3a48'); P.disc(58,6,2,'#9aa0a8'); P.rect(34,2,12,8,'#5aa9d6'); });
+const speaker=()=>S(22,40,11,38,(g,P)=>{ P.rect(1,1,20,36,'#1c1a22'); P.disc(11,11,6,'#3a3a48'); P.disc(11,11,2,'#9aa0a8'); P.disc(11,26,8,'#3a3a48'); P.disc(11,26,3,'#9aa0a8'); });
+const discoBall=()=>S(22,34,11,33,(g,P)=>{ P.rect(10,0,2,14,'#9aa0a8'); P.disc(11,22,9,'#cfd6e0'); for(let y=14;y<31;y+=3) for(let x=3;x<20;x+=3) P.px(x,y,(x+y)%2?'#ffffff':'#8a96a8'); },true);
+const flagPole=()=>S(20,40,3,38,(g,P)=>{ P.rect(2,2,2,36,'#9aa0a8'); P.rect(4,3,15,10,'#da251d'); P.px(11,7,'#ffd84a'); P.rect(10,8,3,1,'#ffd84a'); P.px(11,9,'#ffd84a'); P.px(10,10,'#ffd84a'); P.px(12,10,'#ffd84a'); });
+const cellBars=(w=48)=>S(w,40,w/2,38,(g,P)=>{ P.rect(0,2,w,3,'#5a5a66'); P.rect(0,34,w,3,'#5a5a66'); for(let x=2;x<w;x+=6) P.rect(x,2,2,35,'#7a7a86'); },true);
+const policeDesk=()=>S(60,26,30,24,(g,P)=>{ P.rect(1,8,58,15,'#6e472c'); P.rect(1,8,58,3,'#8a5d3b'); P.rect(6,2,10,7,'#f4f1ea'); P.rect(40,3,12,6,'#2a2a2f'); P.rect(41,4,10,4,'#5aa9d6'); P.rect(24,4,8,5,'#c4382e'); });
+const mountain=(w=200,h=60,seed=0)=>S(w,h,w/2,h-1,(g,P)=>{ for(let x=0;x<w;x++){ const t=x/w, hh=Math.round(h*(.55+.35*Math.sin(t*3.14)+.08*Math.sin(x*.13+seed))); P.rect(x,h-hh,1,hh,'#6f8f7a'); P.rect(x,h-hh,1,2,'#8fae96'); } },false);
+Object.assign(A,{djBooth,speaker,discoBall,motorbike,flagPole,cellBars,policeDesk,mountain,label,signPost,shop,fence,whiteFence,crop,bush2,receptionDesk,bathHouse,counter,shelf2:shelf,basket,rack,mirror,chessTable,pokerTable,roundTable,barCounter,sofa,coffeeTable,palm,plantWall,
   longTable,whiteChair,woodTable,pantry,elevator,exitSign,printer,bossDesk,bedSingle,bedDouble,netBed,sleepBag,lantern,fan,aircon,kettleTable,shower,bathtub,towel,charger,laptop,lakeWindow,balcony,
   pine,teaBush,greenhouse,windmill,cow,pig,horse,saddle,coop,sty,barn,crate,stove,stall,busStop,grabSign,grandstand,finishLine,rail});
 })();

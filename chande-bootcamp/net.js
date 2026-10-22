@@ -17,5 +17,9 @@ NET.connect=token=>new Promise((ok,bad)=>{ NET.token=token; const ws=new WebSock
 NET.send=o=>{ if(NET.ws&&NET.ws.readyState===1) NET.ws.send(JSON.stringify(o)); };
 NET.req=o=>new Promise(res=>{ const rid=NET.rid++; NET.wait[rid]=res; NET.send({...o,rid}); setTimeout(()=>{ if(NET.wait[rid]){ delete NET.wait[rid]; res({err:'Server không phản hồi'}); } },9000); });
 NET.now=()=>Date.now()+NET.off;
+// có bản cập nhật (file game trên server đổi) thì hiện nút tải lại, không tự tải để khỏi mất ván đang chơi
+let VER=null; setInterval(async()=>{ try{ const r=await NET.api('ver'); if(VER===null) VER=r.v; else if(r.v!==VER&&!document.getElementById('newVer')){ const b=document.createElement('button'); b.id='newVer'; b.className='btn pri';
+  b.textContent='Có bản cập nhật mới · bấm để tải lại'; b.onclick=()=>location.reload(); document.body.appendChild(b); } }catch(e){} },30000);
+NET.api('ver').then(r=>{ VER=r.v; }).catch(()=>{});
 window.NET=NET;
 })();

@@ -22,7 +22,7 @@ function painter(g){
   const disc=(cx,cy,r,c)=>{ g.fillStyle=c; for(let y=-r;y<=r;y++){ const s=Math.floor(Math.sqrt(r*r-y*y+r*.6)); g.fillRect((cx-s)|0,(cy+y)|0,2*s+1,1); } };
   return {px,rect,disc};
 }
-function sprite(w,h,ax,ay,fn,ol=true){ const c=cv(w,h), g=c.getContext('2d'); fn(g,painter(g)); if(ol) outline(c); return {c,ax,ay}; }
+function sprite(w,h,ax,ay,fn,ol=true){ const c=cv(w,h), g=c.getContext('2d'); fn(g,painter(g)); if(ol) outline(c); return {c,ax:Math.floor(ax),ay:Math.floor(ay)}; }   // neo pixel nguyên: chữ, viền không bị nhoè
 
 /* ---------- Chữ biển hiệu 3×5 ---------- */
 const GL={A:['.X.','X.X','XXX','X.X','X.X'],B:['XX.','X.X','XX.','X.X','XX.'],C:['.XX','X..','X..','X..','.XX'],D:['XX.','X.X','X.X','X.X','XX.'],
@@ -40,7 +40,7 @@ function drawText(g,s,x,y,col){ g.fillStyle=col; let cx=x;
 /* ---------- Tile mặt đất ---------- */
 const C={
   grass:['#79b34a','#6aa13e','#8dc65a','#5e9637','#9bd36a'], forest:['#4b8a39','#3f7a31','#5a9a43','#356a2a'],
-  path:['#d6c39b','#c4ae84','#e6d8b6','#b49c72'], road:['#c2bcb0','#b1ab9f','#d0cbc0','#8f897e'],
+  path:['#d6c39b','#c4ae84','#e6d8b6','#b49c72'], road:['#5e5e66','#55555c','#68686f','#3a3a40'],
   sand:['#e3d2a2','#d4c08e','#c9b583'], water:['#3b8ed3','#2e7bc0','#77bdf0','#d8efff'],
   deck:['#a26c40','#7d5130','#bb8352'], pool:['#43c5e3','#2aa0c0','#8fe6f4'], edge:['#e6e0d2','#c8c0ae'],
   stone:['#9b968c','#86817a','#aaa59b','#5d5852'], pave:['#cbc6ba','#a9a396','#ddd8cd'],
@@ -77,9 +77,13 @@ function drawTile(g,t,tx,ty,nb,frame=0){
     break; }
   case 'R': {
     dither(C.road,.14,.04,4);
-    if(nb(0,-1)!=='R') P.rect(X,Y,T,2,C.road[3]);
-    if(nb(0,1)!=='R') P.rect(X,Y+T-2,T,2,C.road[3]);
-    if(ty%1===0&&(tx%3===0)&&nb(0,-1)==='R'&&nb(0,1)==='R') P.rect(X+4,Y+8,7,1,'#e9e4d8');
+    const isR=k=>k==='R'; let up=0, dn=0, lf=0, rt=0; while(up<7&&isR(nb(0,-up-1))) up++; while(dn<7&&isR(nb(0,dn+1))) dn++; while(lf<7&&isR(nb(-lf-1,0))) lf++; while(rt<7&&isR(nb(rt+1,0))) rt++;
+    const vert=up+dn>lf+rt;                                                                                   // đường dọc hay ngang
+    if(!isR(nb(0,-1))&&!vert) P.rect(X,Y,T,2,C.road[3]); if(!isR(nb(0,1))&&!vert) P.rect(X,Y+T-2,T,2,C.road[3]);
+    if(!isR(nb(-1,0))&&vert) P.rect(X,Y,2,T,C.road[3]); if(!isR(nb(1,0))&&vert) P.rect(X+T-2,Y,2,T,C.road[3]);
+    if(up<7&&dn<7&&lf<7&&rt<7&&up+dn>2&&lf+rt>2){}                                                            // ngã tư: không kẻ vạch
+    else if(!vert&&tx%3===0){ if(up===dn&&up>0) P.rect(X+4,Y+8,7,1,'#e9e4d8'); else if(dn===up+1) P.rect(X+4,Y+T-1,7,1,'#e9e4d8'); }   // vạch giữa đường ngang
+    else if(vert&&ty%3===0){ if(lf===rt&&lf>0) P.rect(X+8,Y+4,1,7,'#e9e4d8'); else if(rt===lf+1) P.rect(X+T-1,Y+4,1,7,'#e9e4d8'); }
     break; }
   case 'D': {
     dither(C.sand,.14,.0,5);
@@ -179,8 +183,10 @@ function potPlant(seed=0){ return sprite(12,18,6,16,(g,P)=>{ P.rect(3,11,7,6,'#f
 
 /* ---------- Nhà ---------- */
 // mái: 'thatch' lá cọ, 'tile' ngói đỏ, 'stone' đá. tường: 'ochre' đất vàng, 'wood' gỗ, 'stone' đá
-const ROOF={thatch:['#b48c4e','#9a743d','#cba566','#8a6634'],tile:['#c55a3c','#9c3f29','#e07a56','#7e321f'],stone:['#7e8189','#62656b','#9ea2aa','#4e5157']};
-const WALLC={ochre:['#d9a85c','#c48f45','#e7bf7a'],wood:['#8a5d3b','#6e472c','#a7744c'],stone:['#a49e93','#8b857b','#bdb7ab']};
+const ROOF={thatch:['#b48c4e','#9a743d','#cba566','#8a6634'],tile:['#c55a3c','#9c3f29','#e07a56','#7e321f'],stone:['#7e8189','#62656b','#9ea2aa','#4e5157'],
+  tile_blue:['#3f78c4','#2c5a9a','#6a9ee0','#1f4278'],tile_purple:['#7a52b0','#5a3a8a','#9a76d0','#43296a'],tile_green:['#3f8a5a','#2c6a44','#62ac7a','#1f4e32'],tile_teal:['#2f8a8a','#206a6a','#52acac','#164e4e']};
+const WALLC={ochre:['#d9a85c','#c48f45','#e7bf7a'],wood:['#8a5d3b','#6e472c','#a7744c'],stone:['#a49e93','#8b857b','#bdb7ab'],
+  white:['#ecebe4','#d8d6cc','#ffffff'],brick:['#b5523c','#93402e','#c86a52'],cream:['#efe1b8','#dccb9a','#f8eecf'],pink:['#e8b4b8','#d49aa0','#f4cdd0'],mint:['#b8dcc4','#9cc8ac','#d0ecda'],yellow:['#f0d270','#d9b850','#f8e49a']};
 function house(o){
   const w=o.w, wallH=o.wallH||22, roofH=o.roofH||30, eave=4, stone=o.stoneBase?6:0, stilt=o.stilt?6:0;
   const W=w+eave*2+2, H=roofH+wallH+stone+stilt+2;
@@ -192,6 +198,7 @@ function house(o){
     // tường
     P.rect(x0,wy,w,wallH,wc[0]);
     if(o.wall==='wood') for(let x=0;x<w;x+=4) P.rect(x0+x,wy,1,wallH,wc[1]);
+    else if(o.wall==='brick') for(let y=0;y<wallH;y+=4){ P.rect(x0,wy+y+3,w,1,wc[1]); for(let x=(y/4%2)*4;x<w;x+=8) P.rect(x0+x,wy+y,1,3,wc[1]); }
     else for(let k=0;k<w*wallH/14;k++) P.px(x0+hash(k,w,1)*w,wy+hash(k,w,2)*wallH,wc[1]);
     P.rect(x0,wy,w,3,'rgba(0,0,0,.28)');                                   // bóng mái
     // cửa sổ, cửa ra vào
@@ -204,7 +211,7 @@ function house(o){
     for(let y=0;y<roofH;y++){ const inset=Math.round((roofH-y)*.55), xa=1+Math.max(0,inset-roofH*.55+eave+2), xb=W-1-xa;
       const t=y/roofH; for(let x=Math.round(xa);x<=Math.round(xb);x++){
         let c=rc[0];
-        if(o.roof==='tile') c=(y%4===3)?rc[1]:((x+(Math.floor(y/4)%2)*3)%6===0?rc[1]:(y%4===0?rc[2]:rc[0]));
+        if(/^tile/.test(o.roof)) c=(y%4===3)?rc[1]:((x+(Math.floor(y/4)%2)*3)%6===0?rc[1]:(y%4===0?rc[2]:rc[0]));
         else if(o.roof==='stone') c=(y%5===4||((x+Math.floor(y/5)*4)%9===0))?rc[1]:(y%5===0?rc[2]:rc[0]);
         else c=(x%3===0)?rc[1]:((x+y)%7===0?rc[2]:rc[0]);
         if(x<xa+2&&t>.15) c=rc[2]; if(x>xb-2) c=rc[1];

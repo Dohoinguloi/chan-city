@@ -18,12 +18,28 @@ function grid(G,pal,xoff,top,bob,extra){ const c=canvas(FW,FH), g=c.getContext('
   G.forEach((row,gy)=>row.forEach((ch,gx)=>{ if(ch==='.') return; const v=(extra&&extra[ch])||pal[ch]; if(!v) return; const x=xoff+gx, y=OY-top+gy+bob; if(x<0||y<0||x>=FW||y>=FH) return;
     const i=(y*FW+x)*4; im.data[i]=v[0]; im.data[i+1]=v[1]; im.data[i+2]=v[2]; im.data[i+3]=255; }));
   g.putImageData(im,0,0); return c; }
+// set hot: vẽ đè lên lưới nhân vật (20×35). Superman: logo, thắt lưng vàng, quần lót đỏ, áo choàng đỏ.
+// Batman: mặt nạ trùm đầu có tai, hở miệng, logo dơi, găng tay, áo choàng tối.
+const COSTUME_PAL={'1':[200,40,42],'2':[150,28,30],'3':[242,196,61],'5':[58,64,80],'6':[244,241,234],'7':[28,24,30],'8':[42,46,58],'9':[30,32,42]};
+function costume(R,set,view){ const at=(x,y)=>R[y]&&R[y][x], put=(x,y,c)=>{ if(R[y]&&R[y][x]!==undefined) R[y][x]=c; }, empty=(x,y,c)=>{ if(at(x,y)==='.') put(x,y,c); };
+  const cape=set==='batman'?'8':'1', fold=set==='batman'?'9':'2', hood=set==='batman';
+  for(let y=0;y<R.length;y++) for(let x=0;x<R[y].length;x++){ const c=R[y][x]; if(c==='U') R[y][x]='3';
+    if(hood&&y<=(view==='back'?13:12)&&c!=='.'&&c!=='O') R[y][x]=c==='E'?'6':'5';                                   // mặt nạ trùm, chừa mắt trắng
+    if(hood&&y>=24&&y<=27&&(c==='S'||c==='s'||c==='d')&&(x<=4||x>=15)) R[y][x]='5'; }                                 // găng tay
+  if(hood){ put(view==='side'?8:7,0,'5'); put(view==='side'?12:12,0,'5'); }                                          // 2 tai dơi
+  if(!hood&&view!=='back') for(let x=0;x<R[27].length;x++) if(R[27][x]==='P') R[27][x]='1';                         // quần lót đỏ
+  if(view==='side'){ if(hood){ put(13,20,'7'); put(14,20,'7'); put(13,21,'7'); } else { put(13,20,'1'); put(12,21,'1'); put(13,21,'3'); put(14,21,'1'); put(13,22,'1'); }
+    for(let y=19;y<=32;y++){ const xs=y<22?[2,3]:[0,1,2]; for(const x of xs) empty(x,y,cape); const l=xs[0]-1; if(l>=0) empty(l,y,'O'); } for(const x of [0,1,2]) empty(x,33,'O'); }
+  if(view==='front'){ if(hood){ for(const x of [7,9,10,12]) put(x,20,'7'); for(let x=8;x<=11;x++) put(x,21,'7'); } else { for(let x=8;x<=11;x++) put(x,20,'1'); put(8,21,'1'); put(9,21,'3'); put(10,21,'3'); put(11,21,'1'); put(9,22,'1'); put(10,22,'1'); }
+    for(let y=19;y<=32;y++){ empty(0,y,cape); empty(19,y,cape); } }
+  if(view==='back') for(let y=19;y<=31;y++) for(let x=3;x<=16;x++){ const c=R[y][x]; if(c!=='.'&&c!=='O') R[y][x]=x===7||x===12?fold:cape; } }
 function portrait(frame){ const c=canvas(84,84), g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.fillStyle='#f3ecdc'; g.fillRect(0,0,84,84); g.drawImage(frame,5,12,22,20,0,2,88,80); return c; }
 function build(look){ const key=JSON.stringify(look); if(CACHE.has(key)) return CACHE.get(key);
   const t=SD.lookToTemplate(look), cols={}; for(const k in t.colors) cols[k]=RT.hx(t.colors[k]);
   const pal=RT.palette(cols), o={...t.opts,quay:true,noi:true,hokage:true}, rows=RT.compose(o).map(r=>[...r]), anims={};
+  if(o.costume){ Object.assign(pal,COSTUME_PAL); costume(rows,o.costume,'side'); }
   for(const [name,d] of Object.entries(SIDE)) anims[name]={fps:d.fps,loop:name!=='attack'&&name!=='hurt',frames:d.f.map(f=>side(rows,pal,f))};
-  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>grid(G,pal,OX,0,0))}; }
+  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>{ if(o.costume) costume(G,o.costume,view); return grid(G,pal,OX,0,0); })}; }
   const pose=(name,opts,skipTop)=>RT.poseFrames(name,opts).map(f=>grid(skipTop?f.grid.map((r,y)=>y<f.padTop?r.map(()=>'.'):r):f.grid,pal,0,f.padTop||0,f.bob||0,f.palExtra));
   anims.quay={fps:8,loop:true,frames:pose('quay',o)}; anims.hokage={fps:8,loop:false,frames:pose('hokage',o)}; anims.noi={fps:6,loop:true,frames:pose('noi',o,true)};
   anims.gong={fps:8,loop:false,frames:pose('saiyan',{...o,saiyan:{toOpts:{hair:o.hair,beard:o.beard,mouth:o.mouth},toHair:cols.hair}})};

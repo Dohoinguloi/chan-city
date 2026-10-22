@@ -6,6 +6,13 @@ const crypto=require('crypto');
 const {S,on,hook,send,now,near,take,give,reward,note,players}=C;
 const CL=S.CLUB, fmt=S.fmt;
 const rnd=n=>crypto.randomInt(n);
+let botSeq=1;
+const mkBot=name=>({pid:-(botSeq++),bot:true,ws:null,prof:{name,money:1e12,daily:{gameExp:0}}});
+const isBot=pl=>pl&&pl.bot;
+// tiền/thưởng: bot dùng tiền nhà cái nên bỏ qua
+const takeP=(pl,v)=>isBot(pl)?true:take(pl,v), giveP=(pl,v)=>{ if(!isBot(pl)) give(pl,v); }, rewardP=(pl,r,m)=>{ if(!isBot(pl)) reward(pl,r,m); }, noteP=(pl,m,k)=>{ if(!isBot(pl)) note(pl,m,k); };
+const BN=()=>CL.bots.names[rnd(CL.bots.names.length)];
+const PV={p:1,n:3,b:3,r:5,q:9,k:0};
 
 class Table{ constructor(def){ this.def=def; this.id=def.id; this.watch=new Set(); this.log=[]; }
   say(msg){ this.log.push(msg); if(this.log.length>14) this.log.shift(); }
@@ -25,7 +32,7 @@ class Chess extends Table{
     this.seats[free]={pl,name:pl.prof.name}; this.watch.delete(pl); pl.table=this; this.say(`${pl.prof.name} ngồi vào bàn`);
     if(this.seats.every(Boolean)) this.start(); else this.push(); return {}; }
   start(){ const paid=[];
-    for(const s of this.seats){ if(take(s.pl,this.bet)) paid.push(s); else { for(const p of paid) give(p.pl,this.bet); note(s.pl,'Không đủ tiền cược, rời bàn'); this.leave(s.pl); return; } }
+    for(const s of this.seats){ if(takeP(s.pl,this.bet)) paid.push(s); else { for(const p of paid) giveP(p.pl,this.bet); noteP(s.pl,'Không đủ tiền cược, rời bàn'); this.leave(s.pl); return; } }
     if(rnd(2)) this.seats.reverse();
     this.g=CHESS.newGame(); this.clock=[CL.chess.clock*1000,CL.chess.clock*1000]; this.turnAt=now(); this.st='play'; this.result=null; this.rematch=[false,false]; this.draw=-1; this.moves=[];
     this.say(`Ván mới: ${this.seats[0].name} cầm Trắng, ${this.seats[1].name} cầm Đen · cược ${fmt(this.bet)} mỗi bên`); this.push(); }
@@ -39,18 +46,30 @@ class Chess extends Table{
       else this.push(); return {}; }
     if(m.op==='resign'){ if(this.st==='play'&&i>=0) this.end(1-i,`${this.seats[i].name} xin thua`); return {}; }
     if(m.op==='draw'){ if(this.st!=='play'||i<0) return {}; if(this.draw===1-i) this.end(-1,'hai bên đồng ý hoà'); else { this.draw=i; this.say(`${this.seats[i].name} xin hoà`); this.push(); } return {}; }
-    if(m.op==='rematch'){ if(this.st!=='end'||i<0) return {}; this.rematch[i]=true; if(this.rematch.every(Boolean)&&this.seats.every(Boolean)) this.start(); else this.push(); return {}; }
+    if(m.op==='rematch'){ if(this.st!=='end'||i<0) return {}; this.rematch[i]=true; this.seats.forEach((s,k)=>{ if(s&&isBot(s.pl)) this.rematch[k]=true; }); this.botLeaveAt=0; if(this.rematch.every(Boolean)&&this.seats.every(Boolean)) this.start(); else this.push(); return {}; }
+    if(m.op==='bot'){ if(this.st==='play'||i<0) return {err:'Đang chơi'}; const free=this.seats.indexOf(null); if(free<0) return {err:'Bàn đủ người'};
+      this.seats[free]={pl:mkBot('Lê Quang Liêm'),name:'Lê Quang Liêm'}; this.say('Lê Quang Liêm ngồi vào bàn'); this.start(); return {}; }
     return {err:'?'}; }
   end(w,why){ this.st='end'; const pot=this.bet*2;
-    if(w<0){ for(const s of this.seats) if(s){ give(s.pl,this.bet); reward(s.pl,{exp:CL.chess.drawExp,kind:'game'},'Cờ vua: hoà ('+why+')'); } this.say('Hoà: '+why); }
-    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ give(W.pl,pot); reward(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
-      if(L&&L.pl.ws) note(L.pl,`Thua cờ vua (${why})${this.bet?' · -'+fmt(this.bet):''}`,'lock'); this.say(`${W?W.name:'?'} thắng: ${why}`); }
+    if(w<0){ for(const s of this.seats) if(s){ giveP(s.pl,this.bet); rewardP(s.pl,{exp:CL.chess.drawExp,kind:'game'},'Cờ vua: hoà ('+why+')'); } this.say('Hoà: '+why); }
+    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ giveP(W.pl,pot); rewardP(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
+      if(L&&L.pl.ws) noteP(L.pl,`Thua cờ vua (${why})${this.bet?' · -'+fmt(this.bet):''}`,'lock'); this.say(`${W?W.name:'?'} thắng: ${why}`); }
+    for(const s of this.seats) if(s&&isBot(s.pl)) this.botLeaveAt=now()+4000;
     this.result={w,why}; this.push(); }
   leave(pl){ const i=this.seatOf(pl); this.watch.delete(pl); if(pl.table===this) pl.table=null;
     if(i>=0){ if(this.st==='play') this.end(1-i,`${this.seats[i].name} rời bàn`); this.seats[i]=null; this.say(`${pl.prof.name} rời bàn`);
       this.st='wait'; this.rematch=[false,false]; if(!this.seats.some(Boolean)){ this.bet=0; this.g=null; this.result=null; } }
     this.push(); }
-  tick(t){ if(this.st!=='play') return; const i=this.g.turn==='w'?0:1; if(this.clock[i]-(t-this.turnAt)<=0){ this.clock[i]=0; this.end(1-i,'hết giờ'); } }
+  tick(t){ if(this.st==='end'&&this.botLeaveAt&&t>this.botLeaveAt){ this.botLeaveAt=0; const b=this.seats.findIndex(s=>s&&isBot(s.pl)); if(b>=0&&!this.rematch.every(Boolean)){} }
+    if(this.st!=='play') return; const i=this.g.turn==='w'?0:1; if(this.clock[i]-(t-this.turnAt)<=0){ this.clock[i]=0; this.end(1-i,'hết giờ'); return; }
+    const s=this.seats[i]; if(s&&isBot(s.pl)&&t-this.turnAt>900) this.botMove(i); }
+  // bot cờ: ưu tiên ăn quân to, chiếu tướng; trừ điểm nước để mất quân
+  botMove(i){ const g=this.g, ms=CHESS.legal(g); let best=null, bs=-1e9;
+    for(const m of ms){ const cap=g.b[m.to]?PV[g.b[m.to].toLowerCase()]:m.ep?1:0, n=CHESS.move(g,m); if(!n) continue;
+      let sc=cap+(m.promo?8:0)+Math.random()*.4; if(CHESS.status(n)==='mate') sc+=100; else if(CHESS.inCheck(n)) sc+=.3;
+      let worst=0; for(const r of CHESS.legal(n)) if(n.b[r.to]) worst=Math.max(worst,PV[n.b[r.to].toLowerCase()]); sc-=worst*.9;
+      if(sc>bs){ bs=sc; best=m; } }
+    if(best) this.act(this.seats[i].pl,{op:'move',from:best.from,to:best.to,promo:best.promo||'q'}); }
   view(pl){ const t=now(), i=this.g?(this.g.turn==='w'?0:1):-1, cl=this.clock.map((c,k)=>this.st==='play'&&k===i?c-(t-this.turnAt):c);
     return {id:this.id,game:'chess',name:this.def.name,st:this.st,bet:this.bet,seats:this.seats.map(s=>s&&{name:s.name,id:s.pl.pid}),me:this.seatOf(pl),
       b:this.g&&this.g.b,turn:this.g&&this.g.turn,castle:this.g&&this.g.castle,ep:this.g?this.g.ep:-1,last:this.g&&this.g.last,check:this.g&&this.st==='play'&&CHESS.inCheck(this.g),
@@ -79,6 +98,7 @@ class Poker extends Table{
     this.toAct=this.nextIdx(bb,s=>s.inHand&&!s.fold&&!s.allin); this.turnAt=now(); this.say(`Ván mới · ${this.seats[sb].name} mù nhỏ, ${this.seats[bb].name} mù lớn`); this.push(); }
   put(s,v){ v=Math.min(v,s.chips); s.chips-=v; s.bet+=v; s.tot+=v; if(s.chips===0) s.allin=true; }
   act(pl,m){ const i=this.seatOf(pl), s=this.seats[i];
+    if(m.op==='bots'){ if(i<0) return {err:'Ngồi vào bàn trước'}; return this.addBots()?{}:{err:'Bàn đủ người'}; }
     if(m.op==='rebuy'){ if(!s||s.inHand&&!s.fold&&this.st==='play') return {err:'Đang trong ván'}; const buy=Math.round(m.buy||0), P=CL.poker;
       if(buy<P.big||s.chips+buy>P.maxBuy) return {err:'Số chip không hợp lệ'}; if(!take(pl,buy)) return {err:'Không đủ tiền'}; s.chips+=buy; if(this.st==='wait') this.next=now()+2000; this.push(); return {}; }
     if(this.st!=='play'||i!==this.toAct) return {err:'Chưa tới lượt'};
@@ -113,8 +133,8 @@ class Poker extends Table{
       const share=Math.floor(pot/top.length); top.forEach((s,k)=>pays.set(s,(pays.get(s)||0)+share+(k===0?pot-share*top.length:0))); }
     this.win([...pays.entries()],true); }
   win(list,show){ const P=CL.poker;
-    for(const [s,v] of list){ s.chips+=v; const profit=v-s.tot; this.say(`${s.name} ăn ${fmt(v)}${show&&s.best?' · '+s.best.name:''}`);
-      if(s.pl&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
+    for(const [s,v] of list){ s.chips+=v; const profit=v-s.tot; this.say(`${s.name} ăn ${fmt(v)}${show&&s.best?' · '+s.best.name:''}`); if(s.name===CL.tuSena.name) this.say(`Tú Sena: "${CL.tuSena.win}"`);
+      if(s.pl&&!isBot(s.pl)&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
     this.show=show?this.seats.map(s=>s&&s.inHand&&!s.fold&&s.best?{cards:s.cards,name:s.best.name}:null):null;
     this.st='show'; this.toAct=-1; this.next=now()+(show?6000:3000); this.push(); }
   leave(pl){ const i=this.seatOf(pl); this.watch.delete(pl); if(pl.table===this) pl.table=null;
@@ -122,7 +142,21 @@ class Poker extends Table{
       if(this.st==='play'&&s.inHand){ s.pl=null; if(!s.fold){ s.fold=true; if(this.toAct===i||this.live().length<=1) this.advance(); } }   // giữ ghế tới hết ván để tính pot
       else this.seats[i]=null; }
     this.push(); }
-  tick(t){ if(this.st==='play'&&t-this.turnAt>CL.poker.turn*1000){ const s=this.seats[this.toAct]; if(s){ if(this.cur-s.bet>0) s.fold=true; s.acted=true; this.say(`${s.name} hết giờ`); this.advance(); } }
+  // bot poker: ước lượng độ mạnh bài rồi theo / tố / bỏ
+  botAct(i){ const s=this.seats[i], need=this.cur-s.bet, R='23456789TJQKA'; let st;
+    if(this.board.length<3){ const [a,b]=s.cards, ra=R.indexOf(a[0]), rb=R.indexOf(b[0]); st=(ra===rb?.55+ra/30:Math.max(ra,rb)/18+(a[1]===b[1]?.08:0)+(Math.abs(ra-rb)<3?.05:0)); }
+    else { const h=PK.best([...s.cards,...this.board]); st=.18+h.score[0]*.12+Math.random()*.08; }
+    st+=Math.random()*.15-.07; const tu=s.name===CL.tuSena.name;
+    if(st>.78&&s.chips>need+this.minRaise){ if(tu) this.say(`Tú Sena: "${CL.tuSena.raise}"`); return this.act(s.pl,{op:'raise',to:this.cur+this.minRaise*(1+rnd(3))}); }
+    if(need<=0) return this.act(s.pl,{op:'check'});
+    if(st>.42||need<=CL.poker.big&&st>.3) return this.act(s.pl,{op:need>=s.chips?'allin':'call'});
+    if(tu&&rnd(2)) this.say(`Tú Sena: "${CL.tuSena.fold}"`); return this.act(s.pl,{op:'fold'}); }
+  addBots(){ let n=0; for(let k=0;k<this.seats.length&&n<CL.bots.pokerBots;k++) if(!this.seats[k]){ const nm=this.seats.some(s=>s&&s.name===CL.tuSena.name)?BN():CL.tuSena.name; if(nm===CL.tuSena.name) this.say(`Tú Sena: "${CL.tuSena.join}"`); this.seats[k]={pl:mkBot(nm),name:nm,chips:CL.bots.pokerChips,bet:0,tot:0,cards:null,fold:true,allin:false,acted:false,inHand:false}; n++; }
+    if(n){ this.say(`${n} bot vào bàn`); if(this.st==='wait') this.next=now()+2000; } return n; }
+  tick(t){ if(this.st==='play'&&this.toAct>=0){ const s=this.seats[this.toAct]; if(s&&isBot(s.pl)&&t-this.turnAt>900){ this.botAct(this.toAct); return; } }
+    // không còn người thật thì bot đứng dậy
+    if(this.st!=='play'&&this.seats.some(s=>s&&isBot(s.pl))&&!this.seats.some(s=>s&&s.pl&&!isBot(s.pl))) this.seats=this.seats.map(s=>s&&isBot(s.pl)?null:s);
+    if(this.st==='play'&&t-this.turnAt>CL.poker.turn*1000){ const s=this.seats[this.toAct]; if(s){ if(this.cur-s.bet>0) s.fold=true; s.acted=true; this.say(`${s.name} hết giờ`); this.advance(); } }
     if((this.st==='show'||this.st==='wait')&&this.next&&t>=this.next){ this.next=0; this.startHand(); } }
   view(pl){ const me=this.seatOf(pl);
     return {id:this.id,game:'poker',name:this.def.name,st:this.st,me,dealer:this.dealer,toAct:this.toAct,cur:this.cur,minRaise:this.minRaise,board:this.board,pot:this.potTotal(),
@@ -142,8 +176,12 @@ class MaSoi extends Table{
     this.ps.push({pl,name:pl.prof.name,role:null,alive:true}); this.watch.delete(pl); pl.table=this; this.say(`${pl.prof.name} vào bàn (${this.ps.length}/${M.max})`); this.push(); return {}; }
   talk(i,m,to){ const p=this.ps[i]; this.chat.push({n:p.name,m,to}); if(this.chat.length>40) this.chat.shift(); }
   act(pl,m){ const i=this.idx(pl), me=this.ps[i], M=CL.masoi; if(i<0) return {err:'Chưa vào bàn'};
-    if(m.op==='start'){ if(this.st!=='wait'&&this.st!=='end') return {}; if(this.ps.length<M.min) return {err:`Cần ít nhất ${M.min} người`};
-      for(const p of [...this.ps]) if(!take(p.pl,this.fee)){ note(p.pl,'Không đủ phí, rời bàn'); this.leave(p.pl); }
+    if(m.op==='hire'){ if(this.st!=='wait'&&this.st!=='end') return {err:'Đang chơi'}; const B=CL.bots, need=Math.max(0,B.masoiSize-this.ps.length); if(!need) return {err:'Bàn đủ người rồi'};
+      if(!take(pl,B.masoiHire)) return {err:`Thuê quản trò tìm người ${fmt(B.masoiHire)}, không đủ tiền`};
+      for(let k=0;k<need;k++) this.ps.push({pl:mkBot(BN()+' '+(k+1)),name:'',role:null,alive:true}); this.ps.forEach(p=>{ if(isBot(p.pl)) p.name=p.pl.prof.name; });
+      this.say(`Quản trò tìm được ${need} người (bot) vào bàn`); this.withBots=true; return this.act(pl,{op:'start'}); }
+    if(m.op==='start'){ if(this.st!=='wait'&&this.st!=='end') return {}; if(this.ps.length<M.min) return {err:`Cần ít nhất ${M.min} người · hoặc thuê quản trò tìm người`};
+      for(const p of [...this.ps]) if(!takeP(p.pl,this.fee)){ note(p.pl,'Không đủ phí, rời bàn'); this.leave(p.pl); }
       if(this.ps.length<M.min) return {err:'Không đủ người'};
       const n=this.ps.length, roles=['soi',...(n>=8?['soi']:[]),'tientri','baove']; while(roles.length<n) roles.push('dan');
       roles.sort(()=>rnd(3)-1); this.ps.forEach((p,k)=>{ p.role=roles[k]; p.alive=true; p.seen=[]; });
@@ -176,18 +214,29 @@ class MaSoi extends Table{
     if(this.check()) return; this.night(); }
   check(){ const w=this.alive('soi').length, o=this.alive().length-w; let team=null;
     if(w===0) team='dan'; else if(w>=o) team='soi'; if(!team) return false;
-    const win=this.ps.filter(p=>(p.role==='soi')===(team==='soi')), lose=this.ps.filter(p=>!win.includes(p)), here=win.filter(p=>p.pl);
-    const share=here.length?Math.floor(this.pot/here.length):0;
+    const win=this.ps.filter(p=>(p.role==='soi')===(team==='soi')), lose=this.ps.filter(p=>!win.includes(p)), here=win.filter(p=>p.pl&&!isBot(p.pl));
+    const pot=Math.round(this.pot*(this.withBots?CL.bots.masoiBonus:1)), share=here.length?Math.floor(pot/here.length):0;    // chơi với bot: nhà cái bù, ăn nhiều hơn
     for(const p of here){ give(p.pl,share); reward(p.pl,{exp:CL.masoi.winExp,kind:'game'},`Ma sói: phe ${team==='soi'?'Sói':'Dân làng'} thắng${share?' · +'+fmt(share):''}`); }
-    for(const p of lose) if(p.pl) reward(p.pl,{exp:CL.masoi.loseExp,kind:'game'},'Ma sói: thua rồi');
+    for(const p of lose) if(p.pl&&!isBot(p.pl)){ const extra=this.withBots?Math.min(p.pl.prof.money,Math.round(this.fee*(CL.bots.masoiBonus-1))):0; if(extra) take(p.pl,extra);   // chơi với bot: thua mất thêm
+      reward(p.pl,{exp:CL.masoi.loseExp,kind:'game'},`Ma sói: thua rồi${extra?' · mất thêm '+fmt(extra)+' (bàn có bot)':''}`); }
+    this.reveal=this.ps.map(p=>({name:p.name,role:ROLE[p.role],alive:p.alive,win:win.includes(p)}));   // lật bài cả bàn sau ván
     this.say(team==='soi'?'Sói đã thắng!':'Dân làng đã diệt hết sói!'); this.st='end'; this.winner=team; this.end_=0; this.push();
-    this.ps=this.ps.filter(p=>p.pl); return true; }
+    this.ps=this.ps.filter(p=>p.pl&&!isBot(p.pl)); this.withBots=false; return true; }
   leave(pl){ const i=this.idx(pl); this.watch.delete(pl); if(pl.table===this) pl.table=null;
     if(i>=0){ const p=this.ps[i]; this.say(`${p.name} rời bàn`);
       if(['night','day','vote'].includes(this.st)){ p.pl=null; if(p.alive){ p.alive=false; this.say(`${p.name} bỏ làng ra đi (${ROLE[p.role]})`); } this.check(); }
       else this.ps.splice(i,1); }
     this.push(); }
-  tick(t){ if(!this.end_||t<this.end_) return;
+  // bot ma sói: ban đêm hành động, ban ngày nói chuyện, rồi bỏ phiếu
+  botsAct(t){ if(!this.ps.some(p=>isBot(p.pl))) return; const alive=this.alive(), idx=p=>this.ps.indexOf(p), pick=a=>a[rnd(a.length)];
+    for(const p of this.ps){ if(!isBot(p.pl)||!p.alive||(p.next&&t<p.next)) continue; p.next=t+1500+rnd(3000); const i=idx(p);
+      if(this.st==='night'){ if(p.role==='soi'&&this.acts.kill[i]===undefined){ const c=alive.filter(x=>x.role!=='soi'); if(c.length) this.act(p.pl,{op:'kill',target:idx(pick(c))}); }
+        if(p.role==='tientri'&&this.acts.see===null){ const c=alive.filter(x=>x!==p); if(c.length) this.act(p.pl,{op:'see',target:idx(pick(c))}); }
+        if(p.role==='baove'&&this.acts.guard===null){ const c=alive.filter((x,k)=>idx(x)!==this.lastGuard); if(c.length) this.act(p.pl,{op:'guard',target:idx(pick(c))}); } }
+      else if(this.st==='day'&&rnd(3)===0){ const o=pick(alive.filter(x=>x!==p)); if(o) this.act(p.pl,{op:'chat',m:pick([`Tôi thấy ${o.name} đáng nghi lắm`,'Tôi là dân thường thôi','Đêm qua tôi ngủ say','Ai là tiên tri lên tiếng đi',`${o.name} im lặng quá`])}); }
+      else if(this.st==='vote'&&this.votes[i]===undefined){ const c=alive.filter(x=>x!==p&&!(p.role==='soi'&&x.role==='soi')); this.act(p.pl,{op:'vote',target:c.length?idx(pick(c)):-1}); } } }
+  tick(t){ if(['night','day','vote'].includes(this.st)) this.botsAct(t);
+    if(!this.end_||t<this.end_) return;
     if(this.st==='night') this.resolveNight();
     else if(this.st==='day'){ this.st='vote'; this.votes={}; this.end_=t+CL.masoi.vote*1000; this.say('Hết giờ bàn bạc, bỏ phiếu treo cổ!'); this.push(); }
     else if(this.st==='vote') this.resolveVote(); }
@@ -196,7 +245,7 @@ class MaSoi extends Table{
       role:me&&me.role,roleName:me&&me.role&&ROLE[me.role],seen:me&&me.role==='tientri'?me.seen:[],lastGuard:me&&me.role==='baove'?this.lastGuard:-1,
       players:this.ps.map((p,k)=>({name:p.name,alive:p.alive,here:!!p.pl,role:(over||!p.alive||k===i||(me&&me.role==='soi'&&p.role==='soi'))&&p.role?ROLE[p.role]:'',soi:(over||k===i||(me&&me.role==='soi'))&&p.role==='soi'})),
       myAct:this.st==='night'&&this.acts&&me?(me.role==='soi'?this.acts.kill[i]:me.role==='tientri'?this.acts.see:me.role==='baove'?this.acts.guard:null):null,
-      votes:this.st==='vote'?this.votes:null,chat:this.chat.filter(c=>c.to==='all'||(me&&me.role==='soi')),log:this.log,min:CL.masoi.min,max:CL.masoi.max}; } }
+      votes:this.st==='vote'?this.votes:null,reveal:over?this.reveal||null:null,nightMs:CL.masoi.night*1000,chat:this.chat.filter(c=>c.to==='all'||(me&&me.role==='soi')),log:this.log,min:CL.masoi.min,max:CL.masoi.max}; } }
 
 const TABLES={}; for(const d of CL.tables) TABLES[d.id]=d.game==='chess'?new Chess(d):d.game==='poker'?new Poker(d):new MaSoi(d);
 on('tbl',(pl,m)=>{ const t=TABLES[m.id];

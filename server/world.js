@@ -6,32 +6,43 @@ const {S,T,on,hook,send,now,today,nearby,broadcastNear,moveTo,markDirty,note,rew
 /* ---------- vị trí ---------- */
 const sizeOf=pl=>{ const k=kindOf(pl.scene); if(k==='room'||k==='stay'){ const r=k==='room'?S.ROOMS.tro:S.ROOMS[pl.stayType||'leu']; return r.size; } return S.SCENE_SIZE[k]||[80,112]; };
 on('mv',(pl,m)=>{
-  const x=+m.x, y=+m.y; if(!Number.isFinite(x)||!Number.isFinite(y)) return;
+  const x=+m.x, y=+m.y; if(!Number.isFinite(x)||!Number.isFinite(y)) return; if(pl.incar) return;   /* ngồi ghế phụ: vị trí do xe quyết định */
+  if(pl.csgt){ if(Math.hypot(x-pl.x,y-pl.y)>2) send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }   /* đang bị CSGT giữ lại kiểm tra */
   const [W,H]=sizeOf(pl); if(x<0||y<0||x>W*T||y>H*T) return;
   const t=now(), el=Math.min(1,(t-pl.mvAt)/1000); pl.mvAt=t;
-  const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
-  const max=base*(pl.riding?1:C.speedMul(pl));
+  const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed:pl.optimus==='truck'?S.RULES.run*S.OPTIMUS.truck:pl.optimus==='robot'?S.RULES.run*S.OPTIMUS.robot:pl.pcar?S.RULES.run*S.PCAR.speed:pl.moto?S.RULES.run*S.MOTO.models[pl.moto].speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
+  const max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1);
   pl.budget=Math.min(pl.budget+max*el*1.35,max*.9+60+(p.skills.dash?50:0));
   const d=Math.hypot(x-pl.x,y-pl.y);
   if(d>pl.budget+2){ send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }                   // đi nhanh quá: kéo về chỗ cũ
   pl.budget-=d; pl.x=x; pl.y=y;
+  if(pl.kayak&&d>0) treasureRoll(pl,d);
+  if(pl.pcar&&pl.carPass) pl.carPass.forEach((q,k)=>{ if(q.incar){ q.x=pl.x+(k-1)*4; q.y=pl.y-1; q.budget=0; send(q,{t:'pos',x:q.x,y:q.y}); } });
   pl.face=m.f<0?-1:1; pl.view=Math.max(0,Math.min(2,m.v|0)); pl.anim=Math.max(0,Math.min(2,m.a|0));
   if(d>6){ if(pl.fishing){ pl.fishing=null; pl.act=0; } if(pl.task&&!pl.task.walk){ pl.task=null; send(pl,{t:'task',cancel:true}); } }
 });
 // hành động skill / biểu cảm (có kiểm tra đã mở khoá)
 const SKILL_ACT={noi:'noi',quay:'quay',gong:'gong',hokage:'hokage'};
-on('act',(pl,m)=>{ const a=String(m.a||''); if(!SKILL_ACT[a]||!pl.prof.skills[a]) return;
+on('act',(pl,m)=>{ const a=String(m.a||''); if(a==='wheelie'){ if(pl.moto) setAct(pl,'wheelie',1.2); return; } if(!SKILL_ACT[a]||!pl.prof.skills[a]) return;
   setAct(pl,a,S.ACT_DUR[a]); });
 function setAct(pl,a,sec){ pl.act=S.ACTS.indexOf(a); pl.actUntil=sec?now()+sec*1000:0; }
 
+// chèo kayak có thể vớt được báu vật trên sông
+function treasureRoll(pl,d){ const TR=S.TREASURE, p=pl.prof; pl.paddled=(pl.paddled||0)+d; if(pl.paddled<TR.every) return; pl.paddled=0;
+  if((p.daily.treasure||0)>=TR.daily||Math.random()>TR.chance) return;
+  const tot=Object.values(TR.items).reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, k=null; for(const [id,x] of Object.entries(TR.items)){ r-=x.w; if(r<=0){ k=id; break; } } k=k||'dong_xu_co';
+  p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được báu vật: ${TR.items[k].name}!`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y}); }
+
 /* ---------- gói vị trí ---------- */
-function flags(pl){ const n=pl.prof.needs; return (pl.kayak?S.FL.kayak:0)|(pl.fishing?S.FL.fish:0)|(n.clean<20?S.FL.dirty:0)|(n.energy<20?S.FL.tired:0)|(pl.riding?S.FL.ride:0); }
-function snapshot(){ const t=now();
+function flags(pl){ const n=pl.prof.needs; return (pl.kayak?S.FL.kayak:0)|(pl.fishing?S.FL.fish:0)|(n.clean<20?S.FL.dirty:0)|(n.energy<20?S.FL.tired:0)|(pl.riding?S.FL.ride:0)|(pl.moto?S.FL.moto:0)|(pl.moto&&pl.prof.helmet?S.FL.helmet:0)|(pl.moto==='xedap'?S.FL.bike:0)|(pl.optimus==='robot'?S.FL.optimus:0)|(pl.optimus==='truck'?S.FL.otruck:0)|(pl.pcar?S.FL.car:0)|(pl.incar?S.FL.incar:0)|(pl.prof.drunk>Date.now()?S.FL.drunk:0); }
+let tickNo=0;
+function snapshot(){ const t=now(), odd=++tickNo%2;
   for(const pl of players.values()){ if(!pl.scene) continue; if(pl.actUntil&&t>pl.actUntil){ pl.act=0; pl.actUntil=0; } pl._e=[pl.pid,Math.round(pl.x),Math.round(pl.y),pl.face,pl.view,pl.anim,pl.act,flags(pl)]; pl._k=pl._e.join(','); }
   for(const pl of players.values()){ if(!pl.scene||!pl.ws||pl.ws.readyState!==1) continue;
     const vis=nearby(pl,S.RULES.viewRadius,false), u=[], seen=new Set();
     for(const q of vis){ seen.add(q.pid); const last=pl.sent.get(q.pid);
-      if(last===undefined) send(pl,info(q)); if(last!==q._k){ u.push(q._e); pl.sent.set(q.pid,q._k); } }
+      if(last===undefined) send(pl,info(q)); else if(odd&&last!==q._k&&Math.hypot(q.x-pl.x,q.y-pl.y)>300) continue;   // người ở xa: 5 lần/giây
+      if(last!==q._k){ u.push(q._e); pl.sent.set(q.pid,q._k); } }
     const g=[]; for(const id of pl.sent.keys()) if(!seen.has(id)){ g.push(id); pl.sent.delete(id); }
     if(u.length||g.length) send(pl,{t:'s',u,g}); } }
 hook('tick',snapshot);
@@ -106,7 +117,7 @@ hook('leave',pl=>{ if(pl.soc) endSoc(pl.soc,null); });
 const hasBed=pl=>{ const p=pl.prof, d=today(); return (p.stay&&p.stay.paid===d)||(p.sleep&&p.sleep.day===d); };
 let lastNeeds=now();
 hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.vnTime().hf, night=h>=22||h<6;
-  for(const pl of players.values()){ const n=pl.prof.needs, k=kindOf(pl.scene), out=night&&(k==='retreat'||k==='dalat')&&!hasBed(pl);
+  for(const pl of players.values()){ if(!pl.scene) continue; const n=pl.prof.needs, k=kindOf(pl.scene), out=night&&(k==='retreat'||k==='dalat')&&!hasBed(pl);
     const before=[n.energy|0,n.clean|0,n.battery|0];
     n.energy=Math.max(0,n.energy-dt/S.NEEDS.energy.decay*(out?2:1)*(pl.riding?.5:1));
     n.clean=Math.max(0,n.clean-dt/S.NEEDS.clean.decay*(pl.soc&&pl.soc.kind==='danhnhau'?3:1));
@@ -115,10 +126,11 @@ hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.v
 
 /* ---------- Grab ---------- */
 function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.spawn];
-  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; return ['retreat',S.SPAWN.retreat]; }
+  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; return ['retreat',S.SPAWN.retreat]; }
 on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene)], p=pl.prof;
   if(!S.DEST[to]) return {err:'Không có điểm đến này'}; if(destSpawn(pl,to)[0]===pl.scene) return {err:'Bạn đang ở đây rồi'};
-  if(pl.race) return {err:'Đang đua ngựa'};
+  if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
+  if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
   if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Về phòng sạc đã.'};
   if(to==='retreat'&&!p.flags.called) return {err:'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.'};
   let fare=S.grabFare(from,to), free=false;

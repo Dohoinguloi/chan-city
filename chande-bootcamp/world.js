@@ -7,42 +7,60 @@
 const A=ART, T=A.T;
 
 /* ---------- Phòng Mèn Mén ---------- */
+// căn hộ riêng ở Hà Nội (26×16): góc làm việc + phòng ngủ ở trên, phòng tắm riêng góc phải trên, bếp dưới trái, phòng khách dưới phải
 function buildRoom(){
-  const W=14, H=11, g=[];
+  const W=26, H=16, g=[];
   for(let y=0;y<H;y++){ g.push([]); for(let x=0;x<W;x++) g[y].push(y<=1||y===H-1||x===0||x===W-1?'H':'O'); }
-  for(let y=5;y<=7;y++) for(let x=5;x<=8;x++) g[y][x]='M';
-  g[H-1][6]='O'; g[H-1][7]='O';                                   // khe cửa ra ngoài
+  for(let y=4;y<=7;y++) for(let x=9;x<=15;x++) g[y][x]='M';                       // thảm phòng ngủ
+  for(let y=11;y<=14;y++) for(let x=16;x<=23;x++) g[y][x]='M';                     // thảm phòng khách
+  for(let y=2;y<=7;y++){ g[y][19]='H'; for(let x=20;x<W-1;x++) g[y][x]='I'; } for(let x=19;x<W-1;x++) g[8][x]='H'; g[8][21]='I'; g[8][22]='I';   // phòng tắm có cửa
+  g[H-1][12]='O'; g[H-1][13]='O';                                                   // khe cửa ra ngoài
   const obj=[], solid=[];
   const put=(spr,tx,ty,o={})=>{ const it={spr,x:tx*T,y:ty*T,...o}; obj.push(it); return it; };
-  put(A.windowWall(),3.5,2,{flat:true}); put(A.poster(),9.5,2,{flat:true});
-  put(A.bed(),2,5,{name:'Giường'}); solid.push([1,2,2,4]);
-  put(A.desk(),6.5,4,{name:'Bàn làm việc'}); solid.push([5,2,7,3]);
-  const ph=put(A.phone(),5.6,3.2,{name:'Điện thoại',id:'phone',sort:4.05*T});
-  put(A.chair(),7,4.6); put(A.wardrobe(),12,4,{name:'Tủ quần áo'}); solid.push([11,2,12,3]);
-  put(A.shelf(),10,4,{name:'Kệ sách'}); solid.push([9,2,10,3]);
-  put(A.potPlant(),12.5,9.5); solid.push([12,9,12,9]);
-  put(A.doorTile(),7,11,{id:'door',flat:true});
-  // phòng riêng ở Hà Nội: góc tắm, ổ sạc, laptop (chợ online, học kỹ năng, chat online, làm remote)
-  put(A.shower(),2,9.95); solid.push([1,8,2,9]); put(A.charger(false),3.6,2.6,{flat:true}); put(A.laptop(),7.6,3.5,{sort:4.1*T});
+  // góc làm việc
+  put(A.blinds(),3.5,2,{flat:true}); put(A.calendar(),8.2,2,{flat:true}); put(A.filing(),1.6,4.4); solid.push([1,2,1,3]);
+  put(A.desk(),5.5,4,{name:'Bàn làm việc'}); solid.push([4,2,6,3]);
+  const ph=put(A.phone(),4.6,3.2,{name:'Điện thoại',id:'phone',sort:4.05*T}); put(A.laptop(),6.6,3.5,{sort:4.1*T}); put(A.chair(),6,4.6); put(A.potPlant(1),8.4,3.4);
+  // phòng ngủ
+  put(A.windowWall(),12.5,2,{flat:true}); put(A.bed(),11,5,{name:'Giường'}); solid.push([10,2,11,4]); put(A.nightstand(),13.4,3.6); solid.push([13,2,13,3]);
+  put(A.charger(false),13.4,2.6,{flat:true}); put(A.wardrobe(),17,4,{name:'Tủ quần áo'}); solid.push([16,2,17,3]); put(A.poster(),15,2,{flat:true});
+  // phòng tắm
+  put(A.shower(),21,4.1); solid.push([20,2,21,3]); put(A.sink(),23.6,3.8); solid.push([23,2,24,3]); put(A.towel(),22.5,2.6,{flat:true}); put(A.mirror(),24.2,2.4,{flat:true});
+  // bếp + bàn ăn
+  put(A.fridge(),1.6,10.8); solid.push([1,9,1,10]); put(A.counter(80,'#e8e4dc'),4.6,10.6); solid.push([2,9,6,10]); put(A.kettleTable(),4.4,9.6,{sort:10.7*T}); put(A.cooler(),7.6,10.6); solid.push([7,9,7,10]);
+  put(A.roundTable(),4.5,14); solid.push([3,12,5,13]);
+  // phòng khách
+  put(A.tvStand(),20,10.6); solid.push([18,9,21,10]); put(A.shelf(),16,10.4,{name:'Kệ sách'}); solid.push([15,9,16,10]);
+  put(A.sofa('#7a6a5a',64),20,14.8); solid.push([18,13,21,14]); put(A.coffeeTable(true),20,12.6); solid.push([19,12,20,12]);
+  put(A.potPlant(2),24.4,10.4); solid.push([24,10,24,10]); put(A.potPlant(3),9.4,14.4); solid.push([9,14,9,14]); put(A.potPlant(0),14.6,14.4); solid.push([14,14,14,14]);
+  put(A.doorTile(),12.5,16,{id:'door',flat:true});
   const inter=[
-    {id:'phone',x:5.6*T,y:4*T,label:'Nghe máy',r:22},
-    {id:'bed',x:2*T,y:5.2*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi'},
-    {id:'laptop',x:7.2*T,y:4.4*T,label:'Mở laptop',r:20,do:'hub'},
-    {id:'wardrobe',x:12*T,y:4.4*T,label:'Tủ quần áo',r:20,do:'wardrobe'},
-    {id:'shelf',x:10*T,y:4.4*T,label:'Xem',r:20,say:['Một chồng sách UX, một cuốn "Đi Hoà Bình mùa nào đẹp".']},
-    {id:'shower',x:2.2*T,y:8.6*T,label:'Tắm',r:20,do:'ra',act:'tam'},
-    {id:'charger',x:3.6*T,y:3.4*T,label:'Sạc điện thoại',r:18,do:'ra',act:'sac'},
-    {id:'door',x:7*T,y:10.3*T,label:'Ra cửa (gọi Grab)',r:22,do:'grab'},
+    {id:'phone',x:4.6*T,y:4*T,label:'Nghe máy',r:22},
+    {id:'laptop',x:6.4*T,y:4.4*T,label:'Mở laptop',r:20,do:'hub'},
+    {id:'bed',x:11*T,y:5.2*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi',bed:{x:11,y:3.4}},
+    {id:'charger',x:13.4*T,y:4.2*T,label:'Sạc điện thoại',r:18,do:'ra',act:'sac'},
+    {id:'wardrobe',x:17*T,y:4.4*T,label:'Tủ quần áo',r:20,do:'wardrobe'},
+    {id:'shower',x:21.2*T,y:4.6*T,label:'Tắm',r:20,do:'ra',act:'tam'},
+    {id:'shelf',x:16*T,y:11*T,label:'Xem kệ sách',r:20,say:['Một chồng sách UX, một cuốn "Đi Hoà Bình mùa nào đẹp".']},
+    {id:'tv',x:20*T,y:11.6*T,label:'Xem TV',r:24,say:['Thời sự: "Đà Lạt vào mùa dâu tây, giá 50.000đ/hộp"... Tắt TV đi làm việc thôi.']},
+    {id:'fridge',x:1.6*T,y:11.6*T,label:'Mở tủ lạnh',r:20,say:['Tủ lạnh còn hộp sữa với mấy quả trứng. Đi ăn ngoài cho nhanh.']},
+    {id:'cooler',x:7.6*T,y:11.4*T,label:'Uống nước',r:18,say:['Ực ực... mát cả người.']},
+    {id:'door',x:12.5*T,y:15.3*T,label:'Ra cửa (gọi Grab)',r:22,do:'grab'},
   ];
-  return {name:'Phòng của bạn',W,H,grid:g,obj,solid,inter,spawn:{x:4.5*T,y:7*T},indoor:true,phone:ph,music:'music_room'};
+  return {name:'Căn hộ của bạn · Hà Nội',W,H,grid:g,obj,solid,inter,spawn:{x:12.5*T,y:12.5*T},indoor:true,phone:ph,music:'music_room'};
 }
 
 /* ---------- Map 1: Chande Bootcamp (Ké Retreat) ---------- */
 function buildRetreat(){
-  const W=72, H=112, g=Array.from({length:H},()=>Array(W).fill('F'));
+  // map mở rộng 340×240 ô: Ké Retreat ở góc Tây Bắc (x<72, y<100), thị trấn + chùa + vườn quốc gia phía Đông, làng Mường bên kia hồ
+  const W=340, H=240, g=Array.from({length:H},()=>Array(W).fill('F'));
+  // nhà dân thị trấn xếp thành dãy: dãy Bắc quay ra phố y=73, dãy Nam quay ra phố y=83 (chừa chỗ ủy ban, trường, chợ, bưu điện, sân bóng, khách sạn)
+  const ROOFS=['tile','tile_blue','tile_green','thatch','tile_purple','stone','tile_teal'], WALLS=['ochre','cream','white','pink','mint','yellow','brick'];
+  const TOWN_HOUSES=[...[76,82,88,94,100,106,166,172,178,184,190].map((x,i)=>[x,66,ROOFS[i%7],WALLS[(i*3)%7]]),...[76,82,98,104,110,166,172,178,184,190,196].map((x,i)=>[x,78,ROOFS[(i+3)%7],WALLS[(i*2+1)%7]])];
+  const STILTS=[[24,156],[44,160],[70,148],[130,158],[170,146],[196,160],[232,168],[276,156],[300,146],[120,206],[90,216],[150,214]];
   const set=(x,y,t)=>{ if(x>=0&&y>=0&&x<W&&y<H) g[y][x]=t; };
   const get=(x,y)=>x>=0&&y>=0&&x<W&&y<H?g[y][x]:'F';
-  const rect=(x0,y0,x1,y1,t,only)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(!only||only.includes(get(x,y))) set(x,y,t); };
+  const rect=(x0,y0,x1,y1,t,only)=>{ x0=Math.round(x0); x1=Math.round(x1); for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(!only||only.includes(get(x,y))) set(x,y,t); };
   const ell=(cx,cy,rx,ry,t,only)=>{ for(let y=Math.floor(cy-ry);y<=Math.ceil(cy+ry);y++) for(let x=Math.floor(cx-rx);x<=Math.ceil(cx+rx);x++){
     const d=((x-cx)/rx)**2+((y-cy)/ry)**2; if(d<=1&&(!only||only.includes(get(x,y)))) set(x,y,t); } };
   const line=(pts,w,t,only)=>{ for(let i=0;i<pts.length-1;i++){ const [ax,ay]=pts[i],[bx,by]=pts[i+1], n=Math.ceil(Math.hypot(bx-ax,by-ay)*3);
@@ -50,9 +68,10 @@ function buildRetreat(){
       const X=Math.round(x+dx), Y=Math.round(y+dy); if(!only||only.includes(get(X,Y))) set(X,Y,t); } } } };
 
   // hồ Hoà Bình + bờ cát + dải cỏ ven hồ + đường ven hồ
-  const shore=x=>100+Math.round(1.4*Math.sin(x*.33)+.8*Math.sin(x*.11+1)+(x>50?1:0));
-  for(let x=0;x<W;x++){ const s=shore(x); for(let y=98;y<H;y++) set(x,y,y<s?'G':y===s?'D':'W'); }
-  rect(0,95,W-1,97,'R');
+  const shore=x=>100+Math.round(1.4*Math.sin(x*.33)+.8*Math.sin(x*.11+1)+(x>50?1:0))+(x>=72?3:x>=66?Math.round((x-65)/2):0);   // từ thị trấn trở đi đường ven hồ rộng gấp đôi nên bờ hồ lùi xuống
+  const shore2=x=>118+Math.round(1.6*Math.sin(x*.13)+1.1*Math.sin(x*.37+2));          // bờ Nam của hồ
+  for(let x=0;x<W;x++){ const s=shore(x), s2=shore2(x); for(let y=98;y<H;y++) set(x,y,y<s?'G':y===s?'D':y<s2?(y-s>=4&&s2-y>=4?'o':'W'):y===s2?'D':'G'); }
+  rect(0,95,W-1,97,'R'); rect(68,98,W-1,100,'R');                                   // đoạn qua thị trấn: 6 làn
   // bến xuống hồ: bậc đá + cầu gỗ
   rect(42,98,43,shore(42)-1,'T'); rect(42,shore(42),43,shore(42),'T'); rect(42,shore(42)+1,43,shore(42)+5,'Q');
 
@@ -78,15 +97,96 @@ function buildRetreat(){
   for(let x=26;x<=36;x++) if(get(x,70)==='F'&&x%3) set(x,70,'X');
 
   // bể bơi khu dưới: deck gỗ, viền đá, nước
-  rect(30,75,36,85,'K'); rect(31,76,35,84,'E'); rect(32,77,34,83,'L');
+  // nới rộng gấp 8 về bên trái: nước x 11–34 (24 ô), y 77–83
+  rect(9,75,36,85,'K'); rect(10,76,35,84,'E'); rect(11,77,34,83,'L');
 
   // mặt tiền cổng: quán cơm + cafe (phía Tây), tiệm nông sản + shop quần áo (phía Đông), vườn rau sau tiệm
-  rect(14,87,27,94,'G',['F']); rect(47,75,67,94,'G',['F']); line([[54,94],[54,86]],0,'P');
+  rect(1,87,27,94,'G',['F']); rect(47,75,67,94,'G',['F']); line([[54,94],[54,86]],0,'P');
+  // vườn sườn đồi phía Tây + sân gà Ké, vườn phía Đông (mở trong rừng)
+  rect(2,61,15,74,'G',['F']); rect(2,74,8,86,'G',['F']); line([[31,65],[22,65],[15,65],[14,65]],0,'P');
+  rect(57,42,68,58,'G',['F']); line([[56,41],[58,46],[62,50],[62,51]],0,'P');
+  // đường mòn xuyên rừng nối các vườn rau với đường bộ chính
+  for(const pts of [[[28,58],[38,57],[48,56],[57,55]],[[62,58],[62,66],[60,75]],[[35,74],[44,72],[50,74],[54,76]]]) line(pts,0,'P',['F','G']);
   for(const p of SHARED.FARM.plots) set(Math.floor(p.x),Math.floor(p.y),'Y');
   // Nhà giải trí cạnh Deck ngắm cảnh + lối gỗ từ Deck sang cửa
   rect(11,36,19,44,'G',['F']); rect(15,42,19,43,'K');
   // nhà tắm chung cạnh khu cắm trại
   rect(55,24,59,30,'G',['F']);
+  // ===== khu mở rộng =====
+  // thị trấn Đà Bắc dọc đường ven hồ (phía Đông Ké): vỉa hè, phố phụ lên chùa
+  rect(72,60,206,94,'G',['F']); rect(72,93,206,94,'S'); for(let x=74;x<=206;x+=34) line([[x,92],[x,66]],1,'P');
+  line([[72,73],[206,73]],1,'P',['F','G']); line([[72,83],[163,83]],1,'P',['F','G']); line([[177,83],[206,83]],1,'P',['F','G']);
+  for(const [x,y] of TOWN_HOUSES) line([[x+2,y+3],[x+2,y+3<=73?73:83]],1,'P',['F','G']);
+  line([[56,32],[70,34],[90,40],[110,44],[128,46],[141,48]],1,'P',['F','G']);                                   // đường rừng từ khu cắm trại sang chùa
+  line([[155,48],[175,52],[195,58],[206,64]],1,'P',['F','G']); line([[206,64],[209,76],[209,90]],1,'P',['F','G']);   // chùa → thị trấn → cổng vườn
+  // chùa trên đồi phía Bắc thị trấn: bậc đá từ đường lên sân chùa
+  rect(136,26,162,58,'G',['F']); line([[148,92],[148,58]],2,'P',['F','G']); line([[148,92],[148,53]],0,'T'); rect(141,46,155,52,'S');
+  // vườn quốc gia phía Đông: tường đá bao quanh, cổng ở cạnh Nam sát đường
+  const Pk=SHARED.PARK, GX=Pk.gate; for(let x=Pk.x0;x<=Pk.x1;x++){ set(x,Pk.y0,'X'); if(Math.abs(x+.5-GX)>2.6) set(x,Pk.y1,'X'); } for(let y=Pk.y0;y<=Pk.y1;y++){ set(Pk.x0,y,'X'); set(Pk.x1,y,'X'); }
+  for(const [cx,cy,rx,ry] of [[240,68,10,6],[272,46,13,7],[282,36,7,4],[258,60,6,4],[318,48,8,6],[306,64,7,5],[282,80,9,5],[226,84,8,5],[322,28,7,5],[262,20,9,6],[230,40,10,7]]) ell(cx,cy,rx,ry,'G',['F']);
+  line([[300,3],[296,14],[304,30],[296,46],[304,62],[298,78],[302,92]],1,'W');                    // suối chảy qua vườn
+  rect(207,93,Pk.x0-1,94,'S'); rect(Pk.x0,94,W-1,94,'S'); rect(GX-2.5,93,GX+1.5,93,'S');                            // vỉa hè dọc tường + nền cổng
+  ell(GX,89,5,3.5,'G',['F']); line([[GX-.5,92],[GX-.5,88]],1,'P',['F','G']);                                  // bãi cỏ trống sau cổng, lối vào
+  const loop=[[GX-.5,88],[222,84],[232,76],[245,70],[258,62],[268,50],[280,40],[288,28],[300,18],[315,14],[326,26],[322,44],[310,56],[314,64],[308,74],[300,74],[292,78],[270,84],[250,86],[232,88],[GX+1.5,89]];
+  line(loop,1,'P',['F','G']); for(const [x,y] of [[300,18],[300,74]]) for(let yy=y-1;yy<=y+1;yy++) for(let xx=x-7;xx<=x+7;xx++) if(get(xx,yy)==='W'||Math.abs(xx-x)<=2) set(xx,yy,'Q');   // cầu gỗ phủ hết bề ngang suối
+  for(const sp of Pk.spots) rect(Math.floor(sp.x)-1,Math.floor(sp.y),Math.floor(sp.x)+1,Math.floor(sp.y)+1,'C');   // nền trạm quan sát
+  for(let x=300;x<=311;x++){ set(x,60,'X'); set(x,69,'X'); } for(let y=60;y<=69;y++){ set(300,y,'X'); set(311,y,'X'); } set(305,69,'X');   // khu hổ có tường
+  // cầu gỗ qua hồ sang làng Mường bên kia hồ; ruộng bậc thang + đường làng
+  const BRIDGES=[24,110,190,262,322]; for(const x of BRIDGES) rect(x-2,x<68?98:101,x+3,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+1,'Q');   // cầu rộng 6 ô cho dễ đi
+  const prom=[]; for(let x=2;x<=W-3;x+=6) prom.push([x,shore2(x)+3]); line(prom,1,'P',['F','G','p']);                // đường dạo bờ Nam
+  for(const x of BRIDGES) rect(x-2,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+2,x+3,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+4,'P',['F','G','p','D','W']); line([[110,shore2(110)+2],[110,150],[60,152],[20,160]],1,'P',['F','G']); line([[110,150],[180,152],[250,160],[320,150]],1,'P',['F','G']); line([[160,152],[160,210],[100,220]],1,'P',['F','G']);
+  const VR=[[[24,123],[22,140],[20,160],[24,190],[50,230]],[[60,152],[70,185],[100,220]],[[190,123],[186,140],[180,152]],[[262,123],[258,140],[250,160]],[[322,123],[320,150]],
+    [[250,160],[262,185],[290,215],[320,232]],[[160,210],[220,205],[290,215]],[[100,220],[60,232],[20,232]],[[180,152],[200,180],[200,200],[220,205]]];
+  for(const pts of VR) line(pts,1,'P',['F','G','p']);
+  // ngõ từ cửa từng nhà sàn ra đường làng gần nhất
+  const VPTS=[[[110,150],[60,152],[20,160]],[[110,150],[180,152],[250,160],[320,150]],[[160,152],[160,210],[100,220]],...VR,prom].flatMap(pts=>pts.slice(1).flatMap((b,i)=>{ const a=pts[i], n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])); return [...Array(n+1)].map((_,k)=>[a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]); }));
+  const stub=(dx,dy,pts=VPTS)=>{ let best=null, bd=1e9; for(const q of pts){ const d=Math.hypot(q[0]-dx,q[1]-dy); if(d<bd){ bd=d; best=q; } } if(best) line([[dx,dy],[dx,best[1]],best],1,'P',['F','G','p']); };
+  for(let j=0;j<6;j++) for(let i=0;i<9;i++){ const x0=14+i*34+(j%2)*8, y0=126+j*18+((i*7)%5); if(x0+20<W-4&&y0+10<H-4&&A.hash(i,j,77)<.72) rect(x0,y0,x0+20+(i%3)*3,y0+9+(j%2)*2,'p',['G','F']); }
+  for(const [cx,cy,rx,ry] of [[60,190,26,14],[200,200,30,16],[290,215,24,12],[40,228,20,8],[250,130,14,6]]) ell(cx,cy,rx,ry,'F',['G','p']);
+  for(const [x,y] of STILTS) stub(x+2,y+3);
+  // ===== lấp đất trống: đường mòn nối nhau (tự bắc cầu khi qua nước), suối + guồng nước ở làng, sân, quảng trường, rừng =====
+  const trail=(pts,w=1)=>{ line(pts,w,'P',['F','G','p','C']); line(pts,1,'Q',['W']); };
+  const free=(x0,y0,x1,y1,ok=['G','p'])=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(!ok.includes(get(x,y))) return false; return true; };
+  const EXTRA_INTER=[], EXTRA_ZONES=[];
+  const spot=(x,y,label,lines,r=26)=>EXTRA_INTER.push({x:x*T,y:y*T,label,r,say:lines});
+  // suối nhỏ chảy từ núi phía Nam ra hồ: chỗ cắt đường làng thành cầu gỗ
+  const STREAM=[[236,238],[240,215],[232,190],[244,172],[240,150],[234,117]], sx=y=>{ for(let i=0;i<STREAM.length-1;i++){ const [ax,ay]=STREAM[i],[bx,by]=STREAM[i+1]; if(y<=ay&&y>=by) return ax+(bx-ax)*(ay-y)/(ay-by); } return STREAM[0][0]; };
+  for(let i=0;i<STREAM.length-1;i++){ const [ax,ay]=STREAM[i],[bx,by]=STREAM[i+1], n=Math.ceil(Math.hypot(bx-ax,by-ay)*3);
+    for(let k=0;k<=n;k++){ const cx=ax+(bx-ax)*k/n, cy=ay+(by-ay)*k/n; for(let dx=-1;dx<=1;dx++){ const X=Math.round(cx+dx), Y=Math.round(cy), t=get(X,Y); if(t==='P'||t==='Q') set(X,Y,'Q'); else if(t!=='B'&&t!=='o') set(X,Y,'W'); } } }
+  // làng: thêm đường ngang dọc nối các xóm
+  for(const pts of [[[10,176],[60,172],[110,172],[160,176],[205,172],[250,174],[300,178],[334,172]],[[10,206],[48,210],[100,204],[150,200],[200,206],[262,210],[330,204]],
+    [[60,152],[62,172],[56,210],[60,232]],[[130,150],[134,172],[128,204],[132,232]],[[205,172],[210,206],[206,232]],[[290,150],[300,178],[296,206],[300,232]],[[20,232],[334,234]]]) trail(pts,1);
+  // Ké ↔ thị trấn (từ cổng Đông vườn rau Ké sang phố)
+  line([[67,80.5],[70,81],[72,83]],1,'P',['F','G']);
+  // thị trấn: sân trường, chợ, sân bóng, quảng trường đài phun nước, bến xe
+  rect(129,64,140,71,'C'); line([[134,71],[134,73]],1,'P',['G']);
+  rect(151,65,164,71,'S'); line([[157,71],[157,73]],1,'S',['G','P']);
+  rect(114,64,122,66,'S'); line([[118,66],[118,73]],1,'S',['G','P']);
+  line([[199.5,65],[199.5,73]],1,'P',['G']); line([[91,79],[91,83]],1,'P',['G']); line([[157,81],[157,83]],1,'P',['G']);
+  rect(118,74,134,82,'A'); rect(137,85,145,91,'S'); rect(178,85,205,91,'S');
+  // rừng phía Bắc: thác + hồ nhỏ, đồi chè, chòi canh, bãi cắm trại rừng (mỗi chỗ có lối mòn từ đường rừng)
+  ell(100,20,12,9,'G',['F']); ell(100,19,8,5.5,'D',['G']); ell(100,19,6,4,'W',['D']); trail([[90,40],[96,30],[100,25]]);
+  rect(112,8,132,22,'G',['F']); trail([[110,44],[118,30],[122,23]]);
+  ell(185,22,6,5,'G',['F']); trail([[175,52],[180,36],[185,27]]);
+  ell(200,40,8,5,'G',['F']); trail([[195,58],[200,46]]);
+  trail([[100,25],[112,16]]); trail([[132,16],[150,20],[170,22],[180,22]]); trail([[190,24],[200,35]]);
+  // vườn quốc gia: lối tắt nối các trạm quan sát + đường vòng sát tường
+  for(const pts of [[[GX-.5,88],[226,70],[238,56],[250,40],[262,26],[276,14],[300,10],[315,14]],[[270,48],[290,48],[318,48]],[[257,60],[270,72],[282,80]],[[282,80],[294,70],[305,72]],[[281,38],[300,30],[325,28]],
+    [[216,7],[331,7]],[[331,7],[331,90]],[[216,7],[216,84]],[[238,70],[226,70]]]) trail(pts,1);
+  // đường vành đai rộng 3 ô chạy quanh 4 cạnh map (qua hồ, suối thì thành cầu) + lối nối từ các khu ra vành đai: không còn ngõ cụt
+  const ring=(x0,y0,x1,y1)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ const t=get(x,y); set(x,y,t==='W'||t==='o'?'Q':'R'); } };
+  ring(0,0,W-1,2); ring(0,H-3,W-1,H-1); ring(0,0,2,H-1); ring(W-3,0,W-1,H-1);
+  // 6 trục đường lớn 4 làn chia map thành các ô phố, mỗi đường có tên
+  const ROADS=[{name:'Đường Thuỵ Khuê',sign:'DUONG THUY KHUE',r:[0,95,W-1,97]},{name:'Đường Long Biên',sign:'DUONG LONG BIEN',r:[69,3,72,94]},{name:'Đường Red Type',sign:'DUONG RED TYPE',r:[204,3,207,92]},
+    {name:'Đường Hà Phạm',sign:'DUONG HA PHAM',r:[73,56,203,59]},{name:'Đường Pịa',sign:'DUONG PIA',r:[3,174,W-4,177]},{name:'Đường Thắng Cố',sign:'DUONG THANG CO',r:[188,121,191,H-4]}];
+  for(const R of ROADS.slice(1)){ const [x0,y0,x1,y1]=R.r; for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ const t=get(x,y); if(t==='X'||t==='B') continue; set(x,y,t==='W'||t==='o'?'Q':'R'); } }
+  EXTRA_ZONES.unshift(...ROADS.map(R=>({name:R.name,x0:R.r[0],y0:R.r[1],x1:R.r[2],y1:R.r[3]})),{name:'Đường vành đai',x0:0,y0:0,x1:W-1,y1:2},{name:'Đường vành đai',x0:0,y0:H-3,x1:W-1,y1:H-1},{name:'Đường vành đai',x0:0,y0:0,x1:2,y1:H-1},{name:'Đường vành đai',x0:W-3,y0:0,x1:W-1,y1:H-1});
+  for(let x=262;x<=264;x++) set(x,Pk.y0,'P'); for(let y=46;y<=48;y++) set(Pk.x1,y,'P');                               // cổng phụ phía Bắc, phía Đông vườn quốc gia
+  for(const pts of [[[51,28],[50,14],[51,3]],[[80,37],[80,3]],[[100,11],[100,3]],[[122,8],[122,3]],[[148,26],[148,3]],[[185,17],[185,3]],[[263,3],[263,7]],[[336,47],[331,47]],
+    [[20,232],[20,237]],[[60,232],[60,237]],[[132,232],[132,237]],[[206,232],[206,237]],[[300,232],[300,237]],[[10,176],[3,176]],[[10,206],[3,206]],[[334,172],[337,172]],[[330,204],[337,204]],[[3,140],[22,140]],[[336,140],[322,140]]]) trail(pts,1);
+  EXTRA_ZONES.push({name:'Thác Đà Bắc',x0:88,y0:10,x1:112,y1:30},{name:'Đồi chè',x0:112,y0:8,x1:132,y1:22},{name:'Chòi canh rừng',x0:179,y0:17,x1:191,y1:27},{name:'Bãi cắm trại rừng',x0:192,y0:35,x1:208,y1:45},
+    {name:'Sân bóng thị trấn',x0:118,y0:74,x1:134,y1:82},{name:'Quảng trường Đà Bắc',x0:137,y0:85,x1:145,y1:91},{name:'Bến xe Đà Bắc',x0:178,y0:85,x1:205,y1:91},{name:'Chợ Đà Bắc',x0:151,y0:60,x1:164,y1:71},
+    {name:'Trường tiểu học Đà Bắc',x0:129,y0:60,x1:140,y1:71},{name:'Suối bản Mường',x0:226,y0:122,x1:244,y1:239});
   // nhà (ô 'B' = chân nhà, không đi qua được)
   const B=[];
   const bld=(name,x0,y0,x1,y1,o)=>{ rect(x0,y0,x1,y1,'B'); B.push({name,x0,y0,x1,y1,o}); };
@@ -105,7 +205,31 @@ function buildRetreat(){
   bld('Cafe Bến Hồ',22,89,26,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'CAFE',awning:'#3f6e9a'});
   bld('Nhà giải trí',13,38,18,41,{shop:true,roof:'stone',wall:'stone',doors:[40],windows:[8,70],sign:'GIAI TRI',awning:'#8c231f'});
   bld('Nhà tắm chung',56,26,57,27,{shop:true,roof:'thatch',wall:'wood',doors:[8],sign:'TAM'});
-  const tents=[{name:'Lều 1',x0:30,y0:72,x1:32,y1:74},{name:'Lều 2',x0:26,y0:74,x1:28,y1:76}];
+  bld('Đồn công an Đà Bắc',3,89,8,91,{shop:true,roof:'tile',wall:'ochre',doors:[40],windows:[8,70],sign:'CONG AN',signBg:'#c4382e',signFg:'#ffd84a'});
+  // thị trấn: thuê xe, cafe, siêu thị, net, quán nhậu, bảo tàng; chùa; nhà sàn làng Mường
+  bld('Tiệm thuê xe máy',61,89,65,91,{shop:true,roof:'tile',wall:'stone',doors:[30],windows:[6,50],sign:'THUE XE',awning:'#f2c43d'});
+  bld('Cafe Đà Bắc',78,89,82,91,{shop:true,roof:'tile',wall:'ochre',doors:[30],windows:[6,50],sign:'CAFE',awning:'#3f6e9a'});
+  bld('Siêu thị Đà Bắc',86,88,96,91,{shop:true,roof:'stone',wall:'stone',doors:[80],windows:[10,40,120,150],sign:'SIEU THI',awning:'#e04848'});
+  bld('Tiệm net Cỏ',100,89,104,91,{shop:true,roof:'tile',wall:'stone',doors:[30],windows:[6,50],sign:'NET',awning:'#2a2a30'});
+  bld('Quán nhậu đặc sản Mường',108,88,115,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'QUAN NHAU'});
+  bld('Trại ngựa Đà Bắc',156,84,163,86,{shop:true,roof:'thatch',wall:'wood',doors:[56],windows:[10,90],sign:'TRAI NGUA',awning:'#8a5a36'});
+  // nhà dân trong thị trấn
+  for(const [x,y,r,w] of TOWN_HOUSES) bld('Nhà dân',x,y,x+4,y+2,{roof:r,wall:w,doors:[30],windows:[8,52]});
+  bld('Bảo tàng lịch sử Hoà Bình',124,84,136,91,{shop:true,roof:'stone',wall:'stone',doors:[96],windows:[12,40,150,180],sign:'BAO TANG',awning:'#8a3a2a'});
+  for(const [x,y] of STILTS) bld('Nhà sàn Mường',x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true});
+  // công trình thị trấn mới
+  bld('UBND xã Đà Bắc',114,60,122,63,{roof:'tile',wall:'yellow',doors:[65],windows:[10,28,100,118],sign:'UBND XA DA BAC',stoneBase:true});
+  bld('Trường tiểu học Đà Bắc',129,60,140,63,{roof:'tile_blue',wall:'cream',doors:[89],windows:[10,26,42,58,118,134,150,166],sign:'TRUONG TIEU HOC'});
+  bld('Chợ Đà Bắc',152,61,163,64,{roof:'tile_green',wall:'white',open:true,tables:true,sign:'CHO DA BAC'});
+  bld('Trạm y tế xã',196,61,203,64,{roof:'tile',wall:'white',doors:[57],windows:[10,96],sign:'TRAM Y TE',awning:'#2f9a52'});
+  bld('Bưu điện Đà Bắc',87,75,95,78,{roof:'tile',wall:'yellow',doors:[65],windows:[12,36,96,116],sign:'BUU DIEN',awning:'#f2c43d'});
+  bld('Khách sạn Đà Bắc',152,75,162,80,{roof:'tile_purple',wall:'brick',doors:[81],windows:[10,26,42,58,112,128,144],sign:'KHACH SAN',awning:'#7a52b0',wallH:30});
+  // làng Mường: thêm nhà sàn ở chỗ trống (chỉ xây khi ô còn trống), nhà văn hoá bản, chợ phiên
+  const STILTS2=[[86,166],[140,182],[184,180],[214,186],[268,180],[312,182],[324,212],[62,214],[196,222],[256,222],[300,224],[150,222],[20,186],[106,186],[176,196],[276,196]], built=[];
+  for(const [x,y] of STILTS2) if(free(x-1,y-1,x+5,y+3)){ rect(x-1,y-1,x+5,y+3,'G'); bld('Nhà sàn Mường',x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true}); stub(x+2,y+3); built.push([x,y]); }
+  if(free(99,160,109,170)){ rect(99,160,109,170,'G'); bld('Nhà văn hoá bản Mường',100,161,108,164,{roof:'thatch',wall:'wood',stilt:true,doors:[64],windows:[12,32,100,120],sign:'NHA VAN HOA'}); rect(99,165,109,169,'C'); stub(104,169); EXTRA_ZONES.push({name:'Nhà văn hoá bản Mường',x0:99,y0:160,x1:109,y1:170}); }
+  const CHO2=[[190,184],[170,226],[110,226],[312,160],[40,196],[260,232]].find(([x,y])=>free(x,y,x+16,y+10,['G','p','P'])); if(CHO2){ const [cx,cy]=CHO2; rect(cx,cy,cx+16,cy+10,'C'); stub(cx+8,cy+10); EXTRA_ZONES.push({name:'Chợ phiên Mường',x0:cx,y0:cy,x1:cx+16,y1:cy+10}); }
+  const tents=[{name:'Lều 1',x0:30,y0:72,x1:32,y1:74},{name:'Lều 2',x0:24,y0:71,x1:26,y1:73}];
   for(const t of tents) rect(t.x0,t.y0,t.x1,t.y1,'B');
 
   // ---- đồ vật
@@ -113,12 +237,13 @@ function buildRetreat(){
   const put=(spr,tx,ty,o={})=>{ const it={spr,x:Math.round(tx*T),y:Math.round(ty*T),...o}; obj.push(it); return it; };
   for(const b of B){ const w=(b.x1-b.x0+1)*T-4, h=(b.y1-b.y0+1)*T;
     put((b.o.shop?A.shop:A.house)({w,wallH:22,roofH:Math.max(22,h-14),...b.o}),(b.x0+b.x1+1)/2,b.y1+1,{name:b.name,house:true}); }
-  put(A.tent({w:44,flag:'#c4382e'}),31.5,75,{name:'Lều 1'}); put(A.tent({w:44,flag:'#3f7a8a'}),27.5,77,{name:'Lều 2'});
+  put(A.tent({w:44,flag:'#c4382e'}),31.5,75,{name:'Lều 1'}); put(A.tent({w:44,flag:'#3f7a8a'}),25.5,74,{name:'Lều 2'});
   put(A.gate(),39.5,95,{name:'Cổng',front:true});
   for(const [x,c] of [[47,'#e07a3c'],[50,'#5a8d64'],[53,'#3f7a8a']]){ put(A.platform(),x+.5,27.6); put(A.domeTent(c),x+.5,27.2); solid.push([x,26,x,26]); }
   // bể bơi: ô dù + ghế nằm + cây lá to như ảnh
-  put(A.umbrella(),30.5,78.5); put(A.umbrella(),36.5,82.5); put(A.lounger(),30.5,81); put(A.lounger(),36.5,79);
-  for(const [x,y] of [[29.5,76],[29.4,84],[37.6,76.5],[37.4,85]]) { put(A.bigleaf(x*7|0),x,y); solid.push([Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1]); }
+  // ô dù, ghế nằm dọc mép dưới bể; cây lá to ở 4 góc
+  for(const x of [13,18,23,28]){ put(A.umbrella(),x+.5,86.2); put(A.lounger(),x+2,86.6); }
+  for(const [x,y] of [[8.5,76],[8.4,85.4],[37.6,76.5],[37.4,85]]) { put(A.bigleaf(x*7|0),x,y); solid.push([Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1]); }
   // khu dưới
   put(A.bench(),35,93.6); put(A.table(),46.5,84.6); put(A.table(),46.5,87.4);
   for(const [x,y] of [[33,87.6],[37.9,87.4],[40.5,89.6],[44.6,79.6]]) put(A.potPlant(),x,y);
@@ -135,43 +260,118 @@ function buildRetreat(){
   const carLow=put(A.car(),46.2,96.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
   rect(48,40,51,41,'G',['F']); solid.push([45,96,47,96],[48,41,50,41]);
   // vườn rau Ké: hàng rào gỗ, chừa lối vào ở giữa phía Nam
-  for(let x=48;x<=67;x++){ put(A.fence(false),x+.5,76.2); solid.push([x,76,x,76]); if(x!==54){ put(A.fence(false),x+.5,86.2); solid.push([x,86,x,86]); } }
-  for(let y=77;y<=85;y++){ put(A.fence(true),48.5,y+.6); put(A.fence(true),67.5,y+.6); solid.push([48,y,48,y],[67,y,67,y]); }
-  put(A.signPost('VUON RAU'),55.6,87.6);
+  // cửa vào vườn: giữa cạnh dưới (x 54), cạnh trên (x 57–58), cạnh trái (y 83–84), cạnh phải (y 80–81)
+  for(let x=48;x<=67;x++){ if(x!==57&&x!==58){ put(A.fence(false),x+.5,76.2); solid.push([x,76,x,76]); } if(x!==54){ put(A.fence(false),x+.5,86.2); solid.push([x,86,x,86]); } }
+  for(let y=77;y<=85;y++){ if(y!==83&&y!==84){ put(A.fence(true),48.5,y+.6); solid.push([48,y,48,y]); } if(y!==80&&y!==81){ put(A.fence(true),67.5,y+.6); solid.push([67,y,67,y]); } }
+  put(A.signPost('VUON RAU'),55.6,87.6); put(A.signPost('VUON DOI'),15.6,63.8); put(A.signPost('VUON DONG'),63.6,50.4); put(A.signPost('SAN GA'),61.2,50.2);
+  // sân gà Ké (cạnh vườn phía Đông): hàng rào, chừa cổng phía dưới (x 63–64), chuồng gà bên trong
+  for(let x=60;x<=67;x++){ put(A.fence(false),x+.5,43.2); solid.push([x,43,x,43]); if(x!==63&&x!==64){ put(A.fence(false),x+.5,49.2); solid.push([x,49,x,49]); } }
+  for(let y=44;y<=48;y++){ put(A.fence(true),60.5,y+.6); put(A.fence(true),67.5,y+.6); solid.push([60,y,60,y],[67,y,67,y]); }
+  put(A.coop(),65.5,45.6); solid.push([64,44,66,44]);
   // lễ tân 24h ở Nhà Rếch 2 (Cộng đồng)
   put(A.receptionDesk(),47.6,90.4); solid.push([46,90,48,90]); put(A.signPost('LE TAN'),49.4,88.8);
   // bàn ghế trước quán cơm, cafe; biển Grab ở cổng
-  put(A.table(),15.0,93.8); put(A.table(),27.6,93.8); put(A.grabSign(),36.6,96.0);
+  put(A.table(),15.0,93.8); put(A.table(),27.6,93.8); put(A.grabSign(),36.6,96.0,{grab:true});
+  // quán bánh mì Dân Tổ (xe đẩy) + cờ ở đồn công an
+  put(A.stall('#f2c43d',['#d9a14a','#c4382e','#5fae46']),11.5,92.6); solid.push([10,92,12,92]); put(A.signPost('BANH MI DAN TO','#f2c43d'),14,91.6); put(A.flagPole(),9.6,92.2);
+  // khu mở rộng: chùa, cổng vườn quốc gia, đèn đường thị trấn, trạm quan sát
+  put(A.pagoda(),148.5,45,{name:'Chùa Đà Bắc',house:true}); rect(143,36,154,44,'B'); put(A.bellTower(),157.5,50.4); solid.push([156,48,158,49]); put(A.urn(),148.5,49.6); solid.push([148,48,148,48]);
+  put(A.banyan(),139,52.6); solid.push([138,51,140,51]); put(A.signPost('CHUA DA BAC','#a8322a'),150.5,91.8);
+  put(A.parkGate(),SHARED.PARK.gate,94.3,{name:'Vườn quốc gia Đà Bắc',front:true}); put(A.kiosk(),209.5,92.4); solid.push([208,91,210,91]);
+  for(const sp of SHARED.PARK.spots) put(A.signPost('QUAN SAT','#4f6e3a'),sp.x+1.6,sp.y+.6);
+  for(let x=74;x<=206;x+=8) put(A.lamp(),x+.5,93.4);
+  put(A.signPost('THUE NGUA'),157.5,88.4); for(let x=164;x<=176;x++){ put(A.fence(false),x+.5,82.2); put(A.fence(false),x+.5,90.2); } for(let y=83;y<=89;y++) if(y!==86) put(A.fence(true),176.5,y+.6);   // bãi ngựa for(const x of [84,98,118,140,160,180,198]) put(A.bench(),x+.5,94.2);
+  put(A.busStop(),119.5,94.6); solid.push([118,93,120,93]); put(A.bikeRack(),123.6,94.2,{name:'Trạm xe đạp công cộng'}); solid.push([122,93,125,93]); put(A.signPost('THI TRAN DA BAC'),72.5,92.4);
+  // ---- biển tên đường: mỗi trục vài biển đứng ở mép đường
+  for(const R of ROADS){ const [x0,y0,x1,y1]=R.r, vert=y1-y0>x1-x0, n=Math.max(2,Math.floor((vert?y1-y0:x1-x0)/40));
+    for(let k=0;k<n;k++){ const u=(k+.5)/n; let x=vert?x0-.6:x0+(x1-x0)*u, y=vert?y0+(y1-y0)*u:y0-.2; x=Math.round(x*2)/2; y=Math.round(y*2)/2+.6;
+      const t=get(Math.floor(x),Math.floor(y-.6)); if(t==='W'||t==='o'||t==='Q'||t==='B'||t==='X') continue; put(A.streetSign(R.sign),x,y); } }
+  // ---- thị trấn: hòm thư + bồn hoa trước nhà dân, nhà chó, dây phơi
+  TOWN_HOUSES.forEach(([x,y],i)=>{ put(A.mailbox(['#c4382e','#3f78c4','#2f9a52'][i%3]),x+4.4,y+3.5); put(A.flowerBed(),x+.9,y+3.6,{flat:true});
+    if(i%5===2) put(A.potPlant(i),x+4.6,y+3.2); });
+  put(A.flagPole(),118.6,65.6); put(A.noticeBoard('BANG TIN XA'),121,66.6); solid.push([120,65,121,65]);
+  spot(121,67.2,'Đọc bảng tin xã',['Bảng tin UBND xã: "Chủ nhật này tổng vệ sinh đường làng. Đội bóng thị trấn tuyển thêm tiền đạo."','"Nhắc nhở: đi xe máy phải đội mũ bảo hiểm, công an xã kiểm tra thường xuyên."']);
+  put(A.flagPole(),134.6,66.2); put(A.basketHoop(),130.4,68.6); put(A.basketHoop(),138.6,68.6); put(A.tableTennis(),134.5,70.4); solid.push([133,69,135,69]);
+  spot(134.5,64.6,'Cổng trường',['Tiếng trẻ con đọc bài vọng ra: "Bé tập đọc, bé tập viết..." Giờ ra chơi cả sân náo loạn.']);
+  for(const [x,c] of [[153.5,'#c4382e'],[157.5,'#2f9a52'],[161.5,'#f2c43d']]){ put(A.stall(c,['#d9665a','#5fae46','#f4ead8']),x,68.6); solid.push([Math.floor(x)-1,67,Math.floor(x)+1,67]); }
+  spot(157.5,69.6,'Dạo chợ',['Cô bán rau: "Rau cải mới hái sáng nay đây cháu!" Mùi bánh rán, xôi nóng thơm cả chợ.']);
+  spot(199.5,65.6,'Trạm y tế',['Bảng ghi: "Khám miễn phí cho người cao tuổi sáng thứ 7. Tiêm phòng cho trẻ ngày 15 hằng tháng."']);
+  put(A.mailbox('#f2c43d'),96.4,79.4); spot(91,79.6,'Bưu điện',['Chú bưu tá: "Gửi thư về Hà Nội 2 ngày là tới. Có bưu thiếp Hồ Hoà Bình đẹp lắm."']);
+  put(A.goalPost(),126,75.6); put(A.goalPost(),126,83); for(const x of [116.5,135.5]){ put(A.bench(),x,77); put(A.bench(),x,80.6); }
+  spot(126,78.6,'Sân bóng',['Mấy đứa trẻ đang đá bóng, hét ầm: "Sút đi! Sút đi!" Quả bóng lăn tới chân bạn, bạn sút trả một cú.']);
+  put(A.fountain(),141,89.4); solid.push([139,88,142,89]); for(const [x,y] of [[138.2,86.4],[143.8,86.4]]) put(A.bench(),x,y); for(const x of [138.6,143.4]) put(A.flowerBed(),x,91.6,{flat:true});
+  spot(141,90.6,'Ngắm đài phun nước',['Nước bắn lấp lánh, mấy em bé ném đồng xu ước. Bạn cũng thả một đồng: "Ước giàu to".']);
+  put(A.busShelter(),186,89.2); solid.push([184,88,188,88]); put(A.coach(),196.5,90); solid.push([194,89,199,89]); put(A.signPost('DI HA NOI - HOA BINH'),202.6,88.8);
+  spot(187,90.2,'Xem lịch xe',['Lịch xe khách: "Đà Bắc → Hà Nội 6h, 13h, 17h". Muốn về nhanh thì gọi Grab ở biển Grab.']);
+  spot(156.5,82.2,'Khách sạn Đà Bắc',['Lễ tân: "Khách sạn kín phòng tuần này rồi anh/chị ơi, mai quay lại nhé!"']);
+  // ---- rừng phía Bắc
+  put(A.waterfall(48),100,15.4); solid.push([98,13,102,14]); for(const [x,y] of [[93.6,18],[106.4,19.6],[95,22.4]]) put(A.rock(x|0),x,y);
+  spot(100,23.6,'Ngắm thác',['Thác Đà Bắc đổ ào ào, hơi nước mát lạnh phả vào mặt. Ngồi đây nghe nước chảy một lúc thấy nhẹ cả người.']);
+  for(let y=9;y<=21;y+=2) for(let x=113;x<=131;x+=2) put(A.teaBush(),x+.5,y+.6);
+  spot(122,22.6,'Hái chè',['Đồi chè xanh mướt. Bác nông dân: "Chè búp hái sáng sớm pha mới ngọt hậu cháu ạ."']);
+  put(A.lookout(),185,22.4); solid.push([184,21,186,21]); spot(185,24,'Lên chòi canh',['Đứng trên chòi canh nhìn thấy cả hồ Hoà Bình lấp lánh, thị trấn bé xíu và vườn quốc gia xanh mướt phía Đông.']);
+  put(A.tent({w:44,flag:'#f2c43d'}),197,40.4); put(A.tent({w:44,flag:'#2f9a52'}),203.6,41.2); put(A.bonfire(true),200.2,43.6); solid.push([196,39,198,39],[202,40,205,40]);
+  spot(200.2,44.6,'Sưởi lửa trại',['Nhóm phượt thủ mời bạn ngồi sưởi: "Đêm qua nghe tiếng khỉ kêu bên vườn quốc gia đó!"']);
+  // ---- làng Mường: sân nhà, rơm, giếng, trâu, guồng nước, chợ phiên
+  built.concat(STILTS).forEach(([x,y],i)=>{ if(i%2===0) put(A.haystack(),x+6.4,y+2.6); if(i%3===1) put(A.well(),x-1.4,y+3.2); if(i%3===0) put(A.clothesline(),x+2.5,y-.6); });
+  for(const [x,y] of [[40,140],[150,190],[270,140],[90,230],[310,196],[214,160]]) put(A.buffalo(),x,y);
+  for(const y of [180,160,202]){ const x=sx(y)+2.2; put(A.waterWheel(),x,y); solid.push([Math.floor(x)-1,y-1,Math.floor(x)+1,y-1]); }
+  spot(sx(180)+2.2,181,'Ngắm guồng nước',['Guồng nước tre quay kẽo kẹt, múc nước suối đổ lên ruộng bậc thang. Người Mường làm cái này từ thời ông bà.']);
+  put(A.noticeBoard('NHA VAN HOA'),109.6,169.6); put(A.well(),98.8,168.6); spot(104,170,'Nhà văn hoá bản',['Tối nay có hát đối đáp và múa sạp ở nhà văn hoá. Cả bản kéo nhau đi xem.']);
+  if(CHO2){ const [cx,cy]=CHO2; for(const [dx,c] of [[2.5,'#c4382e'],[6.5,'#5a8d64'],[10.5,'#f2c43d'],[14.5,'#8a5a36']]){ put(A.stall(c,['#f4ead8','#5fae46','#c4382e']),cx+dx,cy+4.6); solid.push([Math.floor(cx+dx)-1,cy+3,Math.floor(cx+dx)+1,cy+3]); }
+    for(const dx of [4,12]) put(A.stall('#a8322a',['#e8d8b4','#d9b04a','#3f8a3a']),cx+dx,cy+8.6);
+    spot(cx+8,cy+7,'Đi chợ phiên',['Chợ phiên họp mỗi sáng chủ nhật: măng rừng, mật ong, thổ cẩm, rượu cần bày la liệt.']); }
+  for(const [x,y] of [[76,88],[84,87.4],[98,87.4],[106,87.6],[118,88],[122,84],[138,84]]) put(A.potPlant(x|0),x,y);
   // dây đèn vàng như ảnh thực địa (vẽ lúc render)
   const lights=[[[36.5,78.5],[41.3,92.5]],[[36.5,73],[36.5,78.5]],[[29,41.8],[36.7,41]],[[36.7,41],[40.5,41.3]],[[33.6,36],[29,41.8]]];
 
+  // không đặt đá, tre chắn cửa phòng, cửa tiệm, nhà tắm, bến kayak
+  const DOORS=[...Object.values(SHARED.ROOMS).flatMap(r=>r.doors||[]),...Object.values(SHARED.PLACES).filter(p=>p.door).map(p=>[p.door.x,p.door.y]),[SHARED.BATHHOUSE.x,SHARED.BATHHOUSE.y],[SHARED.KAYAK_SPOT.x,SHARED.KAYAK_SPOT.y]];
+  const nearDoor=(x,y)=>DOORS.some(([dx,dy])=>Math.abs(x+.5-dx)<=2&&Math.abs(y+.5-dy)<=2);
+  // chỗ NPC đứng: không cho cây mọc che (cây ở hàng dưới che người nên chừa rộng hơn phía dưới)
+  const NPC_AT=SHARED.NPCS.filter(n=>!n.scene).map(n=>[n.x,n.y]);
+  const nearNpc=(x,y)=>NPC_AT.some(([nx,ny])=>Math.abs(x+.5-nx)<=2.5&&y+.5-ny>=-1.5&&y+.5-ny<=3.5);
   // ---- rừng: cây phủ kín ô rừng, rải ở mép bãi cỏ, tre ven đường
   const trees=[...Array(10)].map((_,i)=>A.tree(i,.8+(i%4)*.12)), bam=[0,1,2].map(i=>A.bamboo(i)), bushes=[0,1,2,3].map(i=>A.bush(i));
-  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const t=g[y][x], h=A.hash(x,y,99);
-    if(t==='F'&&h<.5) put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5+(A.hash(x,y,6)-.5)*.6,y+1+(A.hash(x,y,7)-.5)*.4,{tree:true});
-    else if(t==='F'&&h<.62) put(bushes[Math.floor(h*40)%4],x+.5,y+.9);
-    else if(t==='G'&&y>=98&&h<.12) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
-    else if(t==='G'&&h<.025&&nearType(g,x,y,'F')) { put(bam[Math.floor(h*120)%3],x+.5,y+1); solid.push([x,y,x,y]); }
-    else if(t==='G'&&h>.985&&!nearType(g,x,y,'P')) { put(A.rock(x),x+.5,y+.8); solid.push([x,y,x,y]); } }
+  const pines=[0,1,2,3].map(i=>A.pine(i)), blos=[['#f29ab0',1],['#f2c43d',4],['#f4f1ea',7],['#e0445a',2]].map(([c,s])=>A.flowerTree(s,c)), reedS=[0,1,2].map(i=>A.reeds(i)), lilyS=[0,1].map(i=>A.lily(i)),
+    flw=[['#ff9fb2',1],['#ffe066',2],['#f4f1ea',3],['#a882ff',4],['#ff6a55',5]].map(([c,s])=>A.flowers(s,c)), tufts=[0,1].map(i=>A.tuft(i)), stumpS=A.stump(), logS=A.logs(), mushS=A.mush(0), wrocks=[0,1].map(i=>A.wrock(i));
+  const treeOf=(x,y)=>{ const k=A.hash(x,y,5); if(y<60&&x>72) return k<.45?pines[Math.floor(k*8)%4]:trees[Math.floor(k*trees.length)];   // đồi phía Bắc nhiều thông
+    if(k<.06) return blos[Math.floor(k*60)%4]; return trees[Math.floor(k*trees.length)]; };
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const t=g[y][x], h=A.hash(x,y,99), h2=A.hash(x,y,123);
+    if(t==='W'&&(nearType(g,x,y,'D')||nearType(g,x,y,'G'))&&h2<.18){ put(reedS[Math.floor(h2*30)%3],x+.5,y+.9); continue; }      // lau sậy ven bờ
+    if((t==='W'||t==='o')&&h2>.985){ put(lilyS[Math.floor(h2*400)%2],x+.5,y+.6,{flat:true}); continue; }                       // lá sen
+    if(t==='o'&&h2<.006){ put(wrocks[Math.floor(h2*900)%2],x+.5,y+.7); continue; }                                               // đá giữa hồ
+    if(t==='G'&&h2<.035&&!nearDoor(x,y)){ put((h2<.015?flw:tufts)[Math.floor(h2*700)%(h2<.015?5:2)],x+.5,y+.8,{flat:true}); continue; }   // hoa cỏ
+    if(t==='F'&&h2<.012&&!nearType(g,x,y,'P')){ put([stumpS,logS,mushS][Math.floor(h2*250)%3],x+.5,y+.9); continue; }
+    if(t==='F'&&h<.5&&!nearNpc(x,y)&&!nearType(g,x,y,'B')&&!nearType(g,x,y,'P')&&!nearType(g,x,y,'X')) put(treeOf(x,y),x+.5+(A.hash(x,y,6)-.5)*.6,y+1+(A.hash(x,y,7)-.5)*.4,{tree:true});
+    else if(t==='F'&&h<.62&&!nearNpc(x,y)) put(bushes[Math.floor(h*40)%4],x+.5,y+.9);
+    else if(t==='G'&&y>=98&&y<=104&&h<.12&&Math.hypot(x+.5-SHARED.PCAR.park.x,y+.5-SHARED.PCAR.park.y)>4) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
+    else if(t==='G'&&h<.025&&nearType(g,x,y,'F')&&!nearDoor(x,y)) { put(bam[Math.floor(h*120)%3],x+.5,y+1); solid.push([x,y,x,y]); }
+    else if(t==='G'&&h>.985&&!nearType(g,x,y,'P')&&!nearDoor(x,y)) { put(A.rock(x),x+.5,y+.8); solid.push([x,y,x,y]); } }
 
   // ---- điểm tương tác cố định
   const inter=[
     {id:'car_low',x:46.2*T,y:97.2*T,label:'Đi xe 4 bánh',r:30},
     {id:'car_top',x:49.5*T,y:42.8*T,label:'Đi xe 4 bánh',r:30},
     {id:'bonfire',x:30.5*T,y:90.1*T,label:'Xem',r:20},
-  ];
+  ]; inter.push(...EXTRA_INTER);
   // vùng tên địa điểm (hiện băng tên khi bước vào)
-  const zones=[
+  const zones=[...EXTRA_ZONES,
     {name:'Hồ Hoà Bình',x0:0,y0:99,x1:71,y1:111},{name:'Đường ven hồ',x0:0,y0:95,x1:71,y1:98},
     {name:'Cổng Ké Retreat',x0:35,y0:92,x1:43,y1:94},{name:'Sân lửa trại',x0:27,y0:87,x1:32,y1:92},{name:'Nhà Ngói',x0:31,y0:86,x1:37,y1:93},
-    {name:'Nhà Rếch',x0:39,y0:78,x1:48,y1:93},{name:'Bể bơi',x0:29,y0:75,x1:37,y1:86},{name:'Lều 1 · Lều 2',x0:24,y0:70,x1:34,y1:77},
+    {name:'Nhà Rếch',x0:39,y0:78,x1:48,y1:93},{name:'Bể bơi',x0:9,y0:75,x1:37,y1:86},{name:'Lều 1 · Lều 2',x0:22,y0:70,x1:34,y1:74},{name:'Vườn sườn đồi',x0:2,y0:61,x1:15,y1:72},{name:'Vườn phía Đông · Sân gà',x0:57,y0:42,x1:68,y1:58},
     {name:'Đường bộ lên đồi',x0:18,y0:46,x1:36,y1:70},{name:'Nhà ăn khu trên',x0:20,y0:33,x1:27,y1:39},{name:'Deck ngắm cảnh',x0:20,y0:40,x1:27,y1:43},
-    {name:'Bể bơi (dự kiến)',x0:27,y0:36,x1:33,y1:41},{name:'Nhà Ngủ 1·2·3',x0:31,y0:31,x1:38,y1:36},{name:'Nhà Chiềng',x0:40,y0:31,x1:47,y1:36},
-    {name:'Nhà Mái Đá',x0:40,y0:37,x1:47,y1:41},{name:'Nền khu cắm trại',x0:45,y0:24,x1:56,y1:31},{name:'Đường vòng lên đồi',x0:20,y0:42,x1:58,y1:46}];
-  const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),{name:'Lều 1',x:31.5,y:72},{name:'Lều 2',x:27.5,y:74},{name:'Cổng',x:39.5,y:94},
-    {name:'Bể bơi',x:33.5,y:76},{name:'Deck ngắm cảnh',x:23.5,y:42},{name:'Bể bơi (dự kiến)',x:30,y:37},{name:'Nền khu cắm trại',x:50,y:25},
-    {name:'Đường bộ (~10 phút)',x:26,y:60},{name:'Bến hồ',x:43,y:104},{name:'Hồ Hoà Bình',x:20,y:106}];
-  return {name:'Chande Bootcamp · Ké Retreat',W,H,grid:g,obj,solid,inter,zones,labels,lights,fire,
+    {name:'Sân đá khu trên',x0:27,y0:36,x1:33,y1:41},{name:'Nhà Ngủ 1·2·3',x0:31,y0:31,x1:38,y1:36},{name:'Nhà Chiềng',x0:40,y0:31,x1:47,y1:36},
+    {name:'Nhà Mái Đá',x0:40,y0:37,x1:47,y1:41},{name:'Nền khu cắm trại',x0:45,y0:24,x1:56,y1:31},{name:'Đường vòng lên đồi',x0:20,y0:42,x1:58,y1:46},
+    {name:'Thị trấn Đà Bắc',x0:72,y0:60,x1:206,y1:94},{name:'Chùa Đà Bắc',x0:136,y0:26,x1:162,y1:58},{name:'Vườn quốc gia Đà Bắc',x0:212,y0:2,x1:337,y1:93},{name:'Cầu sang làng Mường',x0:108,y0:98,x1:113,y1:121},{name:'Làng Mường bên kia hồ',x0:0,y0:122,x1:339,y1:239},{name:'Hồ Hoà Bình',x0:72,y0:98,x1:339,y1:121}];
+  const districts=[{name:'Khu nghỉ dưỡng Ké',x:34,y:66},{name:'Phố Đà Bắc',x:140,y:80},{name:'Khu tâm linh',x:149,y:34},{name:'Rừng phía Bắc',x:110,y:30},{name:'Vườn quốc gia',x:272,y:50},
+    {name:'Hồ Hoà Bình',x:170,y:110},{name:'Làng Mường',x:110,y:162},{name:'Đồng lúa bậc thang',x:270,y:150},{name:'Xóm chợ phiên',x:180,y:216},{name:'Ruộng phía Tây',x:46,y:206}];
+  const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),{name:'Lều 1',x:31.5,y:72},{name:'Lều 2',x:25.5,y:71},{name:'Cổng',x:39.5,y:94},
+    {name:'Bể bơi',x:22,y:76},{name:'Deck ngắm cảnh',x:23.5,y:42},{name:'Vườn rau phía Đông',x:62.5,y:51},{name:'Vườn rau phía Tây',x:8.5,y:62},{name:'Vườn rau Ké',x:58,y:76.5},{name:'Sân gà',x:63.5,y:43},{name:'Nền khu cắm trại',x:50,y:25},
+    {name:'Đường bộ (~10 phút)',x:26,y:60},{name:'Bến hồ',x:43,y:104},{name:'Hồ Hoà Bình',x:20,y:106},
+    ...ROADS.map(R=>{ const [x0,y0,x1,y1]=R.r, v=y1-y0>x1-x0; return {name:R.name,x:v?(x0+x1+1)/2:x0+(x1-x0)*.62,y:v?y0+(y1-y0)*.35:(y0+y1+1)/2}; }),
+    {name:'Thị trấn Đà Bắc',x:140,y:66},{name:'Vườn quốc gia',x:270,y:10},{name:'Làng Mường',x:110,y:140},...SHARED.PARK.spots.map(s=>({name:s.name,x:s.x,y:s.y-1}))];
+  return {name:'Chande Bootcamp · Ké Retreat',W,H,grid:g,obj,solid,inter,zones,labels,districts,lights,fire,
     spawn:{x:39.5*T,y:96.6*T},carLow:{x:44*T,y:97.6*T},carTop:{x:47.5*T,y:43.6*T},shoreY:shore};
 }
 function nearType(g,x,y,t){ for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++){ const r=g[y+dy]; if(r&&r[x+dx]===t) return true; } return false; }
@@ -188,7 +388,7 @@ const CHARS={
   huyphan:{name:'Huy Phan',sheet:'huy_phan/huy_phan'},
 };
 const NPCS=[
-  {id:'phap',x:38.9,y:90.4,face:1},
+  {id:'phap',x:36.4,y:90.8,face:1},
   {id:'khabanh',x:37,y:80.6,face:-1},
   {id:'donche',x:28.5,y:89.4,face:1},
   {id:'phule',x:25.6,y:40.6,face:-1},
@@ -247,12 +447,10 @@ const DIALOG={
   phap_hello:[['phap','{name}! Lên tới rồi à. Chào mừng tới Chande Bootcamp ở Ké Retreat.'],
     ['phap','Đây là Cổng. Đi thẳng lên là Nhà Ngói, mấy Nhà Rếch với bể bơi. Theo Đường bộ chừng 10 phút là lên khu trên.'],
     ['phap','Trên đó có Nhà ăn, Deck ngắm cảnh, Nhà Ngủ, Nhà Chiềng, Nhà Mái Đá. Xa nhất là Nền khu cắm trại.'],
-    ['phap','Lười leo thì có xe 4 bánh ngay ngoài Cổng: lên dốc miễn phí, xuống dốc 150.000đ. Bấm M để xem bản đồ.'],
+    ['phap','Lười leo thì có xe 4 bánh ngay ngoài Cổng: lên dốc miễn phí, xuống dốc 15.000đ. Bấm M để xem bản đồ.'],
     ['phap','Nhớ ghé lễ tân ở Nhà Rếch 2 thuê phòng. Đêm không có chỗ ngủ là mệt lắm. Ngày đầu tao bao 100.000đ.'],
     ['phap','Cả hội đang ở rải rác khắp nơi, đứa nào cũng có việc nhờ mày. Làm xong có EXP, tiền với đồ hay.'],
-    ['phap','À mà... con beagle nhà tao vừa sổng dây chạy lên đồi rồi! Tìm hộ tao với.']],
-  phap_wait:[['phap','Con beagle hay chạy lên Nền khu cắm trại tít trên đỉnh. Bấm M xem đường.']],
-  phap_done:[['phap','Ơ về rồi! {name} đỉnh thật. Cầm lấy cái này cho nó gặm.'],['phap','Từ giờ giữ Shift để chạy nhé. Vui quá, tao hoá Saiyan luôn!']],
+    ['phap','Rảnh thì nói chuyện với tao lần nữa, tao có mấy việc nhờ mày đấy.']],
   phap_after:[['phap','Đôn Chề ở chỗ lửa trại, Khá Bảnh ở bể bơi. Phú Lê, Kenny với Huy Phan thì ở khu trên.']],
   beagle_found:[['me','Ê beagle! Về thôi, Pháp đang lo sốt vó kìa.'],['beagle','Gâu! Gâu!']],
   khabanh_offer:[['khabanh','Ê {name}! Bể bơi đẹp thế này mà không có nhạc thì quẩy kiểu gì?'],['khabanh','Tao để quên cái loa bluetooth ở Lều 1 rồi. Lấy hộ tao cái.']],

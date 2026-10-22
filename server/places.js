@@ -2,7 +2,7 @@
 // hoạt động trong phòng, chụp ảnh sống ảo, câu cá, kayak, việc của cô Ké, học kỹ năng, chợ online.
 'use strict';
 const C=require('./core'), W=require('./world');
-const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take,give,has,addItem,players,byUid,kindOf,sceneOf,refreshInfo}=C;
+const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take,give,has,addItem,players,byUid,kindOf,sceneOf,refreshInfo,broadcastNear}=C;
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
 const inRetreat=pl=>pl.scene==='retreat';
@@ -19,10 +19,16 @@ on('call',pl=>{ if(kindOf(pl.scene)!=='room') return {err:'Không ở phòng'}; 
 on('hello',pl=>{ if(!nearNpc(pl,'phap')) return {err:'Xa quá'}; pl.prof.flags.hello=true; markDirty(pl); return {}; });
 function canFinish(pl,id){ const q=S.QUESTS[id], p=pl.prof;
   if(id==='beagle') return p.flags.beagleFollow;
+  if(q.butterflies) return Object.keys(S.BUTTERFLY.kinds).filter(k=>has(pl,'buom_'+k)).length>=q.butterflies;
+  if(q.lo) return ((p.qprog||{})[id]||0)>=q.lo;
   if(q.need) return Object.entries(q.need).every(([k,n])=>has(pl,k,n));
-  if(q.spots) return q.spots.every(s=>p.flags.spots[s]); return false; }
+  if(q.spots) return q.spots.every(s=>p.flags.spots[s]);
+  if(q.eat) return ((p.qprog||{})[id]||0)>=q.eat.n;
+  if(q.dance) return ((p.qprog||{})[id]||0)>=q.dance; return false; }
 on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Không có nhiệm vụ'}; if(!nearNpc(pl,q.giver)) return {err:'Đứng gần người giao việc'};
-  if(m.op==='start'){ if(p.quests[m.id]) return {err:'Đã nhận rồi'}; p.quests[m.id]='active'; markDirty(pl); return {}; }
+  if(m.op==='start'){ if(p.quests[m.id]) return {err:'Đã nhận rồi'}; if(q.after&&p.quests[q.after]!=='done') return {err:'Làm xong việc trước đã'}; p.quests[m.id]='active';
+    if(q.butterflies&&!has(pl,'vot_buom')) addItem(pl,'vot_buom');   // Pháp đưa vợt
+    markDirty(pl); return {}; }
   if(m.op==='finish'){ if(p.quests[m.id]!=='active') return {err:'Chưa nhận'}; if(!canFinish(pl,m.id)) return {err:'Chưa xong'};
     for(const [k,n] of Object.entries(q.need||{})) addItem(pl,k,-n);
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
@@ -48,25 +54,42 @@ on('car',(pl,m)=>{ const c=S.CARS[m.id]; if(!c||!inRetreat(pl)||!near(pl,c.x,c.y
   if(c.price&&!take(pl,c.price)) return {err:`Xuống dốc ${fmt(c.price)}/lượt, không đủ tiền`};
   pl.x=c.to.x*T; pl.y=c.to.y*T; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y,ride:true}); return {price:c.price}; });
 
+const jailed=pl=>pl.prof.jail&&pl.prof.jail.until>now();
+// thống kê cho bảng xếp hạng
+function stat(pl,k,v,max){ const s=pl.prof.stats=pl.prof.stats||{}; s[k]=max?Math.max(s[k]||0,v):(s[k]||0)+v; markDirty(pl); achCheck(pl); }
+// mở khoá thành tích khi chỉ số đạt ngưỡng
+function achCheck(pl){ const p=pl.prof, s=p.stats||{}; p.ach=p.ach||{};
+  for(const [k,a] of Object.entries(S.ACH)){ if(p.ach[k]) continue; const v=a.stat==='money'?p.money:s[a.stat]||0; if(v>=a.n){ p.ach[k]=now(); reward(pl,{exp:a.exp},`${a.hidden?'Thành tích ẩn':'Thành tích'}: ${a.name}!`); send(pl,{t:'ev',k:'ach',id:k}); } } }
 /* ---------- vào/ra nhà ---------- */
-on('enter',(pl,m)=>{ const pc=S.PLACES[m.place]; if(!pc||!pc.door) return {err:'Không có cửa'}; if(!inRetreat(pl)||!near(pl,pc.door.x,pc.door.y,44)) return {err:'Đứng trước cửa đã'};
-  const I=S.INTERIORS[pc.scene]; moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
-function doorOf(kind,stayType){ if(kind==='stay'){ const d=S.ROOMS[stayType].doors[0]; return {x:d[0],y:d[1]+.6}; }
-  if(kind==='track') return {x:S.DALAT.track.x,y:S.DALAT.track.y+.7};
-  const pc=S.PLACES[kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y+.7}:S.SPAWN.retreat; }
-on('exit',pl=>{ const k=kindOf(pl.scene); if(!['nongsan','quanao','club','stay','track'].includes(k)) return {err:'Không ở trong nhà'};
-  const d=doorOf(k,pl.stayType); moveTo(pl,k==='track'?'dalat':'retreat',d.x,d.y); return {}; });
+on('enter',(pl,m)=>{ const pc=S.PLACES[m.place]; if(!pc||!pc.door) return {err:'Không có cửa'}; if(kindOf(pl.scene)!==(pc.map||'retreat')||!near(pl,pc.door.x,pc.door.y,44)) return {err:'Đứng trước cửa đã'};
+  const I=S.INTERIORS[pc.scene]; if(!I) return {err:'Có bản cập nhật mới, bấm F5 tải lại trang rồi bấm E ở cửa tiệm'}; moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
+// chỗ đứng khi ra khỏi nhà: đúng điểm cửa (luôn đi được), phòng thuê thì cửa đã dùng để vào
+function doorOf(kind,stayType,pl){ if(kind==='stay'){ const d=(pl&&pl.stayDoor)||S.ROOMS[stayType].doors[0]; return {x:d[0],y:d[1]}; }
+  if(kind==='track') return {x:S.DALAT.track.x,y:S.DALAT.track.y};
+  const pc=S.PLACES[kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y}:S.SPAWN.retreat; }
+function nearestDoor(pl,room){ let best=null, bd=1e18; for(const d of S.ROOMS[room].doors){ const dd=Math.hypot(pl.x-d[0]*T,pl.y-d[1]*T); if(dd<bd){ bd=dd; best=d; } } return best; }
+on('exit',pl=>{ const k=kindOf(pl.scene); if(!['stay','track'].includes(k)&&!S.INTERIORS[k]) return {err:'Không ở trong nhà'};
+  if(k==='phongbay'){ moveTo(pl,'club',S.DANCE.door.x+1,S.DANCE.door.y); return {}; }
+  if(k==='doncongan'&&jailed(pl)) return {err:`Đang bị tạm giữ, còn ${Math.ceil((pl.prof.jail.until-now())/1000)} giây. Nộp phạt để về sớm`};
+  const d=doorOf(k,pl.stayType,pl); moveTo(pl,k==='track'?'dalat':(S.INTERIORS[k]&&S.INTERIORS[k].map)||'retreat',d.x,d.y); return {}; });
 
 /* ---------- ăn uống ---------- */
 on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc||!pc.menu||!f||!pc.menu.includes(m.id)) return {err:'Quán không có món này'};
-  const sc=pc.map||'retreat'; if(pl.scene!==sc||!near(pl,pc.x,pc.y,72)) return {err:'Lại gần quán đã'};
+  const sc=pc.map||'retreat', inside=pc.scene&&kindOf(pl.scene)===pc.scene; if(!inside&&(pl.scene!==sc||!near(pl,pc.x,pc.y,72))) return {err:'Vào trong quán gọi món'};
   let meal=null;
   if(f.meal){ const st=S.mealStatus(p.meals), slot=st.find(s=>s.st==='now')||st.find(s=>s.st==='missed');
     if(!slot){ const nx=st.find(s=>s.st==='later'); return {err:nx?`Đang no. Bữa tới: ${nx.name} từ ${nx.from}:00`:'Hôm nay ăn đủ 3 bữa rồi'}; }
     meal=slot; }
+  const cdMin=f.meal?0:f.buff?f.buff.min:S.RULES.foodCd, t=now(); p.foodCd=p.foodCd||{};
+  if(cdMin&&p.foodCd[m.id]>t) return {err:`Vừa ${f.buff?'uống':'ăn'} rồi, ${Math.ceil((p.foodCd[m.id]-t)/60e3)} phút nữa mới mua lại được`};
   if(!take(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
+  if(cdMin){ p.foodCd[m.id]=t+cdMin*60e3; for(const k in p.foodCd) if(p.foodCd[k]<t) delete p.foodCd[k]; }
   if(meal){ const d=today(); if(p.meals.day!==d) p.meals={day:d,eaten:{}}; p.meals.eaten[meal.id]=true; }
   if(f.buff) p.buff={mul:f.buff.mul,until:now()+f.buff.min*60e3};
+  if(f.drunk){ p.drunk=Math.max(p.drunk||0,now())+f.drunk*1000; }   // rượu cần, bia hơi: say chuếnh choáng một lúc
+  if(f.energy) p.needs.energy=Math.min(100,p.needs.energy+f.energy);
+  // nhiệm vụ ăn uống (vd. ăn bánh mì Dân Tổ 2 lần cho Đôn Chề)
+  for(const [qid,q] of Object.entries(S.QUESTS)) if(q.eat&&q.eat.id===m.id&&p.quests[qid]==='active'){ p.qprog=p.qprog||{}; p.qprog[qid]=(p.qprog[qid]||0)+1; }
   const r=reward(pl,{exp:f.exp},(meal?(meal.st==='missed'?'Ăn bù ':'')+meal.name.toLowerCase()+': ':'')+f.name);
   markDirty(pl); return {meal:meal&&meal.id,exp:r.exp}; });
 
@@ -81,13 +104,19 @@ on('equip',(pl,m)=>{ const p=pl.prof, slot=String(m.slot||''); if(!S.SLOTS.some(
 
 /* ---------- thuê phòng ---------- */
 const todayRent=r=>S.ROOMS[r].price;
-function rentRoll(pl){ const p=pl.prof, d=today(); if(!p.stay||p.stay.paid===d) return;
+function rentRoll(pl){ const p=pl.prof, d=today(); if(!p.stay||p.stay.paid===d||p.stay.staff) return;   // nhân viên Ké ở miễn phí
   const r=S.ROOMS[p.stay.room];
   if(take(pl,r.price)){ p.stay.paid=d; note(pl,`Đã trừ tiền phòng ${r.name}: ${fmt(r.price)}`,'vnd'); }
   else { note(pl,`Không đủ ${fmt(r.price)} tiền phòng ${r.name}, lễ tân đã trả phòng giúp bạn`,'lock'); p.stay=null;
-    if(pl.scene==='stay:'+pl.uid){ const dd=doorOf('stay',pl.stayType); moveTo(pl,'retreat',dd.x,dd.y); } }
+    if(pl.scene==='stay:'+pl.uid){ const dd=doorOf('stay',pl.stayType,pl); moveTo(pl,'retreat',dd.x,dd.y); } }
   markDirty(pl); }
-hook('login',rentRoll); hook('slow',()=>{ for(const pl of players.values()) rentRoll(pl); });
+hook('login',rentRoll); hook('slow',()=>{ for(const pl of players.values()) if(pl.prof.look) rentRoll(pl); });
+// ai đang thuê nhà nào (cả người offline): hiện tên ngoài cửa nhà ở Ké
+const STAYS=new Map(); for(const p of db.allProfiles()) if(p.stay&&p.stay.paid>=S.addDays(today(),-1)) STAYS.set(p._uid,{room:p.stay.room,n:p.name});
+const staysView=()=>{ const by={}; for(const s of STAYS.values()) (by[s.room]=by[s.room]||[]).push(s.n); return by; };
+let lastStays=''; hook('slow',()=>{ for(const pl of players.values()){ const st=pl.prof.stay; if(st&&st.paid===today()) STAYS.set(pl.uid,{room:st.room,n:pl.prof.name}); else STAYS.delete(pl.uid); }
+  const v=staysView(), s=JSON.stringify(v); if(s!==lastStays){ lastStays=s; C.broadcastScene('retreat',{t:'stays',v}); } });
+hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'stays',v:staysView()}); });
 on('rent',(pl,m)=>{ const p=pl.prof; if(!nearNpc(pl,'letan')) return {err:'Gặp lễ tân ở Nhà Rếch 2'};
   if(m.op==='checkout'){ if(!p.stay) return {err:'Bạn chưa thuê phòng'}; const n=S.ROOMS[p.stay.room].name; p.stay=null; markDirty(pl); return {msg:'Đã trả '+n}; }
   const r=S.ROOMS[m.room]; if(!r||r.home) return {err:'Không có phòng này'}; if(p.stay&&p.stay.room===m.room&&p.stay.paid===today()) return {err:'Bạn đang ở phòng này rồi'};
@@ -98,7 +127,7 @@ on('rent',(pl,m)=>{ const p=pl.prof; if(!nearNpc(pl,'letan')) return {err:'Gặp
 const atDoor=(pl,room)=>inRetreat(pl)&&S.ROOMS[room].doors.some(([x,y])=>near(pl,x,y,40));
 on('enterRoom',pl=>{ const p=pl.prof; if(!p.stay||p.stay.paid!==today()) return {err:'Bạn chưa thuê phòng hôm nay. Gặp lễ tân ở Nhà Rếch 2.'};
   if(!atDoor(pl,p.stay.room)) return {err:'Đây không phải phòng của bạn'};
-  const r=S.ROOMS[p.stay.room]; pl.stayType=p.stay.room; moveTo(pl,'stay:'+pl.uid,r.spawn.x,r.spawn.y,{room:p.stay.room,host:p.name,own:true}); return {}; });
+  const r=S.ROOMS[p.stay.room]; pl.stayType=p.stay.room; pl.stayDoor=nearestDoor(pl,p.stay.room); moveTo(pl,'stay:'+pl.uid,r.spawn.x,r.spawn.y,{room:p.stay.room,host:p.name,own:true}); return {}; });
 // gõ cửa phòng người khác (chủ phải đang ở trong và đồng ý)
 const knocks=new Map(); let knockSeq=1;
 on('knock',(pl,m)=>{ const room=String(m.room||''); if(!S.ROOMS[room]||S.ROOMS[room].home||!atDoor(pl,room)) return {err:'Đứng trước cửa nhà đó'};
@@ -112,12 +141,12 @@ on('knockAns',(pl,m)=>{ const k=knocks.get(m.inv|0); if(!k||k.to!==pl) return {e
   if(!players.has(v.pid)) return {};
   if(!m.yes){ note(v,`${pl.prof.name} chưa tiện ${k.kind==='sleep'?'cho ngủ lại':'mở cửa'}`); return {}; }
   if(k.kind==='visit'){ if(pl.scene!=='stay:'+pl.uid) return {err:'Bạn không còn ở phòng'}; if(!atDoor(v,k.room)) return {err:v.prof.name+' đã đi rồi'};
-    const r=S.ROOMS[k.room]; v.stayType=k.room; moveTo(v,pl.scene,r.spawn.x,r.spawn.y,{room:k.room,host:pl.prof.name,hostPid:pl.pid}); }
+    const r=S.ROOMS[k.room]; v.stayType=k.room; v.stayDoor=nearestDoor(v,k.room); moveTo(v,pl.scene,r.spawn.x,r.spawn.y,{room:k.room,host:pl.prof.name,hostPid:pl.pid}); }
   else { if(v.scene!==pl.scene) return {}; v.prof.sleep={day:today(),host:pl.uid}; markDirty(v); note(v,`${pl.prof.name} cho bạn ngủ lại đêm nay`,'quest'); }
   return {}; });
 hook('tick',()=>{ const t=now(); for(const [id,k] of knocks) if(t>k.exp) knocks.delete(id); });
 // chủ rời phòng → khách ra theo
-hook('leave',(pl,old,to)=>{ if(old==='stay:'+pl.uid&&to!==old) for(const q of [...sceneOf(old)]) if(q!==pl){ const d=doorOf('stay',q.stayType); note(q,'Chủ phòng đã ra ngoài'); moveTo(q,'retreat',d.x,d.y); } });
+hook('leave',(pl,old,to)=>{ if(old==='stay:'+pl.uid&&to!==old) for(const q of [...sceneOf(old)]) if(q!==pl){ const d=doorOf('stay',q.stayType,q); note(q,'Chủ phòng đã ra ngoài'); moveTo(q,'retreat',d.x,d.y); } });
 
 /* ---------- hoạt động trong phòng ---------- */
 // phòng đang đứng: tro (nhà Hà Nội) hoặc phòng thuê; guest: đang ở phòng người khác
@@ -137,12 +166,14 @@ on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, 
       if(r.bath==='bontam'){ p.rbuff={mul:1.1,until:now()+20*60e3}; msg='Ngâm bồn cạnh cửa sổ ngắm hồ Hoà Bình: +10% EXP 20 phút'; }
       if(r.bath==='nonglanh'){ n.energy=Math.min(100,n.energy+10); msg='Tắm nước nóng: +10 năng lượng'; }
       markDirty(pl); return {msg}; },{anim:'shower',name:'Tắm'}); }
-  if(act==='nghi') return startTask(pl,'nghi',def.dur,()=>{ n.energy=Math.min(100,n.energy+r.rest); let msg=`Ngủ một giấc: +${r.rest} năng lượng`;
+  if(pl.task) return {err:'Đang làm việc khác'};
+  let from=null; if((act==='nghi'||act==='tiktok')&&Number.isFinite(+m.bx)&&Number.isFinite(+m.by)&&near(pl,+m.bx,+m.by,64)){ from={x:pl.x,y:pl.y}; pl.x=+m.bx*T; pl.y=+m.by*T; send(pl,{t:'pos',x:pl.x,y:pl.y}); }
+  if(act==='nghi') return startTask(pl,'nghi',def.dur,()=>{ if(from){ pl.x=from.x; pl.y=from.y; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } n.energy=Math.min(100,n.energy+r.rest); let msg=`Ngủ một giấc: +${r.rest} năng lượng`;
       if(r.buff&&!p.daily.slept){ p.rbuff={mul:r.buff.mul,until:now()+r.buff.min*60e3}; msg+=` · Ngủ ngon: +${Math.round((r.buff.mul-1)*100)}% EXP ${r.buff.min} phút`; }
       p.daily.slept=true; markDirty(pl); return {msg}; },{anim:'sleep',name:'Nghỉ ngơi'});
   if(act==='sac') return startTask(pl,'sac',def.dur,()=>{ n.battery=Math.min(100,n.battery+r.charge); markDirty(pl); return {msg:`Pin ${Math.round(n.battery)}%`}; },{name:r.charge<100?'Sạc bằng sạc dự phòng':'Sạc điện thoại'});
   if(act==='tiktok'){ if(n.battery<def.battery) return {err:'Hết pin rồi, sạc đã'}; if(p.daily.tiktok>=def.daily) return {err:'Lướt đủ hôm nay rồi, mỏi mắt'};
-    return startTask(pl,'tiktok',def.dur,()=>{ n.battery-=def.battery; p.daily.tiktok++; const g=C.gainExp(pl,def.exp*r.wifi); markDirty(pl);
+    return startTask(pl,'tiktok',def.dur,()=>{ if(from){ pl.x=from.x; pl.y=from.y; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } n.battery-=def.battery; p.daily.tiktok++; const g=C.gainExp(pl,def.exp*r.wifi); markDirty(pl);
       return {msg:`Lướt TikTok${r.wifi<1?' (wifi yếu)':''}: +${g.exp} EXP`,exp:g.exp}; },{anim:'phone',name:'Lướt TikTok'}); }
   if(act==='songao'){ if(n.battery<def.battery) return {err:'Hết pin rồi, sạc đã'}; if(p.daily.posts>=def.daily) return {err:'Hôm nay đăng 3 ảnh rồi, đăng nữa bị chê spam'};
     const i=m.photo|0, ph=p.photos[i]; if(!ph) return {err:'Chưa có ảnh nào. Ra mấy chỗ đẹp bấm P để chụp'};
@@ -160,17 +191,70 @@ on('photo',(pl,m)=>{ const p=pl.prof; if(p.needs.battery<5) return {err:'Hết p
   if(!spot) return {err:'Chỗ này chụp không ăn ảnh. Ra bến hồ, deck, cổng, khu cắm trại...'};
   p.needs.battery-=5; p.photos.push({name:spot.name,mul:spot.mul,at:now()}); if(p.photos.length>6) p.photos.shift(); markDirty(pl); return {name:spot.name}; });
 
+/* ---------- bơi ở bể bơi Ké ---------- */
+on('swim',pl=>{ const P=S.POOL, p=pl.prof, t=now(); if(!inRetreat(pl)) return {err:'Không ở Ké'};
+  const cx=Math.max(P.x0,Math.min(P.x1+1,pl.x/T)), cy=Math.max(P.y0,Math.min(P.y1+1,pl.y/T)); if(Math.hypot(pl.x/T-cx,pl.y/T-cy)>1.8) return {err:'Lại sát mép bể bơi'};
+  if(t-(p.swimAt||0)<P.cooldown*1000) return {err:`Vừa bơi xong, nghỉ ${Math.ceil((P.cooldown*1000-(t-p.swimAt))/1000)} giây nữa`};
+  if(pl.task) return {err:'Đang làm việc khác'};
+  const inPool=pl.x/T>=P.x0&&pl.x/T<=P.x1+1&&pl.y/T>=P.y0&&pl.y/T<=P.y1+1, from=inPool?null:{x:pl.x,y:pl.y};
+  if(from){ pl.x=(Math.min(P.x1,Math.max(P.x0,Math.floor(pl.x/T)))+.5)*T; pl.y=(Math.min(P.y1,Math.max(P.y0,Math.floor(pl.y/T)))+.6)*T; send(pl,{t:'pos',x:pl.x,y:pl.y}); }
+  return startTask(pl,'swim',P.dur,()=>{ const n=p.needs; n.clean=Math.min(100,n.clean+P.clean); n.energy=Math.min(100,n.energy+P.energy); p.swimAt=now();
+    if(from){ pl.x=from.x; pl.y=from.y; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } markDirty(pl); return {msg:`Bơi xong, mát người: +${P.clean} sạch sẽ, +${P.energy} năng lượng`}; },{anim:'swim',name:'Bơi ở bể bơi'}); });
+
+// tè lén vào bể bơi: -sạch sẽ, đếm thành tích ẩn; ai đang bơi cùng thấy được và báo chủ homestay để phạt
+const PEES=new Map(); let peeSeq=1;
+const inPool=q=>{ const P=S.POOL; return q.scene==='retreat'&&q.x/T>=P.x0&&q.x/T<=P.x1+1&&q.y/T>=P.y0&&q.y/T<=P.y1+1; };
+on('pee',pl=>{ if(!inPool(pl)) return {err:'Phải đang ở trong bể bơi'}; const t=now(); if(t-(pl.lastPee||0)<20000) return {err:'Từ từ, vừa mới tè xong'}; pl.lastPee=t;
+  pl.prof.needs.clean=Math.max(0,pl.prof.needs.clean-S.POOL.pee.clean); const id=peeSeq++, wit=[...players.values()].filter(q=>q!==pl&&inPool(q));
+  PEES.set(id,{id,from:pl,at:t,wit:new Set(wit.map(q=>q.pid)),done:false}); for(const q of wit) send(q,{t:'peeSeen',id,name:pl.prof.name});
+  broadcastNear(pl,{t:'ev',k:'pee',id:pl.pid},300); stat(pl,'pee',1); return {seen:wit.length,clean:pl.prof.needs.clean}; });
+on('report',(pl,m)=>{ const e=PEES.get(m.id|0); if(!e||e.done||!e.wit.has(pl.pid)) return {err:'Không báo được nữa'}; if(now()-e.at>S.POOL.pee.window*1000) return {err:'Lâu quá rồi, chủ homestay không tin'};
+  e.done=true; const v=Math.min(e.from.prof.money,S.POOL.pee.fine); if(players.has(e.from.pid)){ take(e.from,v); note(e.from,`${pl.prof.name} báo chủ homestay: bạn bị phạt ${fmt(v)} vì tè vào bể bơi!`,'lock'); }
+  return {msg:`Chủ homestay đã phạt ${e.from.prof.name} ${fmt(v)}`}; });
+hook('slow',()=>{ const t=now(); for(const [id,e] of PEES) if(t-e.at>S.POOL.pee.window*1000+5000) PEES.delete(id); for(const pl of players.values()) if(pl.prof.look&&Math.random()<.1) achCheck(pl); });
+on('ach',pl=>({ach:pl.prof.ach||{},stats:pl.prof.stats||{}}));
+
+/* ---------- bắt bướm trong rừng Ké ---------- */
+on('net',(pl,m)=>{ const B=S.BUTTERFLY, i=m.i|0, sp=B.spots[i], p=pl.prof, t=now(); if(!sp) return {err:'?'}; if(!has(pl,'vot_buom')) return {err:'Cần vợt bắt bướm (Pháp có)'};
+  if(pl.scene!=='retreat'||!near(pl,sp.x,sp.y,40)) return {err:'Lại gần con bướm đã'}; p.buom=p.buom||{}; if((p.buom[i]||0)>t) return {err:'Bướm bay mất rồi, lát nữa quay lại'};
+  if(Math.random()>B.chance[B.kinds[sp.k]]){ p.buom[i]=t+B.miss*1000; markDirty(pl); return {miss:true,msg:'Vồ hụt, bướm bay mất!'}; }
+  p.buom[i]=t+B.respawn*1000; addItem(pl,'buom_'+sp.k); const g=C.gainExp(pl,B.kinds[sp.k]==='rare'?15:B.kinds[sp.k]==='uncommon'?8:4); markDirty(pl);
+  return {item:'buom_'+sp.k,exp:g.exp}; });
+
+/* ---------- lọ: về phòng riêng xem phim, ngoài đường là bị phạt ---------- */
+on('lo',(pl,m)=>{ const p=pl.prof, L=S.LO, t=now();
+  if(m.op==='start'){ if(p.needs.battery<L.battery) return {err:`Pin dưới ${L.battery}%, sạc điện thoại đã`};
+    const c=roomCtx(pl); if(!(c&&c.own)&&kindOf(pl.scene)!=='room'){ const v=Math.min(p.money,L.fine); take(pl,v); markDirty(pl);
+      C.broadcastNear(pl,{t:'ev',k:'shame',id:pl.pid,name:p.name},400); return {fined:v,msg:`Bị bắt quả tang làm chuyện đồi bại nơi công cộng! Công an phạt ${fmt(v)}`}; }
+    pl.lo={at:t}; p.needs.battery=Math.max(0,p.needs.battery-10); markDirty(pl); return {ok:true}; }
+  if(m.op==='end'){ const s=pl.lo; pl.lo=null; if(!s) return {err:'?'}; if(!m.ok) { p.needs.energy=Math.max(0,p.needs.energy-5); markDirty(pl); return {msg:'Chưa tới đâu đã xong... thử lại sau'}; }
+    if(t-s.at<L.hold*1000*.9) return {err:'Nhanh thế?'}; p.needs.energy=Math.max(0,p.needs.energy-L.energy); p.needs.clean=Math.max(0,p.needs.clean-L.clean);
+    if(p.quests.lo==='active'){ p.qprog=p.qprog||{}; p.qprog.lo=(p.qprog.lo||0)+1; } const g=p.daily.lo?{exp:0}:C.gainExp(pl,L.exp); p.daily.lo=true; markDirty(pl);
+    return {msg:`Giải toả xong, nhẹ cả người${g.exp?' · +'+g.exp+' EXP':''}. Nhớ đi tắm!`}; }
+  return {err:'?'}; });
+
 /* ---------- câu cá ---------- */
 const lakeSide=pl=>{ const k=kindOf(pl.scene); if(k==='retreat') return pl.y>=S.LAKE_Y*T?'ke':null;
   if(k==='dalat'){ const L=S.DALAT.lake, dx=(pl.x/T-L.x)/(L.rx+1.6), dy=(pl.y/T-L.y)/(L.ry+1.6); return dx*dx+dy*dy<=1?'dl':null; } return null; };
-on('fish',(pl,m)=>{ const p=pl.prof, t=now();
-  if(m.op==='cast'){ if(!p.skills.cauca) return {err:'Chưa học Câu cá (học online ở phòng)'}; const where=lakeSide(pl); if(!where) return {err:'Ra mép hồ mới câu được'};
-    if(pl.kayak||pl.riding) return {err:'Xuống đã'}; pl.fishing={where,bite:t+2500+Math.random()*4500,st:'wait'}; W.setAct(pl,'fish'); return {}; }
-  if(m.op==='hook'){ const f=pl.fishing; if(!f) return {err:'Chưa thả câu'}; pl.fishing=null; pl.act=0;
-    if(f.st!=='bite') return {miss:true,msg:'Giật sớm quá, cá chạy mất'}; if(t>f.bite+1400) return {miss:true,msg:'Chậm quá, cá ăn mồi rồi chạy'};
-    const table=f.where==='dl'?S.DL_FISH:S.FISH, tot=Object.values(table).reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, k;
-    for(const [id,x] of Object.entries(table)){ r-=x.w; if(r<=0){ k=id; break; } } k=k||Object.keys(table)[0];
-    addItem(pl,k); const g=C.gainExp(pl,table[k].exp); return {item:k,exp:g.exp}; }
+on('fish',(pl,m)=>{ const p=pl.prof, t=now(), F=S.FISHING;
+  // mở mặt hồ: server tạo 6 con cá (loại theo cỡ), client vẽ bóng cá bơi theo seed
+  if(m.op==='open'){ if(!p.skills.cauca) return {err:'Chưa học Câu cá (học online ở phòng)'}; const where=lakeSide(pl); if(!where) return {err:'Ra mép hồ mới câu được'};
+    if(pl.kayak||pl.riding) return {err:'Xuống đã'};
+    if((p.daily.fish||0)>=F.daily) return {err:`Hôm nay câu đủ ${F.daily} con rồi, cá không cắn câu nữa. Mai quay lại nhé`};
+    const fish=[...Array(F.count)].map((_,i)=>{ const r=Math.random(), size=r<.5?1:r<.85?2:3; return {i,size,sparkle:Math.random()<F.sparkle,seed:Math.floor(Math.random()*1e6)}; });
+    pl.fishing={where,fish,st:'look'}; W.setAct(pl,'fish'); return {fish}; }
+  const f=pl.fishing; if(!f) return {err:'Chưa mở mặt hồ'};
+  if(m.op==='cast'){ const fi=f.fish.find(x=>x.i===(m.i|0)&&!x.gone); if(!fi||f.st!=='look') return {err:'Không có con đó'};
+    f.st='wait'; f.target=fi; f.bite=t+1500+Math.random()*2000; return {}; }
+  if(m.op==='hook'){ if(f.st==='wait') return {early:true};   // giật sớm: không mất cá, đợi phao chìm tiếp
+    if(f.st!=='bite') { f.st='look'; return {miss:true,msg:'Cá chạy mất rồi'}; } if(t>f.bite+F.react+300){ f.st='look'; return {miss:true,msg:'Chậm quá, cá nhả mồi rồi'}; }
+    f.st='reel'; f.reelAt=t; return {size:f.target.size}; }
+  if(m.op==='land'){ if(f.st!=='reel') return {err:'?'}; const fi=f.target, sz=F.sizes[fi.size]; f.st='look';
+    if(!m.ok) return {miss:true,msg:'Đứt dây, cá thoát rồi'};
+    if(t-f.reelAt<sz.reel*1000*.45) return {miss:true,msg:'Kéo vội quá, cá vùng ra'};
+    fi.gone=true; const pool=F[f.where==='dl'?'dl':'ke'][fi.size], k=pool[Math.floor(Math.random()*pool.length)], table=f.where==='dl'?S.DL_FISH:S.FISH;
+    addItem(pl,k); const g=C.gainExp(pl,table[k].exp*(fi.sparkle?2:1)); stat(pl,'fish',1); p.daily.fish=(p.daily.fish||0)+1; markDirty(pl);
+    return {item:k,exp:g.exp,sparkle:fi.sparkle,left:F.daily-p.daily.fish}; }
   if(m.op==='stop'){ pl.fishing=null; pl.act=0; return {}; } });
 hook('tick',()=>{ const t=now(); for(const pl of players.values()){ const f=pl.fishing; if(f&&f.st==='wait'&&t>=f.bite){ f.st='bite'; send(pl,{t:'bite'}); } } });
 
@@ -193,7 +277,7 @@ on('daily',(pl,m)=>{ const d=S.DAILY[m.id], p=pl.prof; if(!d||!d.need) return {e
   for(const k of d.need.any){ const n=Math.min(left,p.items[k]||0); if(n){ addItem(pl,k,-n); left-=n; } }
   p.daily.done[m.id]=true; reward(pl,d.reward,'Cô Ké cảm ơn: '+d.title); return {}; });
 // ai thu mua món gì
-function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||['trung','sua'].includes(item);
+function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||item in S.TREASURE.items||['trung','sua'].includes(item);
   if(nearNpc(pl,'quancom')) return item in S.FISH; if(nearNpc(pl,'bactrang')) return item in S.SELL; return false; }
 on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items[item]||0,Math.max(1,m.n|0||p.items[item]||0));
   if(!(item in S.SELL)) return {err:'Món này không ai mua'}; if(!buyerOk(pl,item)) return {err:'Người này không mua món đó'}; if(!n) return {err:'Không có'};
@@ -231,4 +315,4 @@ on('mk',(pl,m)=>{ const p=pl.prof;
     LIST=db.market(); return {item:l.item,n:l.n}; } });
 hook('login',pl=>{ const ib=pl.prof.inbox; if(ib&&ib.length){ for(const m of ib) note(pl,m,'vnd'); pl.prof.inbox=[]; markDirty(pl); } });
 
-module.exports={startTask,canFinish,roomCtx,doorOf,nearNpc,rentRoll};
+module.exports={startTask,canFinish,roomCtx,doorOf,nearNpc,rentRoll,jailed,stat,achCheck};
