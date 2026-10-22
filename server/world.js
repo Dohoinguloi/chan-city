@@ -139,7 +139,7 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   if(to==='bearplus'&&p.level<S.BEARPLUS.level) return {err:`Bearplus nhận cộng tác viên từ cấp ${S.BEARPLUS.level}. Lên cấp rồi bay vào nhé`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
   if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
-  if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Về phòng sạc đã.'};
+  if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Bấm 🔌 Xin sạc nhờ để cắm sạc nhờ người gần đó'};
   if(to==='retreat'&&!p.flags.called) return {err:'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.'};
   let fare=S.grabFare(from,to), free=false;
   if(to==='retreat'&&!p.flags.freeRide){ fare=0; free=true; }

@@ -35,6 +35,15 @@ on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Khô
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
     p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title); markDirty(pl); return {}; }
   return {err:'?'}; });
+// hết pin ở ngoài (không gọi được Grab về phòng): xin cắm sạc nhờ người gần đó: chủ quán, nhân viên, người quen. Map không có ai thì nhờ người qua đường
+const STORY_NAME={phap:'Pháp',phule:'Phú Lê',donche:'Đôn Chề',khabanh:'Khá Bảnh',kenny:'Kenny Ho',huyphan:'Huy Phan'};
+on('nhosac',(pl,m)=>{ const p=pl.prof, n=p.needs, R=S.NEEDS.borrow; if(n.battery>=R.max) return {err:`Pin còn ${Math.round(n.battery)}%, chưa cần sạc nhờ`};
+  if((p.daily.nhosac||0)>=R.perDay) return {err:`Hôm nay nhờ sạc ${R.perDay} lần rồi, ngại lắm. Về phòng sạc nhé`};
+  const k=kindOf(pl.scene), here=S.NPCS.filter(x=>(x.scene||'retreat')===k&&!x.obj&&(!x.season||S.seasonOn(x.season))), id=String(m.npc||'');
+  if(here.length&&!(id&&here.some(x=>x.id===id)&&nearNpc(pl,id,90))) return {err:'Lại gần một người (chủ quán, nhân viên...) để xin sạc nhờ'};
+  const who=!here.length?'Một người qua đường':STORY_NAME[id]||(S.NPC_LOOKS[id]?S.NPC_LOOKS[id].name.split(' (')[0]:'Người quen');
+  return startTask(pl,'sac',R.dur,()=>{ p.daily.nhosac=(p.daily.nhosac||0)+1; n.battery=Math.max(n.battery,Math.min(R.max,n.battery+R.charge)); markDirty(pl);
+    return {msg:`${who} cho cắm sạc nhờ: pin lên ${Math.round(n.battery)}%. Đủ gọi Grab về phòng sạc đầy rồi (hôm nay nhờ ${p.daily.nhosac}/${R.perDay} lần)`}; },{name:'Sạc nhờ · '+who}); });
 // nhặt đồ / chụp check-in / xu / beagle / gà / hoa lá
 on('pick',(pl,m)=>{ const p=pl.prof, t=now(); if(!inRetreat(pl)) return {err:'Không ở Ké Retreat'};
   if(m.k==='pickup'){ const it=S.PICKUPS[m.i|0]; if(!it||p.quests[it.quest]!=='active'||p.flags.picked[m.i|0]) return {err:'Không nhặt được'};

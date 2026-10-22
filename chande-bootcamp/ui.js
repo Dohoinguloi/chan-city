@@ -60,7 +60,7 @@ ACT.soc=async d=>{ const r=await GAME.act({t:'soc',op:'ask',to:+d.to,kind:d.k});
 /* ---------- Grab ---------- */
 const destOf=()=>SD.SCENE_DEST[GAME.S.kind];
 UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery);
-  return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được':''}</p>`+money()+
+  return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được '+btn('nhosac','🔌 Xin sạc nhờ người gần đây',{},'pri'):''}</p>`+money()+
   `<div class="list grab">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
     if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
@@ -591,6 +591,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
       <div class="dshop">${season.shop.map(it=>{ const own=!it.again&&bg[it.id], can=n>=it.cost&&!own; return `<div class="dsi ${own?'got':''}">${ico(it.item?it.item:it.cloth==='ao_bingo'?'ao_bingo':it.cloth?'mu_phuthuy':'bi_ngo')}<div><b>${esc(it.name)}</b><span>${esc(it.desc)}</span></div><div class="dcost">${it.cost} 🎃 ${own?'<i>✔ Có rồi</i>':btn('bingo','Đổi',{id:it.id},can?'pri':'')}</div></div>`; }).join('')}</div>
       ${GAME.S&&GAME.S.kind==='retreat'?goBtn('bingo','Cô Bí Ngô'):''}</div>`; }
   return `<div class="tabs">${tabs.map(([k,n])=>`<button class="tab ${k===dTab?'on':''}" data-a="dtab" data-k="${k}">${n}</button>`).join('')}</div><div class="daily">${body}</div>`; }
+ACT.nhosac=()=>GAME.nhoSac();
 ACT.dtab=d=>{ dTab=d.k; dChest=null; UI.refresh(); };
 ACT.dlogin=async()=>{ const r=await GAME.act({t:'dq',op:'login'}); if(r&&!r.err){ GAME.sfx('level_up',.5); if(r.chest) dChest=r.chest; } UI.refresh(); };
 ACT.dget=async d=>{ const r=await GAME.act({t:'dq',op:'get',i:+d.i}); if(r&&!r.err) GAME.sfx('item_pickup',.5); UI.refresh(); };

@@ -454,17 +454,27 @@ function needsCheck(n){ const acts=[], t=NET.now();
   for(const k of Object.keys(NEED_HELP)){ const v=n[k], H=NEED_HELP[k], lv=v<10?2:v<25?1:0, was=NEED_LV[k]||0;
     if(lv>was){ toast(`${lv>1?'⚠️ ':''}<b>${H.low}</b> (${Math.round(v)}%): ${H.how}. Bấm <b>${H.btn}</b> ở bảng chỉ số để tự đi.`,'lock'); if(lv>1) sfx('blip',.4); }
     NEED_LV[k]=v>=35?0:Math.max(was,lv); if(v<25) acts.push([k,H.btn,v<10]); }
+  if(n.battery<25&&!chargeHere()) acts.push(['nhosac','🔌 Xin sạc nhờ',n.battery<SD.GRAB.minBattery]);
   const ms=SD.mealStatus(G.meals,t), now=ms.find(m=>m.st==='now'), hung=SD.hunger(G.meals,t), key=now?now.name:hung?'doi'+hung:'';
   if(key&&NEED_LV.meal!==key) toast(now?`🍚 Đến giờ <b>${now.name.toLowerCase()}</b> (${now.from}:00–${now.to}:00): ra quán ăn kẻo đói. Bấm <b>🍚 Đi ăn</b> để tự đi tới quán gần nhất.`:`🍚 <b>Đang đói</b> (bỏ ${hung} bữa): ăn bù ở quán. Bấm <b>🍚 Đi ăn</b>.`,'lock');
   NEED_LV.meal=key; if(key) acts.push(['eat','🍚 Đi ăn',hung>1]);
   const html=acts.map(([k,label,crit])=>`<button class="needGo${crit?' crit':''}" type="button" data-k="${k}">${label} ➜</button>`).join('');
   if(html!==needsCheck.h){ needsCheck.h=html; $('#hudNeedsAct').innerHTML=html; } }
-function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
+// ở phòng mình (phòng Hà Nội / phòng đã thuê) thì có ổ cắm; ở ngoài hết pin thì xin sạc nhờ người gần nhất trong map
+const chargeHere=()=>S&&(S.kind==='room'||(S.kind==='stay'&&S.own));
+function nhoSac(){ UI.closeAll&&UI.closeAll(); if(TASK) return toast('Đang làm việc khác, xong đã rồi xin sạc','lock');
+  const go=id=>act({t:'nhosac',npc:id}).then(r=>{ if(r&&!r.err){ P.face=1; toast('🔌 Đang cắm sạc nhờ, đứng yên 15 giây nhé','quest'); } });
+  const near=npcs.filter(n=>!n.obj).map(n=>[n,Math.hypot(n.x-P.x,n.y-P.y)]).sort((a,b)=>a[1]-b[1]);
+  if(!near.length) return go('');                                                                   // map không có ai: nhờ người qua đường
+  const [n,d]=near[0], name=speakerName(n.id).split(' (')[0]; if(d<60) return go(n.id);
+  toast(`Pin yếu: tới chỗ <b>${esc(name)}</b> xin cắm sạc nhờ`,'quest'); walkTo(n.x/T,n.y/T+1.1,name,()=>go(n.id)); }
+function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac') return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
   if(S.kind==='room'||(S.kind==='stay'&&S.own)){ const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act===H.act);
     if(it) return walkTo(it.x/T,it.y/T,it.label,()=>interact({type:'obj',it,label:it.label}));   // gọi đúng việc (ngủ/tắm/sạc), không lấy điểm gần nhất (dễ trúng điện thoại)
     if(k==='clean'){ toast('Lều không có chỗ tắm: ra nhà tắm chung cạnh khu cắm trại','quest'); NEED_AFTER=k; homeAfterExit=false; return act({t:'exit'}); } }
   if(k==='clean'&&S.kind==='retreat'&&(!stay||SD.ROOMS[stay].bath==='chung')){ const B=SD.BATHHOUSE; return walkTo(B.x,B.y+.6,'Nhà tắm chung',()=>interact({type:'bath',label:'Tắm ở nhà tắm chung'})); }
   if(stay&&S.kind!=='room'&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map))){ NEED_AFTER=k; return goHome(); }
+  if(k==='battery'&&G.needs.battery<SD.GRAB.minBattery){ toast('Hết pin không gọi được Grab về phòng: xin cắm sạc nhờ người gần đây trước','lock'); return nhoSac(); }
   NEED_AFTER=k; toast(`${H.low}: ${H.how}. Gọi Grab về phòng ở Hà Nội (hoặc phòng đã thuê ở Ké)`,'quest'); UI.grab(); }
 // học kỹ năng: ở phòng Hà Nội thì tới laptop mở tab Học; ở phòng thuê thì mở bằng điện thoại; ở ngoài thì về phòng trước (thuê ở Ké hoặc Grab về Hà Nội)
 let LEARN_AFTER=false;
@@ -1526,7 +1536,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,nhoSac,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};
