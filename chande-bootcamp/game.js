@@ -477,6 +477,9 @@ function scholarGo(){ UI.closeAll&&UI.closeAll(); const ok=((G.das||{}).certs||[
 let PK=null, PKSHOT='drive', PKJUDGE=null; function pkView(){ return !!(S&&S.kind==='pickle'&&PK&&(PK.st==='play'||PK.st==='end')&&PK.me>=0); } const PKSWING={}, PKAV={}, PKBALL={};
 NET.listen('pk',m=>{ const old=PK; PK=m.v; if(PK.ball&&(!old||!old.ball||old.ball.t0!==PK.ball.t0)) PKSWING[PK.ball.from]=performance.now();
   if(PK.st==='play'&&(!old||old.st!=='play')){ UI.closeAll&&UI.closeAll(); PKSHOT='drive'; } if(UI.isOpen&&UI.isOpen()) UI.refresh&&UI.refresh(); });
+// ảnh mặt ở bảng vào sân: bot lấy hình tuyển thủ, mình lấy nhân vật mình, người khác lấy nhân vật đang thấy trên sân (lưu sẵn theo tên)
+const PKFACE={}; function pkFace(s){ if(!s) return ''; const key=s.bot?'b:'+s.name:'p:'+s.name+(s.pid===NET.pid?JSON.stringify(G.look):((REM.get(s.pid)||{}).look||'')); if(PKFACE[key]) return PKFACE[key];   // đổi đồ thì ảnh đổi theo
+  let av=null; try{ av=s.bot?pkBotAv(s):s.pid===NET.pid?(P.av||AVATAR.build(G.look)):(REM.get(s.pid)||{}).av; }catch(e){} if(!av||!av.portrait) return ''; return PKFACE[key]=av.portrait.toDataURL(); }
 function pkBotAv(s){ if(PKAV[s.name]) return PKAV[s.name]; const i=Math.max(0,SD.PICKLE.bots.findIndex(b=>b[0]===s.name)), nu=s.g==='nu';
   return PKAV[s.name]=AVATAR.build({gender:nu?'nu':'nam',hair:nu?'ponytail':'fade',hairColor:'2a1c18',skin:'eec0a0',outfit:{top:'ao_pk'+i,bottom:'short_xam',shoes:'giay_trang'},opts:{mouth:'smile'}}); }
 // bot đứng theo vị trí server gửi (nội suy cho mượt); người thật vẽ ở vị trí thật; ai cũng cầm vợt, đánh thì vung vợt
@@ -1438,7 +1441,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={get PK(){ return PK; },walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={get PK(){ return PK; },pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};

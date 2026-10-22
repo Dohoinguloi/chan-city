@@ -492,7 +492,9 @@ PLACE.pickle=()=>open('HLV Tuấn · pickleball',()=>{ const K=SD.PICKLE, g=G();
     ${g.skills.pickle?'<p class="good">Bạn đã biết chơi. Ra giữa sân bấm E để vào trận.</p>':btn('pklesson',`Học 1 buổi · ${fmt(K.lesson.price)} · ${K.lesson.dur} giây`,{},'pri')}`; });
 UI.pickle=()=>open('Sân pickleball · đấu 2 vs 2',()=>{ const K=SD.PICKLE, v=GAME.PK||{st:'idle',seats:[null,null,null,null],score:[0,0],me:-1}, g=G(), me=v.me;
   if(!g.skills.pickle) return '<p>Chưa biết chơi pickleball: gặp <b>HLV Tuấn</b> ở góc dưới bên trái sân để học 1 buổi.</p>';
-  const free=v.st==='idle'||v.st==='lobby', seat=i=>{ const s=v.seats[i]; return `<div class="row"><span>${i<2?'Đội A (nửa dưới)':'Đội B (nửa trên)'} · ô ${i%2+1}</span><span>${s?esc(s.name)+(s.bot?' 🤖':''):'<span class="muted">trống</span>'}</span>${!s&&me<0&&free?btn('pkjoin','Vào ô này',{seat:i},'pri'):''}</div>`; };
+  const free=v.st==='idle'||v.st==='lobby', seat=i=>{ const s=v.seats[i], img=s&&GAME.pkFace(s), col=i<2?'#ff6a55':'#7fe0ff';   // mỗi ô có ảnh mặt người chơi / bot
+    const face=img?`<img src="${img}" alt="" style="width:44px;height:44px;image-rendering:pixelated;border:2px solid ${col};background:#f3ecdc">`:`<span style="width:44px;height:44px;display:grid;place-items:center;border:2px dashed ${col};color:${col};font-size:24px">?</span>`;
+    return `<div class="row"><span style="display:flex;gap:8px;align-items:center">${face}<span><b style="color:${col}">${i<2?'Đội A':'Đội B'}</b> · ô ${i%2+1}<br>${s?esc(s.name)+(s.bot?' 🤖':s.pid===NET.pid?' (bạn)':''):'<span class="muted">trống</span>'}</span></span>${!s&&me<0&&free?btn('pkjoin','Vào ô này',{seat:i},'pri'):''}</div>`; };
   const empty=v.seats.filter(s=>!s).length;
   return `<p class="muted">${PK_RULE(K)}</p><div class="list">${[0,1,2,3].map(seat).join('')}</div>
     ${v.st==='play'?`<p>Đang đấu: <b>${v.score[0]} – ${v.score[1]}</b></p>`:v.st==='end'?`<p>${esc(v.log||'')}</p>`:''}
