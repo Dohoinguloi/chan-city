@@ -53,6 +53,7 @@ async function api(req,res,url){
       try{ const g=await verifyGoogle(b.credential,GOOGLE_CLIENT_ID); const u=db.ensureUser('g:'+g.sub,'google',g.email,g.name);
         return json(res,200,{token:db.newSession(u.id),name:g.name}); }catch(e){ return json(res,401,{err:'Đăng nhập Google thất bại: '+e.message}); } }
     if(b.name!==undefined){ if(!NAME_LOGIN) return json(res,403,{err:'Đăng nhập bằng tên đang tắt, dùng Google'}); const n=nameOk(b.name); if(!n) return json(res,400,{err:'Tên từ 2 tới 16 ký tự'});
+      if(/^bot\d+$/i.test(n)&&process.env.CHAN_BOTS!=='1') return json(res,403,{err:'Tên này dành cho bot test'});   // acc bot test (bots.js) mật khẩu đoán được: chỉ đăng nhập khi server bật CHAN_BOTS=1
       const pw=String(b.pw||''); if(pw.length<4||pw.length>64) return json(res,400,{err:'Mật khẩu từ 4 ký tự'});
       const id0='n:'+n.toLowerCase().normalize('NFC'), u0=db.user(id0), ali=u0&&u0.alias&&db.user(u0.alias), id=ali?ali.id:id0, old=ali||u0;
       if(blocked('id:'+id)) return json(res,429,{err:'Tài khoản này nhập sai nhiều quá, đợi 1 phút'});

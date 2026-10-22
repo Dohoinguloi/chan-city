@@ -60,7 +60,7 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
   if(op==='buysim'){ if(!atDesk()) return {err:'Ra quầy giao dịch (bốc số trước) để mua SIM'}; const s=V.sims[m.i|0]; if(!s) return {err:'?'};
     if(p.sim&&p.sim.num===s.num) return {err:'Bạn đang dùng số này rồi'}; if(!take(pl,s.price)) return {err:`Số này ${S.fmt(s.price)}, ví không đủ`};
     let num=s.num; if(num==='random'){ const r=()=>Math.floor(Math.random()*10); num=`09${r()}${r()}.${r()}${r()}${r()}.${r()}${r()}${r()}`; }
-    p.sim={num,cat:s.cat,at:t}; markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
+    if(p.sim&&SIMS.get(p.sim.num)===pl.uid) SIMS.delete(p.sim.num); p.sim={num,cat:s.cat,at:t}; SIMS.set(num,pl.uid); markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
   if(op==='pack'){ const k=V.packs[m.k]; if(!k) return {err:'?'}; if(!p.sim) return {err:'Cần có SIM VNPT trước (mua ở quầy giao dịch)'}; if(!atDesk()&&!near(pl,V.pack.x,V.pack.y+.9,30)) return {err:'Ra quầy hoặc tới standee gói cước'};
     if(!take(pl,k.price)) return {err:'Không đủ tiền'}; const from=Math.max(t,(p.data&&p.data.until)||0); p.data={name:k.name,until:from+k.h*3600e3}; markDirty(pl);
     return {msg:`Đăng ký ${k.name} thành công! Pin điện thoại hao chậm hơn ${Math.round((1-V.packMul)*100)}% tới ${S.vnTime(p.data.until).day.split('-').reverse().join('/')}`}; }
@@ -117,12 +117,16 @@ on('antruc',(pl,m)=>{ const p=pl.prof, q=pr(p); if(!active(p,'tc_antruc')||q.tc_
 hook('login',pl=>{ const p=pl.prof, k=C.simPerk(p).daily; if(!k||p.daily.simGift) return; p.daily.simGift=1; if(k.vnd) give(pl,k.vnd); if(k.exp) C.gainExp(pl,k.exp); markDirty(pl);
   setTimeout(()=>{ if(pl.prof) note(pl,`📱 Lộc SIM ${p.sim.cat} (${p.sim.num}): ${k.vnd?'+'+S.fmt(k.vnd):'+'+k.exp+' EXP'}`,'vnd'); },2500); });
 const byNum=num=>{ for(const q of C.players.values()) if(q.prof.sim&&q.prof.sim.num===num) return q; return null; };
-on('sms',(pl,m)=>{ const p=pl.prof, V=S.VNPT, msg=String(m.msg||'').trim().slice(0,80), to=String(m.to||''), t=now(); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'};
+// số SIM → uid (cả người offline), dựng 1 lần lúc chạy server: trước đây mỗi tin nhắn tới số offline đọc lại toàn bộ hồ sơ trong DB
+const SIMS=new Map(); for(const r of C.db.allProfiles()) if(r.sim&&r.sim.num&&!SIMS.has(r.sim.num)) SIMS.set(r.sim.num,r._uid);
+const INBOX_MAX=30;   // hộp thư người offline giữ tối đa 30 tin mới nhất
+on('sms',(pl,m)=>{ const p=pl.prof, V=S.VNPT, msg=require('./world').clean(m.msg).slice(0,80), to=String(m.to||''), t=now(); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'};
   if(p.needs.battery<S.GRAB.minBattery) return {err:'Hết pin rồi'}; if(!msg) return {err:'Gõ nội dung tin nhắn đã'}; if(pl.smsAt&&t-pl.smsAt<V.sms.cd*1000) return {err:'Nhắn chậm thôi'};
   if(to===p.sim.num) return {err:'Đây là số của bạn'}; if(!take(pl,V.sms.price)) return {err:'Không đủ tiền cước'}; pl.smsAt=t; p.needs.battery=Math.max(0,p.needs.battery-1); markDirty(pl);
   const q=byNum(to), line=`📩 SMS từ ${p.sim.num} (${p.name}): ${msg}`;
   if(q){ note(q,line,'quest'); send(q,{t:'sms',from:p.sim.num,name:p.name,msg}); return {msg:`Đã gửi tới ${to}`}; }
-  for(const r of C.db.allProfiles()) if(r.sim&&r.sim.num===to){ const prof=C.db.profile(r._uid); if(prof){ (prof.inbox=prof.inbox||[]).push(line); C.db.saveProfile(r._uid,prof); return {msg:`${to} đang offline, tin nhắn chờ trong hộp thư`}; } }
+  const uid=SIMS.get(to), prof=uid&&!C.byUid.has(uid)&&C.db.profile(uid);
+  if(prof&&prof.sim&&prof.sim.num===to){ const ib=prof.inbox=prof.inbox||[]; ib.push(line); if(ib.length>INBOX_MAX) ib.splice(0,ib.length-INBOX_MAX); C.db.saveProfile(uid,prof); return {msg:`${to} đang offline, tin nhắn chờ trong hộp thư`}; }
   return {err:'Số máy quý khách vừa gọi hiện không có thật'}; });
 // gọi điện: người nghe máy được Grab tới chỗ người gọi (cước theo 2 thành phố); người gọi đang ở phòng riêng / chỗ đặc biệt thì chỉ nói chuyện
 const CALL_OK=new Set(['lavi','nghienmotion','retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);

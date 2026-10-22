@@ -1,5 +1,6 @@
 // Test tải: N bot đăng nhập, tạo nhân vật, lên Ké Retreat rồi đi lại quanh Cổng (dồn đông nhất có thể), chat, dùng skill.
 // Chạy: node bots.js [số bot] [địa chỉ server] [số giây]   ví dụ: node bots.js 80 http://localhost:8791 60
+// Server test phải chạy với CHAN_BOTS=1 (mặc định server chặn đăng nhập tên bot001…, vì mật khẩu bot đoán được)
 'use strict';
 const WebSocket=require('ws');
 const N=+(process.argv[2]||80), BASE=process.argv[3]||'http://localhost:8791', SEC=+(process.argv[4]||60);
