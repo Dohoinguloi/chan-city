@@ -1095,8 +1095,13 @@ function draw(){
   else if(P.av) list.push({y:P.y,d:()=>drawChar(ctx,P.av,P.x,P.y,P.face,P.view,P.anim,P.act||(TASK&&TASK.anim)||(k==='phongbay'&&DANCE&&DANCE.st==='play'&&DANCE.me>=0?'quay':''),P.act?P.t:P.t,P.act?P.actT:P.t,(P.riding?SD.FL.ride+((G.horseCoat||0)&3)*SD.FL.coat:0)|(P.pcar?SD.FL.car:0)|(P.incar?SD.FL.incar:0)|(P.moto?SD.FL.moto:0)|(P.moto&&G.helmet&&P.moto!=='xedap'?SD.FL.helmet:0)|(P.opt==='robot'?SD.FL.optimus:0)|(P.opt==='truck'?SD.FL.otruck:0)|(P.kayak?SD.FL.kayak:0)|(FISH?SD.FL.fish:0)|(G.needs.clean<20?SD.FL.dirty:0))});
   for(const f of fx) if(f.ground) drawFx(f,cx,cy);                       // vệt dưới chân (nước vàng loang...)
   if(window.AMB&&AMB_ST){ AMB.list(list,ctx,cx,cy); AMB.decor(list,ctx,cx,cy,AMB_ST); }
+  const hp=plotTarget(); if(hp){ ctx.fillStyle=`rgba(255,216,74,${.16+.08*Math.sin(clock*6)})`; ctx.fillRect(hp.X-cx,hp.Y-cy,T,T); }   // ô đất đang chọn: tô nền
   list.sort((a,b)=>a.y-b.y); for(const it of list) it.d();
   for(const o of S.over) ctx.drawImage(o.spr.c,Math.round(o.x-o.spr.ax-cx),Math.round(o.y-o.spr.ay-cy));
+  if(hp){ const X=hp.X-cx, Y=hp.Y-cy, o=Math.floor(clock*4)%2, L=5, x0=X-1-o, y0=Y-1-o, x1=X+T+o, y1=Y+T+o;   // ô đất đang chọn: 4 góc vàng nhấp nháy
+    const corner=(x,y,sx,sy,c)=>{ ctx.fillStyle=c; ctx.fillRect(sx>0?x:x-L+1,y,L,1); ctx.fillRect(x,sy>0?y:y-L+1,1,L); };
+    for(const [x,y,sx,sy] of [[x0,y0,1,1],[x1,y0,-1,1],[x0,y1,1,-1],[x1,y1,-1,-1]]){ corner(x+1,y+1,sx,sy,'#1c1516'); corner(x,y,sx,sy,'#ffd84a'); }
+  }
   // ban đêm không làm tối màn hình (theo yêu cầu); chỉ bật dây đèn vàng ở Ké theo giờ Việt Nam
   if(k==='retreat') drawLights(cx,cy);
   if(window.AMB&&AMB_ST) AMB.front(ctx,cx,cy,VW,VH,AMB_ST);
@@ -1257,6 +1262,8 @@ function drawTitle(x,y,rk,t){ const D=SD.TOP_TITLES[rk-1]; if(!D) return; const 
     each((ch,cx,i)=>{ const yy=by-((Math.floor(t/90)+i*7)%5===0?1:0); g.lineWidth=3; g.strokeStyle='#1c0a06'; g.strokeText(ch,cx,yy); g.shadowColor='#ff5a1a'; g.shadowBlur=5+3*Math.sin(t/120+i); g.fillStyle=gr; g.fillText(ch,cx,yy); g.shadowBlur=0; });
     for(let k=0;k<5;k++){ const ph=(t/900+k*.37)%1, ex=L+((k*29)%(R-L))+Math.sin(t/200+k)*2, ey=by-14-ph*12; g.fillStyle=`rgba(255,${150+k*20},60,${1-ph})`; g.fillRect(Math.round(ex),Math.round(ey),1,1); } }
   g.restore(); }
+// ô đất mà phím E sẽ tác động (trồng / tưới / thu): lấy từ đích tương tác gần nhất
+function plotTarget(){ const x=PROMPT_AT; if(!x||x.type!=='plot'||TASK) return null; const d=(x.id[0]==='k'?SD.FARM.plots:SD.DALAT.plots)[+x.id.slice(1)]; return d?{X:Math.round((d.x-.5)*T),Y:Math.round((d.y-.5)*T)}:null; }
 function drawOverlay(){ ug.setTransform(DPR,0,0,DPR,0,0); ug.clearRect(0,0,innerWidth,innerHeight); ug.font='16px VT323, monospace'; ug.textAlign='center'; ug.textBaseline='bottom';
   const sx=x=>(x-cam.x)*SCALE, sy=y=>(y-cam.y)*SCALE, t=performance.now(); keyHint();
   const tag=(x,y,name,sub,col)=>{ const w=ug.measureText(name).width+8; ug.fillStyle='rgba(28,22,30,.72)'; ug.fillRect(x-w/2,y-16,w,16); ug.fillStyle=col||'#fff3d6'; ug.fillText(name,x,y-1); if(sub){ ug.fillStyle='#ffd84a'; ug.fillText(sub,x,y-17); } };
