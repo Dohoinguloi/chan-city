@@ -46,7 +46,7 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 .muteBtn .spk::after{content:'';position:absolute;left:10px;top:1px;width:2px;height:10px;background:var(--gold);box-shadow:3px -1px 0 0 var(--gold)}
 .muteBtn.off .spk::after{background:var(--red);transform:rotate(45deg);box-shadow:none} .muteBtn.off .lbl{color:var(--muted)}
 #titleMute{position:fixed;right:16px;top:16px;z-index:12}
-#hudClock{display:flex;gap:10px;align-items:center;padding:4px 12px} #hudDay{color:var(--gold)} #hudTime{font-size:26px}
+#hudClock{display:flex;gap:10px;align-items:center;padding:4px 12px} #hudWx{font-size:18px;cursor:help;pointer-events:auto} #hudWx:empty{display:none} #hudDay{color:var(--gold)} #hudTime{font-size:26px}
 #hudMoneyBox{padding:2px 12px;font-size:24px;color:var(--gold);display:flex;align-items:center}
 #hudLvlBox,#hudNeeds{padding:4px 10px;width:230px}
 .row2{display:flex;justify-content:space-between;font-size:18px}
@@ -352,7 +352,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="hudRight">
   <div class="hudTop"><button id="mStat" class="panel" type="button" aria-label="Xem cấp độ và chỉ số"><span id="mLv">Cấp 1</span><span class="mbars" aria-hidden="true"><i><b id="mbE"></b></i><i><b id="mbC"></b></i><i><b id="mbB"></b></i></span><span class="mcar">▾</span></button><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
   <button id="hudPlayers" class="panel" type="button" title="Ai đang online · bấm xem danh sách"><span class="dot" aria-hidden="true"></span><span id="hudPlayersN">1</span> online</button>
-  <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
+  <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudWx" aria-label="Thời tiết"></span><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
   <div id="hudMoneyBox" class="panel"><span id="hudMoney">0đ</span></div></div>
   <div id="hudLvlBox" class="panel"><div class="row2"><span id="hudLevel">Cấp 1</span><span id="hudExpTxt">0 EXP</span></div><div class="bar"><div id="hudExp"></div></div></div>
   <div id="hudNeeds" class="panel">
@@ -436,6 +436,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="avatar.js?v=7"></script>
 <script src="net.js?v=7"></script>
 <script src="music.js"></script>
+<script src="ambient.js"></script>
 <script src="game.js?v=7"></script>
 <script src="games.js?v=7"></script>
 <script src="ui.js?v=7"></script>
