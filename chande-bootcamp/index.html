@@ -91,6 +91,30 @@ body.touch #chatBox{left:calc(144px + env(safe-area-inset-left));bottom:58px;wid
 body.touch #prompt{bottom:64px;font-size:17px} body.touch #keyHint{bottom:104px;font-size:14px}
 body.touch #panel .mcol{grid-template-columns:1fr 1fr}
 body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{bottom:8px;width:calc(100vw - 24px);padding:6px 10px;gap:8px;cursor:pointer} body.touch #dlgPortrait{width:60px;height:60px} body.touch #dlgText{font-size:18px;min-height:40px} body.touch #dlgName{font-size:18px} body.touch .choice{font-size:18px;padding:4px 14px}
+/* Việc hôm nay: thẻ có thumbnail, chip thưởng, thanh tiến độ chia đoạn, nút NHẬN phát sáng, dấu ĐÃ NHẬN */
+.dqhead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:linear-gradient(90deg,#3a2a5a,#5a2a4a 55%,#2a2438);border:2px solid #120c16;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 2px 0 #120c16}
+.dqhead b{display:block;font-weight:400;font-size:22px;color:#ffe680;text-shadow:2px 2px 0 #120c16;letter-spacing:1px} .dqhead span{font-size:15px;color:#e8d8f8}
+.dqpips{display:flex;align-items:center;gap:5px} .dqpips i{width:14px;height:14px;transform:rotate(45deg);background:#241c2e;border:2px solid #120c16;box-shadow:0 0 0 1px #6a5a7a} .dqpips i.ok{background:#5fe06a;animation:keyPulse .8s steps(2) infinite} .dqpips i.on{background:#ffd84a;box-shadow:0 0 0 1px #fff3a0,0 0 8px #ffd84a} .dqpips em{font-style:normal;color:#ffe680;font-size:18px;margin-left:4px}
+.dq2{display:grid;gap:8px}
+.dqc{position:relative;display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:8px 12px 8px 8px;background:linear-gradient(180deg,#2f2739,#241e2c);border:2px solid #120c16;box-shadow:inset 0 0 0 1px #4a3e58,inset 0 2px 0 rgba(255,255,255,.06),0 2px 0 #120c16}
+.dqt{position:relative;width:64px;height:64px;border:2px solid #120c16;box-shadow:0 0 0 1px #6a5a7a} .dqt img{display:block;width:60px;height:60px;image-rendering:pixelated}
+.dqt span{position:absolute;right:-6px;bottom:-7px;padding:0 5px;background:#120c16;border:1px solid #6a5a7a;color:#fff3d6;font-size:14px;line-height:16px}
+.dqm b{display:block;font-weight:400;font-size:20px;color:#fff3d6;text-shadow:1px 1px 0 #120c16} .dqm .muted{font-size:14px}
+.dqbar{position:relative;height:12px;margin:5px 0 6px;background:#120c16;border:1px solid #0a0810;box-shadow:0 0 0 1px #3a3048} .dqbar i{display:block;height:100%;background:linear-gradient(#fff0a0,#ffc03a 55%,#e8901a);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18);position:relative;overflow:hidden}
+.dqbar i::after{content:'';position:absolute;top:0;bottom:0;width:30%;left:-40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:dqShine 1.8s linear infinite}
+.dqbar.seg::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(100%/var(--seg) - 2px),#120c16 calc(100%/var(--seg) - 2px),#120c16 calc(100%/var(--seg)));z-index:1;pointer-events:none}
+.dqr{display:flex;gap:6px;flex-wrap:wrap} .chip{display:inline-flex;align-items:center;gap:4px;padding:0 7px;border:1px solid;font-size:15px;line-height:20px;background:rgba(12,8,16,.5)} .chip img{width:16px;height:16px;image-rendering:pixelated}
+.chip.coin{color:#ffe680;border-color:#c8901a} .chip.xp{color:#d8c4ff;border-color:#7a4ac8} .chip.gift{color:#ffb8dc;border-color:#c85a9a}
+.btn.dqgo{background:#2a7a3a;border-color:#5fe06a;color:#fff;box-shadow:0 3px 0 #123a1a;padding:4px 12px;font-size:17px} .btn.dqgo:hover{filter:brightness(1.15)}
+.btn.dqget{background:linear-gradient(#ffe680,#f2a33a);border:2px solid #120c16;color:#3a1a06;font-size:20px;padding:5px 16px;box-shadow:0 3px 0 #7a4a10,0 0 12px rgba(255,200,60,.6);position:relative;overflow:hidden;animation:dqBtn 1s ease-in-out infinite alternate}
+.btn.dqget::after{content:'';position:absolute;top:0;bottom:0;width:35%;left:-50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);animation:dqShine 1.4s linear infinite}
+.dqc.ready{box-shadow:inset 0 0 0 1px #ffd84a,0 0 14px rgba(255,216,74,.35),0 2px 0 #120c16;animation:dqGlow 1.2s ease-in-out infinite alternate} .dqc.ready .dqt img{animation:dqHop .7s ease-in-out infinite alternate}
+.dqc.got{opacity:.62} .dqc.got .dqt img{filter:grayscale(.6)} .stamp{position:absolute;right:20px;top:50%;transform:translateY(-50%) rotate(-10deg);padding:0 10px;border:3px double #5fe06a;color:#5fe06a;font:22px var(--f);font-style:normal;letter-spacing:2px;background:rgba(12,24,12,.6)}
+.dqc.chest{background:linear-gradient(180deg,#3a2a1a,#2a1e14);box-shadow:inset 0 0 0 1px #8a5a2a,0 2px 0 #120c16} .dqc.chest .dqm b{color:#ffe680} .dqc.chest.ready .dqt img{animation:dqShake .5s ease-in-out infinite}
+.lock{color:#a89ab8;font-size:18px}
+@keyframes dqShine{to{left:120%}} @keyframes dqBtn{to{box-shadow:0 3px 0 #7a4a10,0 0 20px rgba(255,220,90,.9);transform:translateY(-1px)}} @keyframes dqGlow{to{box-shadow:inset 0 0 0 1px #fff3a0,0 0 22px rgba(255,216,74,.55),0 2px 0 #120c16}}
+@keyframes dqHop{to{transform:translateY(-3px)}} @keyframes dqShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@media (max-width:760px),(max-height:540px){ .dqc{grid-template-columns:52px 1fr auto;gap:8px} .dqt{width:52px;height:52px} .dqt img{width:48px;height:48px} .dqm b{font-size:16px} .chip{font-size:13px} .btn.dqget{font-size:16px;padding:4px 10px} .stamp{font-size:17px;right:8px} }
 /* bảng Hằng ngày */
 .dbadge{display:inline-block;min-width:16px;padding:0 4px;margin-left:4px;background:#e2412f;color:#fff;border-radius:8px;font-size:14px;line-height:16px}
 .daily{margin-top:8px;display:grid;gap:8px} .daily .dim{margin:0;color:var(--muted);font-size:17px}

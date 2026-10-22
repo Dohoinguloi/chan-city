@@ -573,6 +573,27 @@ ACT.mieufood=async d=>{ const r=await GAME.act({t:'mieu',op:'food',k:d.k}); if(r
 
 /* ---------- Hằng ngày: điểm danh 7 ngày · việc hôm nay + rương · sổ sưu tầm · lễ hội theo mùa ---------- */
 let dTab='', dChest=null;
+// ảnh thumbnail cho từng việc hằng ngày: nền màu theo loại việc, tia nắng toả từ giữa, icon to, đất / nước dưới chân, lấp lánh
+const DQ_TH={fish:['fish','#8fdcf6','#2a6aa8','w'],harvest:['crop_ca_chua','#c8ee90','#4f8a38','s'],forage:['mushroom','#b0e8a0','#3f7a31','g'],bug:['buom_la_xanh','#fbd8ee','#a8509a','g'],
+  money:['coin','#ffeb90','#c8901a',''],exp:['*star','#d8c4ff','#6a3ab0',''],meal:['bowl','#ffcf98','#c85a2a',''],grab:['*car','#9ff4c4','#1f8a4a','r'],photo:['photo','#ffdcea','#b8507a',''],
+  pickle:['*paddle','#f0f8a0','#5a9a2a','g'],treasure:['tr_binh_gom','#a4e2ea','#2a6a7a','w'],pumpkin:['pumpkin','#ffc478','#6a2a8a','g'],chest:['tr_ruong_bau','#fff0a0','#c0701a','']};
+const DQ_ICON={star:P=>{ const c='#ffd84a'; P.rect(6,1,2,3,c); P.rect(5,4,4,2,c); P.rect(1,5,12,2,c); P.rect(3,7,8,2,c); P.rect(4,9,6,2,c); P.rect(3,11,3,2,c); P.rect(8,11,3,2,c); P.px(6,5,'#fff6c0'); P.px(5,6,'#fff6c0'); },
+  car:P=>{ P.rect(1,6,12,5,'#1fa84a'); P.rect(3,3,8,4,'#1fa84a'); P.rect(4,4,3,2,'#bff0ff'); P.rect(8,4,2,2,'#bff0ff'); P.rect(1,8,12,1,'#ffffff'); P.disc(4,11,2,'#26262c'); P.disc(10,11,2,'#26262c'); P.px(4,11,'#8a8a94'); P.px(10,11,'#8a8a94'); P.rect(12,7,1,1,'#ffd84a'); },
+  paddle:P=>{ P.disc(6,5,4,'#2a6ad0'); P.disc(6,5,3,'#4a8af0'); P.rect(5,9,2,4,'#7a4a2a'); P.disc(11,10,2,'#e8f040'); P.px(10,9,'#ffffff'); }};
+const THC={}, hexMix=(a,b,k)=>{ const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), A=p(a), B=p(b); return `rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*k)).join(',')})`; };
+function dqThumb(id){ if(THC[id]) return THC[id]; const A=ART, d=DQ_TH[id]||DQ_TH.money, c=A.cv(32,32), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
+  for(let y=0;y<32;y++){ g.fillStyle=hexMix(d[1],d[2],y/31); g.fillRect(0,y,32,1); }
+  g.globalAlpha=.22; g.fillStyle='#ffffff'; for(let a=0;a<16;a+=2){ const a0=a*Math.PI/8, a1=(a+1)*Math.PI/8; g.beginPath(); g.moveTo(16,14); g.lineTo(16+Math.cos(a0)*34,14+Math.sin(a0)*34); g.lineTo(16+Math.cos(a1)*34,14+Math.sin(a1)*34); g.fill(); }
+  g.globalAlpha=1; const gr=g.createRadialGradient(16,14,1,16,14,13); gr.addColorStop(0,'rgba(255,255,240,.65)'); gr.addColorStop(1,'rgba(255,255,240,0)'); g.fillStyle=gr; g.fillRect(0,0,32,32);
+  if(d[3]==='w'){ g.fillStyle='rgba(30,80,140,.55)'; g.fillRect(0,25,32,7); g.fillStyle='rgba(220,244,255,.8)'; for(let x=0;x<32;x+=6){ g.fillRect(x,25,3,1); g.fillRect(x+3,28,2,1); } }
+  else if(d[3]==='s'){ g.fillStyle='#7a4e2c'; g.fillRect(0,26,32,6); g.fillStyle='#5a3a20'; for(let x=1;x<32;x+=5) g.fillRect(x,27,3,1); }
+  else if(d[3]==='g'){ g.fillStyle='#3f8a31'; g.fillRect(0,27,32,5); g.fillStyle='#6aba4a'; for(let x=0;x<32;x+=3) g.fillRect(x,26+(x%2),1,2); }
+  else if(d[3]==='r'){ g.fillStyle='#4a4e56'; g.fillRect(0,26,32,6); g.fillStyle='#f4f4f2'; for(let x=2;x<32;x+=8) g.fillRect(x,28,4,1); }
+  let ic; if(d[0][0]==='*'){ ic=A.cv(14,14); DQ_ICON[d[0].slice(1)](A.painter(ic.getContext('2d'))); A.outline(ic); } else ic=A.icon(d[0]);
+  g.fillStyle='rgba(20,12,24,.3)'; g.fillRect(9,27,14,2); g.drawImage(ic,0,0,14,14,id==='chest'?1:3,id==='chest'?0:1,id==='chest'?30:26,id==='chest'?30:26);
+  g.fillStyle='#ffffff'; for(const [x,y] of [[4,5],[27,7],[25,3]]){ g.fillRect(x,y,1,1); g.fillRect(x-1,y+1,3,1); g.fillRect(x,y+2,1,1); }
+  g.strokeStyle='rgba(255,255,255,.35)'; g.strokeRect(.5,.5,31,31);
+  return THC[id]=c.toDataURL(); }
 UI.daily=(tab)=>{ if(tab) dTab=tab; dChest=null; if(!GAME.DQ) GAME.act({t:'dq',op:'state'}); open('Hằng ngày',dailyHtml,{wide:true}); };
 PLACE.bingo=()=>UI.daily('season');
 function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đang tải…</p>';
@@ -586,10 +607,16 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
     body+=`<p class="dim">Vào game mỗi ngày để nhận quà, quà to dần tới ngày 7. Lỡ 1 ngày là quay về Ngày 1.</p><div class="d7">${SD.LOGIN7.map((r,i)=>{ const today=i===s-1, st=done(i)?'got':today?'now':'lock';
       const ic=r.chest?ico('ruong_bau'):r.items?ico(Object.keys(r.items)[0]):ico('coin');
       return `<div class="dday ${st}${r.chest?' big':''}"><span>Ngày ${i+1}</span>${ic}<b>${esc(r.label)}</b>${st==='got'?'<i>✔ Đã nhận</i>':today?btn('dlogin','Nhận quà',{},'pri'):'<i>🔒</i>'}</div>`; }).join('')}</div>`; }
-  if(dTab==='quest'){ body+=`<p class="dim">3 việc nhỏ mỗi ngày, đổi việc mới lúc 0h. Nhận đủ thưởng 3 việc thì mở Rương ngày.</p><div class="dq">${q.list.map((t,i)=>{ const def=SD.DAYQ.pool[t.id]; if(!def) return ''; const pct=Math.round(t.n/def.goal*100), rw=[def.rw.vnd?fmt(def.rw.vnd):'',def.rw.exp?def.rw.exp+' EXP':''].filter(Boolean).join(' · ');
-      const num=t.id==='money'?`${fmt(t.n)} / ${fmt(def.goal)}`:`${t.n} / ${def.goal}`;
-      return `<div class="dqrow ${t.got?'got':t.ok?'ok':''}"><div><b>${esc(def.name)}</b><div class="dbar"><i style="width:${pct}%"></i></div><span>${num} · thưởng ${rw}</span></div>${t.got?'<i>✔ Đã nhận</i>':t.ok?btn('dget','Nhận',{i},'pri'):btn('dgo','➜',{id:t.id},'go')}</div>`; }).join('')}
-      <div class="dqrow chest ${q.chest?'got':''}">${ico('ruong_bau')}<div><b>Rương ngày</b><span>${fmt(SD.DAYQ.chest.vnd[0])}–${fmt(SD.DAYQ.chest.vnd[1])} · ${SD.DAYQ.chest.exp} EXP · 1 món ngẫu nhiên</span></div>${q.chest?'<i>✔ Đã mở</i>':q.list.every(t=>t.got)?btn('dchest','Mở rương',{},'pri'):'<i>🔒 '+q.list.filter(t=>t.got).length+'/'+q.list.length+'</i>'}</div></div>`; }
+  if(dTab==='quest'){ const nGot=q.list.filter(t=>t.got).length, all=q.list.length&&nGot===q.list.length, vn=SD.vnTime(NET.now()), left=24*60-(vn.h*60+vn.m), cdn=`${Math.floor(left/60)} giờ ${left%60} phút`;
+    body+=`<div class="dqhead"><div><b>VIỆC HÔM NAY</b><span>⏳ Làm mới sau ${cdn}</span></div><div class="dqpips">${q.list.map(t=>`<i class="${t.got?'on':t.ok?'ok':''}"></i>`).join('')}<em>${nGot}/${q.list.length}</em></div></div><div class="dq2">`+q.list.map((t,i)=>{ const def=SD.DAYQ.pool[t.id]; if(!def) return '';
+      const pct=Math.round(t.n/def.goal*100), seg=def.goal<=10?def.goal:0, kk=v=>v>=1e6?(Math.round(v/1e5)/10+'tr'):v>=1000?Math.round(v/1000)+'K':String(v), num=t.id==='money'||t.id==='exp'?`${kk(t.n)}/${kk(def.goal)}`:`${t.n}/${def.goal}`, st=t.got?'got':t.ok?'ready':'';
+      const chips=(def.rw.vnd?`<span class="chip coin"><img src="${GAME.icon64('coin')}" alt="">${fmt(def.rw.vnd)}</span>`:'')+(def.rw.exp?`<span class="chip xp">★ ${def.rw.exp} EXP</span>`:'');
+      return `<div class="dqc ${st}"><div class="dqt"><img src="${dqThumb(t.id)}" alt=""><span>${num}</span></div><div class="dqm"><b>${esc(def.name)}</b>
+        <div class="dqbar${seg?' seg':''}" style="${seg?`--seg:${seg}`:''}"><i style="width:${pct}%"></i></div><div class="dqr">${chips}</div></div>
+        <div class="dqa">${t.got?'':t.ok?btn('dget','NHẬN',{i},'dqget'):btn('dgo','Đi làm ➜',{id:t.id},'dqgo')}</div>${t.got?'<em class="stamp">ĐÃ NHẬN</em>':''}</div>`; }).join('')+
+      `<div class="dqc chest ${q.chest?'got':all?'ready':''}"><div class="dqt big"><img src="${dqThumb('chest')}" alt=""></div><div class="dqm"><b>RƯƠNG NGÀY</b><span class="muted">Nhận đủ thưởng ${q.list.length} việc để mở</span>
+        <div class="dqr"><span class="chip coin"><img src="${GAME.icon64('coin')}" alt="">${fmt(SD.DAYQ.chest.vnd[0])}–${fmt(SD.DAYQ.chest.vnd[1])}</span><span class="chip xp">★ ${SD.DAYQ.chest.exp} EXP</span><span class="chip gift">🎁 1 món ngẫu nhiên</span></div></div>
+        <div class="dqa">${q.chest?'':all?btn('dchest','MỞ RƯƠNG',{},'dqget'):`<span class="lock">🔒 ${nGot}/${q.list.length}</span>`}</div>${q.chest?'<em class="stamp">ĐÃ MỞ</em>':''}</div></div>`; }
   if(dTab==='album'){ body+=`<p class="dim">Lần đầu có một món là được ghi vào sổ. Đủ bộ thì nhận thưởng lớn.</p>`+Object.entries(SD.ALBUM).map(([a,z])=>{ const have=z.items.filter(k=>D.seen[k]).length, full=have===z.items.length, got=D.albumGot[a];
       return `<div class="dalb ${full?'full':''}"><h5>${esc(z.name)} <small>${have}/${z.items.length}</small></h5><div class="dgrid">${z.items.map(k=>{ const it=SD.ITEMS[k]||SD.CLOTHES[k]||{name:k}, seen=D.seen[k];
         return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
