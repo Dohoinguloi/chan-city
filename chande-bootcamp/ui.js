@@ -25,7 +25,7 @@ ACT.goto=d=>GAME.walkToNpc(d.id);
 async function req(m,ok){ const r=await GAME.act(m,ok); UI.refresh(); return r; }
 
 /* ---------- menu Esc ---------- */
-UI.menu=()=>open('Tạm dừng',()=>`<div class="col">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}
+UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
   ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
@@ -35,6 +35,8 @@ ACT.logout=async()=>{ try{ await NET.api('logout',{token:NET.token}); localStora
 
 /* ---------- chat gần ---------- */
 const chatIn=$('#chatIn');
+ACT.hudbtn=d=>{ UI.closeAll(); const b=document.getElementById(d.id); if(b) b.click(); };   // menu trên điện thoại mở các nút HUD bị ẩn
+ACT.mchat=()=>{ UI.closeAll(); UI.chat(); };
 UI.chat=()=>{ $('#chatBox').classList.add('typing'); chatIn.hidden=false; chatIn.focus(); };
 chatIn.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ const m=chatIn.value.trim(); if(m) NET.send({t:'chat',m}); chatIn.value=''; chatIn.blur(); }
   if(e.key==='Escape'){ chatIn.value=''; chatIn.blur(); } });

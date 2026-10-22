@@ -27,7 +27,7 @@ const fail=k=>{ const t=Date.now(), f=fails.get(k); if(!f||t-f.t>60000) fails.se
 const ROOT=path.resolve(__dirname,'..');
 const PUBLIC=['chande-bootcamp','pixel-sprite-forge'];             // chỉ phục vụ 2 thư mục này (không lộ server/data)
 const TYPES={'.svg':'image/svg+xml','.ico':'image/x-icon','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.png':'image/png','.webp':'image/webp',
-  '.jpg':'image/jpeg','.svg':'image/svg+xml','.mp3':'audio/mpeg','.ogg':'audio/ogg','.wav':'audio/wav','.ico':'image/x-icon'};
+  '.jpg':'image/jpeg','.mp3':'audio/mpeg','.ogg':'audio/ogg','.wav':'audio/wav'};
 
 // "phiên bản" client = thời điểm sửa mới nhất của các file game (đọc lại tối đa 10 giây 1 lần)
 let verAt=0, verVal='';

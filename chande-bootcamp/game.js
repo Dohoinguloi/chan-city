@@ -9,6 +9,7 @@ const STORY={phap:1,phule:1,donche:1,khabanh:1,kenny:1,huyphan:1};
 const cvs=$('#game'), ctx=cvs.getContext('2d'), uic=$('#ui'), ug=uic.getContext('2d');
 let VW=400, VH=225, SCALE=3, DPR=1;
 function resize(){ SCALE=Math.max(2,Math.round(Math.min(innerHeight/240,innerWidth/400)));
+  VW=Math.ceil(innerWidth/SCALE); VH=Math.ceil(innerHeight/SCALE); // khung nhìn phủ kín màn (dọc, ngang, màn siêu rộng)
   cvs.width=VW; cvs.height=VH; cvs.style.width=VW*SCALE+'px'; cvs.style.height=VH*SCALE+'px'; ctx.imageSmoothingEnabled=false;
   DPR=Math.min(2,devicePixelRatio||1); uic.width=innerWidth*DPR; uic.height=innerHeight*DPR; uic.style.width=innerWidth+'px'; uic.style.height=innerHeight+'px'; }
 addEventListener('resize',resize); resize();
@@ -190,6 +191,18 @@ const typing=()=>{ const a=document.activeElement; return a&&(a.tagName==='INPUT
 addEventListener('keydown',e=>{ if(typing()) return; const k=e.key.toLowerCase(); if([' ','arrowup','arrowdown','arrowleft','arrowright','tab'].includes(k)) e.preventDefault();
   if(!keys.has(k)) pressed.add(k); keys.add(k); });
 addEventListener('keyup',e=>keys.delete(e.key.toLowerCase())); addEventListener('blur',()=>keys.clear());
+// cảm ứng (điện thoại, máy tính bảng): cần điều khiển ảo bên trái (kéo xa = chạy), nút hành động bên phải giả lập phím; chạm đất trống thì tự đi tới đó
+const TOUCH=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+if(TOUCH){ document.body.classList.add('touch'); const joy=$('#joy'), knob=$('#joyKnob'); let jid=null, jx=0, jy=0;
+  const dir=(dx,dy)=>{ for(const k of ['w','a','s','d','shift']) keys.delete(k); const d=Math.hypot(dx,dy); if(d<14) return; const a=Math.atan2(dy,dx);
+    if(Math.abs(Math.cos(a))>.38) keys.add(dx>0?'d':'a'); if(Math.abs(Math.sin(a))>.38) keys.add(dy>0?'s':'w'); if(d>50) keys.add('shift'); };
+  const jmove=e=>{ if(e.pointerId!==jid) return; e.preventDefault(); let dx=e.clientX-jx, dy=e.clientY-jy; const d=Math.hypot(dx,dy), R=46; dir(dx,dy); if(d>R){ dx*=R/d; dy*=R/d; } knob.style.transform=`translate(${dx}px,${dy}px)`; };
+  const jup=e=>{ if(e.pointerId!==jid) return; jid=null; knob.style.transform=''; dir(0,0); };
+  joy.addEventListener('pointerdown',e=>{ e.preventDefault(); jid=e.pointerId; try{ joy.setPointerCapture(jid); }catch(_){} const r=joy.getBoundingClientRect(); jx=r.left+r.width/2; jy=r.top+r.height/2; AUTO=null; jmove(e); });
+  joy.addEventListener('pointermove',jmove); joy.addEventListener('pointerup',jup); joy.addEventListener('pointercancel',jup);
+  for(const b of document.querySelectorAll('#tbtns [data-k]')){ const k=b.dataset.k, rel=()=>{ b.classList.remove('on'); keys.delete(k); };
+    b.addEventListener('pointerdown',e=>{ e.preventDefault(); b.classList.add('on'); if(!keys.has(k)) pressed.add(k); keys.add(k); if(navigator.vibrate) navigator.vibrate(8); });
+    b.addEventListener('pointerup',rel); b.addEventListener('pointercancel',rel); b.addEventListener('pointerleave',rel); } }
 const down=(...ks)=>ks.some(k=>keys.has(k)), hit=(...ks)=>ks.some(k=>pressed.has(k));
 
 /* ---------- hội thoại ---------- */
@@ -204,6 +217,7 @@ function renderDialog(){ const [who,txt]=DLG.lines[DLG.i]||['','']; $('#dlgName'
   $('#dlgChoices').innerHTML=!typingT&&last&&DLG.choice?DLG.choice.opts.map((o,i)=>`<button class="choice${i===DLG.sel?' on':''}" data-i="${i}">${i===DLG.sel?'▶ ':''}${o}</button>`).join(''):'';
   $('#dlgMore').hidden=typingT||(last&&!!DLG.choice); }
 $('#dlgChoices').addEventListener('click',e=>{ const b=e.target.closest('.choice'); if(!b) return; DLG.sel=+b.dataset.i; finishChoice(); });
+$('#dialog').addEventListener('click',e=>{ if(DLG.open&&!e.target.closest('.choice')) pressed.add('e'); });
 function finishChoice(){ const c=DLG.choice, i=DLG.sel; closeDialog(); c.cb(i); }
 function closeDialog(){ DLG.open=false; $('#dialog').hidden=true; const d=DLG.done; DLG.done=null; if(d) d(); }
 function updateDialog(dt){ const [,txt]=DLG.lines[DLG.i]; if(DLG.shown<txt.length){ DLG.shown=Math.min(txt.length,DLG.shown+dt*46); DLG.blipT-=dt; if(DLG.blipT<=0){ sfx('blip',.16); DLG.blipT=.12; } }
@@ -214,7 +228,7 @@ function updateDialog(dt){ const [,txt]=DLG.lines[DLG.i]; if(DLG.shown<txt.lengt
   renderDialog(); }
 
 /* ---------- thông báo ---------- */
-function toast(html,kind=''){ const d=document.createElement('div'); d.className='toast '+kind; d.innerHTML=html; $('#toasts').appendChild(d); setTimeout(()=>d.classList.add('out'),2800); setTimeout(()=>d.remove(),3400);
+function toast(html,kind=''){ const d=document.createElement('div'); d.className='toast '+kind; d.innerHTML=html; const box=$('#toasts'); box.appendChild(d); while(box.children.length>3) box.firstChild.remove(); setTimeout(()=>d.classList.add('out'),2800); setTimeout(()=>d.remove(),3400);
   while($('#toasts').children.length>6) $('#toasts').firstChild.remove(); }
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function banner(text){ const b=$('#banner'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
@@ -565,8 +579,8 @@ function goHome(){ const st=G.stay, today=vn().day;
   AUTO={path,i:0,stuck:0,lx:P.x,ly:P.y,then:()=>act({t:'enterRoom'})}; toast(`Đang đi về ${SD.ROOMS[st.room].name}... (bấm phím đi để dừng)`,'item'); }
 $('#btnHome').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) goHome(); });
 // bảng việc cần làm thu gọn được (nhớ lựa chọn)
-try{ if(localStorage.getItem('chan-qmin')==='1') document.body.classList.add('qmin'); }catch(e){}
-document.addEventListener('click',e=>{ if(!e.target.closest('#qToggle')) return; const on=document.body.classList.toggle('qmin'); try{ localStorage.setItem('chan-qmin',on?'1':'0'); }catch(e){} renderHUD(); });
+try{ const q=localStorage.getItem('chan-qmin'); if(q==='1'||TOUCH) document.body.classList.add('qmin'); }catch(e){}
+document.addEventListener('click',e=>{ if(e.target.closest('#mStat')){ if(document.body.classList.toggle('mstat')) document.body.classList.add('qmin'); renderHUD(); return; }   /* mobile: mở bảng này thì gập bảng kia */ if(!e.target.closest('#qToggle')&&!(TOUCH&&e.target.closest('#hudQuests h4'))) return; const on=document.body.classList.toggle('qmin'); if(!on) document.body.classList.remove('mstat'); try{ localStorage.setItem('chan-qmin',on?'1':'0'); }catch(e){} renderHUD(); });
 // thanh kỹ năng: mặc định ẩn, bấm ~ hoặc nút góc dưới trái để hiện
 function toggleSkills(){ const on=document.body.classList.toggle('skills'); try{ localStorage.setItem('chan-skills',on?'1':'0'); }catch(e){} }
 try{ if(localStorage.getItem('chan-skills')==='1') document.body.classList.add('skills'); }catch(e){}
@@ -586,7 +600,8 @@ function pickAt(wx,wy){ let best=null, bd=1e9; const c=(d,o)=>{ if(d<bd){ bd=d; 
 const mouseOk=()=>started&&S&&!travelling&&!(UI.blocking&&UI.blocking())&&$('#mapView').hidden&&!(S.kind==='deo'&&STUNT);
 cvs.addEventListener('mousemove',e=>{ if(!mouseOk()){ HOVER=null; cvs.style.cursor=''; return; } const [x,y]=worldAt(e); HOVER=pickAt(x,y); cvs.style.cursor=HOVER?'var(--cur-hand)':''; });
 cvs.addEventListener('mouseleave',()=>{ HOVER=null; });
-cvs.addEventListener('click',e=>{ if(!mouseOk()) return; const [x,y]=worldAt(e), h=pickAt(x,y); if(!h){ clickOut(x,y); return; } DEST={x:h.x,y:h.y,t:performance.now()};
+cvs.addEventListener('click',e=>{ if(!mouseOk()) return; const bc=document.body.classList; if(TOUCH&&(!bc.contains('qmin')||bc.contains('mstat'))){ bc.add('qmin'); bc.remove('mstat'); renderHUD(); return; }   /* cảm ứng: chạm màn chơi là gập bảng đang mở */
+  const [x,y]=worldAt(e), h=pickAt(x,y); if(!h){ if(!clickOut(x,y)&&TOUCH){ DEST={x,y,t:performance.now()}; walkTo(x/T,y/T,''); } return; }   /* cảm ứng: chạm đất trống là đi tới */ DEST={x:h.x,y:h.y,t:performance.now()};
   if(h.kind==='npc') return walkToNpc(h.n.id);
   if(h.kind==='player'){ const r=h.r; return walkTo(r.x/T,r.y/T+.8,r.name,()=>UI.social(r)); }
   if(h.kind==='oii') return walkTo(OIS.x/T,OIS.y/T+.8,'Ộ i i',()=>{ oiiSay(); UI.oii(); });
@@ -1219,6 +1234,7 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   $('#hudExp').style.width=Math.min(100,(G.exp-lo)/(hi-lo)*100)+'%'; $('#hudExpTxt').textContent=`${G.exp}/${hi} EXP`;
   needsCheck(G.needs);
   const n=G.needs; for(const [k,id] of [['energy','#barEnergy'],['clean','#barClean'],['battery','#barBattery']]){ const v=Math.round(n[k]); $(id).style.width=v+'%'; $(id).classList.toggle('low',v<20); $(id+'T').textContent=v; }
+  if(TOUCH){ let low=false; for(const [k,id] of [['energy','#mbE'],['clean','#mbC'],['battery','#mbB']]){ const v=Math.round(n[k]); $(id).style.height=Math.max(6,v)+'%'; $(id).classList.toggle('low',v<20); if(v<20) low=true; } $('#mLv').textContent='Cấp '+G.level; $('#mStat').classList.toggle('warn',low); }
   const ms=SD.mealStatus(G.meals,NET.now()); $('#hudMeals').innerHTML=ms.map(m=>`<span class="meal ${m.st}" title="${m.name} ${m.from}:00–${m.to}:00">${m.name.replace('Bữa ','')}</span>`).join('');
   const h=SD.hunger(G.meals,NET.now()), bf=[]; if(h) bf.push(`<span class="bad">Đói: -${Math.round((1-SD.RULES.hungrySpeed[h])*100)}% tốc độ, -${Math.round((1-SD.RULES.hungryExp[h])*100)}% EXP</span>`);
   if(n.energy<20) bf.push('<span class="bad">Mệt: chậm hơn</span>'); if(n.clean<20) bf.push('<span class="bad">Bẩn: -15% EXP</span>');
@@ -1273,12 +1289,14 @@ const MINI_TW=[16,24,40,64,100,150]; let miniZ=2; try{ const z=+localStorage.get
 function miniZoom(d){ miniZ=Math.max(0,Math.min(MINI_TW.length-1,miniZ-d)); try{ localStorage.setItem('chande-minizoom',miniZ); }catch(e){}
   $('#miniIn').disabled=miniZ===0; $('#miniOut').disabled=miniZ===MINI_TW.length-1; }
 function buildMini(){ const m=S.map, c=A.cv(S.W,S.H), g=c.getContext('2d'); for(let y=0;y<S.H;y++) for(let x=0;x<S.W;x++){ g.fillStyle=MINI_COL[m.grid[y][x]]||'#3f7a31'; g.fillRect(x,y,1,1); } miniBase=c; }
+if(window.ResizeObserver) new ResizeObserver(()=>{ const h=$('#minimap').offsetHeight; if(h) document.documentElement.style.setProperty('--miniH',h+'px'); }).observe($('#minimap'));   // nút Tủ đồ/Xếp hạng luôn nằm ngay trên minimap dù minimap cao thêm
 function drawMini(){ const box=$('#minimap'); if(!S||(S.kind!=='retreat'&&S.kind!=='dalat')){ box.hidden=true; document.body.classList.add('nomini'); return; } box.hidden=false; document.body.classList.remove('nomini'); if(!miniBase) buildMini();
   const c=$('#miniCv'), g=c.getContext('2d'), TW=Math.min(MINI_TW[miniZ],S.W,S.H*c.width/c.height), TH=TW*c.height/c.width, k=c.width/TW, sx=Math.max(0,Math.min(S.W-TW,P.x/T-TW/2)), sy=Math.max(0,Math.min(S.H-TH,P.y/T-TH/2));
   g.imageSmoothingEnabled=false; g.drawImage(miniBase,sx,sy,TW,TH,0,0,c.width,c.height);
   const dot=(x,y,col,r=2)=>{ const X=(x/T-sx)*k, Y=(y/T-sy)*k; if(X<-3||Y<-3||X>c.width+3||Y>c.height+3) return; g.fillStyle='#1c1516'; g.fillRect(Math.round(X-r-1),Math.round(Y-r-1),r*2+2,r*2+2); g.fillStyle=col; g.fillRect(Math.round(X-r),Math.round(Y-r),r*2,r*2); };
   for(const n of npcs) dot(n.x,n.y,STORY[n.id]?'#ffd84a':'#f4f1ea');
-  for(const r of REM.values()) dot(r.x,r.y,'#7fe0ff',1);
+  for(const r of REM.values()){ const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X>=0&&Y>=0&&X<=c.width&&Y<=c.height){ dot(r.x,r.y,'#7fe0ff',2); continue; }   // người cùng map ngoài khung: tam giác ghim ở mép chỉ hướng
+    const cx=Math.max(4,Math.min(c.width-4,X)), cy=Math.max(4,Math.min(c.height-4,Y)), a=Math.atan2(Y-c.height/2,X-c.width/2); g.save(); g.translate(cx,cy); g.rotate(a); g.fillStyle='#1c1516'; g.beginPath(); g.moveTo(5,0); g.lineTo(-4,-4); g.lineTo(-4,4); g.closePath(); g.fill(); g.fillStyle='#7fe0ff'; g.beginPath(); g.moveTo(3,0); g.lineTo(-3,-2.5); g.lineTo(-3,2.5); g.closePath(); g.fill(); g.restore(); }
   for(const s of khogaHere()) dot(s.x*T,s.y*T,'#ff9f2e',1); if(S.kind==='retreat'&&MCKB) dot(MCKB.x*T,MCKB.y*T,'#c070ff',3);
   if(S.kind==='retreat'&&WDINO) dot(WDINO.x*T,WDINO.y*T,'#b6ff3a',2); if(S.kind==='retreat'&&WCROC&&!WCROC.dive) dot(WCROC.x*T,WCROC.y*T,'#3a6a2a',1);
   // người chơi ở gần (trong khung minimap): hiện tên nhỏ trên chấm
@@ -1288,7 +1306,12 @@ function drawMini(){ const box=$('#minimap'); if(!S||(S.kind!=='retreat'&&S.kind
   if(S.kind==='retreat'&&G.stay&&G.stay.paid===vn().day){ const [dx_,dy_]=SD.ROOMS[G.stay.room].doors[0]; let X=(dx_-sx)*k, Y=(dy_-sy)*k; const out=X<4||Y<4||X>c.width-4||Y>c.height-4;
     X=Math.max(5,Math.min(c.width-5,X)); Y=Math.max(5,Math.min(c.height-5,Y)); tick(g,X,Y,out); }
   if(Math.floor(clock*3)%3) dot(P.x,P.y,'#ff4a3d',2);
-  $('#miniZone').textContent=zoneName||S.map.name; }
+  $('#miniZone').textContent=zoneName||S.map.name; miniWho(); }
+// danh sách người ở map khác dưới minimap (hỏi server vài giây 1 lần)
+let WHO=[], whoAt=0, whoHtml='';
+function miniWho(){ const t=performance.now(); if(t-whoAt>6000){ whoAt=t; NET.req({t:'who'}).then(r=>{ WHO=r.list||[]; }).catch(()=>{}); }
+  const far=WHO.filter(w=>w.id!==NET.pid&&!REM.has(w.id)), html=far.length?far.slice(0,5).map(w=>`<div>• ${esc(w.n)} <span>${esc((w.where||'').split(' (')[0])}</span></div>`).join('')+(far.length>5?`<div>+${far.length-5} người nữa</div>`:''):'';
+  if(html!==whoHtml){ whoHtml=html; $('#miniWho').innerHTML=html; } }
 $('#minimap').addEventListener('click',()=>toggleMap());
 $('#miniIn').addEventListener('click',e=>{ e.stopPropagation(); miniZoom(1); }); $('#miniOut').addEventListener('click',e=>{ e.stopPropagation(); miniZoom(-1); });
 $('#miniCv').addEventListener('wheel',e=>{ e.preventDefault(); miniZoom(e.deltaY<0?1:-1); },{passive:false}); miniZoom(0);

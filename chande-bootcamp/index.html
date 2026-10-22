@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Chan City</title>
 <meta name="description" content="Chan City: game pixel online chơi cùng cả hội theo giờ Việt Nam thật. Ké Retreat, thị trấn Đà Bắc, nông trại Đà Lạt, DAS Sài Gòn.">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.png" sizes="64x64" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -59,6 +59,58 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 .meal.eaten{background:#2f6b3a;color:var(--cream)} .meal.now{border-color:var(--gold);color:var(--gold)} .meal.missed{background:#6b2a2a;color:var(--cream)}
 #hudBuffs{display:grid;gap:2px;font-size:16px;margin-top:3px;text-align:right} .bad{color:var(--red)} .good{color:var(--green)}
 #hudOnline{font-size:16px;color:var(--sky);text-align:right}
+/* ---------- điện thoại / máy tính bảng: cần điều khiển ảo + nút hành động, HUD gọn ---------- */
+#touchUI{display:none} body.touch.playing #touchUI{display:block}
+#joy{position:fixed;left:calc(18px + env(safe-area-inset-left));bottom:calc(18px + env(safe-area-inset-bottom));width:128px;height:128px;border-radius:50%;background:rgba(28,21,22,.38);border:3px solid rgba(255,243,214,.35);z-index:7;touch-action:none}
+#joyKnob{position:absolute;left:36px;top:36px;width:56px;height:56px;border-radius:50%;background:rgba(255,216,74,.75);border:3px solid #1c1516;box-shadow:0 3px 0 rgba(0,0,0,.35);pointer-events:none}
+#tbtns{position:fixed;right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,48px);gap:6px;z-index:7;touch-action:none}
+#tbtns button{width:48px;height:48px;font:22px var(--f);color:#fff3d6;background:rgba(28,21,22,.72);border:3px solid #1c1516;box-shadow:inset 0 0 0 2px rgba(255,243,214,.25);border-radius:12px;touch-action:none;user-select:none;-webkit-user-select:none}
+#tbtns button.big{grid-row:span 2;height:102px;font-size:34px;background:rgba(196,56,46,.85)} #tbtns button.on{transform:translateY(2px);filter:brightness(1.4)}
+#rotateHint{display:none;position:fixed;left:0;right:0;bottom:244px;animation:hintOut .6s 9s forwards;text-align:center;color:var(--gold);font-size:20px;z-index:8;pointer-events:none;text-shadow:2px 2px 0 #1c1516}
+@media (orientation:portrait){ body.touch.playing #rotateHint{display:block} } #rotateHint span{background:rgba(28,21,22,.8);padding:2px 10px;border:1px solid var(--line)} body.touch:not(.qmin) #rotateHint,body.touch.mstat #rotateHint{display:none!important} @keyframes hintOut{to{opacity:0;visibility:hidden}}
+body.touch #game,body.touch #ui{touch-action:none}
+body.touch #minimap,body.touch #hudNav,body.touch #btnSkills,body.touch #hudSkills,body.touch #chatHint{display:none!important}
+@media (max-height:540px),(max-width:760px){
+  #hudQuests{width:min(230px,34vw);font-size:14px;max-height:46vh;overflow:auto} #hudQuests li span{font-size:12px}
+  .hudTop .panel{font-size:14px;padding:2px 7px} .muteBtn .lbl{display:none}
+  #hudLvlBox,#hudNeeds{width:150px;font-size:13px;padding:2px 7px} .need{grid-template-columns:70px 1fr 22px;font-size:13px}
+  #hudItems{transform:scale(.82);transform-origin:bottom center} #toasts{top:auto;bottom:150px;width:min(300px,46vw)} .toast{font-size:14px}
+  #panel{max-height:92vh} #keyHint{bottom:70px;font-size:15px;gap:8px;padding:4px 10px}
+}
+/* cảm ứng: HUD gọn để không đè lên cần điều khiển và cụm nút */
+body.touch #hudQuests{width:min(220px,32vw);max-height:40vh;padding:4px 8px;left:calc(8px + env(safe-area-inset-left));top:8px}
+body.touch #hudQuests h4{font-size:17px} body.touch #hudQuests li{font-size:14px} body.touch #hudQuests li span{font-size:12px} body.touch .qgo{font-size:13px}
+body.touch #hudRight{right:calc(8px + env(safe-area-inset-right));top:8px;gap:4px}
+body.touch #hudLvlBox,body.touch #hudNeeds{width:144px;font-size:13px;padding:2px 7px} body.touch #hudMeals{display:none} body.touch #hudBuffs{font-size:12px;max-width:144px}
+body.touch #tbtns{grid-template-columns:repeat(4,42px) 60px;gap:5px;right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}
+body.touch #tbtns button{width:42px;height:42px;font-size:19px;border-radius:10px} body.touch #tbtns button.big{grid-column:5;grid-row:1/3;width:60px;height:89px;font-size:30px}
+body.touch #joy{width:116px;height:116px;left:calc(14px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom))} body.touch #joyKnob{left:30px;top:30px}
+body.touch #hudBottom{left:calc(144px + env(safe-area-inset-left));transform:none;bottom:calc(8px + env(safe-area-inset-bottom));max-width:calc(100vw - 410px);justify-items:start;overflow:hidden}
+body.touch #hudItems{transform:none;gap:3px;padding:3px} body.touch .slot{width:36px;height:36px} body.touch .slot img{width:32px;height:32px} body.touch .slot i{font-size:14px} body.touch #hudItems .slot:nth-child(n+7):not(.more){display:none}
+body.touch #chatBox{left:calc(144px + env(safe-area-inset-left));bottom:58px;width:min(280px,34vw)}
+body.touch #prompt{bottom:64px;font-size:17px} body.touch #keyHint{bottom:104px;font-size:14px}
+body.touch #panel .mcol{grid-template-columns:1fr 1fr}
+body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{bottom:8px;width:calc(100vw - 24px);padding:6px 10px;gap:8px;cursor:pointer} body.touch #dlgPortrait{width:60px;height:60px} body.touch #dlgText{font-size:18px;min-height:40px} body.touch #dlgName{font-size:18px} body.touch .choice{font-size:18px;padding:4px 14px}
+#mStat{display:none}
+body.touch #mStat{display:flex;align-items:center;gap:6px;padding:2px 8px;font:15px var(--f);color:var(--cream);pointer-events:auto;cursor:pointer}
+#mStat .mbars{display:flex;gap:2px;height:16px} #mStat .mbars i{width:6px;height:16px;background:#1c1516;border:1px solid #0c0a10;position:relative;display:block} #mStat .mbars b{position:absolute;left:0;right:0;bottom:0;height:100%}
+#mbE{background:#ffd84a} #mbC{background:#7fe0ff} #mbB{background:#7de07a} #mStat b.low{background:var(--red)!important} #mStat .mcar{color:var(--muted);font-size:13px} body.mstat #mStat .mcar{transform:rotate(180deg)}
+#mStat.warn{border-color:var(--red);animation:keyPulse .8s steps(2) infinite}
+body.touch .hudTop>.muteBtn,body.touch #hudPlayers{display:none}
+body.touch:not(.mstat) #hudLvlBox,body.touch:not(.mstat) #hudNeeds{display:none} body.touch.mstat #hudLvlBox,body.touch.mstat #hudNeeds{width:210px;font-size:14px}
+body.touch #hudQuests h4{pointer-events:auto;cursor:pointer} body.touch.qmin #hudQuests .fhead,body.touch.qmin #hudQuests .flist{display:none} body.touch.qmin #hudQuests{width:auto;padding:3px 8px}
+body.touch:not(.qmin) #hudQuests{width:min(300px,calc(100vw - 340px));max-height:calc(100vh - 156px);z-index:6}
+body.touch #hudDay{display:none} body.touch #hudTime{font-size:20px} body.touch #hudMoneyBox{font-size:18px}
+body.touch:not(.qmin) #toasts{left:auto;right:calc(8px + env(safe-area-inset-right));transform:none;top:56px;justify-items:end;width:min(280px,calc(100vw - 364px))} body.touch.mstat #toasts{left:calc(8px + env(safe-area-inset-left));transform:none;top:52px;justify-items:start;width:min(280px,calc(100vw - 250px))} body.touch:not(.qmin) #keyHint,body.touch.mstat #keyHint{display:none!important}
+@media (max-width:720px){ body.touch #hudItems .slot:nth-child(n+6):not(.more){display:none} }
+@media (max-width:660px){ body.touch #hudItems .slot:nth-child(n+5):not(.more){display:none} }
+/* cửa sổ máy tính thấp/hẹp: nút phụ vào menu Esc, minimap nhỏ lại, chat lên trên thanh đồ */
+@media (max-height:620px){ body:not(.touch) #hudNav{display:none!important} }
+@media (max-height:540px){ body:not(.touch) #miniCv{width:120px;height:84px} body:not(.touch) #miniWho,body:not(.touch) #miniZoom{display:none} body:not(.touch) #miniZone{max-width:120px;font-size:14px} #hudMeals{display:none} }
+@media (max-width:900px){ body:not(.touch) #chatHint,body:not(.touch) #btnSkills{display:none} body:not(.touch) #chatBox{bottom:84px} }
+body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;bottom:auto;justify-items:center;width:min(280px,38vw)}
+@media (orientation:portrait){ body.touch #hudQuests{top:62px;width:min(200px,44vw)} body.touch:not(.qmin) #hudQuests{width:calc(100vw - 16px);max-height:calc(100vh - 420px)} body.touch.mstat #hudQuests{display:none} body.touch #tbtns{grid-template-columns:repeat(4,38px) 54px;gap:4px} body.touch #tbtns button{width:38px;height:38px;font-size:17px} body.touch #tbtns button.big{width:54px;height:80px} body.touch #joy{width:108px;height:108px} body.touch #joyKnob{left:26px;top:26px} body.touch:not(.qmin) #toasts{left:50%;right:auto;transform:translateX(-50%);top:auto;bottom:284px;justify-items:center;width:min(300px,80vw)} body.touch.mstat #toasts{top:240px;left:50%;transform:translateX(-50%);justify-items:center;width:min(300px,80vw)} body.touch #toasts{top:108px;width:min(300px,80vw)} body.touch #hudBottom{left:8px;bottom:150px;max-width:calc(100vw - 16px)} body.touch #chatBox{left:8px;bottom:200px;width:70vw} body.touch #prompt{bottom:200px} body.touch #keyHint{bottom:240px} body.touch #hudItems .slot:nth-child(n+7):not(.more){display:grid} body.touch #hudItems .slot:nth-child(n+9):not(.more){display:none} }
+
 #hudBottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);gap:6px;justify-items:center;max-width:calc(100vw - 420px);display:none}
 #hudItems{display:flex;gap:4px;padding:5px}
 .slot{width:46px;height:46px;background:var(--panel2);border:2px solid var(--line);position:relative;display:grid;place-items:center;font:15px/1 var(--f);color:var(--cream)}
@@ -67,7 +119,7 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #hudSkills{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:96vw}
 .sk{display:flex;gap:5px;align-items:center;padding:2px 7px;background:var(--panel);border:2px solid var(--line);font-size:17px} .sk.learned{color:var(--muted);font-size:16px}
 #minimap{position:fixed;right:12px;bottom:12px;padding:4px;cursor:pointer;display:grid;gap:2px}
-#hudNav{position:fixed;right:12px;bottom:160px;z-index:2;flex-direction:column;align-items:stretch} #hudNav .muteBtn{justify-content:space-between} body.nomini #hudNav{bottom:12px}   /* nút Xếp hạng / Về phòng / Vườn & chuồng ngay trên minimap */
+#hudNav{position:fixed;right:12px;bottom:calc(var(--miniH,140px) + 20px);z-index:2;flex-direction:column;align-items:stretch} #hudNav .muteBtn{justify-content:space-between} body.nomini #hudNav{bottom:12px}   /* nút Xếp hạng / Về phòng / Vườn & chuồng ngay trên minimap */
 #miniCv{display:block;width:160px;height:112px;image-rendering:pixelated;border:1px solid var(--ink)}
 #hudNeedsAct{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px} #hudNeedsAct:empty{display:none}
 .needGo{font:16px/1.1 var(--f);padding:2px 7px;background:#6b2a2a;color:#fff3d6;border:2px solid #1c1516;cursor:var(--cur-hand),pointer} .needGo:hover{background:#8a3a34} .needGo.crit{background:#a8322a;animation:keyPulse .6s steps(2) infinite}
@@ -79,8 +131,9 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #miniZoom{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:2px}
 #miniZoom button{width:20px;height:20px;padding:0;font:18px/1 VT323,monospace;color:var(--gold);background:rgba(28,21,22,.82);border:1px solid var(--ink);cursor:var(--cur-hand),pointer}
 #miniZoom button:hover:not(:disabled){background:#3a2e30;color:#fff3d6} #miniZoom button:disabled{opacity:.35;cursor:default}
+#miniWho{font-size:14px;color:#c9d8e6;max-width:160px;line-height:1.15} #miniWho:empty{display:none} #miniWho div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #miniWho span{color:#7fe0ff}
 #miniZone{font-size:17px;color:var(--gold);text-align:center;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#chatBox{position:fixed;left:12px;bottom:12px;width:min(360px,40vw);display:grid;gap:4px;pointer-events:none}
+#chatBox{position:fixed;left:12px;bottom:12px;width:min(360px,40vw,calc(50vw - 250px));display:grid;gap:4px;pointer-events:none}
 #chatLog div{font-size:18px;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink);transition:opacity 1s} #chatLog div.old{opacity:0} #chatLog b{font-weight:400;color:var(--gold)}
 #btnSkills{pointer-events:auto;justify-self:start} body:not(.skills) #hudSkills{display:none}
 #chatIn{pointer-events:auto;font:20px var(--f);background:var(--panel2);color:var(--cream);border:2px solid var(--gold);padding:4px 8px}
@@ -93,11 +146,11 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #bigtext.show{animation:big 2.2s forwards}
 @keyframes big{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
 .toast .learnGo{pointer-events:auto;margin-top:4px;font:16px var(--f);padding:2px 8px;background:#2a5aa8;color:#fff3d6;border:2px solid #1c1516;cursor:var(--cur-hand),pointer} .toast .learnGo:hover{background:#3a6ad0}
-#toasts{position:fixed;right:12px;top:300px;display:grid;gap:6px;justify-items:end;width:min(380px,50vw);z-index:6;pointer-events:none}
+#toasts{position:fixed;left:50%;top:64px;transform:translateX(-50%);display:grid;gap:6px;justify-items:center;width:clamp(220px,calc(100vw - 680px),380px);z-index:6;pointer-events:none}
 .toast{background:var(--panel2);border:2px solid var(--line);box-shadow:0 0 0 2px var(--ink);padding:4px 12px;font-size:19px;animation:tin .25s;transition:opacity .5s,transform .5s}
-.toast.out{opacity:0;transform:translateX(30px)}
+.toast.out{opacity:0;transform:translateY(-10px)}
 .toast b{font-weight:400;color:var(--gold)} .toast.exp b{color:var(--green)} .toast.skill{border-color:#a259ff} .toast.skill b{color:#d6b4ff} .toast.lock{border-color:#8c3a3a} .toast.quest b{color:var(--sky)}
-@keyframes tin{from{opacity:0;transform:translateX(30px)}}
+@keyframes tin{0%{opacity:0;transform:translateY(-12px) scale(.96)}60%{opacity:1;transform:translateY(2px) scale(1.02)}100%{transform:none}}
 #dialog{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(820px,94vw);display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 14px;z-index:5}
 #dlgPortrait{width:84px;height:84px;image-rendering:pixelated;border:2px solid var(--line);background:#f3ecdc}
 #dlgName{color:var(--gold);font-size:22px} #dlgText{font-size:23px;min-height:56px;margin-top:2px}
@@ -297,7 +350,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 
 <div id="hudQuests" class="panel hud"></div>
 <div id="hudRight">
-  <div class="hudTop"><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
+  <div class="hudTop"><button id="mStat" class="panel" type="button" aria-label="Xem cấp độ và chỉ số"><span id="mLv">Cấp 1</span><span class="mbars" aria-hidden="true"><i><b id="mbE"></b></i><i><b id="mbC"></b></i><i><b id="mbB"></b></i></span><span class="mcar">▾</span></button><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
   <button id="hudPlayers" class="panel" type="button" title="Ai đang online · bấm xem danh sách"><span class="dot" aria-hidden="true"></span><span id="hudPlayersN">1</span> online</button>
   <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
   <div id="hudMoneyBox" class="panel"><span id="hudMoney">0đ</span></div></div>
@@ -312,8 +365,12 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
   <div id="hudNav" class="hudTop"><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
+<div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
+  <div id="tbtns"><button type="button" data-k="e" class="big" aria-label="Tương tác">E</button><button type="button" data-k=" " aria-label="Lướt / đánh">⚡</button><button type="button" data-k="j" aria-label="Đấm">👊</button>
+    <button type="button" data-k="h" aria-label="Lên xuống xe, ngựa">🛵</button><button type="button" data-k="i" aria-label="Túi đồ">🎒</button><button type="button" data-k="m" aria-label="Bản đồ">🗺</button><button type="button" data-k="g" aria-label="Gọi Grab">🚕</button><button type="button" data-k="escape" aria-label="Menu">☰</button></div>
+  <div id="rotateHint"><span>↻ Xoay ngang để thấy rộng hơn</span></div></div>
 <div id="hudBottom"><div id="hudItems" class="panel"></div><div id="hudSkills"></div></div>
-<div id="minimap" class="panel" hidden title="Bấm để mở bản đồ (M) · lăn chuột để zoom"><canvas id="miniCv" width="160" height="112"></canvas><div id="miniZoom"><button id="miniIn" title="Phóng to minimap" aria-label="Phóng to minimap">+</button><button id="miniOut" title="Thu nhỏ minimap" aria-label="Thu nhỏ minimap">−</button></div><div id="miniZone"></div></div>
+<div id="minimap" class="panel" hidden title="Bấm để mở bản đồ (M) · lăn chuột để zoom"><canvas id="miniCv" width="160" height="112"></canvas><div id="miniZoom"><button id="miniIn" title="Phóng to minimap" aria-label="Phóng to minimap">+</button><button id="miniOut" title="Thu nhỏ minimap" aria-label="Thu nhỏ minimap">−</button></div><div id="miniZone"></div><div id="miniWho"></div></div>
 <div id="chatBox" class="hud"><div id="chatLog"></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><input id="chatIn" maxlength="120" placeholder="Nói gì đó... (Enter gửi, Esc huỷ)" hidden aria-label="Chat"><div id="chatHint"><kbd>Enter</kbd> chat · <kbd>G</kbd> Grab · <kbd>Esc</kbd> menu</div></div>
 <div id="prompt" class="panel" hidden><kbd>E</kbd> <span id="promptLabel">Nói chuyện</span></div>
 <div id="banner" class="panel"></div>
