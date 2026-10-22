@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23i',title:'23/10 (cường hoá)',items:['Cường hoá mạnh gấp 3: mỗi cấp vũ khí +7,5% công, giáp / set +6% máu và thủ, phụ kiện, giày cũng ×3 (tỉ lệ thành công giữ nguyên)','Ngọc Cường Hoá 1.000.000đ/viên, mua gói 5 viên chỉ 4.700.000đ','Báo kết quả cường hoá to giữa màn hình: thành công / thất bại nhìn thấy ngay']},
   {v:'2026-10-23h',title:'23/10 (quà + sửa lỗi)',items:['Quà toàn dân: mỗi người được tặng 1 Ngọc Ước Nguyện (vào game là nhận, xem trong túi đồ)','Sửa lỗi bảng Phù Thuỷ Cường Hoá trống trơn khi trong túi có vũ khí rơi từ boss','Sửa lỗi màn hình game có lúc bị trắng xoá (chỉ còn giao diện)']},
   {v:'2026-10-23g',title:'23/10 (chỉnh)',items:['Quái rừng MU ra lại sau 30 giây (hạ xong 30 giây là con mới xuất hiện ở ổ cũ)']},
   {v:'2026-10-23f',title:'23/10 (bổ sung)',items:['Quái rừng MU ra lại nhanh hơn: hạ xong 12 giây là con mới xuất hiện ở ổ cũ']},

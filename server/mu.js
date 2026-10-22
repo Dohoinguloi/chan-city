@@ -145,7 +145,7 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     return {msg:op==='buy'?`Đã mua và mặc Set Legacy ${L.name}! Lực chiến tăng, đòn đánh có hiệu ứng riêng`:k?`Đã mặc ${L.name}`:'Đã mặc lại giáp class',look:p.look}; }
   // Phù Thuỷ Cường Hoá: khắc lỗ cường hoá cho 1 món đồ (1 ngọc + phí; legend = dùng Ngọc Huyền Thoại 80%), mua ngọc, nhận quà Lính Cát huyền thoại
   if(op==='enh'||op==='enhbuy'||op==='enhgift'){ if(!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const E=S.ENH;
-    if(op==='enhbuy'){ const n=Math.max(1,Math.min(20,m.n|0)); if(!shopPay(pl,E.gemPrice*n)) return {err:`${n} ngọc giá ${fmt(E.gemPrice*n)}`}; addItem(pl,'ngoc_ch',n); markDirty(pl); return {msg:`Mua ${n} Ngọc Cường Hoá`}; }
+    if(op==='enhbuy'){ const n=Math.max(1,Math.min(20,m.n|0)), cost=S.gemCost(n); if(!shopPay(pl,cost)) return {err:`${n} ngọc giá ${fmt(cost)}`}; addItem(pl,'ngoc_ch',n); markDirty(pl); return {msg:`Mua ${n} Ngọc Cường Hoá`}; }
     if(op==='enhgift'){ const lc=p.lc||{}, got=p.flags.enhGift=p.flags.enhGift||{}, sp=[...new Set([...(lc.party||[]),...(lc.box||[])].map(x=>x.sp).filter(s=>S.LC_SPECIES[s]&&S.LC_SPECIES[s].legend&&!got[s]))];
       if(!sp.length) return {err:'Chưa có Lính Cát huyền thoại mới (mỗi loài huyền thoại tặng 1 viên)'}; for(const s of sp) got[s]=1; addItem(pl,'ngoc_ch_ht',sp.length); markDirty(pl);
       return {msg:`${sp.map(s=>S.LC_SPECIES[s].name).join(', ')} tặng bạn ${sp.length} Ngọc Cường Hoá Huyền Thoại (80% thành công)!`}; }

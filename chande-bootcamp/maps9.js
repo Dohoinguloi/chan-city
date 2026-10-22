@@ -100,17 +100,24 @@ UI.defPlace('muenchant',()=>UI.open('Phù Thuỷ Cường Hoá',()=>{ const g=G(
   const mats=Object.keys(M.matPrice).filter(k=>it[k]), sum=mats.reduce((a,k)=>a+it[k]*M.matPrice[k],0);
   return `<p>"Mỗi món đồ khắc được <b>${E.max} lỗ</b> cường hoá, mỗi lỗ tăng chỉ số. Lỗ càng sâu càng khó: lỗ đầu chắc chắn thành, lỗ cuối chỉ ${Math.round(E.rate[E.max-1]*100)}%. Thất bại thì mất ngọc, đồ không sao."</p>
   <div class="enbar"><span><img src="${GAME.icon64('ngoc_ch')}" width="28" height="28" alt=""> Ngọc Cường Hoá: <b>${n}</b></span><span><img src="${GAME.icon64('ngoc_ch_ht')}" width="28" height="28" alt=""> Ngọc Huyền Thoại (${Math.round(E.legendRate*100)}%): <b>${nh}</b></span>
-    <span>${btn('enhbuy','Mua 1 ngọc · '+SD.fmt(E.gemPrice),{n:1})}${btn('enhbuy','Mua 5 · '+SD.fmt(E.gemPrice*5),{n:5})}${btn('enhgift','🎁 Quà Lính Cát huyền thoại',{})}</span></div>
+    <span>${btn('enhbuy','Mua 1 ngọc · '+SD.fmt(SD.gemCost(1)),{n:1})}${btn('enhbuy',`Mua 5 · ${SD.fmt(SD.gemCost(5))} <small>(tiết kiệm ${SD.fmt(SD.gemCost(1)*5-SD.gemCost(5))})</small>`,{n:5},'pri')}${btn('enhgift','🎁 Quà Lính Cát huyền thoại',{})}</span></div>
   <p class="muted">Lính Cát đầu đội cấp càng cao càng cộng tỉ lệ (cấp × ${(E.lcPer*100).toFixed(1)}%, tối đa +${Math.round(E.lcMax*100)}%): đang cộng <b class="good">+${(lb*100).toFixed(1)}%</b>. Ngọc rơi từ boss, quái rừng phía Nam, nhiệm vụ ẩn, vớt dưới hồ Ké.</p>
   <div class="enlist">${enhItems().map(x=>{ const L=enh[x.k]||0, max=L>=E.max, rate=max?0:Math.min(.99,E.rate[L]+lb), per=L&&bonusTxt(Object.fromEntries(Object.entries(E.per[SD.enhKind(x.k)]||{}).map(([s,v])=>[s,v*L])));
     return `<div class="enrow ${x.on?'on':''}"><img src="${imgOf(x.k,x.kind)}" width="48" height="48" alt=""><div class="enmid"><b>${esc(x.name)} ${L?`<span class="enlv">+${L}</span>`:''}${x.on?' <small class="good">đang dùng</small>':''}</b>${holes(L)}
       <small>${max?'<span class="good">Đã khắc đủ 12 lỗ!</span>':`Lỗ ${L+1}: <b>${Math.round(rate*100)}%</b> · phí ${SD.fmt(E.fee(L))}`}${per?` · đang cộng ${per}`:''}</small></div>
       <div class="enbtn">${max?'':btn('enh','Khắc',{k:x.k},'pri')+(nh?btn('enh','Ngọc HT',{k:x.k,legend:1}):'')}</div></div>`; }).join('')||'<p class="muted">Chưa có đồ nào để cường hoá.</p>'}</div>
   <h5>Thu mua chiến lợi phẩm rừng</h5>${mats.length?`<p>${mats.map(k=>`${esc(SD.ITEMS[k].name)} ×${it[k]} (${SD.fmt(M.matPrice[k])})`).join(' · ')}</p>${btn('mobsell',`Bán tất cả · ${SD.fmt(sum)}`,{},'pri')}`:'<p class="muted">Xuống rừng quái phía Nam đánh quái lấy chiến lợi phẩm rồi mang về đây bán.</p>'}`; },{wide:true}));
+// thẻ kết quả cường hoá: to giữa màn hình, nằm trên cả bảng (thành công: xanh băng + "+N" lớn, lỗ mới sáng lên; thất bại: đỏ, rung); bấm để tắt, tự ẩn sau 2,8 giây
+function enhResult(r,k){ let el=document.getElementById('enhRes'); if(!el){ el=document.createElement('div'); el.id='enhRes'; el.onclick=()=>{ el.hidden=true; }; document.body.appendChild(el); }
+  const name=(M.weapons[k]||M.legacy[k]||M.acc[k]||SD.CLOTHES[k]||{}).name||k, L=r.lv|0, pct=Math.round((r.rate||0)*100);
+  el.className=r.ok?'ok':'fail'; el.innerHTML=r.ok?`<small>✨ CƯỜNG HOÁ THÀNH CÔNG ✨</small><b>+${L}</b><span>${esc(name)}</span>${holes(L)}<em>tỉ lệ ${pct}% · ${L>=E.max?'đã khắc đủ 12 lỗ!':`lỗ ${L+1}: ${Math.round(Math.min(.99,E.rate[L]+lcBonus())*100)}%`}</em>`
+    :`<small>💥 CƯỜNG HOÁ THẤT BẠI 💥</small><b>×</b><span>${esc(name)} vẫn +${L}</span>${holes(L)}<em>mất 1 ngọc · tỉ lệ lần này ${pct}%</em>`;
+  const last=el.querySelectorAll('.enholes i')[L-1]; if(r.ok&&last) last.classList.add('new');
+  el.hidden=false; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; clearTimeout(el._t); el._t=setTimeout(()=>{ el.hidden=true; },2800); }
 UI.onAct('enh',async d=>{ const r=await GAME.act({t:'mu',op:'enh',k:d.k,legend:d.legend?1:0}); if(!r||r.err) return; const FX=U(), P=GAME.P;
-  if(r.ok){ GAME.sfx('level_up',.8); GAME.bigText(`+${r.lv} THÀNH CÔNG!`); if(FX){ FX.burst(P.x,P.y-20,40,{col:['#7fe8ff','#ffffff','#ffd84a'],kind:'star',sp:[40,140],life:[.6,1.2]}); FX.ring(P.x,P.y,6,46,.7,'#7fe8ff',3); } }
-  else { GAME.sfx('poof',.6); if(FX) FX.burst(P.x,P.y-20,16,{col:FX.C_SMOKE,kind:'smoke',sp:[10,30],life:[.5,.9],size:[3,5],add:false,up:20}); }
-  toast(esc(r.msg),r.ok?'item':'lock'); UI.refresh(); });
+  if(r.ok){ GAME.sfx('level_up',.9); if(FX){ FX.burst(P.x,P.y-20,40,{col:['#7fe8ff','#ffffff','#ffd84a'],kind:'star',sp:[40,140],life:[.6,1.2]}); FX.ring(P.x,P.y,6,46,.7,'#7fe8ff',3); FX.shake(3,.2); } }
+  else { GAME.sfx('poof',.8); if(FX){ FX.burst(P.x,P.y-20,16,{col:FX.C_SMOKE,kind:'smoke',sp:[10,30],life:[.5,.9],size:[3,5],add:false,up:20}); FX.shake(5,.3); } }
+  enhResult(r,d.k); UI.refresh(); });
 UI.onAct('enhbuy',async d=>{ const r=await GAME.act({t:'mu',op:'enhbuy',n:+d.n||1}); if(r&&!r.err){ GAME.sfx('coin',.5); toast(esc(r.msg),'item'); } UI.refresh(); });
 UI.onAct('enhgift',async()=>{ const r=await GAME.act({t:'mu',op:'enhgift'}); if(r&&!r.err){ GAME.sfx('level_up',.7); toast(esc(r.msg),'item'); } UI.refresh(); });
 UI.onAct('mobsell',async()=>{ const r=await GAME.act({t:'mobsell'}); if(r&&!r.err){ GAME.sfx('coin',.6); toast(esc(r.msg),'vnd'); } UI.refresh(); });
