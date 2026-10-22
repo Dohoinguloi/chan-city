@@ -10,7 +10,7 @@ function draw(){ if(!cur) return; const a=document.activeElement, keep=a&&inner.
   if(keep){ const b=document.getElementById(keep.id); if(b){ if(b.type!=='range'||(+keep.v>=+b.min&&+keep.v<=+b.max)) b.value=keep.v; b.focus(); try{ if(keep.s!=null) b.setSelectionRange(keep.s,keep.s); }catch(e){} if(b.id==='raiseTo'){ const l=document.getElementById('raiseLbl'); if(l) l.textContent=fmt(+b.value); } } } }
 UI.refresh=()=>{ if(cur&&!cur.o.static) draw(); };
 // mọi thẻ trong cửa sổ đều có ảnh thumbnail: thẻ có icon thì đóng khung nền màu; thẻ chưa có thì chọn ảnh theo nội dung
-const TH_KEYS=[[/khô gà/,'khoga'],[/bí ngô/,'pumpkin'],[/phở/,'pho'],[/cà phê|cafe/,'cafe'],[/đồ cổ|bình gốm|báu vật/,'tr_binh_gom'],[/rương/,'tr_ruong_bau'],[/bướm/,'buom_la_xanh'],[/vợt/,'net'],
+const TH_KEYS=[[/sting|tăng lực/,'sting'],[/\bmì\b/,'migoi'],[/khô gà/,'khoga'],[/bí ngô/,'pumpkin'],[/phở/,'pho'],[/cà phê|cafe/,'cafe'],[/đồ cổ|bình gốm|báu vật/,'tr_binh_gom'],[/rương/,'tr_ruong_bau'],[/bướm/,'buom_la_xanh'],[/vợt/,'net'],
   [/trứng/,'egg'],[/thóc|cám|cỏ khô|thức ăn/,'feed'],[/gà/,'chicken'],[/tôm/,'shrimp'],[/lợn|heo/,'pig'],[/bò|sữa/,'milk'],[/kayak|phao|chèo|thuyền/,'fish2'],[/cá/,'fish'],[/nấm/,'mushroom'],[/măng/,'shoot'],
   [/hoa/,'flower'],[/lá|bể bơi/,'leaf'],[/rau/,'greens'],[/hạt|giống/,'seed'],[/cây|đất|vườn|trồng/,'sapling'],[/thùng|giao hàng|ship/,'crate'],[/nấu|cỗ|món|bánh|bún|cơm|ăn/,'dish'],[/ảnh|chụp|check-in/,'photo'],
   [/kính/,'sunglasses'],[/dây chuyền/,'chain'],[/mũ|nón/,'hat'],[/vòng|nhẫn/,'bracelet'],[/củi|lửa/,'wood'],[/loa|nhạc/,'speaker'],[/cúp|giải|thắng/,'cup'],[/wireframe|thiết kế|design|logo|vẽ/,'paper'],[/sim|gói|data|cáp|số/,'photo'],[/đ\b|tiền|giá/,'coin']];
@@ -491,10 +491,21 @@ UI.lumen=()=>open('Lumen Studio · bàn làm việc',()=>lumenHtml(false));
 PLACE.lumen=()=>open('Lumen Studio · Annie',()=>{ const L=SD.LUMEN, g=G(), lm=g.lumen||{}, sc=lm.scholar, certs=((g.das||{}).certs||[]).length, ready=certs>=L.needCerts&&g.level>=L.level;
   const intro=`<p>Annie: "Chào bạn! Lumen là studio thiết kế, làm remote thoải mái. Bên mình nhận người có từ <b>${L.needCerts} chứng chỉ DAS</b> và cấp ${L.level} trở lên, bù lại kinh nghiệm ở đây <b>gấp ${L.expMul} lần</b>."</p>`,
     perks='<p class="muted">Phòng nghỉ trưa (+năng lượng) và máy cà phê ở pantry dùng được 1 lần/ngày.</p>';
-  if(lm.hired) return intro+lumenHtml(false)+btn('lumenquit','Nghỉ làm ở Lumen')+perks;
+  if(lm.hired) return intro+askHtml(g)+lumenHtml(false)+btn('lumenquit','Nghỉ làm ở Lumen')+perks;
   const schol=!sc?`<h5>Học bổng Lumen</h5><p>Annie: "Chưa đủ chứng chỉ thì để Lumen tài trợ: bay vào DAS (TP.HCM) học đủ ${L.needCerts} chứng chỉ, <b>${L.scholar.free} khoá đầu miễn phí</b>, <b>${L.scholar.half} khoá sau giảm 50%</b>. Học xong quay lại đây nhận việc, có thưởng ${L.scholar.reward.exp} EXP + ${fmt(L.scholar.reward.vnd)}."</p>${btn('lumenscholar','Nhận học bổng, đi học ở DAS',{},'pri')}`
     :`<h5>Học bổng Lumen</h5><p>Đã có <b>${certs}/${L.needCerts}</b> chứng chỉ DAS · còn ${sc.free} suất miễn phí, ${sc.half} suất giảm 50% khi đăng ký khoá ở DAS.</p>`;
-  return intro+`<p class="muted">Bạn: cấp ${g.level} · ${certs}/${L.needCerts} chứng chỉ DAS</p>`+(ready?btn('lumenapply',sc?'Báo cáo đủ chứng chỉ, nhận việc':'Ứng tuyển vào Lumen',{},'pri'):'')+(ready&&!sc?'':schol)+perks; });
+  return intro+askHtml(g)+`<p class="muted">Bạn: cấp ${g.level} · ${certs}/${L.needCerts} chứng chỉ DAS</p>`+(ready?btn('lumenapply',sc?'Báo cáo đủ chứng chỉ, nhận việc':'Ứng tuyển vào Lumen',{},'pri'):'')+(ready&&!sc?'':schol)+perks; });
+// Leno xin tiền chị Annie: phải làm 1 việc vặt chị giao trước
+function askHtml(g){ if(!(g.flags&&g.flags.annieAsk)) return ''; const A=SD.LUMEN.annieAsk, a=g.daily.annie||{}, j=a.job&&A.jobs[a.job];
+  return `<h5>💸 Xin tiền chị Annie</h5>`+(a.paid?'<p class="muted">Hôm nay chị Annie cho tiền rồi, mai quay lại nhé.</p>'
+    :!j?`<p>Hết tiền thì về đây xin chị Annie (mỗi ngày 1 lần, ${fmt(A.pay[0])} tới ${fmt(A.pay[1])}). Có điều chị sẽ bắt làm thêm 1 việc đã.</p>${btn('annieask','💸 Xin tiền chị Annie',{},'pri')}`
+    :a.done?`<p>Xong việc "<b>${esc(j.name)}</b>" rồi, chị Annie gật gù.</p>${btn('anniepay','Nhận tiền chị Annie',{},'pri')}`
+    :`<p>Việc chị giao: <b>${esc(j.name)}</b> (${j.dur} giây ở ${esc(j.where)}). Làm xong quay lại đây nhận tiền.</p>${btn('anniego','➜ Đi làm ngay',{},'pri')}`); }
+ACT.annieask=async()=>{ const r=await req({t:'lumen',op:'ask'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); UI.refresh(); };
+ACT.anniego=()=>{ const L=SD.LUMEN, a=G().daily.annie||{}, j=L.annieAsk.jobs[a.job], P=GAME.P; if(!j) return; UI.closeAll();
+  const [x,y]=j.at==='desk'?L.desks.slice().sort((u,v)=>Math.hypot(u[0]*16-P.x,u[1]*16-P.y)-Math.hypot(v[0]*16-P.x,v[1]*16-P.y))[0]:[L[j.at].x,L[j.at].y];
+  GAME.walkTo(x,y,j.name,()=>GAME.act({t:'lumen',op:'askdo'})); };
+ACT.anniepay=async()=>{ const r=await req({t:'lumen',op:'askpay'}); if(!r.err){ GAME.sfx('item_pickup',.6); GAME.toast(esc(r.msg),'item'); } UI.refresh(); };
 ACT.lumenscholar=async()=>{ const r=await req({t:'lumen',op:'scholar'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
 ACT.lumenapply=async()=>{ const r=await req({t:'lumen',op:'apply'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
 ACT.lumenquit=async()=>{ const r=await req({t:'lumen',op:'quit'}); if(!r.err) GAME.toast(esc(r.msg),'item'); };
@@ -584,6 +595,24 @@ let tcJoke=-1;
 PLACE.truongcon=()=>open('Ông Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé! Mới Trường Con là như vậy!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Ông Trường Con kể chuyện',{},'pri')}${qRow('tc_luocga')}${qRow('tc_raubun')}${qRow('tc_antruc')}${qRow('tc_clip')}
   <p class="muted">Xong việc thì mỗi ngày vẫn quay được 1 clip cùng Trường Con ở đèn vòng (+${SD.MIEU.clip.exp} EXP).</p>`; });
 ACT.tcjoke=()=>{ const J=SD.MIEU.jokes; let k; do{ k=Math.floor(Math.random()*J.length); }while(J.length>1&&k===tcJoke); tcJoke=k; GAME.sayLine(J[k],.7,'vi'); UI.refresh(); };
+// Group Nghiện Motion
+const TR_SAY=['Keyframe ít thôi, quan trọng là timing. Chuyển động đẹp nằm ở graph editor!','Ease in ease out không phải để trang trí. Vật nào cũng có khối lượng của nó.','Render lỗi không sao, mất file project mới đáng sợ. Save, save, save!','Motion đẹp là motion có chủ đích. Mỗi khung hình phải kể được câu chuyện.','Làm xong vào xông hơi 15 phút là đầu óc thông suốt, ý tưởng tự đến.'];
+let trSay=0;
+PLACE.trong=()=>open('☯ Giáo chủ Trọng Motion',()=>{ const g=G(), N=SD.NMOTION, dis=g.flags&&g.flags.nmDisciple, dk=g.daily.nmdesk||0;
+  return `<p>"${esc(TR_SAY[trSay])}"</p>${dis?'<p class="good">☯ Bạn là <b>đệ tử chính thức</b> của Group Nghiện Motion.</p>':''}${btn('trsay','🎬 Nghe Giáo chủ giảng đạo',{},'')}
+  ${qRow('nm_ball')}${qRow('nm_easing')}${qRow('nm_logo')}${qRow('nm_reel')}
+  <p class="muted">Ngồi bàn làm motion cho khách: ${dk}/3 clip hôm nay (mỗi clip +60.000đ). Phòng xông hơi chung (góc dưới phải): +${N.saunaEnergy} năng lượng, có từ ${N.crowd.n} người trong phòng thì cả hội được +${Math.round((N.crowd.mul-1)*100)}% EXP ${N.crowd.min} phút.</p>`; });
+ACT.trsay=()=>{ trSay=(trSay+1)%TR_SAY.length; GAME.sayLine(TR_SAY[trSay],.7,'vi'); UI.refresh(); };
+PLACE.nm_tuck=()=>open(SD.PLACES.nm_tuck.name,()=>menuHtml({...SD.PLACES.nm_tuck,key:'nm_tuck'})+'<p class="muted">Render đêm thì Sting giữ tỉnh, mì gói trứng xúc xích tính là 1 bữa no. Ấm siêu tốc lúc nào cũng có nước sôi.</p>');
+PLACE.nmmem=()=>open('Thành viên Nghiện Motion',()=>`<p>"Chào mừng tới group! Ở đây ai cũng nghiện: nghiện motion, nghiện lắp Gunpla, nghiện game đối kháng. Tối nào cũng có người ngồi render tới khuya."</p>
+  <div class="list"><div class="row"><span><b>Bàn làm motion</b><br><small class="muted">Việc của Giáo chủ làm ở đây, ngoài ra mỗi ngày nhận 3 clip cho khách.</small></span></div>
+  <div class="row"><span><b>Bàn lắp mô hình Gunpla</b><br><small class="muted">Hỏi Gundam đứng cạnh kệ mô hình, có việc lắp RX-78.</small></span></div>
+  <div class="row"><span><b>Góc game đối kháng</b><br><small class="muted">Đấu với Eva, thắng được EXP (tối đa 6 ván/ngày).</small></span></div>
+  <div class="row"><span><b>Phòng xông hơi chung</b><br><small class="muted">Rủ thêm người vào xông cùng để được buff EXP tập thể.</small></span></div></div>`);
+PLACE.gundam=()=>open('Gundam RX-78-2',()=>`<p>(Mắt Gundam loé vàng, giọng rè rè như bộ đàm) "Phi công mới hả? Lắp mô hình là rèn sự kiên nhẫn: cắt runner cho sạch, gọt bavia cho mịn thì máy mới đứng vững."</p>${qRow('gp_build')}${qRow('gp_panel')}
+  <p class="muted">Bàn lắp mô hình ở ngay bên trái, đầy runner, kìm cắt và lọ sơn.</p>`);
+PLACE.eva=()=>open('Evangelion Unit-01',()=>{ const n=G().daily.nmgame||0; return `<p>(Unit-01 gầm khẽ, hai mắt sáng xanh) "Muốn được công nhận thì thắng tôi ở góc game. Tôi không nương tay đâu."</p>${qRow('ev_win')}
+  <p class="muted">Hôm nay đã chơi ${n}/6 ván. Mỗi ván 10 giây, thắng +25 EXP, thua +10 EXP.</p>`; });
 PLACE.banhda=()=>open('Bà Lụa · bánh đa cua Hải Phòng',()=>{ const M=SD.MIEU, h=SD.holyDay(NET.now())==='Lễ cầu an mùng 6', free=h&&!G().daily.mieufree;
   return `<p>"Bánh đa đỏ, riêu cua đồng, chả lá lốt, rau muống chẻ. Ăn đi cho ấm bụng cháu!"</p><div class="list">
     <div class="row"><span>🍜 Bánh đa cua <span class="muted">+${M.banhda.energy} năng lượng, tính 1 bữa</span></span><span>${free?'<b class="good">Lộc cầu an: miễn phí</b>':fmt(M.banhda.price)} ${btn('mieufood','Ăn',{k:'banhda'},'pri')}</span></div>
@@ -642,7 +671,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
   if(dTab==='album'){ body+=`<p class="dim">Lần đầu có một món là được ghi vào sổ. Đủ bộ thì nhận thưởng lớn.</p>`+Object.entries(SD.ALBUM).map(([a,z])=>{ const have=z.items.filter(k=>D.seen[k]).length, full=have===z.items.length, got=D.albumGot[a];
       return `<div class="dalb ${full?'full':''}"><h5>${esc(z.name)} <small>${have}/${z.items.length}</small></h5><div class="dgrid">${z.items.map(k=>{ const it=SD.ITEMS[k]||SD.CLOTHES[k]||{name:k}, seen=D.seen[k];
         return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
-        <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{a},'pri'):''}</div></div>`; }).join(''); }
+        <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{al:a},'pri'):''}</div></div>`; }).join(''); }
   if(dTab==='season'&&season){ const n=g.items.bi_ngo||0, bg=(g.flags&&g.flags.bingo)||{}, end=season.to.split('-').reverse().join('/');
     body+=`<div class="dseason"><p>Từ ${season.from.split('-').reverse().join('/')} tới ${end}: bí ngô mọc rải khắp <b>Ké Retreat</b> và <b>Đà Lạt</b> (chấm cam trên minimap), mỗi giờ đổi chỗ. Hái bí rồi mang tới <b>Cô Bí Ngô</b> ở cổng Ké đổi quà. Tối đến đèn bí ngô ở cổng sáng lập loè.</p>
       <div class="dhave">${ico('bi_ngo')} Bạn có <b>${n}</b> quả bí ngô ${btn('dgo','Tìm bí gần nhất ➜',{id:'pumpkin'},'go')}</div>
@@ -654,7 +683,7 @@ ACT.dtab=d=>{ dTab=d.k; dChest=null; UI.refresh(); };
 ACT.dlogin=async()=>{ const r=await GAME.act({t:'dq',op:'login'}); if(r&&!r.err){ GAME.sfx('level_up',.5); if(r.chest) dChest=r.chest; } UI.refresh(); };
 ACT.dget=async d=>{ const r=await GAME.act({t:'dq',op:'get',i:+d.i}); if(r&&!r.err) GAME.sfx('item_pickup',.5); UI.refresh(); };
 ACT.dchest=async()=>{ const r=await GAME.act({t:'dq',op:'chest'}); if(r&&r.chest){ dChest=r.chest; GAME.sfx('level_up',.6); } UI.refresh(); };
-ACT.dalbum=async d=>{ const r=await GAME.act({t:'dq',op:'album',a:d.a}); if(r&&!r.err) GAME.sfx('level_up',.6); UI.refresh(); };
+ACT.dalbum=async d=>{ const r=await GAME.act({t:'dq',op:'album',a:d.al}); /* data-a là tên hành động nên khoá bộ đặt là al */ if(r&&!r.err) GAME.sfx('level_up',.6); UI.refresh(); };
 ACT.dgo=d=>GAME.dqGo(d.id);
 ACT.bingo=async d=>{ const r=await GAME.act({t:'bingo',id:d.id}); if(r&&!r.err) GAME.sfx('item_pickup',.6); UI.refresh(); };
 PLACE.pkshop=()=>open('Chị Hà · đồ pickleball',()=>{ const g=G(), sets=SD.PK_SETS, card=z=>{ const have=Object.values(z.items).every(k=>g.owned[k]), wearing=Object.entries(z.items).every(([sl,k])=>g.look&&g.look.outfit[sl]===k), img=pkPreview(z);
@@ -870,14 +899,15 @@ ACT.keland=d=>req({t:'dog',op:'land',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(
 ACT.kelandcancel=()=>{ if(confirm('Trả đất vườn Ké?')) req({t:'dog',op:'landcancel'}); };
 ACT.buydog=async d=>{ if(G().dog&&!confirm('Đổi chó? Con cũ chú Ba nuôi hộ, không hoàn tiền.')) return; const r=await req({t:'dog',op:'buy',k:d.k}); if(!r.err){ GAME.sfx('dog_bark',.6); GAME.toast(esc(r.msg),'quest'); } };
 // DAS: thầy Huy Tạ đăng ký khoá học, xem chứng chỉ, đứng lớp làm giảng viên
-PLACE.das=()=>open('DAS · thầy Huy Tạ',()=>{ const g=G(), r=g.das||{c:{},certs:[]}, D=SD.DAS, d=SD.vnTime(NET.now()).day, sc=g.lumen&&g.lumen.scholar&&!g.lumen.scholar.done?g.lumen.scholar:null,
+PLACE.das=()=>open('DAS · thầy Huy Tạ',()=>{ const g=G(), r=g.das||{c:{},certs:[]}, D=SD.DAS, sc=g.lumen&&g.lumen.scholar&&!g.lumen.scholar.done?g.lumen.scholar:null,
     fee=c=>sc&&sc.free>0?'<b class="good">Miễn phí (học bổng Lumen)</b>':sc&&sc.half>0?`<s>${fmt(c.fee)}</s> <b class="good">${fmt(Math.round(c.fee/2))}</b> (Lumen −50%)`:fmt(c.fee), boost=Math.min(D.maxBoost,(r.certs||[]).reduce((a,k)=>a+(D.courses[k]?D.courses[k].boost:0),0)), T=D.teach;
   return money()+`<p>"Chào em! Học ở DAS xong có chứng chỉ, xin việc Everfit dễ hơn (đủ ${D.skipInterview} chứng chỉ là nhận thẳng) và lương cao hơn."</p>
     ${g.level<D.level?`<p class="bad">DAS nhận học viên từ cấp ${D.level}</p>`:''}${sc?`<p class="good">Học bổng Lumen: còn ${sc.free} khoá miễn phí, ${sc.half} khoá giảm 50%</p>`:''}
     <p>Chứng chỉ: <b>${(r.certs||[]).length}</b>${r.certs&&r.certs.length?' ('+r.certs.map(k=>esc(D.courses[k].name)).join(', ')+')':''} · lương Everfit <b class="good">+${Math.round(boost*100)}%</b></p>
-    <h5>Khoá học (mỗi ngày học 1 buổi, ngồi ghế trong lớp)</h5><div class="list">${Object.entries(D.courses).map(([k,c])=>{ const e=r.c&&r.c[k], has=(r.certs||[]).includes(k);
-      return `<div class="row"><span><b>${esc(c.name)}</b><br><small class="muted">${c.sessions} buổi × ${c.dur}s · lương Everfit +${Math.round(c.boost*100)}% · +${c.exp} EXP/buổi</small></span><span>${has?'đã có chứng chỉ':e?`đang học ${e.n}/${c.sessions}${e.last===d?' · mai học tiếp':''}`:fee(c)}</span>${has||e?'':btn('dasenroll','Đăng ký',{k},'pri')}</div>`; }).join('')}</div>
+    <h5>Khoá học (ngồi ghế trong lớp, mỗi buổi cách nhau ${D.gapH} tiếng)</h5><div class="list">${Object.entries(D.courses).map(([k,c])=>{ const e=r.c&&r.c[k], has=(r.certs||[]).includes(k);
+      return `<div class="row"><span><b>${esc(c.name)}</b><br><small class="muted">${c.sessions} buổi × ${c.dur}s · lương Everfit +${Math.round(c.boost*100)}% · +${c.exp} EXP/buổi</small></span><span>${has?'đã có chứng chỉ':e?`đang học ${e.n}/${c.sessions}${dasWait(e)}`:fee(c)}</span>${has||e?'':btn('dasenroll','Đăng ký',{k},'pri')}</div>`; }).join('')}</div>
     <h5>Làm giảng viên</h5><p class="muted">Cần ${T.needCerts} chứng chỉ + cấp ${T.level}. Lên bục giảng trong lớp đứng lớp ${T.dur}s: ${fmt(T.pay)}/buổi, tối đa ${T.daily} buổi/ngày.</p>`; },{wide:true});
+const dasWait=e=>{ const w=(e.at||0)+SD.DAS.gapH*3600e3-NET.now(); const mn=Math.ceil(w/60e3); return w>0?` · buổi sau: ${mn>=60?Math.floor(mn/60)+'h':''}${mn%60?mn%60+'p':''} nữa`:' · học được rồi'; };
 ACT.dasenroll=async d=>{ const r=await req({t:'das',op:'enroll',k:d.k}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
 UI.dasStudy=()=>{ const r=G().das||{c:{}}, ks=Object.keys(r.c||{}); if(!ks.length){ GAME.toast('Chưa đăng ký khoá nào. Gặp thầy Huy Tạ ở quầy','lock'); return; }
   if(ks.length===1) return GAME.act({t:'das',op:'study',k:ks[0]});

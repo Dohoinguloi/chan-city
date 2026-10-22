@@ -122,6 +122,7 @@ const FOOD={
   lau_ca_lang:{name:'Lẩu cá lăng',price:250000,meal:true,exp:35},ruou_can:{name:'Rượu cần',price:80000,drink:true,exp:12,drunk:90,buff:{mul:1.1,min:15}},
   bia_hoi:{name:'Bia hơi',price:15000,drink:true,exp:4,drunk:45,buff:{mul:1.05,min:10}},
   mi_goi:{name:'Mì gói',price:8000,snack:true,exp:2},banh_bao:{name:'Bánh bao',price:15000,snack:true,exp:3},sua_chua:{name:'Sữa chua',price:10000,snack:true,exp:2},
+  sting:{name:'Sting dâu',price:12000,drink:true,exp:4,energy:15,buff:{mul:1.08,min:15}},mi_trung:{name:'Mì gói trứng xúc xích',price:25000,meal:true,exp:4},
   nuoc_tang_luc:{name:'Nước tăng lực',price:15000,drink:true,exp:3,energy:20,buff:{mul:1.05,min:10}},
   cafe_den:{name:'Cafe đen',price:25000,drink:true,exp:8,buff:{mul:1.25,min:30}},
   cafe_sua:{name:'Cafe sữa đá',price:30000,drink:true,exp:10,buff:{mul:1.3,min:30}},
@@ -576,6 +577,15 @@ const LUMEN={W:38,H:36,spawn:{x:19,y:33.6},needCerts:4,level:3,expMul:4,daily:4,
   desks:[[25,14.8],[29,14.8],[33,14.8],[25,19.8],[29,19.8],[33,19.8],[8,8.6],[8,19.4]],nap:{x:29,y:7.8,energy:35},coffee:{x:24,y:27.8,energy:10,buff:{mul:1.1,min:30}},
   tasks:{brand:{name:'Bộ nhận diện thương hiệu cho khách',dur:14,exp:30},ui:{name:'Vẽ màn hình app (UI)',dur:12,exp:30},motion:{name:'Motion cho video quảng cáo',dur:12,exp:28},
     research:{name:'Phỏng vấn người dùng (UX research)',dur:12,exp:28},pitch:{name:'Thuyết trình ý tưởng với khách',dur:10,exp:25}}};
+// Leno về Lumen xin tiền chị Annie: mỗi ngày 1 lần, chị cho nhưng bắt làm 1 việc vặt trước (đúng chỗ trong studio), xong quay lại lễ tân nhận tiền
+LUMEN.annieAsk={who:['n:leno'],pay:[200000,500000],exp:40,jobs:{
+  coffee:{name:'Pha 6 ly cà phê muối cho cả team',ask:'pha giúp chị 6 ly cà phê muối cho cả team ở pantry nhé!',at:'coffee',where:'máy pha cà phê ở pantry',dur:10},
+  nap:{name:'Dọn phòng nghỉ trưa',ask:'dọn phòng nghỉ trưa, gấp lại chăn gối cho gọn giúp chị!',at:'nap',where:'phòng nghỉ trưa',dur:10},
+  figma:{name:'Đặt tên lại 300 layer Figma',ask:'đặt tên lại hết 300 layer "Rectangle copy" trong file Figma của chị đã!',at:'desk',where:'1 bàn làm việc Lumen',dur:14},
+  kern:{name:'Căn lại kerning logo khách',ask:'căn lại kerning cái logo khách vừa chê, chữ dính hết vào nhau rồi!',at:'desk',where:'1 bàn làm việc Lumen',dur:12},
+  slide:{name:'Làm slide pitching gấp',ask:'làm gấp bộ slide pitching cho buổi họp 3 giờ chiều nay!',at:'desk',where:'1 bàn làm việc Lumen',dur:12},
+  icon:{name:'Export bộ icon app 48 cỡ',ask:'export bộ icon app đủ 48 cỡ cho dev, đặt tên file cho chuẩn vào!',at:'desk',where:'1 bàn làm việc Lumen',dur:12}},
+  lines:['Cầm lấy mà tiêu, nhưng tiết kiệm thôi nha!','Đây, lần sau chăm làm việc Lumen thì khỏi phải xin chị nhé.','Chị cho đấy, đi ăn bát phở cho có sức rồi về làm tiếp.','Làm tốt lắm! Tiền đây, đừng nạp game hết đấy.']};
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -584,7 +594,7 @@ const DAS={W:30,H:20,level:2,spawn:{x:15,y:17.6},podium:{x:22,y:4.6},seats:[[18.
   courses:{dt:{name:'Design Thinking',fee:2000000,sessions:2,dur:25,exp:50,boost:.1},ux:{name:'UX Research cơ bản',fee:2500000,sessions:3,dur:30,exp:60,boost:.15},
     ui:{name:'UI Design & Design System',fee:3000000,sessions:3,dur:30,exp:60,boost:.15},motion:{name:'Motion & Prototype',fee:2800000,sessions:3,dur:30,exp:60,boost:.15},
     anth:{name:'Nhân học thiết kế (Design Anthropology)',fee:3500000,sessions:4,dur:35,exp:80,boost:.2}},
-  maxBoost:.6,skipInterview:3,teach:{pay:450000,daily:2,needCerts:2,level:5,dur:40,exp:40}};
+  gapH:2,maxBoost:.6,skipInterview:3,teach:{pay:450000,daily:2,needCerts:2,level:5,dur:40,exp:40}};
 // xe máy thuê ở Ké (cạnh Shop Chande): thuê theo giờ, bấm H lên/xuống xe, chạy nhanh gấp mấy lần đi bộ
 const MOTO={min:60,helmet:150000,models:{wave:{price:30000,speed:1.6},dream:{price:40000,speed:1.7},sh:{price:80000,speed:1.9},exciter:{price:60000,speed:2.1},xedap:{price:5000,speed:1.3,bike:true}}};
 // xe đạp công cộng: quẹt thẻ ở trạm cạnh bến xe buýt, 5.000đ/30 phút, không cần mũ
@@ -748,7 +758,7 @@ Object.assign(NPC_LOOKS,{
 const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},lumen:{name:'Lumen Studio (Hà Nội)',city:'hn'},yenlang:{name:'120 Yên Lãng · nhà anh Độ (Hà Nội)',city:'hn'},pickle:{name:'Sân pickleball Cầu Giấy (Hà Nội)',city:'hn'},diep:{name:'Phòng của Diệp (Hà Nội)',city:'hn'},
   retreat:{name:'Ké Retreat (Đà Bắc, Hoà Bình)',city:'hb'},dalat:{name:'Nông trại bác Trang (Đà Lạt)',city:'dl'},
   das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true},bearplus:{name:'Bearplus Studio (Khánh Hội, TP.HCM)',city:'hcm',plane:true},
-  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
+  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},nghienmotion:{name:'Group Nghiện Motion (Hà Nội)',city:'hn'},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
 const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,hn_hp:7000,hb_hp:9000,dl_hp:22000,hcm_hp:52000,hp_hp:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
 function grabFare(from,to){ return GRAB[[DEST[from].city,DEST[to].city].sort().join('_')]??0; }
 // khoá học online ở phòng: mất tiền + thời gian, cần đủ cấp
@@ -772,8 +782,8 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 // cờ trong gói vị trí
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
-const SCENE_DEST={bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_DEST={nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
+const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 function vnTime(ms=Date.now()){ const d=new Date(ms+RULES.tzOffsetH*3600e3);
@@ -812,6 +822,28 @@ function dailyTasks(uid,day,remote){ let h=2166136261; for(const ch of uid+day){
 // tối nay có bị xếp OT không (cố định theo uid + ngày), trả về task OT hoặc null
 function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(const ch of 'ot'+uid+day){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h>>>=0;
   if(h%100>=JOB.ot.chance) return null; const pool=Object.keys(WORK_TASKS).filter(k=>WORK_TASKS[k].where==='desk'); return pool[(h>>8)%pool.length]; }
+
+/* ---------- Group Nghiện Motion (Hà Nội): làm motion, lắp mô hình, chơi game, phòng xông hơi chung ---------- */
+const NMOTION={W:34,H:24,spawn:{x:17,y:22},desks:[[9,7.4],[13.4,7.4],[17.8,7.4],[9,12],[13.4,12],[17.8,12]],tv:{x:5.6,y:2.1},kanban:{x:24,y:5.6},shelf:{x:30.6,y:5.4},
+  model:{x:26.4,y:11.4},game:{x:6,y:18.6},snack:{x:15.4,y:18.3},gundam:{x:29.4,y:11.6},eva:{x:10.4,y:18.8},sauna:{x0:22,y0:15,x1:32,y1:22},benches:[[27,17.2],[27,19.6]],heater:{x:30.6,y:21.2},
+  saunaDur:15,saunaMax:3,saunaEnergy:30,crowd:{n:2,mul:1.1,min:30},gameWin:.5};
+Object.assign(QUESTS,{
+  nm_ball:{giver:'trong',title:'Quả bóng nảy',desc:'Bài nhập môn của Giáo chủ: ngồi 1 bàn làm animation quả bóng nảy đúng 12 nguyên tắc (15 giây).',prog:1,reward:{exp:200,vnd:250000}},
+  nm_easing:{giver:'trong',after:'nm_ball',title:'Easing mượt như bơ',desc:'Chỉnh graph editor 3 lần cho chuyển động mượt (mỗi lần 6 giây ở bàn làm việc).',prog:3,reward:{exp:240,vnd:300000}},
+  nm_logo:{giver:'trong',after:'nm_easing',title:'Logo animation 3 giây',desc:'Làm logo animation cho khách: ngồi bàn 20 giây.',prog:1,reward:{exp:300,vnd:400000}},
+  nm_reel:{giver:'trong',after:'nm_logo',title:'Trình chiếu showreel',desc:'Chiếu showreel lên TV lớn cho cả group xem (15 giây). Giáo chủ duyệt thì thành đệ tử chính thức.',prog:1,reward:{exp:500,vnd:800000}},
+  gp_build:{giver:'gundam',title:'Lắp Gunpla RX-78',desc:'Ở bàn lắp mô hình: cắt runner, lắp khung, dán decal (3 bước, mỗi bước 8 giây).',prog:3,reward:{exp:220,vnd:250000,item:'gunpla'}},
+  gp_panel:{giver:'gundam',after:'gp_build',title:'Kẻ lằn chìm',desc:'Kẻ lằn chìm và phủ mờ cho mô hình thật nét (12 giây ở bàn lắp mô hình).',prog:1,reward:{exp:200,vnd:250000}},
+  ev_win:{giver:'eva',title:'Thắng Eva 2 ván game',desc:'Ra góc game đấu đối kháng với Eva. Mỗi ván 10 giây, thắng đủ 2 ván.',prog:2,reward:{exp:220,vnd:250000}}});
+PLACES.nm_tuck={name:'Pantry Nghiện Motion · Sting & mì gói',where:'Group Nghiện Motion',menu:['sting','mi_goi','mi_trung','tra_da'],map:'nghienmotion',x:NMOTION.snack.x,y:NMOTION.snack.y};
+NPCS.push({id:'trong',scene:'nghienmotion',x:14,y:9.8,place:'trong'},{id:'nm_mem',scene:'nghienmotion',x:22.4,y:9.6,place:'nmmem'},
+  {id:'gundam',scene:'nghienmotion',x:29.4,y:11.6,place:'gundam',obj:true},{id:'eva',scene:'nghienmotion',x:10.4,y:18.8,place:'eva',obj:true});
+Object.assign(CLOTHES,{ao_trong:{name:'Áo khoá kéo đen trắng',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'1c1820',inner:'f4f4f2'}},
+  hoodie_nm:{name:'Hoodie Nghiện Motion',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'2a3352',inner:'7fd0ff'}}});
+Object.assign(NPC_LOOKS,{trong:{name:'Trọng Motion',title:{name:'Giáo chủ',fx:'thunder',edge:'#b48aff',pre:'☯ '},look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e8b48a',outfit:{top:'ao_trong',bottom:'quan_vai_den',shoes:'giay_den',eyes:'kinh_ram',wrist:'dong_ho'},opts:{mouth:'smile',watch:true}}},
+  nm_mem:{name:'Thành viên Nghiện Motion',look:{gender:'nu',hair:'bowl',hairColor:'2a1c16',skin:'f3c4a4',outfit:{top:'hoodie_nm',bottom:'jean',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  gundam:{name:'Gundam (RX-78-2)',look:null},eva:{name:'Evangelion (Unit-01)',look:null}});
+ITEMS.gunpla={name:'Mô hình Gunpla RX-78',icon:'gunpla'};
 
 /* ---------- danh hiệu top 10 đại gia (bảng xếp hạng tài sản): hiện óng ánh trên đầu, mỗi hạng 1 hiệu ứng ---------- */
 const TOP_TITLES=[{name:'Minh chủ võ lâm',fx:'gold',edge:'#ffd84a'},{name:'Anh lớn Chande',fx:'silver',edge:'#cfe6ff'},{name:'Hai ngón mạnh nhất',fx:'bronze',edge:'#f0a060'},
@@ -981,5 +1013,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

@@ -123,7 +123,7 @@ on('sms',(pl,m)=>{ const p=pl.prof, V=S.VNPT, msg=String(m.msg||'').trim().slice
   for(const r of C.db.allProfiles()) if(r.sim&&r.sim.num===to){ const prof=C.db.profile(r._uid); if(prof){ (prof.inbox=prof.inbox||[]).push(line); C.db.saveProfile(r._uid,prof); return {msg:`${to} đang offline, tin nhắn chờ trong hộp thư`}; } }
   return {err:'Số máy quý khách vừa gọi hiện không có thật'}; });
 // gọi điện: người nghe máy được Grab tới chỗ người gọi (cước theo 2 thành phố); người gọi đang ở phòng riêng / chỗ đặc biệt thì chỉ nói chuyện
-const CALL_OK=new Set(['retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);
+const CALL_OK=new Set(['nghienmotion','retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);
 on('ring',(pl,m)=>{ const p=pl.prof, t=now(), to=String(m.to||''); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'}; if(p.needs.battery<S.GRAB.minBattery) return {err:'Hết pin rồi'};
   if(pl.ringAt&&t-pl.ringAt<15000) return {err:'Vừa gọi xong, chờ chút'}; const q=byNum(to); if(!q) return {err:'Thuê bao quý khách vừa gọi tạm thời không liên lạc được'}; if(q===pl) return {err:'Đây là số của bạn'};
   pl.ringAt=t; p.needs.battery=Math.max(0,p.needs.battery-2); markDirty(pl); const k=kindOf(pl.scene), dest=S.SCENE_DEST[k], come=CALL_OK.has(k)&&dest;
