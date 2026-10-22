@@ -53,7 +53,7 @@ function start(pl,kind,sp,lv,extra){ const p=pl.prof, r=rec(p); if(!trained(p)) 
   const foe={sp,lv,max:S.lcStats(sp,lv).hp}; foe.hp=foe.max; if(!SP[sp].npc&&!r.dex[sp]) r.dex[sp]=1;
   pl.lcb={kind,foe,u:me.u,at:now(),...extra}; markDirty(pl); return {battle:bview(pl)}; }
 on('lcb',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now();
-  if(op==='wild'){ if(pl.scene!=='retreat') return {err:'?'}; const w=S.lcWild(t).find(x=>x.i===(m.i|0)); if(!w||r.gone[w.key]) return {err:'Con này chạy mất rồi'};
+  if(op==='wild'){ if(!L.maps[pl.scene]) return {err:'?'}; const w=S.lcWild(t,pl.scene).find(x=>x.i===(m.i|0)); if(!w||r.gone[w.key]) return {err:'Con này chạy mất rồi'};
     if(!near(pl,w.x,w.y,56)) return {err:'Lại gần hơn'}; return start(pl,'wild',w.sp,w.lv,{key:w.key}); }
   if(op==='farm'){ const f=L.farm[m.i|0]; if(!f||pl.scene!=='retreat'||!near(pl,f[0],f[1],48)) return {err:'Lại gần đàn vật nuôi'}; const lead=r.party.find(x=>x.hp>0);
     if((p.daily.lcfarm||0)>=8) return {err:'Đàn vật nuôi mệt rồi, mai đấu tiếp'}; return start(pl,'farm',f[2],Math.max(3,(lead?lead.lv:5)+Math.floor(Math.random()*5)-2)); }
@@ -99,6 +99,6 @@ function finish(pl,res,ev){ const p=pl.prof, b=pl.lcb, r=rec(p); pl.lcb=null; le
   if(b&&b.kind==='park'&&Math.random()<L.jail.chance){ const J=L.jail; p.jail={until:now()+J.sec*1000,fine:J.fine,why:'Cho Lính Cát đánh thú bảo tồn ở vườn quốc gia'}; P.stat(pl,'jail',1);
     ev.push({k:'arrest'}); markDirty(pl); setTimeout(()=>{ if(pl.prof) C.moveTo(pl,'doncongan',7,6); },2600);
     note(pl,`🚓 Kiểm lâm báo công an: làm hại động vật hoang dã! Tạm giữ ${J.sec} giây, nộp ${fmt(J.fine)} để về sớm`,'lock'); }
-  for(const k of Object.keys(r.gone)) if(+k.split(':')[0]<Math.floor(now()/L.period)-1) delete r.gone[k];
+  for(const k of Object.keys(r.gone)){ const per=+k.split(':').slice(-2)[0]; if(!(per>=Math.floor(now()/L.period)-1)) delete r.gone[k]; }   // khoá: map:chu kỳ:điểm
   markDirty(pl); return {ev,result:res,msg,battle:null}; }
 module.exports={view};

@@ -712,14 +712,58 @@ const LINHCAT={party:5,box:60,learnFee:200000,starters:['lua_nhi','mam_nhi','rua
     [236.5,38.5,3],[263.5,17.5,3],[278.5,35.5,3],[314.5,44.5,3],[236.5,65.5,3],[308.5,65.5,3],[230.5,83.5,3],[314.5,119.5,3]],
   zones:{1:{lv:[2,5],pool:['cat_con','cat_con','bong_bong','bong_bong','ti_set','ti_set','khoi_nhi']},2:{lv:[6,12],pool:['cat_con','bong_bong','ti_set','ti_set','khoi_nhi','set_binh','bong_hong']},
     3:{lv:[12,22],pool:['ti_set','set_binh','bong_hong','khoi_nhi','bong_ma_binh','rong_nhi','cat_con','rong_nhi']}}};
+// Lính Cát mở rộng: 5 hệ mới (Côn trùng, Bay, Độc, Đá, Võ), 31 loài mới (vẽ ở art10.js), Lính Cát hoang ở cả Đà Lạt, Miếu, đèo, trường đua (ít hơn Ké)
+Object.assign(LC_TYPES,{trung:{name:'Côn trùng',col:'#9ac83a'},bay:{name:'Bay',col:'#9ab8f0'},doc:{name:'Độc',col:'#a85ac8'},da:{name:'Đá',col:'#b8a070'},vo:{name:'Võ',col:'#c8503a'}});
+Object.assign(LC_EFF,{trung:{moc:2,than:2,am:2,hoa:.5,bay:.5,vo:.5,doc:.5,ma:.5},bay:{moc:2,vo:2,trung:2,loi:.5,da:.5},doc:{moc:2,tien:2,doc:.5,da:.5,ma:.5},
+  da:{hoa:2,bang:2,bay:2,trung:2,vo:.5},vo:{thuong:2,bang:2,da:2,am:2,doc:.5,bay:.5,than:.5,tien:.5,trung:.5,ma:0}});
+Object.assign(LC_EFF.thuy,{da:2}); Object.assign(LC_EFF.moc,{da:2,bay:.5,doc:.5,trung:.5}); Object.assign(LC_EFF.loi,{bay:2}); Object.assign(LC_EFF.bang,{bay:2}); Object.assign(LC_EFF.hoa,{trung:2,da:.5});
+Object.assign(LC_EFF.than,{vo:2,doc:2}); Object.assign(LC_EFF.tien,{vo:2,doc:.5}); Object.assign(LC_EFF.thuong,{da:.5});
+Object.assign(LC_MOVES,{dot_kim:{name:'Đốt Kim',t:'trung',pow:40,acc:1},to_bao:{name:'Tơ Bão',t:'trung',pow:70,acc:.92},bay_bo:{name:'Bầy Bọ',t:'trung',pow:95,acc:.8},
+  mo:{name:'Mổ',t:'bay',pow:40,acc:1},canh_gio:{name:'Cánh Gió',t:'bay',pow:70,acc:.92},loc_xoay:{name:'Lốc Xoáy',t:'bay',pow:95,acc:.8},
+  khi_doc:{name:'Khí Độc',t:'doc',pow:40,acc:1},axit:{name:'Axit',t:'doc',pow:70,acc:.92},bom_doc:{name:'Bom Độc',t:'doc',pow:95,acc:.8},
+  nem_da:{name:'Ném Đá',t:'da',pow:40,acc:1},da_lo:{name:'Đá Lở',t:'da',pow:70,acc:.92},thien_thach:{name:'Thiên Thạch',t:'da',pow:100,acc:.78},
+  dam:{name:'Đấm Thẳng',t:'vo',pow:40,acc:1},da_xoay:{name:'Đá Xoáy',t:'vo',pow:70,acc:.92},quyen_vuong:{name:'Quyền Vương',t:'vo',pow:100,acc:.78}});
+Object.assign(LC_TYPE_MOVES,{trung:['dot_kim','to_bao','bay_bo'],bay:['mo','canh_gio','loc_xoay'],doc:['khi_doc','axit','bom_doc'],da:['nem_da','da_lo','thien_thach'],vo:['dam','da_xoay','quyen_vuong']});
+Object.assign(LC_SPECIES,{
+  sau_nhi:{name:'Sâu Nhí',t:'trung',st:1,b:[45,30,35,45],evo:{to:'ken_cat',lv:7},rate:.8,desc:'Sâu xanh tham ăn, gặm lá cả ngày.'},ken_cat:{name:'Kén Cát',t:'trung',st:2,b:[50,20,55,30],evo:{to:'buom_tien',lv:10},rate:.6},
+  buom_tien:{name:'Bướm Tiên',t:'trung',st:3,b:[60,65,50,70],rate:.3},
+  se_nhi:{name:'Sẻ Nhí',t:'bay',st:1,b:[40,45,40,56],evo:{to:'chim_ung',lv:18},rate:.7,desc:'Chim sẻ nhanh nhảu, hay đậu trên mái nhà Ké.'},chim_ung:{name:'Chim Ưng',t:'bay',st:2,b:[63,60,55,71],evo:{to:'dai_bang',lv:36},rate:.35},
+  dai_bang:{name:'Đại Bàng Cát',t:'bay',st:3,b:[83,80,75,101],rate:.1},
+  chuot_nhi:{name:'Chuột Nhí',t:'thuong',st:1,b:[30,56,35,72],evo:{to:'chuot_tuong',lv:20},rate:.8,desc:'Chuột tím răng to, gặm gì cũng đứt.'},chuot_tuong:{name:'Chuột Tướng',t:'thuong',st:2,b:[55,81,60,97],rate:.35},
+  ran_nhi:{name:'Rắn Nhí',t:'doc',st:1,b:[35,60,44,55],evo:{to:'ho_mang',lv:22},rate:.55,desc:'Rắn tím cuộn tròn, lè lưỡi doạ người.'},ho_mang:{name:'Hổ Mang Cát',t:'doc',st:2,b:[60,85,69,80],rate:.2},
+  doi_nhi:{name:'Dơi Nhí',t:'doc',st:1,b:[40,45,35,55],evo:{to:'doi_dem',lv:22},rate:.6,night:1,desc:'Dơi xanh không có mắt, bay bằng tiếng vang ban đêm.'},doi_dem:{name:'Dơi Đêm',t:'doc',st:2,b:[75,80,70,90],rate:.25,night:1},
+  da_nhi:{name:'Đá Nhí',t:'da',st:1,b:[40,80,100,20],evo:{to:'da_lan',lv:25},rate:.55,desc:'Hòn đá có tay, nằm lẫn ven đèo, giẫm phải là bị đấm.'},da_lan:{name:'Đá Lăn',t:'da',st:2,b:[55,95,115,35],evo:{to:'nui_da',lv:40},rate:.25},
+  nui_da:{name:'Núi Đá Tướng',t:'da',st:3,b:[80,120,130,45],rate:.08},
+  vo_nhi:{name:'Võ Sĩ Nhí',t:'vo',st:1,b:[70,80,50,35],evo:{to:'vo_si',lv:28},rate:.5,desc:'Võ sĩ tí hon tập đấm cả ngày, không biết mệt.'},vo_si:{name:'Võ Sĩ Cát',t:'vo',st:2,b:[80,100,70,45],evo:{to:'vo_tuong',lv:40},rate:.2},
+  vo_tuong:{name:'Võ Lâm Tướng',t:'vo',st:3,b:[90,130,80,55],rate:.06},
+  ca_chep:{name:'Cá Chép Cát',t:'thuy',st:1,b:[20,10,55,80],evo:{to:'long_ngu',lv:20},rate:.9,desc:'Cá chép yếu xìu chỉ biết quẫy... nhưng vượt vũ môn là hoá rồng.'},long_ngu:{name:'Long Ngư',t:'thuy',st:2,b:[95,125,79,81],rate:.06},
+  niem_nhi:{name:'Niệm Nhí',t:'than',st:1,b:[25,20,15,90],evo:{to:'niem_su',lv:16},rate:.5,desc:'Ngủ 18 tiếng/ngày, đang ngủ vẫn dịch chuyển được.'},niem_su:{name:'Niệm Sư',t:'than',st:2,b:[40,35,30,105],evo:{to:'dai_niem',lv:36},rate:.2},
+  dai_niem:{name:'Đại Niệm Sư',t:'than',st:3,b:[55,50,45,120],rate:.06},
+  cu_nhi:{name:'Củ Nhí',t:'doc',st:1,b:[45,50,55,30],evo:{to:'hoa_hoi',lv:21},rate:.7,desc:'Củ xanh có lá mọc trên đầu, ban ngày chôn mình dưới đất.'},hoa_hoi:{name:'Hoa Hôi',t:'doc',st:2,b:[60,65,70,40],evo:{to:'hoa_doc',lv:34},rate:.3},
+  hoa_doc:{name:'Hoa Độc Tướng',t:'doc',st:3,b:[75,80,85,50],rate:.1},
+  gau_ngu:{name:'Gấu Ngủ',t:'thuong',st:3,b:[160,110,65,30],rate:.08,desc:'Ăn xong là ngủ, nằm chắn cả lối đi. Hiếm gặp ở vùng xa.'},
+  phuong_hoang:{name:'Phượng Hoàng Lửa',t:'hoa',st:3,b:[90,100,90,90],rate:.03,legend:1,desc:'Thần điểu huyền thoại, cánh rực lửa.'},
+  than_dieu_bang:{name:'Thần Điểu Băng',t:'bang',st:3,b:[90,85,100,85],rate:.03,legend:1,desc:'Thần điểu huyền thoại, bay qua là tuyết rơi.'},
+  loi_dieu:{name:'Lôi Điểu',t:'loi',st:3,b:[90,90,85,100],rate:.03,legend:1,desc:'Thần điểu huyền thoại, vỗ cánh là sấm nổ.'},
+  tieu_than:{name:'Tiểu Thần Cát',t:'than',st:3,b:[100,100,100,100],rate:.02,legend:1,desc:'Thần thoại: mèo hồng biết mọi chiêu thức, chỉ hiện cho người may mắn.'}});
+LINHCAT.legend=['phuong_hoang','than_dieu_bang','loi_dieu','tieu_than']; LINHCAT.legendChance=.012;
+LINHCAT.zones={1:{lv:[2,5],pool:['cat_con','cat_con','bong_bong','bong_bong','ti_set','ti_set','khoi_nhi','sau_nhi','sau_nhi','se_nhi','se_nhi','chuot_nhi','chuot_nhi','cu_nhi']},
+  2:{lv:[6,12],pool:['cat_con','bong_bong','ti_set','set_binh','khoi_nhi','sau_nhi','ken_cat','se_nhi','chim_ung','chuot_tuong','ran_nhi','doi_nhi','cu_nhi','hoa_hoi','vo_nhi','niem_nhi','ca_chep','da_nhi']},
+  3:{lv:[12,22],pool:['set_binh','bong_hong','bong_ma_binh','rong_nhi','chim_ung','ho_mang','doi_dem','da_lan','vo_si','niem_su','hoa_hoi','buom_tien','gau_ngu','ca_chep','rong_nhi','ti_set','cat_con']}};
+// mỗi map: điểm [x, y, vùng]; pool riêng thì ghi đè pool của vùng
+LINHCAT.maps={retreat:{spots:LINHCAT.spots},
+  dalat:{spots:[[25.5,3.5,2],[13.5,13.5,1],[49.5,13.5,2],[61.5,5.5,2],[5.5,5.5,1]],pool:['sau_nhi','ken_cat','buom_tien','cu_nhi','hoa_hoi','bong_bong','se_nhi','cat_con','mam_nhi']},
+  mieu:{spots:[[3.5,3.5,2],[33.5,7.5,2],[13.5,27.5,1]],pool:['khoi_nhi','bong_ma_binh','niem_nhi','doi_nhi','chuot_nhi','ran_nhi','niem_nhi']},
+  deo:{spots:[[31.5,5.5,3],[91.5,5.5,3],[151.5,5.5,3],[211.5,5.5,3]],pool:['da_nhi','da_lan','vo_nhi','vo_si','se_nhi','chim_ung','rong_nhi','ran_nhi','da_nhi']}};   // không thả ở trường đua (đang đua ngựa)
 const lcStats=(sp,lv)=>{ const b=LC_SPECIES[sp].b; return {hp:Math.floor(b[0]*2*lv/100)+lv+10,atk:Math.floor(b[1]*2*lv/100)+5,def:Math.floor(b[2]*2*lv/100)+5,spd:Math.floor(b[3]*2*lv/100)+5}; };
 const lcMoves=(sp,lv)=>{ const tm=LC_TYPE_MOVES[LC_SPECIES[sp].t]||LC_TYPE_MOVES.thuong, out=['hu',tm[0]]; if(lv>=10) out.push(tm[1]); if(lv>=22&&!out.includes(tm[2])) out.push(tm[2]); return out; };
 const lcNext=lv=>lv*20;   // EXP lên cấp kế
 // Lính Cát hoang đang ở mỗi điểm (đổi loài mỗi `period`, khớp giữa server và máy khách); ban ngày không có hệ Ma
-function lcWild(ms=Date.now()){ const L=LINHCAT, per=Math.floor(ms/L.period), h=vnTime(ms).hf, night=h>=19||h<5;
-  return L.spots.map(([x,y,z],i)=>{ const Z=L.zones[z], r=n=>((Math.imul(per*31+i*7+n,2654435761)>>>0)%10007)/10007;
-    let pool=Z.pool.filter(k=>night||!LC_SPECIES[k].night); if(!pool.length) pool=['cat_con']; const sp=pool[Math.floor(r(1)*pool.length)], lv=Z.lv[0]+Math.floor(r(2)*(Z.lv[1]-Z.lv[0]+1));
-    return {i,key:per+':'+i,sp,lv,x:x+(r(3)-.5)*2,y:y+(r(4)-.5)*1.2}; }); }
+function lcWild(ms=Date.now(),scene='retreat'){ const L=LINHCAT, M=L.maps[scene]; if(!M) return []; const per=Math.floor(ms/L.period), h=vnTime(ms).hf, night=h>=19||h<5, salt=scene.length*977+scene.charCodeAt(0);
+  return M.spots.map(([x,y,z],i)=>{ const Z=L.zones[z], r=n=>{ let h=(per*73856093)^(i*19349663)^(n*83492791)^salt; h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; return (h>>>0)/4294967296; };
+    let pool=(M.pool||Z.pool).filter(k=>night||!LC_SPECIES[k].night); if(!pool.length) pool=['cat_con']; let sp=pool[Math.floor(r(1)*pool.length)], lv=Z.lv[0]+Math.floor(r(2)*(Z.lv[1]-Z.lv[0]+1));
+    if(z===3&&r(5)<L.legendChance){ sp=L.legend[Math.floor(r(6)*L.legend.length)]; lv=Math.max(lv,30); }   // huyền thoại: rất hiếm, chỉ ở vùng xa
+    return {i,key:scene+':'+per+':'+i,sp,lv,x:x+(r(3)-.5)*2,y:y+(r(4)-.5)*1.2}; }); }
 Object.assign(ITEMS,{bong_cat:{name:'Bóng Cát',icon:'lcball'},bong_vang:{name:'Bóng Cát Vàng',icon:'lcball2'},thuoc_cat:{name:'Thuốc hồi máu Lính Cát',icon:'lcpotion'},
   da_lua:{name:'Đá Lửa',icon:'lcstone_hoa'},da_nuoc:{name:'Đá Nước',icon:'lcstone_thuy'},da_sam:{name:'Đá Sấm',icon:'lcstone_loi'},da_la:{name:'Đá Lá',icon:'lcstone_moc'},
   da_bang:{name:'Đá Băng',icon:'lcstone_bang'},da_tien:{name:'Đá Tiên',icon:'lcstone_tien'},da_trang:{name:'Đá Trăng',icon:'lcstone_am'},da_tam:{name:'Đá Tâm Linh',icon:'lcstone_than'}});

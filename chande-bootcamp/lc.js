@@ -47,12 +47,12 @@ UI.onAct('lcgo',()=>{ UI.closeAll(); const S=GAME.S; if(S.kind==='linhcat') retu
 setTimeout(()=>{ const b=$('#btnLc'); if(b) b.addEventListener('click',e=>{ e.currentTarget.blur(); if(GAME.S) UI.lcParty(); }); },0);
 
 /* ---------- Lính Cát hoang, vật nuôi, thú vườn quốc gia trên map Ké ---------- */
-let WILD=[], wildT=0; const wildNow=()=>{ const t=NET.now(); if(t-wildT>1000){ wildT=t; const gone=lc().gone||{}; WILD=SD.lcWild(t).filter(w=>!gone[w.key]); } return WILD; };
+let WILD=[], wildT=0, wildScene=''; const wildNow=()=>{ const t=NET.now(), k=GAME.S&&GAME.S.kind; if(t-wildT>1000||k!==wildScene){ wildT=t; wildScene=k; const gone=lc().gone||{}; WILD=SD.lcWild(t,k).filter(w=>!gone[w.key]); } return WILD; };
 const farmPos=(f,i,clock)=>[f[0]+Math.sin(clock*.4+i*2)*1.2,f[1]+Math.cos(clock*.3+i)*.6];
-const c0=X.consider; X.consider=(consider,dist)=>{ c0(consider,dist); const S=GAME.S; if(!S||S.kind!=='retreat'||BT) return; const tr=trained();
+const c0=X.consider; X.consider=(consider,dist)=>{ c0(consider,dist); const S=GAME.S; if(!S||!L.maps[S.kind]||BT) return; const tr=trained();
   for(const w of wildNow()){ const d=dist(w.x*T,w.y*T); if(d<30) consider(d*.6,{type:'mapx',k:'lcwild',i:w.i,label:tr?`⚔ Đấu ${SP[w.sp].name} hoang · Lv${w.lv}`:`${SP[w.sp].name} hoang (học Huấn luyện Lính Cát để đấu)`}); }
-  if(tr) L.farm.forEach((f,i)=>{ const [x,y]=farmPos(f,i,GAME.clock), d=dist(x*T,y*T); if(d<28) consider(d*.7,{type:'mapx',k:'lcfarm',i,label:'⚔ Cho Lính Cát đấu với '+SP[f[2]].name}); });
-  if(tr) for(const s of SD.PARK.spots){ const sp=L.park[s.k]; if(!sp) continue; const d=dist(s.x*T,s.y*T); if(d<46) consider(d+12,{type:'mapx',k:'lcpark',park:s.k,label:`⚔ Đấu với ${SP[sp].name} (thú bảo tồn, dễ bị bắt!)`}); } };
+  if(tr&&S.kind==='retreat') L.farm.forEach((f,i)=>{ const [x,y]=farmPos(f,i,GAME.clock), d=dist(x*T,y*T); if(d<28) consider(d*.7,{type:'mapx',k:'lcfarm',i,label:'⚔ Cho Lính Cát đấu với '+SP[f[2]].name}); });
+  if(tr&&S.kind==='retreat') for(const s of SD.PARK.spots){ const sp=L.park[s.k]; if(!sp) continue; const d=dist(s.x*T,s.y*T); if(d<46) consider(d+12,{type:'mapx',k:'lcpark',park:s.k,label:`⚔ Đấu với ${SP[sp].name} (thú bảo tồn, dễ bị bắt!)`}); } };
 UI.lcNeed=()=>UI.open('Chưa biết huấn luyện Lính Cát',()=>`<p>Muốn đấu và thu phục Lính Cát thì phải học <b>Huấn luyện Lính Cát</b> với Giáo sư Cát ở <b>Trung tâm Lính Cát</b> (thị trấn Đà Bắc, toà mái đỏ phía Đông chợ). Học xong được tặng 1 con khởi đầu.</p>${btn('lcgo','➜ Chỉ đường tới Trung tâm Lính Cát',{},'pri')}`);
 const p0=X.pick; X.pick=x=>{ if(x.k==='lcwild'||x.k==='lcfarm'||x.k==='lcpark'){ if(!trained()) return UI.lcNeed();
     return battle(x.k==='lcwild'?{op:'wild',i:x.i}:x.k==='lcfarm'?{op:'farm',i:x.i}:{op:'park',k:x.park}); } return p0(x); };
@@ -60,17 +60,20 @@ const a0=X.anim; X.anim=(o,clock)=>{ const a=o.anim;
   if(a==='lcheal'){ const f=Math.floor(clock*2)%7; return SPR['h'+f]||(SPR['h'+f]=A.healMachine(f)); } if(a==='lcpc'){ const f=Math.floor(clock*2)%2; return SPR['p'+f]||(SPR['p'+f]=A.pcBox(f)); } return a0(o,clock); }; const SPR={};
 let FOL=null, lastClock=0;
 const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); const S=GAME.S, P=GAME.P; if(!S||!P) return; const cam=GAME.cam, clock=GAME.clock, dt=Math.min(.1,Math.max(0,clock-lastClock)); lastClock=clock;
-  if(S.kind==='retreat'){ const vx=cam.x-40, vy=cam.y-40, vw=innerWidth+80, vh=innerHeight+80, inV=(x,y)=>x>vx&&y>vy&&x<vx+vw&&y<vy+vh;
+  if(L.maps[S.kind]){ const vx=cam.x-40, vy=cam.y-40, vw=innerWidth+80, vh=innerHeight+80, inV=(x,y)=>x>vx&&y>vy&&x<vx+vw&&y<vy+vh;
     for(const w of wildNow()){ const x=w.x*T, y=w.y*T; if(!inV(x,y)) continue; const fr=Math.floor(clock*2+w.i)%2, sp=A.linhcat(w.sp,fr,Math.sin(clock*.5+w.i)>0);
-      list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); if(Math.hypot(P.x-x,P.y-y)<80){ const X0=Math.round(x-cam.x), Y0=Math.round(y-cam.y)-30; ctx.font='6px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='rgba(18,12,22,.7)'; const tx=`Lv${w.lv} ${SP[w.sp].name}`, tw=ctx.measureText(tx).width+4; ctx.fillRect(Math.round(X0-tw/2),Y0-5,Math.round(tw),7);   /* toạ độ thế giới đã phóng to nên chữ để nhỏ */ ctx.fillStyle=SP[w.sp].night?'#c8a0ff':'#ffd84a'; ctx.fillText(tx,X0,Y0); } }}); }
-    L.farm.forEach((f,i)=>{ const [fx,fy]=farmPos(f,i,clock), x=fx*T, y=fy*T; if(!inV(x,y)) return; const sp=A.linhcat(f[2],Math.floor(clock*2+i)%2,Math.cos(clock*.4+i*2)>0); list.push({y,d:()=>{ GAME.shadow(x,y,9); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }); }
+      list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }
+    if(S.kind==='retreat') L.farm.forEach((f,i)=>{ const [fx,fy]=farmPos(f,i,clock), x=fx*T, y=fy*T; if(!inV(x,y)) return; const sp=A.linhcat(f[2],Math.floor(clock*2+i)%2,Math.cos(clock*.4+i*2)>0); list.push({y,d:()=>{ GAME.shadow(x,y,9); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }); }
   // con đầu đội đi theo người (không theo khi đang đi xe / chèo kayak)
-  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.riding||S.kind==='phongbay'){ FOL=null; return; }
+  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.riding||P.opt||['phongbay','track','deo'].includes(S.kind)){ FOL=null; return; }   // đang cưỡi / đi xe / đua ngựa / bốc đầu ở đèo thì không đi theo
   const tx=P.x-(P.face||1)*20, ty=P.y+3; if(!FOL||FOL.sp!==lead.sp||FOL.scene!==S.kind||Math.hypot(FOL.x-tx,FOL.y-ty)>200) FOL={sp:lead.sp,x:tx,y:ty,scene:S.kind,face:1};
   const dx=tx-FOL.x, dy=ty-FOL.y, dd=Math.hypot(dx,dy); if(dd>4){ const k=Math.min(1,dt*5); FOL.x+=dx*k; FOL.y+=dy*k; if(Math.abs(dx)>1) FOL.face=dx>0?1:-1; }
   const moving=dd>6, fr=Math.floor(clock*(moving?6:2))%2, sp=A.linhcat(FOL.sp,fr,FOL.face>0), fx=FOL.x, fy=FOL.y;
   list.push({y:fy,d:()=>{ GAME.shadow(fx,fy,7); ctx.drawImage(sp.c,Math.round(fx-sp.ax-cam.x),Math.round(fy-sp.ay-cam.y-(moving&&fr?1:0))); }}); };
 
+// nhãn "Lv cấp + tên" của con hoang ở gần: vẽ ở lớp giao diện cho chữ nét
+const o0=X.overlay; X.overlay=(ug,sx,sy,tag)=>{ if(o0) o0(ug,sx,sy,tag); const S=GAME.S, P=GAME.P; if(!S||!P||BT) return; ug.font='14px VT323, monospace'; ug.textAlign='center'; ug.textBaseline='bottom';
+  for(const w of (S.kind===wildScene?WILD:[])){ const x=w.x*T, y=w.y*T; if(Math.hypot(P.x-x,P.y-y)>80) continue; tag(sx(x),sy(y-30),`Lv${w.lv} ${SP[w.sp].name}`,'',SP[w.sp].night?'#c8a0ff':'#ffd84a'); } };
 /* ---------- màn đấu theo lượt ---------- */
 let BT=null;
 async function battle(m){ if(BT) return; const r=await req({t:'lcb',...m}); if(r.err||!r.battle) return; open(r.battle); }

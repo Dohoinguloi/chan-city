@@ -78,10 +78,11 @@ function beast(P,id){
 const LINE={lua_nhi:[fireLine,1],hoa_binh:[fireLine,2],hoa_tuong:[fireLine,3],mam_nhi:[grassLine,1],la_binh:[grassLine,2],moc_tuong:[grassLine,3],rua_nhi:[waterLine,1],thuy_binh:[waterLine,2],thuy_tuong:[waterLine,3],
   ti_set:[elecLine,1],set_binh:[elecLine,2],loi_tuong:[elecLine,3],bong_bong:[fairyLine,1],bong_hong:[fairyLine,2],tien_bong:[fairyLine,3],khoi_nhi:[ghostLine,1],bong_ma_binh:[ghostLine,2],quy_tuong:[ghostLine,3],
   rong_nhi:[dragonLine,1],rong_may:[dragonLine,2],long_vuong:[dragonLine,3]};
-const LCC=new Map();
+const LCC=new Map(); A.LC_DRAW=A.LC_DRAW||{};   // art10.js thêm các loài mới vào đây
+A.lcKit={ell,eye,blush};
 // fr: 0/1 nhún nhẹ (dịch 1px), flip: quay mặt sang phải (Lính Cát của mình khi đấu)
 A.linhcat=(id,fr=0,flip=false)=>{ const k=id+fr+flip; if(LCC.has(k)) return LCC.get(k);
-  const sp=S(28,28,14,27,(g,P)=>{ if(LINE[id]) LINE[id][0](P,LINE[id][1]); else if(FOX[id]) fox(P,id); else beast(P,id); });
+  const sp=S(28,28,14,27,(g,P)=>{ const f=A.LC_DRAW[id]; if(f) f(P); else if(LINE[id]) LINE[id][0](P,LINE[id][1]); else if(FOX[id]) fox(P,id); else beast(P,id); });
   let out=sp; if(fr||flip){ const c=A.cv(28,28), g=c.getContext('2d'); if(flip){ g.translate(28,0); g.scale(-1,1); } g.drawImage(sp.c,0,fr?-1:0); out={c,ax:14,ay:27}; }
   LCC.set(k,out); return out; };
 /* ---------- Bóng Cát: 0 đóng, 1 hé mở, 2 mở bung (gold: Bóng Cát Vàng) ---------- */
