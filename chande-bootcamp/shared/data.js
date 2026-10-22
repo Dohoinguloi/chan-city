@@ -939,11 +939,12 @@ MU.legacy={lg_shovel:{name:'Shovel Knight',tier:1,price:1200000,bonus:{def:.14,h
   lg_vader:{name:'Darth Vader',tier:5,price:8000000,bonus:{atk:.18,def:.12,hp:.08},fx:'force',desc:'Mũ giáp đen, kiếm ánh sáng đỏ. Đòn kèm sóng Thần Lực bóp nghẹt'},
   lg_16typh:{name:'16Typh',tier:4,price:5000000,bonus:{atk:.14,mp:.1},fx:'note',desc:'Tóc bạch kim xanh, blazer đen, sơ mi hoạ tiết, chuỗi ngọc trai. Chiêu 5 gọi Min ra hát đánh cùng 12 giây'},
   lg_ranbien:{name:'Rắn Biển',tier:4,price:10000000,bonus:{atk:.12,hp:.1},fx:'snake',desc:'Đồ bơi thể thao, hình xăm rắn quấn cánh tay. Đòn ra có rắn độc lao tới cắn, chiêu 5 hút máu'},
+  lg_kth:{name:'Khúc Thị Hương',tier:4,price:10000000,bonus:{atk:.12,mp:.1,hp:.04},fx:'selfie',desc:'Tóc đen dài, bikini đen, hình xăm 2 tay, khuyên rốn, tay cầm điện thoại. Đòn ra có tim hồng, chiêu 5 Selfie Chói Loá làm boss choáng'},
   lg_zeus:{name:'Zeus Thần Sấm',tier:5,price:8000000,bonus:{atk:.2,mp:.12,hp:.06},fx:'zeus',desc:'Râu tóc bạc, áo choàng thần. Mỗi đòn gọi sét vàng giáng xuống'}};
 // chiêu riêng của set legacy (phím 5, chỉ khi đang mặc set đó): hiệu ứng theo kiểu ra đòn của set, đánh 3 nhịp
 const LG_SKILL={shovel:['Xẻng Bổ Đất',3,{}],pow:['Liên Hoàn Quyền',3.2,{}],egg:['Mưa Trứng Yoshi',2.8,{heal:.1}],air:['Lốc Xoáy Khí Thần',2.6,{slow:2}],chainsaw:['Cưa Xé Toạc',3.4,{}],
   lion:['Sư Tử Gầm Vang',3,{}],sand:['Bão Cát Sa Mạc',3,{drain:.2}],oni:['Nhất Đao Quỷ Trảm',3.6,{}],beam:['Makankosappo',3.6,{range:4}],buster:['X-Buster Tích Lực',3.4,{range:4}],
-  zsaber:['Z-Saber Liên Trảm',3.8,{}],note:['Gọi Min',2,{summon:12}],snake:['Rắn Độc Quấn',3.4,{drain:.15}],king:['Vương Quyền Hoàng Kim',3,{heal:.15}],force:['Thần Lực Bóp Nghẹt',4,{slow:2}],zeus:['Thiên Lôi Zeus',4.2,{}]};
+  zsaber:['Z-Saber Liên Trảm',3.8,{}],note:['Gọi Min',2,{summon:12}],snake:['Rắn Độc Quấn',3.4,{drain:.15}],selfie:['Selfie Chói Loá',3.2,{slow:2.5}],king:['Vương Quyền Hoàng Kim',3,{heal:.15}],force:['Thần Lực Bóp Nghẹt',4,{slow:2}],zeus:['Thiên Lôi Zeus',4.2,{}]};
 for(const L of Object.values(MU.legacy)){ const [name,mul,o]=LG_SKILL[L.fx]; L.skill={k:'lgs_'+L.fx,name,mp:16+L.tier*3,cd:o.summon?22:9+L.tier,mul,range:3,...o}; }
 // Min: nhân vật được set 16Typh gọi ra đánh cùng (không bán, chỉ để vẽ)
 CLOTHES.mu_min={name:'Đồ của Min',slot:'top',price:0,hidden:true,set:'mu_min',opts:{top:'long'},colors:{top:'e8d0a8',pants:'d8a040',shoes:'8a5a32'}};

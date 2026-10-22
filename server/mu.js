@@ -33,7 +33,7 @@ function down(pl,why){ const m=pl.mus; if(!m||m.dead>now()) return; m.hp=0; m.de
 /* ---------- boss: lịch xuất hiện, bảng đòn, giai đoạn ---------- */
 const LIVE=new Map(), NEXT={}; let SEQ=1;
 const nextAt=(b,t)=>Math.ceil((t-(b.offset||0)+1)/b.every)*b.every+(b.offset||0);
-for(const [id,b] of Object.entries(BS)) NEXT[id]=nextAt(b,now());
+for(const [id,b] of Object.entries(BS)) NEXT[id]=nextAt(b,now());   /* lần đầu ra theo lịch lệch nhau; sau đó hạ xong / bỏ đi thì hồi lại đủ b.every mới ra tiếp */
 const radius=b=>b.big?2.2:1.6;
 function phaseOf(B){ const k=B.hp/B.max, P=BS[B.id].phases; return k<P[1]?3:k<P[0]?2:1; }
 function bossView(B){ const b=BS[B.id]; return {id:B.id,name:b.name,sprite:b.sprite,big:b.big||0,hp:Math.round(B.hp),max:B.max,x:B.x,y:B.y,phase:B.phase,anim:B.anim,until:B.until,slow:B.slow>now()?1:0,
@@ -65,10 +65,10 @@ function resolve(B,z,t){ const b=BS[B.id];
   if(z.kind==='jump'){ B.x=Math.max(b.area.x0+1,Math.min(b.area.x1-1,z.x)); B.y=Math.max(b.area.y0+1,Math.min(b.area.y1-1,z.y)); }
   const cx=z.kind==='ring'?B.x:z.x, cy=z.kind==='ring'?B.y:z.y; for(const q of alive()) if(dist(q,cx,cy)<=z.r) hurt(B,q,z.dmg,z.k);
   bcast({t:'mufx',k:'bhit',boss:B.id,ak:z.k,kind:z.kind,x:cx,y:cy,r:z.r}); return true; }
-function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!LIVE.has(id)&&t>=NEXT[id]){ NEXT[id]=nextAt(b,t); spawn(id); }
+function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!LIVE.has(id)&&t>=NEXT[id]){ NEXT[id]=t+b.life+b.every; spawn(id); }
   let dirty=false;
   for(const B of [...LIVE.values()]){ const b=BS[B.id];
-    if(t>=B.until){ LIVE.delete(B.id); bcast({t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }
+    if(t>=B.until){ LIVE.delete(B.id); NEXT[B.id]=t+b.every; bcast({t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }
     const ph=phaseOf(B); if(ph!==B.phase){ B.phase=ph; dirty=true; bcast({t:'mufx',k:'phase',boss:B.id,phase:ph}); if(ph===3) bcast({t:'note',msg:`🔥 ${b.name} nổi giận! Đánh mạnh và nhanh hơn`,kind:'lock'}); }
     const en=ph===3?b.enrage:{mul:1,speed:1}, speed=en.speed*(B.slow>t?.6:1);
     for(const a of b.attacks){ if((a.phase||1)>ph||t<(B.cd[a.k]||0)||B.tele.length>=3) continue; if(B.tele.some(z=>z.kind!=='single'&&z.at>t)&&a.kind!=='single') continue;
@@ -76,7 +76,8 @@ function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!LIVE.has(id)&&
     const before=B.tele.length; B.tele=B.tele.filter(z=>!resolve(B,z,t)); if(B.tele.length!==before) dirty=true; }
   if(dirty) pushBoss(); }
 // hạ boss: chia thưởng theo phần sát thương
-function bossDie(B,killer){ const b=BS[B.id], R=RW[b.drops]||{}; LIVE.delete(B.id); const total=[...B.dmg.values()].reduce((a,v)=>a+v,0)||1, top=[...B.dmg.entries()].sort((a,c)=>c[1]-a[1]).filter(([u])=>C.byUid.get(u)), lines=[];
+function bossDie(B,killer){ const b=BS[B.id], R=RW[b.drops]||{}; LIVE.delete(B.id); NEXT[B.id]=now()+b.every;   /* hồi lại đủ thời gian mới ra tiếp */
+  const total=[...B.dmg.values()].reduce((a,v)=>a+v,0)||1, top=[...B.dmg.entries()].sort((a,c)=>c[1]-a[1]).filter(([u])=>C.byUid.get(u)), lines=[];
   // Trái Ác Quỷ (chỉ Luffy): số trái = 1/10 số người góp sức, tối thiểu 1; ai góp nhiều sát thương thì dễ được hơn
   const fruitTo=new Set(); if(B.id==='luffy'){ const n=Math.max(1,Math.ceil(top.length/(R.fruitPer||10))), pool=top.map(([u,d])=>({u,w:d})); for(let i=0;i<n&&pool.length;i++){ const sum=pool.reduce((a,x)=>a+x.w,0); let r=Math.random()*sum, k=0; while(k<pool.length-1&&(r-=pool[k].w)>0) k++; fruitTo.add(pool[k].u); pool.splice(k,1); } }
   top.forEach(([uid,d],rank)=>{ const pl=C.byUid.get(uid); if(!pl||!pl.prof) return; const p=pl.prof, sh=d/total, items={}, extra=[], hadCos=!!(R.costume&&p.owned[R.costume]);

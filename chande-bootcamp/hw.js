@@ -272,6 +272,22 @@ Object.assign(C,{
     if(v==='back'){ U.rows(21,22,(x,y,ch)=>{ if(ch!=='O'&&x>=3&&x<=16) U.put(x,y,']'); }); snake([[2,20],[3,21],[4,22],[3,23],[2,24],[17,20],[16,21],[15,22]]); }
     LG.hands(U,'S'); U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,y===27&&(x===9||x===10)&&!s?'#':ch==='p'?'9':'0'); });
     U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'S'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,y===32?'-':'S'); }); },
+  // Khúc Thị Hương: tóc đen dài thả 2 bên vai, bikini đen có khoen bạc giữa, hình xăm rắn tay phải + hoa tay trái, khuyên rốn, dép quai đen, tay cầm điện thoại trắng
+  lg_kth(U,v){ const s=v==='side', f=v==='front', b=v==='back';
+    U.rows(-10,19,(x,y,ch)=>{ if('HhJX'.includes(ch)) U.put(x,y,(x+y)%5===0?']':'@'); });
+    if(f){ for(let y=10;y<=26;y++){ U.put(0,y,'@'); U.put(19,y,'@'); if(y<22){ U.put(-1,y,y%3?'@':']'); U.put(20,y,y%3?'@':']'); } } }
+    if(s) for(let y=8;y<=26;y++){ const w=y<12?2:3; for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,(x+y)%4?'@':']'); }
+    if(b) U.rows(6,26,(x,y,ch)=>{ if(ch!=='O'&&x>=3&&x<=16) U.put(x,y,(x*3+y)%7===0?']':'@'); });
+    U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?'s':'S'); });
+    if(f){ U.rect(5,21,8,22,'@'); U.rect(11,21,14,22,'@'); U.put(6,20,'@'); U.put(13,20,'@'); U.rect(9,22,10,22,'%'); U.put(9,25,'%');
+      for(const [x,y] of [[17,20],[16,21],[15,22],[16,23],[17,24],[16,25],[15,26]]) if(U.body(x,y)) U.put(x,y,'@');
+      for(const [x,y] of [[2,21],[3,21],[2,22],[4,23],[3,24],[2,25],[3,26]]) if(U.body(x,y)) U.put(x,y,'_');
+      U.rect(19,23,20,27,'%'); U.rect(20,24,20,26,'#'); }
+    if(s){ U.rect(9,21,15,22,'@'); U.put(14,20,'@'); for(const [x,y] of [[14,20],[15,21],[16,22],[15,23],[14,24],[15,25]]) if(U.body(x,y)&&y>22) U.put(x,y,'@'); U.rect(17,22,18,26,'%'); U.rect(18,23,18,25,'#'); }
+    if(b) U.rows(21,21,(x,y,ch)=>{ if(ch!=='O'&&x>=2&&x<=17) U.put(x,y,'@'); });
+    LG.hands(U,'S');
+    U.rows(27,28,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,y===27||(x>=7&&x<=12)?'@':'S'); }); if(!s){ U.put(5,27,'%'); U.put(14,27,'%'); }
+    U.rows(29,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,ch==='p'?'s':'S'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,y===32?'@':'S'); }); },
   // Min (được 16Typh gọi ra): áo lưới màu kem tay dài, quần short ánh vàng, giày nâu
   mu_min(U,v){ U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?'|':(y%2&&(x<5||x>14))?'S':'/'); }); U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,ch==='p'?'}':'$'); });
     U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'S'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,ch==='f'?'>':'<'); }); },

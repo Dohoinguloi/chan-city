@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-22e',title:'22/10 (bổ sung)',items:['MU Premium Store thêm set Khúc Thị Hương: tóc đen dài, bikini đen, hình xăm 2 tay, chiêu phím 5 Selfie Chói Loá làm boss choáng','MU: boss hạ xong (hoặc bỏ đi) phải hồi đủ thời gian mới ra lại (Luffy 20 phút, boss phụ 10–18 phút), xem đếm ngược ở thanh boss']},
   {v:'2026-10-22d',title:'22/10 (bổ sung)',items:['MU Premium Store thêm set Rắn Biển: đồ bơi thể thao, hình xăm rắn trên tay, chiêu phím 5 Rắn Độc Quấn hút máu']},
   {v:'2026-10-22c',title:'22/10',items:[
     'MU: map rộng gấp đôi, 5 boss vẽ lại: Luffy Gear 5 (rơi Trái Ác Quỷ), Naruto, Quỷ Cưa, Dươngg Vũ, Rồng Dải Xanh. Đòn boss có vòng cảnh báo, chạy ra là né được',
