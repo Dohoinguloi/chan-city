@@ -7,9 +7,10 @@ const SIDE={idle:{fps:4,f:[{},{},{up:1},{up:1}]},walk:{fps:8,f:[{lL:{dy:-1}},{up
 const CACHE=new Map();
 function canvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
 // khung nghiêng: dịch khối thân trên / 2 chân như animDefs của tool
-function side(rows,pal,f){ const c=canvas(FW,FH), g=c.getContext('2d'), im=g.createImageData(FW,FH), L=f.lL||{}, R=f.lR||{}, gdx=f.dx||0, gdy=f.dy||0;
+// px/pt: lề trái / trên của lưới đã nới (đồ Halloween vẽ ra ngoài người)
+function side(rows,pal,f,px=0,pt=0){ const c=canvas(FW,FH), g=c.getContext('2d'), im=g.createImageData(FW,FH), L=f.lL||{}, R=f.lR||{}, gdx=f.dx||0, gdy=f.dy||0;
   const put=(x,y,v)=>{ if(x<0||y<0||x>=FW||y>=FH) return; const i=(y*FW+x)*4; im.data[i]=v[0]; im.data[i+1]=v[1]; im.data[i+2]=v[2]; im.data[i+3]=255; };
-  rows.forEach((row,y)=>row.forEach((ch,x)=>{ if(ch==='.') return; let v=pal[ch]; if(!v) return;
+  rows.forEach((row,yy)=>row.forEach((ch,xx)=>{ if(ch==='.') return; let v=pal[ch]; if(!v) return; const x=xx-px, y=yy-pt;
     if(f.tint){ const [tr,tg,tb,m]=f.tint==='w'?[255,255,255,.8]:[255,60,60,.5]; v=[v[0]+(tr-v[0])*m|0,v[1]+(tg-v[1])*m|0,v[2]+(tb-v[2])*m|0]; }
     if(y>=WAIST){ const p=x<SPLIT?L:R; put(OX+x+(p.dx||0)+gdx,OY+y+(p.dy||0)+gdy,v); } else put(OX+x+gdx+(f.upDx||0),OY+y+gdy+(f.up||0),v); }));
   g.putImageData(im,0,0); return c; }
@@ -37,9 +38,11 @@ function portrait(frame){ const c=canvas(84,84), g=c.getContext('2d'); g.imageSm
 function build(look){ const key=JSON.stringify(look); if(CACHE.has(key)) return CACHE.get(key);
   const t=SD.lookToTemplate(look), cols={}; for(const k in t.colors) cols[k]=RT.hx(t.colors[k]);
   const pal=RT.palette(cols), o={...t.opts,quay:true,noi:true,hokage:true}, rows=RT.compose(o).map(r=>[...r]), anims={};
-  if(o.costume){ Object.assign(pal,COSTUME_PAL); costume(rows,o.costume,'side'); }
-  for(const [name,d] of Object.entries(SIDE)) anims[name]={fps:d.fps,loop:name!=='attack'&&name!=='hurt',frames:d.f.map(f=>side(rows,pal,f))};
-  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>{ if(o.costume) costume(G,o.costume,view); return grid(G,pal,OX,0,0); })}; }
+  const hw=o.costume&&window.HWC&&HWC.C[o.costume];   // đồ Halloween: lưới nới lề, bảng màu riêng
+  if(hw) Object.assign(pal,HWC.PAL); else if(o.costume){ Object.assign(pal,COSTUME_PAL); costume(rows,o.costume,'side'); }
+  const sr=hw?HWC.apply(rows,o.costume,'side'):rows, spx=hw?HWC.PX:0, spt=hw?HWC.PT:0;
+  for(const [name,d] of Object.entries(SIDE)) anims[name]={fps:d.fps,loop:name!=='attack'&&name!=='hurt',frames:d.f.map(f=>side(sr,pal,f,spx,spt))};
+  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>{ if(hw) return grid(HWC.apply(G,o.costume,view),pal,OX-HWC.PX,HWC.PT,0); if(o.costume) costume(G,o.costume,view); return grid(G,pal,OX,0,0); })}; }
   const pose=(name,opts,skipTop)=>RT.poseFrames(name,opts).map(f=>grid(skipTop?f.grid.map((r,y)=>y<f.padTop?r.map(()=>'.'):r):f.grid,pal,0,f.padTop||0,f.bob||0,f.palExtra));
   anims.quay={fps:8,loop:true,frames:pose('quay',o)}; anims.hokage={fps:8,loop:false,frames:pose('hokage',o)}; anims.noi={fps:6,loop:true,frames:pose('noi',o,true)};
   anims.gong={fps:8,loop:false,frames:pose('saiyan',{...o,saiyan:{toOpts:{hair:o.hair,beard:o.beard,mouth:o.mouth},toHair:cols.hair}})};

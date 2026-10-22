@@ -729,6 +729,17 @@ INTERIORS.linhcat={name:'Trung tâm Lính Cát',W:24,H:16,spawn:{x:12,y:14.2},ex
 NPCS.push({id:'gs_cat',scene:'linhcat',x:5.4,y:6.4,place:'lcgs'},{id:'yta_cat',scene:'linhcat',x:12,y:3.6,place:'lcyta'});
 Object.assign(NPC_LOOKS,{gs_cat:{name:'Giáo sư Cát',look:{gender:'nam',hair:'swept',hairColor:'c8c0b0',skin:'f0c4a0',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_den',eyes:'kinh_can'},opts:{beard:'mustache',mouth:'smile'}}},
   yta_cat:{name:'Chị Y tá Cát',look:{gender:'nu',hair:'bun',hairColor:'e86a9a',skin:'f3c8ae',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}}});
+// 15 bộ trang phục Halloween (vẽ trong hw.js): mùa lễ hội mỗi người được chọn miễn phí 1 bộ (bảng hiện ra lúc vào game), mặc như áo (đè cả quần, giày)
+const HW_SETS=[['hw_witch','Phù thuỷ',{top:'long',bottom:'skirt'},{top:'5b2a86',pants:'3a1a5a',shoes:'1c1820'}],
+  ['hw_vampire','Ma cà rồng',{top:'suit'},{top:'1c1820',shirt:'f2f0ea',tie:'c8282a',pants:'1c1820',shoes:'1c1820',hair:'16121a',skin:'e8e0ee'}],
+  ['hw_ghost','Bóng ma',{top:'long'},{}],['hw_frank','Frankenstein',{top:'jacket',hair:'buzz'},{skin:'8fc77a',hair:'1c1820',top:'3a3a44',inner:'2a2a30',pants:'2a2a30',shoes:'1c1820'}],
+  ['hw_mummy','Xác ướp',{top:'long'},{}],['hw_skel','Bộ xương',{top:'long',hair:'bald'},{skin:'eeeae0',top:'1c1820',pants:'1c1820',shoes:'1c1820'}],
+  ['hw_cat','Cô mèo đen',{top:'long'},{top:'1c1820',pants:'1c1820',shoes:'1c1820'}],['hw_pirate','Cướp biển',{top:'tee'},{top:'f4f2ec',pants:'2a2030',shoes:'3a2418'}],
+  ['hw_nurse','Y tá',{top:'long',bottom:'skirt'},{top:'f4f2ec',pants:'f4f2ec',shoes:'f4f2ec'}],['hw_wolf','Người sói',{top:'tee',hair:'shag'},{skin:'9a7454',hair:'5a4030',top:'a8322e',pants:'4a6a9a',shoes:'5a4030'}],
+  ['hw_fairy','Tiên nữ',{top:'tee',bottom:'skirt'},{top:'ffb8e0',pants:'ffb8e0',shoes:'f4f2ec'}],['hw_devil','Ác quỷ',{top:'long'},{top:'c8282a',pants:'8a1a1a',shoes:'1c1820'}],
+  ['hw_pumpkin','Bí ngô',{top:'long'},{top:'3a7a3a',pants:'2a4a2a',shoes:'1c2a1c'}],['hw_zombie','Thây ma',{top:'tee'},{skin:'9ab890',hair:'3a4a30',top:'5a7a9a',pants:'6a5040',shoes:'3a3030'}],
+  ['hw_cowboy','Cao bồi',{top:'tee'},{top:'c84a3a',pants:'4a6a9a',shoes:'6a4228'}]];
+for(const [id,name,opts,colors] of HW_SETS) CLOTHES[id]={name:'Đồ Halloween: '+name,slot:'top',price:0,hidden:true,hw:true,set:id,opts,colors};
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -1160,5 +1171,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

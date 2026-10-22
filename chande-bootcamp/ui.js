@@ -701,6 +701,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
         return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
         <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{al:a},'pri'):''}</div></div>`; }).join(''); }
   if(dTab==='season'&&season){ const n=g.items.bi_ngo||0, bg=(g.flags&&g.flags.bingo)||{}, end=season.to.split('-').reverse().join('/');
+    if(!(g.flags||{}).hwFree) body+=`<p>${btn('hwopen','🎃 Nhận 1 bộ trang phục Halloween miễn phí (15 bộ để chọn)',{},'pri')}</p>`;
     body+=`<div class="dseason"><p>Từ ${season.from.split('-').reverse().join('/')} tới ${end}: bí ngô mọc rải khắp <b>Ké Retreat</b> và <b>Đà Lạt</b> (chấm cam trên minimap), mỗi giờ đổi chỗ. Hái bí rồi mang tới <b>Cô Bí Ngô</b> ở cổng Ké đổi quà. Tối đến đèn bí ngô ở cổng sáng lập loè.</p>
       <div class="dhave">${ico('bi_ngo')} Bạn có <b>${n}</b> quả bí ngô ${btn('dgo','Tìm bí gần nhất ➜',{id:'pumpkin'},'go')}</div>
       <div class="dshop">${season.shop.map(it=>{ const own=!it.again&&bg[it.id], can=n>=it.cost&&!own; return `<div class="dsi ${own?'got':''}">${ico(it.item?it.item:it.cloth==='ao_bingo'?'ao_bingo':it.cloth?'mu_phuthuy':'bi_ngo')}<div><b>${esc(it.name)}</b><span>${esc(it.desc)}</span></div><div class="dcost">${it.cost} 🎃 ${own?'<i>✔ Có rồi</i>':btn('bingo','Đổi',{id:it.id},can?'pri':'')}</div></div>`; }).join('')}</div>
@@ -711,6 +712,13 @@ ACT.dtab=d=>{ dTab=d.k; dChest=null; UI.refresh(); };
 ACT.dlogin=async()=>{ const r=await GAME.act({t:'dq',op:'login'}); if(r&&!r.err){ GAME.sfx('level_up',.5); if(r.chest) dChest=r.chest; } UI.refresh(); };
 ACT.dget=async d=>{ const r=await GAME.act({t:'dq',op:'get',i:+d.i}); if(r&&!r.err) GAME.sfx('item_pickup',.5); UI.refresh(); };
 ACT.dchest=async()=>{ const r=await GAME.act({t:'dq',op:'chest'}); if(r&&r.chest){ dChest=r.chest; GAME.sfx('level_up',.6); } UI.refresh(); };
+// quà Halloween: chọn 1 trong 15 bộ trang phục, có hình xem trước theo đúng ngoại hình của mình
+const HW_IMG=new Map(); function hwImg(id){ const look=G().look, k=id+JSON.stringify(look); if(!HW_IMG.has(k)){ const av=AVATAR.build({...look,outfit:{...look.outfit,top:id}}), fr=av.anims.idle_down.frames[0], c=document.createElement('canvas'); c.width=64; c.height=90; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(fr,0,2,32,45,0,0,64,90); HW_IMG.set(k,c.toDataURL()); } return HW_IMG.get(k); }
+UI.hwPick=()=>open('🎃 Quà Halloween: chọn 1 bộ trang phục miễn phí',()=>`<p>Mừng lễ hội Halloween, Chan City tặng mỗi người <b>1 bộ trang phục</b>. Chọn kỹ nhé, mỗi người chỉ được nhận 1 bộ! Nhận xong là mặc luôn, đổi lại trong Tủ đồ (U).</p>
+  <div class="hwgrid">${SD.HW_SETS.map(([id,name])=>`<div class="hwc"><img src="${hwImg(id)}" width="64" height="90" alt=""><b>${esc(name)}</b>${btn('hwclaim','Nhận',{k:id},'pri')}</div>`).join('')}</div>`,{wide:true,static:true});
+ACT.hwopen=()=>UI.hwPick();
+ACT.hwclaim=async d=>{ const r=await GAME.act({t:'dq',op:'hwclaim',k:d.k}); if(r&&!r.err){ UI.closeAll(); GAME.sfx('level_up',.7); GAME.bigText('HAPPY HALLOWEEN!'); GAME.toast(esc(r.msg),'item'); } };
+let HW_ASK=0; NET.listen('dq',m=>{ if(HW_ASK||m.season!=='halloween'||(G()&&G().flags&&G().flags.hwFree)) return; HW_ASK=1; let n=0; const t=setInterval(()=>{ n++; const g=G(); if(!g||(g.flags&&g.flags.hwFree)||n>40){ clearInterval(t); return; } if(!UI.isOpen()&&GAME.S){ clearInterval(t); UI.hwPick(); } },3000); });
 ACT.dalbum=async d=>{ const r=await GAME.act({t:'dq',op:'album',a:d.al}); /* data-a là tên hành động nên khoá bộ đặt là al */ if(r&&!r.err) GAME.sfx('level_up',.6); UI.refresh(); };
 ACT.dgo=d=>GAME.dqGo(d.id);
 ACT.bingo=async d=>{ const r=await GAME.act({t:'bingo',id:d.id}); if(r&&!r.err) GAME.sfx('item_pickup',.6); UI.refresh(); };

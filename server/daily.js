@@ -52,6 +52,10 @@ on('dq',(pl,m)=>{ const p=pl.prof, op=m.op;
     const def=S.DAYQ.pool[t.id]; t.got=true; reward(pl,def.rw,`Thưởng việc hôm nay: ${def.name}`); markDirty(pl); push(pl); return {ok:true}; }
   if(op==='chest'){ const q=dq(pl); if(q.chest) return {err:'Rương hôm nay mở rồi'}; if(!q.list.every(t=>t.got)) return {err:`Nhận đủ thưởng ${q.list.length} việc trước đã`};
     q.chest=true; const chest=openChest(pl,'Rương ngày'); markDirty(pl); push(pl); return {ok:true,chest}; }
+  // quà Halloween: chọn miễn phí 1 bộ trang phục (1 lần), mặc luôn
+  if(op==='hwclaim'){ if(!S.seasonOn('halloween')) return {err:'Hết mùa Halloween rồi'}; const k=String(m.k||''), it=S.CLOTHES[k]; if(!it||!it.hw) return {err:'?'};
+    if(p.flags.hwFree) return {err:'Bạn đã nhận trang phục Halloween rồi'}; p.owned[k]=1; p.flags.hwFree=k; if(p.look&&p.look.outfit) p.look.outfit.top=k; see(pl,k); markDirty(pl); C.refreshInfo(pl);
+    return {msg:`Nhận bộ ${it.name.replace('Đồ Halloween: ','')}! Đã mặc luôn, muốn đổi lại thì mở Tủ đồ (U)`,look:p.look}; }
   if(op==='album'){ const z=S.ALBUM[m.a], s=p.seen||{}; if(!z) return {err:'?'}; const got=p.albumGot=p.albumGot||{}; if(got[m.a]) return {err:'Bộ này nhận thưởng rồi'};
     if(!z.items.every(k=>s[k])) return {err:'Chưa đủ bộ'}; got[m.a]=Date.now(); reward(pl,z.rw,`Đủ bộ sưu tầm ${z.name}!`); P.stat(pl,'album',1); markDirty(pl); push(pl); return {ok:true}; }
   return {err:'?'}; });

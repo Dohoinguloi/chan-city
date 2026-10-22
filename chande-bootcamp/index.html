@@ -181,6 +181,9 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 
 #hudBottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);gap:6px;justify-items:center;max-width:calc(100vw - 420px);display:none}
 #hudItems{display:flex;gap:4px;padding:5px}
+/* quà Halloween: lưới 15 bộ trang phục */
+.hwgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px} .hwc{display:grid;justify-items:center;gap:3px;padding:5px 3px;background:var(--panel2);border:2px solid var(--line);text-align:center} .hwc img{image-rendering:pixelated} .hwc b{font-weight:400;color:var(--gold);font-size:16px}
+@media (max-width:620px){ .hwgrid{grid-template-columns:repeat(3,1fr)} }
 /* Lính Cát: bảng đội, khởi đầu, sổ, màn đấu */
 .lcimg{image-rendering:pixelated;vertical-align:middle} .lct{display:inline-block;padding:0 5px;color:#120c16;font-size:13px;line-height:16px;vertical-align:middle}
 .lcbar{display:inline-block;width:90px;height:6px;background:#3a1a1e;vertical-align:middle;border:1px solid var(--ink)} .lcbar i{display:block;height:100%}
@@ -540,7 +543,8 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world3.js"></script>
 <script src="world4.js"></script>
 <script src="world5.js"></script>
-<script src="avatar.js?v=7"></script>
+<script src="avatar.js?v=8"></script>
+<script src="hw.js"></script>
 <script src="net.js?v=7"></script>
 <script src="music.js"></script>
 <script src="ambient.js"></script>
