@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23f',title:'23/10 (bổ sung)',items:['Quái rừng MU ra lại nhanh hơn: hạ xong 12 giây là con mới xuất hiện ở ổ cũ']},
   {v:'2026-10-23e',title:'23/10 · Rừng quái MU + Ngọc Cường Hoá',items:['MU mở rộng rừng quái phía Nam (đi cổng Nam quảng trường, lối Nam Đầm Rồng / Bãi Phế Liệu): 9 khu, 9 loài quái đi theo bầy (Slime Bí Ngô, Bọ Cạp Tím, Pháp Sư Đen, Người Sói, Bóng Ma, Quỷ Khổng Lồ, Người Đá, Linh Hồn Sọ Hươu, Chó Ba Đầu), càng sâu càng mạnh. Đánh quái được tiền, EXP, EXP MU, chiến lợi phẩm, có thể rơi Ngọc Cường Hoá. Trong rừng có cả Lính Cát hoang',
     'Ngọc Cường Hoá: Phù Thuỷ Cường Hoá (góc Tây Nam quảng trường MU) khắc 12 lỗ cho vũ khí, giáp, set legacy, phụ kiện, giày. Lỗ càng sâu càng khó (lỗ cuối 7%), Lính Cát đầu đội cấp cao cộng tỉ lệ, mỗi loài Lính Cát huyền thoại tặng 1 Ngọc Huyền Thoại (80%). Ngọc rơi từ boss, quái rừng, nhiệm vụ ẩn, vớt dưới hồ Ké',
     'Tiệm Giày Lướt Gió (góc Tây Bắc quảng trường MU): 15 đôi giày đi nhanh hơn ở mọi map + chỉ số đánh boss, Ván Trượt Vàng mạnh nhất (+32% tốc độ)',
