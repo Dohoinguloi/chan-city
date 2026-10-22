@@ -123,7 +123,7 @@ function buildMap(kind,room){ if(kind==='room') return Wd.buildRoom(); if(kind==
   if(kind==='nghienmotion') return Wd.buildNghienMotion();
   if(kind==='bearplus') return Wd.buildBearplus(); if(kind==='vnpt') return Wd.buildVnpt(); if(kind==='mieu') return Wd.buildMieu();
   if(kind==='das') return Wd.buildDas(); if(kind==='lumen') return Wd.buildLumen(); if(kind==='yenlang') return Wd.buildYenLang(); if(kind==='pickle') return Wd.buildPickle(); if(kind==='diep') return Wd.buildDiep();
-  if(kind==='everfit') return Wd.buildOffice(); if(kind==='dalat') return Wd.buildDalat(); if(kind==='track') return Wd.buildTrack(); if(kind==='deo') return Wd.buildDeo(); return Wd.buildInterior(kind); }
+  if(kind==='everfit') return Wd.buildOffice(); if(kind==='dalat') return Wd.buildDalat(); if(kind==='track') return Wd.buildTrack(); if(kind==='deo') return Wd.buildDeo(); if(kind==='linhcat') return Wd.buildLinhCat(); return Wd.buildInterior(kind); }
 function prep(m,kind){ const W=m.W, H=m.H, solid=new Uint8Array(W*H);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!A.WALKABLE.has(m.grid[y][x])) solid[y*W+x]=1;
   for(const [x0,y0,x1,y1] of m.solid) for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(x>=0&&y>=0&&x<W&&y<H) solid[y*W+x]=1;

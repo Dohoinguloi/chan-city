@@ -202,6 +202,7 @@ function buildRetreat(){
   bld('UBND xã Đà Bắc',114,60,122,63,{roof:'tile',wall:'yellow',doors:[65],windows:[10,28,100,118],sign:'UBND XA DA BAC',stoneBase:true});
   bld('Trường tiểu học Đà Bắc',129,60,140,63,{roof:'tile_blue',wall:'cream',doors:[89],windows:[10,26,42,58,118,134,150,166],sign:'TRUONG TIEU HOC'});
   bld('Chợ Đà Bắc',152,61,163,64,{roof:'tile_green',wall:'white',open:true,tables:true,sign:'CHO DA BAC'});
+  bld('Trung tâm Lính Cát',172,60,181,63,{shop:true,roof:'tile',wall:'white',doors:[62],windows:[10,30,110,130],sign:'TRUNG TAM LINH CAT',signBg:'#d23a2e',signFg:'#ffffff',awning:'#d23a2e'});
   bld('Trạm y tế xã',196,61,203,64,{roof:'tile',wall:'white',doors:[57],windows:[10,96],sign:'TRAM Y TE',awning:'#2f9a52'});
   bld('Bưu điện Đà Bắc',87,75,95,78,{roof:'tile',wall:'yellow',doors:[65],windows:[12,36,96,116],sign:'BUU DIEN',awning:'#f2c43d'});
   bld('Khách sạn Đà Bắc',152,75,162,80,{roof:'tile_purple',wall:'brick',doors:[81],windows:[10,26,42,58,112,128,144],sign:'KHACH SAN',awning:'#7a52b0',wallH:30});
@@ -325,8 +326,8 @@ function buildRetreat(){
 
   // ---- điểm tương tác cố định
   const inter=[
-    {id:'car_low',x:46.2*T,y:97.2*T,label:'Đi xe 4 bánh',r:30},
-    {id:'car_top',x:49.5*T,y:42.8*T,label:'Đi xe 4 bánh',r:30},
+    {id:'car_low',x:SHARED.CARS.car_low.x*T,y:SHARED.CARS.car_low.y*T,label:'Đi xe 4 bánh',r:30},   // theo đúng chỗ xe đỗ (CARS), khớp với server
+    {id:'car_top',x:SHARED.CARS.car_top.x*T,y:SHARED.CARS.car_top.y*T,label:'Đi xe 4 bánh',r:30},
     {id:'bonfire',x:30.5*T,y:90.1*T,label:'Xem',r:20},
   ]; inter.push(...EXTRA_INTER);
   // vùng tên địa điểm (hiện băng tên khi bước vào)

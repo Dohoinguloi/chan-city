@@ -181,6 +181,15 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 
 #hudBottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);gap:6px;justify-items:center;max-width:calc(100vw - 420px);display:none}
 #hudItems{display:flex;gap:4px;padding:5px}
+/* Lính Cát: bảng đội, khởi đầu, sổ, màn đấu */
+.lcimg{image-rendering:pixelated;vertical-align:middle} .lct{display:inline-block;padding:0 5px;color:#120c16;font-size:13px;line-height:16px;vertical-align:middle}
+.lcbar{display:inline-block;width:90px;height:6px;background:#3a1a1e;vertical-align:middle;border:1px solid var(--ink)} .lcbar i{display:block;height:100%}
+.lcrow{display:flex;gap:8px;align-items:center} .lcrow>span:nth-of-type(1){flex:1} .lcbtns{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.lcstarters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .lcst{display:grid;justify-items:center;gap:4px;text-align:center;padding:6px;background:var(--panel2);border:2px solid var(--line)} .lcst small{color:var(--muted);font-size:14px}
+.lcdex{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px} .lcdex span{background:var(--panel2);border:1px solid var(--line)} .lcdex .unk img{filter:brightness(0) opacity(.3)} .lcdex .seen img{filter:grayscale(1) opacity(.7)}
+#lcCv{width:100%;display:block;image-rendering:pixelated;border:2px solid var(--line)} .lcmsg{min-height:42px;padding:6px 8px;margin-top:4px;background:var(--panel2);border:2px solid var(--line);font-size:18px}
+.lcctl{margin-top:6px;display:grid;gap:6px} .lcmoves{display:grid;grid-template-columns:repeat(2,1fr);gap:4px} .lcmv{display:grid;text-align:left;border-left:6px solid var(--tc)!important} .lcmv small{font-size:13px;color:var(--muted)} .lcrow2{display:flex;flex-wrap:wrap;gap:4px} .lcctl img{vertical-align:middle}
+@media (max-width:560px){ .lcstarters{grid-template-columns:1fr} }
 /* đấu game đối kháng với Eva */
 #fgCv{width:100%;display:block;image-rendering:pixelated;background:#090c22;border:2px solid var(--line)} .fgPad{display:none;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px} body.touch .fgPad{display:grid} body.touch .fgHelp{display:none}
 .fgPad .btn{padding:8px 2px;font-size:15px;touch-action:none;user-select:none} .fgPad .btn.on{background:var(--gold);color:var(--ink)}
@@ -451,7 +460,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
-  <div id="hudNav" class="hudTop"><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
+  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
 <div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
@@ -525,10 +534,12 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art6.js"></script>
 <script src="art7.js"></script>
 <script src="art8.js"></script>
+<script src="art9.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
 <script src="world4.js"></script>
+<script src="world5.js"></script>
 <script src="avatar.js?v=7"></script>
 <script src="net.js?v=7"></script>
 <script src="music.js"></script>
@@ -540,6 +551,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="maps4.js"></script>
 <script src="fight.js"></script>
 <script src="maps5.js"></script>
+<script src="lc.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>
 </body>

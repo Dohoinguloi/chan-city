@@ -264,7 +264,7 @@ const BIKES={wave:{name:'Wave đỏ mẹ mua',price:0,window:200,fall:.5,speed:1
   dream:{name:'Dream Thái',price:30000,window:230,fall:.42,speed:180,pay:1.15,police:0,desc:'Bền bỉ, dễ bốc đầu hơn chút'},
   exciter:{name:'Exciter "trộm chó"',price:80000,window:255,fall:.36,speed:200,pay:1.3,police:.05,desc:'Nhanh, bốc đầu ngọt, nhưng công an để ý hơn'},
   sh:{name:'SH đại gia',price:150000,window:280,fall:.3,speed:210,pay:1.5,police:-.05,desc:'Đắt nhất, êm nhất, ít bị nghi ngờ'}};
-const WHEELIE={cues:6,gap:3500,lead:1300,window:200,fallChance:.5,energy:15,clean:20,maxFalls:3,policeBase:.12,policePer:.05,policeMax:.45,fine:1000000,jail:120,speed:170,daily:3,exp:15,vnd:30000,lane:7};
+const WHEELIE={cues:6,gap:3500,lead:1300,window:200,fallChance:.5,energy:15,clean:20,maxFalls:3,policeBase:.12,policePer:.05,policeMax:.45,fine:150000,jail:120,speed:170,daily:3,exp:15,vnd:30000,lane:7};
 // Phòng Bay (cửa trong Nhà giải trí): nhảy kiểu Audition theo 10 bài nhạc Magnific tạo. Mỗi lượt = 2 ô nhịp (8 phách), bấm Space ở phách cuối
 const SONGS=[{id:'dance01',name:'Bay Lên Ké',bpm:132},{id:'dance02',name:'Đêm Đà Bắc',bpm:128},{id:'dance03',name:'Quẩy Hết Mình',bpm:140},{id:'dance04',name:'Sông Đà Bass',bpm:126},
   {id:'dance05',name:'Lửa Trại',bpm:120},{id:'dance06',name:'Đà Lạt Sương Mù',bpm:124},{id:'dance07',name:'Disco Nông Trại',bpm:118},{id:'dance08',name:'Everfit Workout',bpm:130},
@@ -413,7 +413,7 @@ const ROOMS={
 for(const [k,s] of Object.entries({tro:[26,16],leu:[10,7],leubeboi:[11,8],nhangu:[11,8],rech:[12,9],ngoi:[12,9],maida:[13,9],chieng:[15,10]})){ ROOMS[k].size=s; ROOMS[k].spawn=k==='tro'?{x:12.5,y:12.5}:{x:s[0]/2,y:s[1]-1.6}; }
 const BATHHOUSE={x:56.9,y:28.4};
 // bể bơi khu dưới (ô nước x 32–34, y 77–83): bơi 8 giây, +sạch sẽ, +năng lượng, nghỉ 3 phút mới bơi tiếp
-const POOL={x0:11,y0:77,x1:34,y1:83,dur:8,clean:40,energy:15,cooldown:180,pee:{clean:15,fine:200000,window:60}};
+const POOL={x0:11,y0:77,x1:34,y1:83,dur:8,clean:40,energy:15,cooldown:180,pee:{clean:15,fine:150000,window:60}};
 // thành tích (hidden: chỉ hiện tên khi mở khoá)
 const ACH={pee5:{name:'Kẻ phá bĩnh bể bơi',desc:'Tè vào bể bơi 5 lần',stat:'pee',n:5,hidden:true,exp:50},
   fish10:{name:'Cần thủ Đà Bắc',desc:'Câu được 10 con cá',stat:'fish',n:10,exp:40},harvest50:{name:'Nông dân chăm chỉ',desc:'Thu hoạch 50 nông sản',stat:'harvest',n:50,exp:40},
@@ -645,6 +645,90 @@ Object.assign(NPC_LOOKS,{rf_rambo:{name:'Rambo (Refund Gaming)',look:{gender:'na
   rf_jikey:{name:'Jikey (Refund Gaming)',look:{gender:'nam',hair:'swept',hairColor:'2a2240',skin:'f3c4a4',outfit:{top:'ao_rf_trang',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}},
   haky:{name:'Haky Food',look:{gender:'nam',hair:'swept',hairColor:'2a1c16',skin:'f0c0a0',outfit:{top:'ao_bep_haky',bottom:'quan_da',shoes:'giay_den'},opts:{mouth:'smile'}}}});
 ITEMS.tai_nghe_rf={name:'Tai nghe Refund Gaming',icon:'headset'}; ITEMS.chia_khoa_rf={name:'Chìa khoá phòng Jikey',icon:'key'};
+/* ---------- Lính Cát (sinh vật đồng hành, kiểu thú bỏ túi) ----------
+   Học "Huấn luyện Lính Cát" ở Trung tâm Lính Cát (thị trấn Đà Bắc, cạnh đường lớn phía Đông chợ), chọn 1 trong 3 con khởi đầu.
+   Mang theo tối đa 5 con, còn lại gửi ở máy gửi giữ trong Trung tâm. Muốn thu phục con hoang thì cho Lính Cát của mình đấu, đánh yếu rồi ném Bóng Cát.
+   Đấu theo lượt (server tính), chỉ số theo cấp: máu = base×2×lv/100+lv+10, chỉ số khác = base×2×lv/100+5. Chiêu học theo hệ ở cấp 1 / 10 / 22. */
+const LC_TYPES={thuong:{name:'Thường',col:'#b8b0a0'},hoa:{name:'Lửa',col:'#ff7a3a'},thuy:{name:'Nước',col:'#4ab0ff'},moc:{name:'Cỏ',col:'#5fae46'},loi:{name:'Điện',col:'#f2c43d'},
+  tien:{name:'Tiên',col:'#ff8ad2'},ma:{name:'Ma',col:'#8a5ad8'},long:{name:'Rồng',col:'#6a7ae8'},bang:{name:'Băng',col:'#7fd8f0'},am:{name:'Bóng tối',col:'#5a4a6a'},than:{name:'Tâm linh',col:'#e86ab8'}};
+// hệ chiêu → hệ bị đánh: hệ số (không ghi là 1)
+const LC_EFF={hoa:{moc:2,bang:2,thuy:.5,hoa:.5,long:.5},thuy:{hoa:2,thuy:.5,moc:.5,long:.5},moc:{thuy:2,hoa:.5,moc:.5,long:.5},loi:{thuy:2,moc:.5,loi:.5,long:.5},
+  bang:{moc:2,long:2,hoa:.5,thuy:.5,bang:.5},tien:{long:2,am:2,hoa:.5},ma:{ma:2,than:2,thuong:0,am:.5},long:{long:2,tien:0},am:{than:2,ma:2,tien:.5,am:.5},than:{am:0,than:.5},thuong:{ma:0}};
+const LC_MOVES={hu:{name:'Húc',t:'thuong',pow:40,acc:1},
+  than_lua:{name:'Than Lửa',t:'hoa',pow:40,acc:1},phun_lua:{name:'Phun Lửa',t:'hoa',pow:70,acc:.92},hoa_nguc:{name:'Hoả Ngục',t:'hoa',pow:95,acc:.8},
+  ban_nuoc:{name:'Bắn Nước',t:'thuy',pow:40,acc:1},voi_rong:{name:'Vòi Rồng',t:'thuy',pow:70,acc:.92},song_than:{name:'Sóng Thần',t:'thuy',pow:95,acc:.8},
+  la_bay:{name:'Lá Bay',t:'moc',pow:40,acc:1},roi_day:{name:'Roi Dây',t:'moc',pow:70,acc:.92},bao_la:{name:'Bão Lá',t:'moc',pow:95,acc:.8},
+  tia_dien:{name:'Tia Điện',t:'loi',pow:40,acc:1},sam_set:{name:'Sấm Sét',t:'loi',pow:70,acc:.92},loi_dinh:{name:'Lôi Đình',t:'loi',pow:95,acc:.8},
+  hon_gio:{name:'Hôn Gió',t:'tien',pow:40,acc:1},anh_trang:{name:'Ánh Trăng',t:'tien',pow:70,acc:.92},phep_tien:{name:'Phép Tiên',t:'tien',pow:95,acc:.8},
+  liem:{name:'Liếm Hồn',t:'ma',pow:35,acc:1},bong_ma:{name:'Bóng Ma',t:'ma',pow:70,acc:.92},ac_mong:{name:'Ác Mộng',t:'ma',pow:95,acc:.8},
+  vuot_rong:{name:'Vuốt Rồng',t:'long',pow:45,acc:1},hoi_tho_rong:{name:'Hơi Thở Rồng',t:'long',pow:70,acc:.92},long_no:{name:'Long Nộ',t:'long',pow:100,acc:.78},
+  gio_bang:{name:'Gió Băng',t:'bang',pow:40,acc:1},tia_bang:{name:'Tia Băng',t:'bang',pow:70,acc:.92},bao_tuyet:{name:'Bão Tuyết',t:'bang',pow:95,acc:.8},
+  can_trom:{name:'Cắn Trộm',t:'am',pow:40,acc:1},vuot_dem:{name:'Vuốt Đêm',t:'am',pow:70,acc:.92},bong_dem:{name:'Bóng Đêm',t:'am',pow:95,acc:.8},
+  niem_luc:{name:'Niệm Lực',t:'than',pow:40,acc:1},tam_than:{name:'Tâm Thần',t:'than',pow:70,acc:.92},vu_tru:{name:'Vũ Trụ',t:'than',pow:95,acc:.8},
+  cao:{name:'Cào Cấu',t:'thuong',pow:55,acc:.95},dam_sam:{name:'Đâm Sầm',t:'thuong',pow:80,acc:.85}};
+const LC_TYPE_MOVES={hoa:['than_lua','phun_lua','hoa_nguc'],thuy:['ban_nuoc','voi_rong','song_than'],moc:['la_bay','roi_day','bao_la'],loi:['tia_dien','sam_set','loi_dinh'],
+  tien:['hon_gio','anh_trang','phep_tien'],ma:['liem','bong_ma','ac_mong'],long:['vuot_rong','hoi_tho_rong','long_no'],bang:['gio_bang','tia_bang','bao_tuyet'],
+  am:['can_trom','vuot_dem','bong_dem'],than:['niem_luc','tam_than','vu_tru'],thuong:['cao','dam_sam','dam_sam']};
+// loài: t hệ, st cấp tiến hoá, b chỉ số gốc [máu, công, thủ, tốc], evo {to, lv} | stone {đá: loài} (Cát Con), rate dễ bắt (0..1), ex EXP khi hạ
+const LC_SPECIES={
+  lua_nhi:{name:'Lửa Nhí',t:'hoa',st:1,b:[39,52,43,65],evo:{to:'hoa_binh',lv:16},rate:.3,starter:1,desc:'Thằn lằn lửa nhí, đuôi cháy bập bùng. Đuôi tắt là ốm.'},
+  hoa_binh:{name:'Hoả Binh',t:'hoa',st:2,b:[58,64,58,80],evo:{to:'hoa_tuong',lv:32},rate:.15},
+  hoa_tuong:{name:'Hoả Long Tướng',t:'hoa',st:3,b:[78,84,78,100],rate:.05},
+  mam_nhi:{name:'Mầm Nhí',t:'moc',st:1,b:[45,49,49,45],evo:{to:'la_binh',lv:16},rate:.3,starter:1,desc:'Ếch con cõng mầm cây trên lưng, phơi nắng là no.'},
+  la_binh:{name:'Lá Binh',t:'moc',st:2,b:[60,62,63,60],evo:{to:'moc_tuong',lv:32},rate:.15},
+  moc_tuong:{name:'Đại Thụ Tướng',t:'moc',st:3,b:[80,82,83,80],rate:.05},
+  rua_nhi:{name:'Rùa Nhí',t:'thuy',st:1,b:[44,48,65,43],evo:{to:'thuy_binh',lv:16},rate:.3,starter:1,desc:'Rùa con mai xanh, thích bơi ở hồ Hoà Bình.'},
+  thuy_binh:{name:'Thuỷ Binh',t:'thuy',st:2,b:[59,63,80,58],evo:{to:'thuy_tuong',lv:32},rate:.15},
+  thuy_tuong:{name:'Thuỷ Pháo Tướng',t:'thuy',st:3,b:[79,83,100,78],rate:.05},
+  ti_set:{name:'Tí Sét',t:'loi',st:1,b:[35,55,40,90],evo:{to:'set_binh',lv:14},rate:.5,desc:'Chuột điện má hồng, giật mình là tóe lửa điện.'},
+  set_binh:{name:'Sét Binh',t:'loi',st:2,b:[50,70,50,100],evo:{to:'loi_tuong',lv:28},rate:.25},
+  loi_tuong:{name:'Lôi Tướng',t:'loi',st:3,b:[60,90,55,110],rate:.08},
+  bong_bong:{name:'Bông Bông',t:'tien',st:1,b:[70,45,48,35],evo:{to:'bong_hong',lv:14},rate:.6,desc:'Cục bông hồng biết hát ru, ai nghe cũng buồn ngủ.'},
+  bong_hong:{name:'Bông Hồng',t:'tien',st:2,b:[95,65,63,45],evo:{to:'tien_bong',lv:28},rate:.3},
+  tien_bong:{name:'Tiên Bông',t:'tien',st:3,b:[115,80,73,60],rate:.08},
+  khoi_nhi:{name:'Khói Nhí',t:'ma',st:1,b:[30,35,30,80],evo:{to:'bong_ma_binh',lv:16},rate:.45,night:1,desc:'Cụm khói tím chỉ hiện ban đêm, cười khúc khích.'},
+  bong_ma_binh:{name:'Bóng Ma Binh',t:'ma',st:2,b:[45,50,45,95],evo:{to:'quy_tuong',lv:32},rate:.2,night:1},
+  quy_tuong:{name:'Quỷ Bóng Tướng',t:'ma',st:3,b:[60,65,60,110],rate:.06,night:1},
+  rong_nhi:{name:'Rồng Nhí',t:'long',st:1,b:[41,64,45,50],evo:{to:'rong_may',lv:24},rate:.15,desc:'Rồng con hiếm gặp ở vùng xa, lột da mấy lần mới lớn.'},
+  rong_may:{name:'Rồng Mây',t:'long',st:2,b:[61,84,65,70],evo:{to:'long_vuong',lv:40},rate:.08},
+  long_vuong:{name:'Long Vương Cát',t:'long',st:3,b:[91,114,95,80],rate:.03},
+  cat_con:{name:'Cát Con',t:'thuong',st:1,b:[55,55,50,55],stone:{da_lua:'cat_hoa',da_nuoc:'cat_thuy',da_sam:'cat_loi',da_la:'cat_la',da_bang:'cat_bang',da_tien:'cat_tien',da_trang:'cat_nguyet',da_tam:'cat_than'},stoneLv:15,rate:.35,desc:'Cáo cát tai to, gene linh hoạt: cho chạm đá nguyên tố là tiến hoá ra 8 hệ khác nhau.'},
+  cat_hoa:{name:'Cát Hoả',t:'hoa',st:2,b:[65,110,60,65],rate:.1},cat_thuy:{name:'Cát Thuỷ',t:'thuy',st:2,b:[110,65,60,65],rate:.1},cat_loi:{name:'Cát Lôi',t:'loi',st:2,b:[65,65,60,110],rate:.1},
+  cat_la:{name:'Cát Lá',t:'moc',st:2,b:[65,95,110,85],rate:.1},cat_bang:{name:'Cát Băng',t:'bang',st:2,b:[65,105,65,65],rate:.1},cat_tien:{name:'Cát Tiên',t:'tien',st:2,b:[95,85,65,60],rate:.1},
+  cat_nguyet:{name:'Cát Nguyệt',t:'am',st:2,b:[95,65,110,65],rate:.1},cat_than:{name:'Cát Thần',t:'than',st:2,b:[65,110,60,110],rate:.1},
+  // đối thủ không bắt được: vật nuôi, thú vườn quốc gia (bảo tồn)
+  lon:{name:'Lợn nhà',t:'thuong',st:1,b:[70,50,55,30],npc:1},bo:{name:'Bò vàng',t:'thuong',st:2,b:[85,65,65,25],npc:1},ga:{name:'Gà ri',t:'thuong',st:1,b:[40,50,35,65],npc:1},vit:{name:'Vịt cỏ',t:'thuy',st:1,b:[45,40,40,50],npc:1},
+  huou:{name:'Hươu sao',t:'thuong',st:2,b:[60,60,55,85],npc:1,wild:1},raica:{name:'Rái cá',t:'thuy',st:2,b:[60,65,50,80],npc:1,wild:1},gau:{name:'Gấu ngựa',t:'thuong',st:3,b:[95,95,70,40],npc:1,wild:1},
+  voc:{name:'Voọc',t:'thuong',st:2,b:[55,60,50,95],npc:1,wild:1}};
+const LINHCAT={party:5,box:60,learnFee:200000,starters:['lua_nhi','mam_nhi','rua_nhi'],startLv:6,startBalls:5,startPotions:3,
+  shop:{bong_cat:20000,bong_vang:60000,thuoc_cat:30000,da_lua:150000,da_nuoc:150000,da_sam:150000,da_la:150000,da_bang:150000,da_tien:150000,da_trang:150000,da_tam:150000},
+  ball:{bong_cat:1,bong_vang:1.8},potion:40,period:12*60e3,jail:{chance:.2,sec:60,fine:150000},trainerExp:12,
+  door:{x:176.5,y:64.7},at:{nurse:[12,6],starter:[5.4,9.8],box:[20.4,5.4],shop:[20.4,10.2]},
+  // vật nuôi thả rông quanh sân Ké (đấu lấy EXP, không bắt được) · thú vườn quốc gia: điểm PARK.spots có loài tương ứng
+  farm:[[59.4,45.6,'bo'],[59.4,48.8,'lon'],[63,51.2,'ga'],[66.6,51.2,'vit']],park:{huou:'huou',raica:'raica',gau:'gau',vooc:'voc'},
+  // điểm có Lính Cát hoang ở Ké: z vùng (1 gần, 2 giữa, 3 xa) quyết định cấp và loài
+  spots:[[89.5,20.5,1],[110.5,23.5,1],[62.5,47.5,1],[47.5,38.5,1],[20.5,38.5,1],[74.5,62.5,1],[104.5,62.5,1],[41.5,77.5,1],[29.5,119.5,1],
+    [137.5,29.5,2],[158.5,29.5,2],[137.5,53.5,2],[200.5,38.5,2],[164.5,77.5,2],[185.5,62.5,2],[125.5,119.5,2],[224.5,119.5,2],
+    [236.5,38.5,3],[263.5,17.5,3],[278.5,35.5,3],[314.5,44.5,3],[236.5,65.5,3],[308.5,65.5,3],[230.5,83.5,3],[314.5,119.5,3]],
+  zones:{1:{lv:[2,5],pool:['cat_con','cat_con','bong_bong','bong_bong','ti_set','ti_set','khoi_nhi']},2:{lv:[6,12],pool:['cat_con','bong_bong','ti_set','ti_set','khoi_nhi','set_binh','bong_hong']},
+    3:{lv:[12,22],pool:['ti_set','set_binh','bong_hong','khoi_nhi','bong_ma_binh','rong_nhi','cat_con','rong_nhi']}}};
+const lcStats=(sp,lv)=>{ const b=LC_SPECIES[sp].b; return {hp:Math.floor(b[0]*2*lv/100)+lv+10,atk:Math.floor(b[1]*2*lv/100)+5,def:Math.floor(b[2]*2*lv/100)+5,spd:Math.floor(b[3]*2*lv/100)+5}; };
+const lcMoves=(sp,lv)=>{ const tm=LC_TYPE_MOVES[LC_SPECIES[sp].t]||LC_TYPE_MOVES.thuong, out=['hu',tm[0]]; if(lv>=10) out.push(tm[1]); if(lv>=22&&!out.includes(tm[2])) out.push(tm[2]); return out; };
+const lcNext=lv=>lv*20;   // EXP lên cấp kế
+// Lính Cát hoang đang ở mỗi điểm (đổi loài mỗi `period`, khớp giữa server và máy khách); ban ngày không có hệ Ma
+function lcWild(ms=Date.now()){ const L=LINHCAT, per=Math.floor(ms/L.period), h=vnTime(ms).hf, night=h>=19||h<5;
+  return L.spots.map(([x,y,z],i)=>{ const Z=L.zones[z], r=n=>((Math.imul(per*31+i*7+n,2654435761)>>>0)%10007)/10007;
+    let pool=Z.pool.filter(k=>night||!LC_SPECIES[k].night); if(!pool.length) pool=['cat_con']; const sp=pool[Math.floor(r(1)*pool.length)], lv=Z.lv[0]+Math.floor(r(2)*(Z.lv[1]-Z.lv[0]+1));
+    return {i,key:per+':'+i,sp,lv,x:x+(r(3)-.5)*2,y:y+(r(4)-.5)*1.2}; }); }
+Object.assign(ITEMS,{bong_cat:{name:'Bóng Cát',icon:'lcball'},bong_vang:{name:'Bóng Cát Vàng',icon:'lcball2'},thuoc_cat:{name:'Thuốc hồi máu Lính Cát',icon:'lcpotion'},
+  da_lua:{name:'Đá Lửa',icon:'lcstone_hoa'},da_nuoc:{name:'Đá Nước',icon:'lcstone_thuy'},da_sam:{name:'Đá Sấm',icon:'lcstone_loi'},da_la:{name:'Đá Lá',icon:'lcstone_moc'},
+  da_bang:{name:'Đá Băng',icon:'lcstone_bang'},da_tien:{name:'Đá Tiên',icon:'lcstone_tien'},da_trang:{name:'Đá Trăng',icon:'lcstone_am'},da_tam:{name:'Đá Tâm Linh',icon:'lcstone_than'}});
+SKILLS.linhcat={name:'Huấn luyện Lính Cát',key:'—',desc:'Học với Giáo sư Cát ở Trung tâm Lính Cát (thị trấn Đà Bắc): thu phục, huấn luyện Lính Cát'};
+PLACES.linhcat={name:'Trung tâm Lính Cát',where:'thị trấn Đà Bắc, phía Đông chợ',door:{x:LINHCAT.door.x,y:LINHCAT.door.y},scene:'linhcat'};
+INTERIORS.linhcat={name:'Trung tâm Lính Cát',W:24,H:16,spawn:{x:12,y:14.2},exit:'linhcat'};
+NPCS.push({id:'gs_cat',scene:'linhcat',x:5.4,y:6.4,place:'lcgs'},{id:'yta_cat',scene:'linhcat',x:12,y:3.6,place:'lcyta'});
+Object.assign(NPC_LOOKS,{gs_cat:{name:'Giáo sư Cát',look:{gender:'nam',hair:'swept',hairColor:'c8c0b0',skin:'f0c4a0',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_den',eyes:'kinh_can'},opts:{beard:'mustache',mouth:'smile'}}},
+  yta_cat:{name:'Chị Y tá Cát',look:{gender:'nu',hair:'bun',hairColor:'e86a9a',skin:'f3c8ae',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}}});
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -661,10 +745,10 @@ const BIKESHARE={min:30,stations:[{map:'retreat',x:123.6,y:94.6},{map:'dalat',x:
 // cảnh sát giao thông: thỉnh thoảng lập chốt hoặc đi tuần trên đường ven hồ; chặn người đi xe máy
 // không mũ bảo hiểm: phạt (hoặc đút lót nửa giá, 50% được, bị từ chối thì phạt thêm); có mũ: 50% bị hỏi 5 câu luật, sai mỗi câu phạt, sai cả 5 thì xe lên xe thùng về đồn
 // phóng nhanh vượt ẩu (giữ Shift khi đi xe máy): nhanh ×1,5; CSGT nhìn thấy trong 7 ô là bắt; cứ 4 giây phóng nhanh có 30% xoè xe
-const CSGT={every:[150,300],stay:160,y:97.6,x:[76,330],r:44,cool:90,fine:200000,bribe:100000,bribeOk:.5,extra:100000,quiz:.5,n:5,wrongFine:50000,impound:300000,
-  speed:{mul:1.5,fine:600000,bribe:300000,sight:7,every:4,crash:.3,repair:100000,energy:15},
+const CSGT={every:[150,300],stay:160,y:97.6,x:[76,330],r:44,cool:90,fine:150000,bribe:100000,bribeOk:.5,extra:100000,quiz:.5,n:5,wrongFine:50000,impound:300000,
+  speed:{mul:1.5,fine:150000,bribe:100000,sight:7,every:4,crash:.3,repair:100000,energy:15},
   // Optimus dạng robot đập xe / đánh CSGT: mỗi cú có % bị bắt về đồn (tạm giữ + phạt), xe chịu 5 cú thì nát
-  riot:{truckHp:5,smashJail:.15,punchJail:.35,jail:90,fine:1500000,cd:600,wreck:25,ko:15},
+  riot:{truckHp:5,smashJail:.15,punchJail:.35,jail:90,fine:150000,cd:600,wreck:25,ko:15},
   Q:[['Đèn vàng bật sáng thì người lái xe phải làm gì?',['Tăng ga vượt qua cho kịp','Dừng trước vạch dừng, trừ khi đã đi quá vạch','Bấm còi rồi đi tiếp'],1],
     ['Nồng độ cồn cho phép khi đi xe máy là bao nhiêu?',['Dưới 2 lon bia là được','Không được có cồn trong máu, hơi thở','Uống xong nghỉ 15 phút là được'],1],
     ['Đang chạy xe máy có được dùng điện thoại không?',['Được nếu đeo tai nghe','Được nếu đi chậm','Không được dùng điện thoại, ô dù khi đang lái'],2],
@@ -695,7 +779,7 @@ const OII={lines:['Alo Hải à em','Thôi em đừng có chối'],speed:1.5,dwe
   khoga:[['retreat',110,20],['retreat',175,40],['retreat',95,70],['retreat',194,104],['retreat',297,103],['dalat',3,45],['dalat',25,27],['dalat',1,7],
     ['das',22,11],['das',5,17],['everfit',17,11],['everfit',10,11],['club',16,5],['net',5,9]].map(([scene,x,y])=>({scene,x:x+.5,y:y+.6}))};
 // góc shisha trong Nhà giải trí: ngồi đệm trái hút cùng Ộ i i; người khác cùng phòng chụp ảnh báo công an được trong lúc đang hút
-const SHISHA={x:21.5,y:12.6,seat:{x:19.9,y:13.3},oii:{x:23.1,y:13.3},dur:12,price:80000,report:{chance:.6,fine:500000,jail:90,bounty:50000,cd:20}};
+const SHISHA={x:21.5,y:12.6,seat:{x:19.9,y:13.3},oii:{x:23.1,y:13.3},dur:12,price:80000,report:{chance:.6,fine:150000,jail:90,bounty:50000,cd:20}};
 // người / thú đi theo 1 người chơi (so tên không dấu, chữ thường); chỉ hiển thị phía máy khách. gap: đi sau chủ bao nhiêu px, side: lệch xuống dưới
 const FOLLOWERS=[{owner:'dvu',id:'bui',name:'Bụi',kind:'cat',rest:'lie',gap:18,side:-4,line:'Meoo~'},{owner:'dvu',id:'bam',name:'Bặm',kind:'cat',rest:'sit',gap:32,side:6,line:'Meo meo 😽'}];
 const WILDLIFE={dino:{every:[360,720],stay:180,photoKnow:2,bite:{r:1.7,cd:3500,energy:10,push:3},
@@ -727,14 +811,14 @@ const TEMPLE={pray:{exp:10,mul:1.05,min:30},donate:[{v:10000,mul:1.08,min:30},{v
 // tiệm net: thuê máy chơi game (EXP) hoặc lướt web học hỏi (hiểu biết)
 const NETCAFE={game:{fee:10000,dur:20,exp:25,energy:5},web:{fee:5000,dur:15,know:1,daily:3}};
 // lọ: mini game giữ thanh "phê" trong vùng xanh đủ lâu; làm ngoài phòng riêng là bị phạt
-const LO={battery:50,hold:6,fine:300000,energy:20,clean:15,exp:40};
+const LO={battery:50,hold:6,fine:150000,energy:20,clean:15,exp:40};
 // thuê đất ở nông trại bác Trang (trả theo ngày như phòng): càng nhiều ô càng đắt
 const DL_LAND=[{id:'nho',name:'Mảnh nhỏ',plots:2,price:60000},{id:'vua',name:'Mảnh vừa',plots:4,price:110000},{id:'lon',name:'Mảnh lớn',plots:6,price:160000},{id:'trai',name:'Cả một trang trại',plots:10,price:250000}];
 const DL_FARM={maxPlots:10};
 // vật nuôi: mua con giống ở trại, cho ăn để bắt đầu 1 lứa, xong lứa thì thu sản phẩm
 // trộm lợn chuồng người khác (đang online) ở trại chú Sáu: 40% trót lọt, hỏng thì đền chủ; nhà có chó thì chó canh trước (block/bite của giống chó, không có thì dogGuard)
 // bị chủ bắt quả tang: vào đồn tạm giữ `jail` giây (nộp `fine` để về sớm) và bồi thường `comp` cho chủ lợn
-const PIG_STEAL={kinds:['lon','nai','bo','ga','vit'],chance:.4,comp:300000,jail:90,fine:500000,cd:90,dogGuard:.3,loot:{lon:'lon_thit',nai:'lon_thit',bo:'sua',ga:'ga_thit',vit:'trung_vit'}};
+const PIG_STEAL={kinds:['lon','nai','bo','ga','vit'],chance:.4,comp:300000,jail:90,fine:150000,cd:90,dogGuard:.3,loot:{lon:'lon_thit',nai:'lon_thit',bo:'sua',ga:'ga_thit',vit:'trung_vit'}};
 // dịch vụ chó canh chuồng trại (chú Sáu ở Đà Lạt, chú Ba ở Ké): canh mọi vật nuôi của bạn (lợn, bò, gà, vịt) khỏi kẻ trộm, kể cả khi bạn offline
 const GUARD={plans:{ngay:{name:'Chó canh 1 ngày',price:60000,h:24,block:.6,dog:'shiba'},tuan:{name:'Chó canh 7 ngày',price:350000,h:168,block:.6,dog:'shiba'},
   k9:{name:'Đội Béc-giê K9 · 1 ngày',price:180000,h:24,block:.9,bite:200000,dog:'becgie'}}};
@@ -842,7 +926,7 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
 const SCENE_DEST={nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
@@ -1076,5 +1160,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });
