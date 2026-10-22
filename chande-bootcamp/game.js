@@ -944,8 +944,7 @@ function oiiUpdate(){ OIS.on=false; if(!S||OI.skip.includes(S.kind)) return;
   const d=Math.hypot(OIS.x-P.x,OIS.y-P.y); if(d>4*T) OIS.away=true;                                                  // lại gần thì Ộ i i lên tiếng
   if(d<2.4*T&&OIS.away&&performance.now()-OIS.sayAt>15000){ OIS.away=false; oiiSay(); } }
 // giọng Ộ i i: file thu sẵn (giọng nam miền Bắc), không dựa vào bộ đọc chữ của trình duyệt (hay bị kẹt, máy không có giọng Việt); lỗi mới đọc bằng speechSynthesis
-const OII_VOICE=new Audio('audio/oii_voice.mp3'); OII_VOICE.preload='auto';
-function oiiSay(){ OIS.sayAt=performance.now(); if(AUD.muted) return; try{ OII_VOICE.currentTime=0; OII_VOICE.volume=.9; OII_VOICE.play().catch(()=>sayLine(OI.lines.join('. ')+'.',1,'vi')); }catch(e){ sayLine(OI.lines.join('. ')+'.',1,'vi'); } }
+function oiiSay(){ OIS.sayAt=performance.now(); }   // Ộ i i chỉ hiện bong bóng chữ, không phát tiếng
 function drawOii(list,inView){ if(!OIS.on||!inView(OIS.x,OIS.y)) return; const x=OIS.x, y=OIS.y, e=performance.now()-OIS.sayAt, line=!OIS.sayAt?'':e<2800?OI.lines[0]:e<6600?OI.lines[1]:'';
   list.push({y,d:()=>{ drawChar(ctx,starAv('oii'),x,y,OIS.face,OIS.view,(OIS.moving?'walk':'idle')+(OIS.view!=='side'?'_'+OIS.view:''),'',clock,clock,0); }});
   if(S.kind==='club'&&Math.random()<.05) fx.push({kind:'smoke',x:x-7,y:y-28,t:0,life:1.8});

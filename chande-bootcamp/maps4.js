@@ -9,7 +9,8 @@ const BOTS=['gundam','eva'];
 const START={sauna:'🧖 Ngồi xuống ghế gỗ, hơi nóng phả lên mặt... (giữ yên 15 giây)',game:'🎮 Vào trận với Eva! (10 giây)',tv:'📺 Bật showreel lên TV lớn, cả group xúm lại xem...',model:'🔧 Cầm kìm cắt runner lên...',desk:'🎬 Mở After Effects, bắt đầu keyframe...'};
 
 /* ---------- tương tác ---------- */
-X.nm=async(op,it)=>{ if(op==='snack') return UI.place('nm_tuck',{id:'nm_tuck'}); const r=await act({t:'nm',op,i:it&&it.i}); if(!done(r)) return;
+const LOOK={toys:'Tủ kính chật kín: RX-78, Zaku, Eva-01, Optimus, Wing Zero, Zaku đỏ của Char, mấy em Haro. Dán giấy "CẤM SỜ, HỎI GIÁO CHỦ"',zaku:'Zaku II cao bằng người thật, mắt hồng quét qua quét lại. Ai bước vào cũng bị "soi"',optimus:'Optimus Prime đứng gác cạnh bảng kanban: "Autobots, render out!"'};
+X.nm=async(op,it)=>{ if(op==='snack') return UI.place('nm_tuck',{id:'nm_tuck'}); if(LOOK[op]){ GAME.sfx('blip',.4); return toast(LOOK[op],'item'); } const r=await act({t:'nm',op,i:it&&it.i}); if(!done(r)) return;
   if(r.msg) return toast(esc(r.msg),'quest');
   if(r.sec){ if(op==='sauna') GAME.sfx('splash',.35); toast(START[op]||'Đang làm...','quest'); } };
 
@@ -33,6 +34,8 @@ X.go=id=>{ if(!/^(nm|gp|ev)_/.test(id)) return g0(id); const q=SD.QUESTS[id]; if
 X.anim=(o,clock)=>{ const a=o.anim;
   if(a==='nmtv'){ const f=Math.floor(clock*3)%4; return cached('tv'+f,()=>A.nmTV(f)); }
   if(a==='nmgame'){ const f=Math.floor(clock*4)%4; return cached('gc'+f,()=>A.gameCorner(f)); }
+  if(a==='zaku'){ const f=Math.floor(clock*2)%4; return cached('zk'+f,()=>A.zakuStatue(f)); }
+  if(a==='haro'){ const f=(Math.floor(clock*3)+Math.round(o.x/16))%2; return cached('hr'+f,()=>A.haro(f)); }
   if(a==='snack'){ const f=Math.floor(clock*3)%2; return cached('sn'+f,()=>A.snackRack(f)); }
   if(a==='heater'){ const f=Math.floor(clock*5)%2; return cached('ht'+f,()=>A.saunaHeater(f)); }
   return a0(o,clock); };

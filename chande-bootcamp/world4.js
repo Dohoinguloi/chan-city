@@ -28,6 +28,12 @@ function buildNghienMotion(){ const N=SD.NMOTION, W=N.W, H=N.H, K=kit(), {put,bl
   put(A.label('PHONG XONG HOI CHUNG','#5a3a1e','#ffe0b0'),27.5,Z.y0+.2,{flat:true});
   N.benches.forEach(([x,y])=>{ put(A.saunaBench(112),x,y); act(x,y+.6,'Ngồi xông hơi',{do:'nm:sauna'},40); });
   put(A.saunaHeater(0),N.heater.x,N.heater.y,{anim:'heater'}); block(30,20,31,20); put(A.bucket(),28.4,21.4);
+  // robot khắp phòng: kệ treo tường cạnh TV, tủ kính, tượng Zaku (cửa ra) + Optimus (cạnh kanban), robot tí hon trên mỗi bàn, Haro lăn ở góc game
+  put(A.robotWall(),9.7,2.6,{flat:true}); put(A.toyCabinet(),3.4,10.4); block(2,8,4,9); act(3.4,11.2,'Tủ kính mô hình robot',{do:'nm:toys'},22);
+  put(A.zakuStatue(0),13.4,22.6,{anim:'zaku'}); block(12,21,14,21); act(13.4,22.9,'Tượng Zaku II cỡ người',{do:'nm:zaku'},20);
+  put(A.optimusStatue(),27.4,4.8); block(26,3,28,3); act(27.4,5.2,'Tượng Optimus Prime',{do:'nm:optimus'},22);
+  const TOYS=['rx','zaku','eva01','opt','wing','char']; N.desks.forEach(([x,y],i)=>put(A.deskToy(TOYS[i]),x+(i%2?1.05:-1.05),y-.7,{sort:Math.round(y*T)+1}));
+  put(A.deskToy('haro'),N.model.x+1.1,N.model.y-.7,{sort:Math.round(N.model.y*T)+1}); put(A.haro(0),2.6,18.6,{anim:'haro'}); put(A.haro(0),20.8,16.4,{anim:'haro'});
   for(const [x,y] of [[1.8,4.6],[1.8,13.6],[20.6,4.6],[20.6,21.4],[1.8,22.4]]) plant(K,x,y);
   put(A.label('GROUP NGHIEN MOTION','#1c2238','#7fd0ff'),17,23.4,{flat:true}); act(17,23.3,'Ra đường (gọi Grab)',{do:'grab'},24);
   return {name:'Group Nghiện Motion · Hà Nội',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:N.spawn.x*T,y:N.spawn.y*T},indoor:true}; }
