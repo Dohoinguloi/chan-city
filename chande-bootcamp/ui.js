@@ -368,7 +368,7 @@ ACT.cmove=d=>NET.req({t:'tbl',id:tableId,op:d.op});
 const PIECE={k:['..XX..','.XXXX.','..XX..','.XXXX.','..XX..','.XXXX.','XXXXXX'],q:['X.XX.X','XXXXXX','.XXXX.','..XX..','.XXXX.','.XXXX.','XXXXXX'],r:['X.XX.X','XXXXXX','.XXXX.','.XXXX.','.XXXX.','.XXXX.','XXXXXX'],
   b:['..XX..','.XX.X.','.XXXX.','..XX..','.XXXX.','..XX..','XXXXXX'],n:['.XXX..','XXXXX.','XX.XX.','...XX.','..XXX.','.XXXX.','XXXXXX'],p:['......','..XX..','.XXXX.','..XX..','.XXXX.','.XXXX.','XXXXXX']};
 function drawBoard(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null;
-  GAMES.drawBoard(c,v,sel,st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[]); }
+  GAMES.drawBoard(c,v,sel,st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[],cdrag); }
 function drawBoardOld(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const g=c.getContext('2d'), flip=v.me===1, S=40;
   const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null, legal=st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[];
   for(let i=0;i<64;i++){ const r=i>>3, f=i&7, X=(flip?7-f:f)*S, Y=(flip?7-r:r)*S; g.fillStyle=(r+f)%2?'#8a5d3b':'#e8d8b4'; g.fillRect(X,Y,S,S);
@@ -377,8 +377,19 @@ function drawBoardOld(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!==
     const p=v.b&&v.b[i]; if(p){ const m=PIECE[p.toLowerCase()], w=p===p.toUpperCase(); m.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch!=='X') return; g.fillStyle='#1c1516'; g.fillRect(X+5+x*5-1,Y+3+y*5-1,7,7); }));
       m.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(ch!=='X') return; g.fillStyle=w?'#fbfaf6':'#3a2c36'; g.fillRect(X+5+x*5,Y+3+y*5,5,5); })); } }
   if(v.check&&v.b){ const k=v.b.indexOf(v.turn==='w'?'K':'k'), r=k>>3, f=k&7; g.strokeStyle='#ff6a55'; g.lineWidth=3; g.strokeRect((flip?7-f:f)*S+2,(flip?7-r:r)*S+2,S-4,S-4); } }
-inner.addEventListener('click',e=>{ if(e.target.id!=='board') return; const v=GAME.TABLE; if(!v||v.st!=='play'||v.me<0) return; const i=GAMES.boardSquare(e.target,e,v); if(i<0) return; const p=v.b[i], mine=p&&((p===p.toUpperCase())===(v.me===0));
-  if(sel>=0&&!mine){ const from=sel; sel=-1; NET.req({t:'tbl',id:tableId,op:'move',from,to:i,promo:'q'}).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); }); } else sel=mine&&v.turn===(v.me===0?'w':'b')?i:-1; drawBoard(); });
+// đi quân: bấm chọn rồi bấm ô đích, hoặc giữ chuột kéo quân thả vào ô đích
+let cdrag=null;
+const cmove=(from,to)=>NET.req({t:'tbl',id:tableId,op:'move',from,to,promo:'q'}).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); });
+inner.addEventListener('pointerdown',e=>{ if(e.target.id!=='board') return; const v=GAME.TABLE; if(!v||v.st!=='play'||v.me<0||!v.b) return; const c=e.target, i=GAMES.boardSquare(c,e,v); if(i<0) return;
+  const p=v.b[i], myTurn=v.turn===(v.me===0?'w':'b'), mine=p&&((p===p.toUpperCase())===(v.me===0));
+  if(mine&&myTurn){ sel=i; const [x,y]=GAMES.boardXY(c,e); cdrag={i,x,y,moved:false}; c.setPointerCapture(e.pointerId); c.style.cursor='grabbing'; }
+  else if(sel>=0){ const from=sel; sel=-1; cmove(from,i); } else sel=-1;
+  drawBoard(); e.preventDefault(); });
+inner.addEventListener('pointermove',e=>{ const c=e.target; if(c.id!=='board') return; const v=GAME.TABLE; if(!cdrag){ if(v&&v.b&&v.st==='play'){ const i=GAMES.boardSquare(c,e,v), p=i>=0&&v.b[i]; c.style.cursor=p&&((p===p.toUpperCase())===(v.me===0))&&v.turn===(v.me===0?'w':'b')?'grab':'pointer'; } return; }
+  const [x,y]=GAMES.boardXY(c,e); if(Math.hypot(x-cdrag.x,y-cdrag.y)>2) cdrag.moved=true; cdrag.x=x; cdrag.y=y; drawBoard(); });
+inner.addEventListener('pointerup',e=>{ if(!cdrag) return; const c=$('#board'), v=GAME.TABLE, d=cdrag; cdrag=null; if(c) c.style.cursor='grab';
+  const j=c&&v?GAMES.boardSquare(c,e,v):-1; if(d.moved&&j>=0&&j!==d.i){ sel=-1; cmove(d.i,j); }   // kéo thả xong thì đi luôn; chỉ bấm thì giữ quân đang chọn chờ bấm ô đích
+  drawBoard(); });
 // poker
 const card=c=>c==='??'?'<span class="card back"></span>':`<span class="card ${'hd'.includes(c[1])?'red':''}">${c[0]==='T'?'10':c[0]}${{s:'♠',h:'♥',d:'♦',c:'♣'}[c[1]]}</span>`;
 function pokerHtml(v){ const me=v.me, s=v.seats[me], myTurn=v.st==='play'&&v.toAct===me, need=s?v.cur-s.bet:0;

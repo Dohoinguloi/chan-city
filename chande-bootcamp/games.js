@@ -51,7 +51,7 @@ function pieceCanvas(p){ return once('pc2:'+p,()=>{ const w=p===p.toUpperCase()?
   R.forEach((r,y)=>{ if(y>=R.length-6||!r) return; const m=/^(\d+)-(\d+)A/.exec(r.split(' ')[0]); if(m&&+m[2]-+m[1]>=3){ g.fillStyle=C.H; g.fillRect(2+ +m[1],1+y,1,1); } });   // viền sáng bên trái cho nổi khối
   A.outline(k); return k; }); }
 const FR=14, SQ=22, BW=SQ*8+FR*2, START=CHESS.newGame().b;   // chưa vào ván vẫn bày quân sẵn                                            // khung 14px + 8 ô 22px
-function drawBoard(c,v,sel,legal){ if(!c||!v) return; c.width=BW; c.height=BW; const g=c.getContext('2d');
+function drawBoard(c,v,sel,legal,drag){ if(!c||!v) return; c.width=BW; c.height=BW; const g=c.getContext('2d');
   const avail=Math.min(innerHeight-196,innerWidth>800?innerWidth-400:innerWidth-30), sc=avail>=BW?Math.floor(avail/BW*2)/2*BW:Math.max(140,avail); c.style.width=c.style.height=sc+'px';   /* vuông, phóng nguyên lần cho nét */
   g.imageSmoothingEnabled=false; const flip=v.me===1;
   g.fillStyle='#946a64'; g.fillRect(0,0,BW,BW); g.fillStyle='#5e5266'; g.fillRect(3,3,BW-6,BW-6); g.fillStyle='#e48c4a'; g.fillRect(5,5,BW-10,BW-10); g.fillStyle='#d0663a'; g.fillRect(FR-1,FR-1,SQ*8+2,SQ*8+2);
@@ -61,11 +61,15 @@ function drawBoard(c,v,sel,legal){ if(!c||!v) return; c.width=BW; c.height=BW; c
     if(i===sel){ g.fillStyle='rgba(127,224,255,.55)'; g.fillRect(X,Y,SQ,SQ); }
     const p=(v.b||START)[i];
     if(v.check&&p&&p===(v.turn==='w'?'K':'k')){ g.fillStyle='#e04040'; g.fillRect(X,Y,SQ,SQ); g.fillStyle='#b02a2a'; g.fillRect(X,Y+SQ-2,SQ,2); }
-    if(p) g.drawImage(pieceCanvas(p),X+2,Y+1);
-    if(legal.includes(i)){ g.fillStyle=OUT; g.fillRect(X+7,Y+8,8,6); g.fillRect(X+8,Y+7,6,8); g.fillStyle='#8edc6a'; g.fillRect(X+8,Y+8,6,6); g.fillStyle='#3fb070'; g.fillRect(X+8,Y+13,6,1); } } }
+    if(p&&!(drag&&drag.i===i)) g.drawImage(pieceCanvas(p),X+2,Y+1);
+    if(legal.includes(i)){ g.fillStyle=OUT; g.fillRect(X+7,Y+8,8,6); g.fillRect(X+8,Y+7,6,8); g.fillStyle='#8edc6a'; g.fillRect(X+8,Y+8,6,6); g.fillStyle='#3fb070'; g.fillRect(X+8,Y+13,6,1); } }
+  if(drag&&v.b&&v.b[drag.i]){ const pc=pieceCanvas(v.b[drag.i]); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(Math.round(drag.x)-7,Math.round(drag.y)+8,14,2); g.drawImage(pc,Math.round(drag.x)-9,Math.round(drag.y)-14); } }   // quân đang cầm theo chuột
 // ô cờ dưới chuột (theo khung đã phóng to)
-function boardSquare(c,e,v){ const rc=c.getBoundingClientRect(), s=rc.width/BW, x=(e.clientX-rc.left)/s-FR, y=(e.clientY-rc.top)/s-FR; if(x<0||y<0||x>=SQ*8||y>=SQ*8) return -1;
-  let f=Math.floor(x/SQ), r=7-Math.floor(y/SQ); if(v.me===1){ f=7-f; r=7-r; } return r*8+f; }
+// toạ độ chuột theo khung bàn cờ gốc (BW×BW)
+function boardXY(c,e){ const rc=c.getBoundingClientRect(); return [(e.clientX-rc.left)*BW/rc.width,(e.clientY-rc.top)*BW/rc.height]; }
+// ô cờ dưới chuột: chỉ số 0 = a8 ở hàng trên cùng (giống lúc vẽ), cầm quân đen thì lật cả 2 chiều
+function boardSquare(c,e,v){ const [bx,by]=boardXY(c,e), x=bx-FR, y=by-FR; if(x<0||y<0||x>=SQ*8||y>=SQ*8) return -1;
+  let f=Math.floor(x/SQ), r=Math.floor(y/SQ); if(v.me===1){ f=7-f; r=7-r; } return r*8+f; }
 function chessHtml(v){ const me=v.me, mc=me===0?'w':me===1?'b':null, top=me===1?0:1, bot=me===1?1:0;
   const res=v.result?(v.result.w<0?'HOÀ · '+esc(v.result.why):`${esc(v.seats[v.result.w]?v.seats[v.result.w].name:'?')} THẮNG · ${esc(v.result.why)}`):'';
   const banner=v.st==='wait'?'ĐỢI ĐỐI THỦ...':v.st==='end'?res:v.turn===mc?'TỚI LƯỢT BẠN':me<0?(v.turn==='w'?'TRẮNG ĐI':'ĐEN ĐI'):'ĐỐI THỦ ĐANG NGHĨ';
@@ -244,5 +248,5 @@ function drawReel(c,FS,F,over){ const W=c.width, H=c.height, g=c.getContext('2d'
   const f=A.fish(FISHK[FS.size]||'ca_ro').c, fy=Y+BH*(1-FS.fy); g.drawImage(f,X+16-f.width,fy-f.height,f.width*2,f.height*2);
   g.fillStyle=OUT; g.fillRect(X+40,Y-2,14,BH+4); g.fillStyle='#3a2f40'; g.fillRect(X+42,Y,10,BH); g.fillStyle=FS.p>.66?'#7de07a':FS.p>.33?'#ffd84a':'#ff6a55'; g.fillRect(X+42,Y+BH*(1-FS.p),10,BH*FS.p); }
 
-window.GAMES={chessHtml,pokerHtml,masoiHtml,drawBoard,boardSquare,drawFishScene,drawReel,portraitURL,cardURL,chipsURL};
+window.GAMES={chessHtml,pokerHtml,masoiHtml,drawBoard,boardSquare,boardXY,drawFishScene,drawReel,portraitURL,cardURL,chipsURL};
 })();
