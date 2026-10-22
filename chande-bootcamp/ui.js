@@ -48,7 +48,7 @@ ACT.logout=async()=>{ try{ await NET.api('logout',{token:NET.token}); localStora
 const chatIn=$('#chatIn');
 ACT.hudbtn=d=>{ UI.closeAll(); const b=document.getElementById(d.id); if(b) b.click(); };   // menu trên điện thoại mở các nút HUD bị ẩn
 ACT.mchat=()=>{ UI.closeAll(); UI.chat(); };
-UI.chat=()=>{ $('#chatBox').classList.add('typing'); chatIn.hidden=false; chatIn.focus(); };
+UI.chat=()=>UI.wchat();   // chỉ còn 1 ô chat: kênh tổng (kèm bong bóng cho người ở gần)
 chatIn.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){ const m=chatIn.value.trim(); if(m) NET.send({t:'chat',m}); chatIn.value=''; chatIn.blur(); }
   if(e.key==='Escape'){ chatIn.value=''; chatIn.blur(); } });
 chatIn.addEventListener('blur',()=>{ chatIn.hidden=true; $('#chatBox').classList.remove('typing'); });
