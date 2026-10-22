@@ -93,6 +93,30 @@ const C={
     if(v==='front'){ U.rect(5,13,7,13,'*'); U.rect(12,13,14,13,'*'); U.put(15,14,';'); U.put(4,17,';'); U.rect(3,8,7,8,'@'); }
     if(v==='side'){ U.rect(9,13,11,13,'*'); U.rect(14,13,16,13,'*'); U.put(17,14,';'); U.rect(9,8,13,8,'@'); } },
   // cao bồi: mũ nâu vành cong, khăn đỏ quàng cổ, áo kẻ caro, ủng nâu có cựa vàng
+  // MU Online · Chiến Binh: giáp đỏ viền vàng, giáp vai thép, mũ sắt chóp lông đỏ, kiếm lớn cầm tay trước
+  mu_dk(U,v){ const s=v==='side', f=v==='front';
+    U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%5===0)) U.put(x,y,';'); }); U.rows(26,26,(x,y,c)=>{ if(c==='U'||BODY_T.includes(c)) U.put(x,y,'$'); });
+    if(f){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(0,20,4,20,'$'); U.rect(15,20,19,20,'$'); U.rect(4,0,15,3,'_'); U.rect(4,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(9,-5,10,-3,':');
+      U.rect(20,9,21,26,'%'); U.rect(20,9,20,26,'#'); U.rect(18,25,23,26,'$'); U.rect(20,27,21,30,'>'); U.rect(20,31,21,31,'$'); }
+    if(s){ U.rect(12,18,16,20,'_'); U.rect(12,20,16,20,'$'); U.rect(5,0,15,3,'_'); U.rect(5,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(7,-4,9,-3,':');
+      U.rect(18,9,19,25,'%'); U.rect(19,9,19,25,'#'); U.rect(16,24,21,25,'$'); U.rect(18,26,19,29,'>'); }
+    if(v==='back'){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(4,0,15,3,'_'); U.rect(8,-3,11,0,':'); U.rows(19,27,(x,y)=>{ if(x>=6&&x<=13) U.put(x,y,':'); }); } },
+  // MU Online · Tiên Nữ: áo trắng viền vàng, vương miện lá vàng, tai nhọn, cung gỗ có dây
+  mu_elf(U,v){ const s=v==='side', f=v==='front';
+    U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||y===23)) U.put(x,y,'$'); }); U.rows(27,30,(x,y,c)=>{ if('Pp'.includes(c)&&y===30) U.put(x,y,'$'); });
+    const cx=s?10:9.5; for(let x=Math.round(cx)-5;x<=Math.round(cx)+5;x++) U.put(x,1,x%2?'$':'~'); U.put(Math.round(cx),0,'$'); U.put(Math.round(cx),-1,'?');
+    if(f){ U.rect(-1,9,0,10,'S'); U.put(-2,8,'S'); U.rect(19,9,20,10,'S'); U.put(21,8,'S');
+      for(let y=12;y<=30;y++){ const dx=Math.round(Math.sin((y-12)/18*Math.PI)*3); U.put(21+dx,y,'<'); } U.rect(21,12,21,30,'#'); U.rect(20,20,22,21,'>'); }
+    if(s){ U.put(5,9,'S'); U.put(4,8,'S'); for(let y=12;y<=30;y++){ const dx=Math.round(Math.sin((y-12)/18*Math.PI)*3); U.put(19+dx,y,'<'); } U.rect(19,12,19,30,'#'); U.rect(18,20,20,21,'>'); }
+    if(v==='back'){ U.rect(-1,9,0,10,'S'); U.rect(19,9,20,10,'S'); U.rect(8,19,11,30,'$'); } },
+  // MU Online · Phù Thuỷ: giáp xanh lam viền bạc, mũ trùm xanh đính ngọc, áo choàng xanh thẫm, gậy phép gỗ đầu quả cầu sáng
+  mu_dw(U,v){ const s=v==='side', f=v==='front';
+    U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%4===0)) U.put(x,y,'%'); });
+    if(v!=='side'){ for(let y=17;y<=32;y++){ U.put(-1,y,'*'); U.put(20,y,'*'); } } else { for(let y=16;y<=32;y++){ const w=y<20?1:Math.min(4,1+((y-18)>>1)); for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,'*'); } }
+    U.rect(s?5:4,0,s?15:15,2,'&'); U.rect(s?6:5,-2,s?14:14,-1,'&'); U.put(s?10:9,0,'?'); U.put(s?10:10,0,'?');
+    if(f){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
+    if(s){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
+    if(v==='back'){ U.rows(17,32,(x,y)=>U.put(x,y,(x===5||x===14)?'&':'*')); } },
   hw_cowboy(U,v){ const s=v==='side', x0=s?-1:-2, x1=s?20:21; U.rect(x0+2,1,x1-2,2,'<'); U.put(x0,0,'<'); U.put(x0+1,1,'<'); U.put(x1,0,'<'); U.put(x1-1,1,'<'); U.rect(x0+2,2,x1-2,2,'>');
     const c0=4, c1=s?14:15; U.rect(c0,-4,c1,0,'<'); U.rect(c0,-1,c1,-1,'>'); U.put(Math.round((c0+c1)/2),-4,'.');
     if(v==='front'){ U.rect(6,17,13,18,':'); U.rect(8,19,11,19,':'); U.rect(9,20,10,20,':'); } if(s){ U.rect(9,17,16,18,':'); U.rect(13,19,15,19,':'); }

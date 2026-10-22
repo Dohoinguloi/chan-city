@@ -135,6 +135,7 @@ hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.v
 
 /* ---------- Grab ---------- */
 function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.spawn];
+  if(to==='mu') return ['mu',S.MU.spawn];
   if(to==='lavi') return ['lavi',S.LAVI.spawn];
   if(to==='nghienmotion') return ['nghienmotion',S.NMOTION.spawn];
   if(to==='bearplus') return ['bearplus',S.BEARPLUS.spawn]; if(to==='vnpt') return ['vnpt',S.VNPT.spawn]; if(to==='mieu') return ['mieu',S.MIEU.spawn];

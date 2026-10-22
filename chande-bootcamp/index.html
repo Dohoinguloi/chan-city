@@ -181,6 +181,16 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 
 #hudBottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);gap:6px;justify-items:center;max-width:calc(100vw - 420px);display:none}
 #hudItems{display:flex;gap:4px;padding:5px}
+/* MU Online: HUD máu / mana / chiêu, thanh boss, bảng chọn class */
+#muHud{pointer-events:auto;padding:5px 7px;display:grid;gap:4px} #muHud[hidden],#muBoss[hidden]{display:none!important} body:not(.playing) #muBoss{display:none!important}
+#muBoss{position:fixed;left:50%;top:52px;transform:translateX(-50%);width:min(320px,70vw);padding:3px 8px;z-index:3;font-size:15px}
+#muHud b{font-weight:400} .mubar{position:relative;display:block;height:12px;background:#2a1a1e;border:1px solid var(--ink)} .mubar i{display:block;height:100%} .mubar em{position:absolute;inset:0;font-style:normal;font-size:13px;line-height:12px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
+.mubar.hp i{background:#e8302a} .mubar.mp i{background:#3a6ad8} .mubar.boss i{background:linear-gradient(90deg,#8a1a5a,#e8302a)} #muBoss{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center} #muSk{display:flex;gap:6px}
+.musk{position:relative;width:58px;height:58px;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);cursor:var(--cur-hand),pointer;overflow:hidden} .musk:hover{border-color:var(--gold)}
+.musk img{image-rendering:pixelated;margin-top:-8px} .musk b{position:absolute;left:3px;top:1px;font-weight:400;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000} .musk small{position:absolute;right:3px;top:1px;font-size:12px;color:#7fb8ff;text-shadow:1px 1px 0 #000}
+.musk span{position:absolute;left:0;right:0;bottom:1px;font-size:11px;line-height:11px;color:var(--cream);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mucd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
+.mucls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .mucl{display:grid;justify-items:center;gap:3px;padding:6px;background:var(--panel2);border:2px solid var(--cc);text-align:center} .mucl img{image-rendering:pixelated} .mucl p{font-size:15px;margin:2px 0} .mucl ul{text-align:left;font-size:14px;margin:2px 0;padding-left:16px}
+@media (max-width:620px){ .mucls{grid-template-columns:1fr} }
 /* quà Halloween: lưới 15 bộ trang phục */
 .hwgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px} .hwc{display:grid;justify-items:center;gap:3px;padding:5px 3px;background:var(--panel2);border:2px solid var(--line);text-align:center} .hwc img{image-rendering:pixelated} .hwc b{font-weight:400;color:var(--gold);font-size:16px}
 @media (max-width:620px){ .hwgrid{grid-template-columns:repeat(3,1fr)} }
@@ -540,12 +550,14 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art9.js"></script>
 <script src="art10.js"></script>
 <script src="art11.js"></script>
+<script src="art12.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
 <script src="world4.js"></script>
 <script src="world5.js"></script>
 <script src="world6.js"></script>
+<script src="world7.js"></script>
 <script src="avatar.js?v=8"></script>
 <script src="hw.js"></script>
 <script src="net.js?v=7"></script>
@@ -561,6 +573,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="lc.js"></script>
 <script src="maps6.js"></script>
 <script src="maps7.js"></script>
+<script src="maps8.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>
 </body>

@@ -4,7 +4,7 @@
 const http=require('http'), fs=require('fs'), path=require('path');
 const {WebSocketServer}=require('ws');
 const C=require('./core');
-require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu');
+require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu');
 const {verifyGoogle}=require('./auth');
 const {S,db,players,byUid,handlers,hooks,send,now,today,moveTo,markDirty,save,publicProfile}=C;
 const {clean}=require('./world');
@@ -86,6 +86,7 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='everfit') return at('everfit',S.OFFICE.spawn);
   if(sc==='dalat') return at('dalat',S.DALAT.spawn);
   if(sc==='das') return at('das',S.DAS.spawn);
+  if(sc==='mu') return at('mu',S.MU.spawn);
   if(sc==='lavi') return at('lavi',S.LAVI.spawn);
   if(sc==='nghienmotion') return at('nghienmotion',S.NMOTION.spawn);
   if(sc==='bearplus') return at('bearplus',S.BEARPLUS.spawn); if(sc==='vnpt') return at('vnpt',S.VNPT.spawn); if(sc==='mieu') return at('mieu',S.MIEU.spawn);

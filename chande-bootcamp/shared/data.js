@@ -856,7 +856,7 @@ const MU={W:44,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:
   skills:{dk:[{k:'chem',name:'Chém',mp:0,cd:.8,mul:1,range:2.4},{k:'xoay',name:'Chém Xoáy',mp:12,cd:5,mul:2.1,range:2.8},{k:'gong',name:'Gồng Giáp',mp:20,cd:18,buff:'def',dur:8,heal:.15}],
     elf:[{k:'ban',name:'Bắn Tên',mp:0,cd:1,mul:.95,range:7},{k:'tamtien',name:'Tam Tiễn',mp:10,cd:4,mul:1.9,range:7},{k:'hoi',name:'Hồi Máu',mp:25,cd:12,heal:.35,team:6}],
     dw:[{k:'caulua',name:'Cầu Lửa',mp:4,cd:1.3,mul:1.25,range:6},{k:'set',name:'Sấm Sét',mp:14,cd:5,mul:2.4,range:6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:6}]},
-  boss:{name:'Quỷ Vương Bóng Đêm',every:20*60e3,life:10*60e3,hp:3000,perPlayer:1400,def:8,hit:{every:2.5,dmg:26,range:5},aoe:{every:10,warn:1.6,r:3,dmg:70},
+  boss:{name:'Quỷ Vương Bóng Đêm',every:20*60e3,life:10*60e3,hp:3000,perPlayer:1400,def:8,hit:{every:2.5,dmg:20,range:5},aoe:{every:10,warn:1.8,r:3,dmg:55},
     reward:{exp:150,vnd:200000,mu:120,jewel:.35},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen']},
   respawn:8,regen:{hp:.02,mp:.04},duel:{range:14,exp:40,mu:60},lvExp:lv=>60+lv*40,maxLv:50};
 const muStats=(cls,lv)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08; return {hp:Math.round(c.hp*k),mp:Math.round(c.mp*(1+(lv-1)*.05)),atk:Math.round(c.atk*k),def:Math.round(c.def*(1+(lv-1)*.06))}; };
