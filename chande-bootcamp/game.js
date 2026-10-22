@@ -592,9 +592,9 @@ function findPath(goals){ const W=S.W, H=S.H, sx=Math.floor(P.x/T), sy=Math.floo
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=W||ny>=H) continue; const n=ny*W+nx; if(prev[n]!==-1||((S.solid[n]||wet(n))&&!gs.has(n))) continue; prev[n]=c; q.push(n); } }
   if(hitAt<0) return null; const path=[]; for(let c=hitAt;c!==start;c=prev[c]) path.push({x:(c%W+.5)*T,y:((c/W|0)+.75)*T}); return path.reverse(); }
 // tự tìm đường tới (tx,ty) theo ô; then: chạy khi tới nơi
-function walkTo(tx,ty,label,then){ const goals=[]; for(let r=1;r<=4&&!goals.length;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const x=Math.floor(tx)+dx, y=Math.floor(ty)+dy; if(x>=0&&y>=0&&x<S.W&&y<S.H&&!S.solid[y*S.W+x]&&!((P.riding||P.moto||P.pcar||P.opt)&&S.map.grid[y][x]==='L')) goals.push([x,y]); }   // mục tiêu trong nhà/bị chặn thì nới dần ra ô đi được gần nhất (đang cưỡi ngựa / đi xe thì không lấy ô nước bể bơi)
+function walkTo(tx,ty,label,then,opt={}){ const goals=[]; for(let r=1;r<=4&&!goals.length;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const x=Math.floor(tx)+dx, y=Math.floor(ty)+dy; if(x>=0&&y>=0&&x<S.W&&y<S.H&&!S.solid[y*S.W+x]&&!((P.riding||P.moto||P.pcar||P.opt)&&S.map.grid[y][x]==='L')) goals.push([x,y]); }   // mục tiêu trong nhà/bị chặn thì nới dần ra ô đi được gần nhất (đang cưỡi ngựa / đi xe thì không lấy ô nước bể bơi)
   const path=findPath(goals.length?goals:[[Math.floor(tx),Math.floor(ty)]]); if(!path){ toast('Không tìm được đường tới đó','lock'); return false; }
-  AUTO={path,i:0,stuck:0,lx:P.x,ly:P.y,then:then||null,dest:[tx,ty],label}; if(label) toast(`Đang đi tới ${esc(label)}... (bấm phím đi để dừng)`,'item'); return true; }
+  AUTO={path,i:0,stuck:0,lx:P.x,ly:P.y,then:then||null,dest:[tx,ty],label,retries:opt.retries||0}; if(label&&!opt.quiet) toast(`Đang đi tới ${esc(label)}... (bấm phím đi để dừng)`,'item'); return true; }
 // đi tới 1 NPC (cùng cảnh) rồi mở luôn chỗ người đó; nếu NPC ở trong tiệm thì đi tới cửa tiệm rồi vào
 function walkToNpc(id){ const n=npcs.find(x=>x.id===id); if(n){ UI.closeAll(); return walkTo(n.x/T,n.y/T+1.1,speakerName(id).split(' (')[0],()=>talk(n)); }
   const def=SD.NPCS.find(x=>x.id===id), pc=def&&def.scene&&SD.PLACES[def.scene];
@@ -803,7 +803,9 @@ function update(dt){
       if(Math.hypot(end.x-P.x,end.y-P.y)<24){ const f=AUTO.then; AUTO=null; if(f) f(); }              // tới nơi: vào phòng / mở chỗ người bán
       else if(Math.hypot(wp.x-P.x,wp.y-P.y)<4) AUTO.i=Math.min(AUTO.i+1,AUTO.path.length-1);
       if(AUTO){ const w=AUTO.path[AUTO.i], ddx=w.x-P.x, ddy=w.y-P.y; dx=Math.abs(ddx)>1.5?Math.sign(ddx):0; dy=Math.abs(ddy)>1.5?Math.sign(ddy):0;
-        AUTO.stuck=Math.hypot(P.x-AUTO.lx,P.y-AUTO.ly)<.3?AUTO.stuck+dt:0; AUTO.lx=P.x; AUTO.ly=P.y; if(AUTO.stuck>1.2){ const a=AUTO; AUTO=null; if(a.dest) walkTo(a.dest[0],a.dest[1],a.label,a.then); else goHome(); } } } }
+        const held=P.act==='quay'||P.act==='gong'||(P.act==='hokage'&&P.actT<1)||fighting||(TASK&&!TASK.walk);   // đang bận thì đứng yên là bình thường, không tính là kẹt
+        AUTO.stuck=!held&&Math.hypot(P.x-AUTO.lx,P.y-AUTO.ly)<.3?AUTO.stuck+dt:0; AUTO.lx=P.x; AUTO.ly=P.y;
+        if(AUTO.stuck>1.2){ const a=AUTO; AUTO=null; if(a.dest&&a.retries<3) walkTo(a.dest[0],a.dest[1],a.label,a.then,{quiet:true,retries:a.retries+1}); else if(a.dest) toast('Bị chặn đường rồi, đi tay vòng qua một chút nhé','lock'); else goHome(); } } } }
   const busy=P.act==='quay'||P.act==='gong'||(P.act==='hokage'&&P.actT<1)||fighting||(TASK&&!TASK.walk);
   if(busy){ dx=0; dy=0; }
   // nắm tay: người được dắt tự đi theo
@@ -1641,7 +1643,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,nhoSac,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={shake,get PK(){ return PK; },get DQ(){ return DQ; },dqGo,nhoSac,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};
