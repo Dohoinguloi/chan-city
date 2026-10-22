@@ -454,7 +454,7 @@ function needsCheck(n){ const acts=[], t=NET.now();
   for(const k of Object.keys(NEED_HELP)){ const v=n[k], H=NEED_HELP[k], lv=v<10?2:v<25?1:0, was=NEED_LV[k]||0;
     if(lv>was){ toast(`${lv>1?'⚠️ ':''}<b>${H.low}</b> (${Math.round(v)}%): ${H.how}. Bấm <b>${H.btn}</b> ở bảng chỉ số để tự đi.`,'lock'); if(lv>1) sfx('blip',.4); }
     NEED_LV[k]=v>=35?0:Math.max(was,lv); if(v<25) acts.push([k,H.btn,v<10]); }
-  if(n.battery<25&&!chargeHere()) acts.push(['nhosac','🔌 Xin sạc nhờ',n.battery<SD.GRAB.minBattery]);
+  if(n.battery<25&&!chargeHere()) acts.push(['nhosac',S&&S.kind==='vnpt'?'🔌 Trạm sạc miễn phí':'🔌 Xin sạc nhờ',n.battery<SD.GRAB.minBattery]);
   const ms=SD.mealStatus(G.meals,t), now=ms.find(m=>m.st==='now'), hung=SD.hunger(G.meals,t), key=now?now.name:hung?'doi'+hung:'';
   if(key&&NEED_LV.meal!==key) toast(now?`🍚 Đến giờ <b>${now.name.toLowerCase()}</b> (${now.from}:00–${now.to}:00): ra quán ăn kẻo đói. Bấm <b>🍚 Đi ăn</b> để tự đi tới quán gần nhất.`:`🍚 <b>Đang đói</b> (bỏ ${hung} bữa): ăn bù ở quán. Bấm <b>🍚 Đi ăn</b>.`,'lock');
   NEED_LV.meal=key; if(key) acts.push(['eat','🍚 Đi ăn',hung>1]);
@@ -463,12 +463,13 @@ function needsCheck(n){ const acts=[], t=NET.now();
 // ở phòng mình (phòng Hà Nội / phòng đã thuê) thì có ổ cắm; ở ngoài hết pin thì xin sạc nhờ người gần nhất trong map
 const chargeHere=()=>S&&(S.kind==='room'||(S.kind==='stay'&&S.own));
 function nhoSac(){ UI.closeAll&&UI.closeAll(); if(TASK) return toast('Đang làm việc khác, xong đã rồi xin sạc','lock');
+  if(S.kind==='vnpt'){ const C=SD.VNPT.charger; toast('VNPT có <b>trạm sạc miễn phí</b> cạnh máy lấy số: sạc đầy 100%','quest'); return walkTo(C.x,C.y+.9,'Trạm sạc VNPT',()=>MAPX.vn('charge')); }   // nhà mạng có trạm sạc riêng
   const go=id=>act({t:'nhosac',npc:id}).then(r=>{ if(r&&!r.err){ P.face=1; toast('🔌 Đang cắm sạc nhờ, đứng yên 15 giây nhé','quest'); } });
   const near=npcs.filter(n=>!n.obj).map(n=>[n,Math.hypot(n.x-P.x,n.y-P.y)]).sort((a,b)=>a[1]-b[1]);
   if(!near.length) return go('');                                                                   // map không có ai: nhờ người qua đường
   const [n,d]=near[0], name=speakerName(n.id).split(' (')[0]; if(d<60) return go(n.id);
   toast(`Pin yếu: tới chỗ <b>${esc(name)}</b> xin cắm sạc nhờ`,'quest'); walkTo(n.x/T,n.y/T+1.1,name,()=>go(n.id)); }
-function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac') return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
+function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac'||(k==='battery'&&S.kind==='vnpt')) return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
   if(S.kind==='room'||(S.kind==='stay'&&S.own)){ const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act===H.act);
     if(it) return walkTo(it.x/T,it.y/T,it.label,()=>interact({type:'obj',it,label:it.label}));   // gọi đúng việc (ngủ/tắm/sạc), không lấy điểm gần nhất (dễ trúng điện thoại)
     if(k==='clean'){ toast('Lều không có chỗ tắm: ra nhà tắm chung cạnh khu cắm trại','quest'); NEED_AFTER=k; homeAfterExit=false; return act({t:'exit'}); } }

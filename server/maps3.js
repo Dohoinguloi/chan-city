@@ -66,6 +66,8 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
     return {msg:`Đăng ký ${k.name} thành công! Pin điện thoại hao chậm hơn ${Math.round((1-V.packMul)*100)}% tới ${S.vnTime(p.data.until).day.split('-').reverse().join('/')}`}; }
   if(op==='fiber'){ if(!atDesk()) return {err:'Ra quầy giao dịch (bốc số trước) để đăng ký'}; if(p.flags.fiber) return {err:'Phòng bạn có cáp quang rồi'}; if(!take(pl,V.fiber.price)) return {err:'Không đủ tiền'};
     p.flags.fiber=true; markDirty(pl); return {msg:`Đã lắp cáp quang cho phòng trọ! Lướt TikTok ở phòng được ×${V.fiber.mul} EXP`}; }
+  if(op==='charge'){ const Ch=V.charger; if(!near(pl,Ch.x,Ch.y+.9,52)) return {err:'Lại gần trạm sạc'}; if(p.needs.battery>=99) return {err:'Pin đầy rồi'};   // nhà mạng có trạm sạc miễn phí, sạc đầy, không giới hạn
+    return P.startTask(pl,'sac',Ch.dur,()=>{ p.needs.battery=100; markDirty(pl); return {msg:'Trạm sạc VNPT: pin đầy 100%. Miễn phí, cảm ơn quý khách!'}; },{name:'Sạc ở trạm VNPT'}); }
   if(op==='water'){ const d=p.daily; if((d.vnwater||0)>=5) return {err:'Uống nhiều quá rồi'}; d.vnwater=(d.vnwater||0)+1; p.needs.energy=Math.min(100,p.needs.energy+5); markDirty(pl); return {msg:'Ực ực. +5 năng lượng'}; }
   if(op==='server'){ const d=p.daily; if(d.vnserver) return {msg:'Phòng máy chủ chạy êm, đèn xanh nhấp nháy đều'}; d.vnserver=1; const g=C.gainExp(pl,15); markDirty(pl);
     return {msg:`Bạn đứng ngắm phòng máy chủ: hàng trăm đèn nháy, quạt làm mát ù ù. Học thêm được chút kiến thức mạng (+${g.exp} EXP)`}; }

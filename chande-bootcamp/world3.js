@@ -39,6 +39,7 @@ function buildVnpt(){ const V=SD.VNPT, W=V.W, H=V.H, K=kit(), {put,block,act}=K,
   put(A.queueBoard(),V.board.x,V.board.y,{flat:true,anim:'queue'}); put(A.vnptLogo(),28.6,1.9,{flat:true});
   V.counters.forEach(([x,y],i)=>{ put(A.vnptCounter(i+1),x,y); block(Math.floor(x)-2,Math.floor(y)-1,Math.floor(x)+1,Math.floor(y)-1); act(x,y+.9,'Quầy '+(i+1),{do:'vn:counter',i},20); });
   for(const y of [11.6,14.2,16.8]) for(const x of [9,15.6]){ put(A.waitChairs(4),x,y); block(Math.floor(x)-2,Math.floor(y)-1,Math.floor(x)+1,Math.floor(y)-1); }
+  put(A.chargeStation(0),V.charger.x,V.charger.y,{anim:'charger'}); block(2,12,4,12); act(V.charger.x,V.charger.y+.9,'Trạm sạc điện thoại miễn phí',{do:'vn:charge'},24);
   put(A.ticketKiosk(),V.kiosk.x,V.kiosk.y); block(3,17,3,17); act(V.kiosk.x+.2,V.kiosk.y+.9,'Máy lấy số thứ tự',{do:'vn:ticket'},22);
   put(A.simCabinet(),V.sim.x,V.sim.y); block(25,4,27,5); act(V.sim.x,V.sim.y+.9,'Tủ SIM số đẹp',{do:'vn:sim'},22);
   put(A.packStand(),V.pack.x,V.pack.y); block(30,5,30,5); act(V.pack.x,V.pack.y+.9,'Gói cước data',{do:'vn:pack'},20); put(A.waterCooler(),33.2,6.4); block(33,5,33,5); act(33.2,7.2,'Bình nước (+5 năng lượng)',{do:'vn:water'},18);

@@ -812,7 +812,7 @@ const BEARPLUS={W:34,H:22,level:4,spawn:{x:17,y:20},
   desks:[[4,6.4],[7.4,6.4],[10.8,6.4],[4,10.4],[7.4,10.4],[10.8,10.4]],motion:{x:22.5,y:6.4},render:{x:27,y:6.4},cups:{x:31.2,y:5.2},mood:{x:14.6,y:1.9},
   meet:{x:27,y:15.4},coffee:{x:5,y:15.4},bear:{x:16,y:15.6},head:{scene:'das',x:23.6,y:17.2},
   coffeePrice:25000,gig:{dur:25,vnd:150000,exp:90,max:3},night:{from:22,to:4},sotd:.55,sotdBonus:{vnd:1000000,exp:300}};
-const VNPT={W:36,H:24,spawn:{x:18,y:22},kiosk:{x:3.4,y:18.6},counters:[[6,6.6],[11,6.6],[16,6.6],[21,6.6]],board:{x:13.5,y:3.1},sim:{x:26.4,y:6.4},pack:{x:30.4,y:6.6},
+const VNPT={W:36,H:24,spawn:{x:18,y:22},kiosk:{x:3.4,y:18.6},charger:{x:3.4,y:13.6,dur:12},counters:[[6,6.6],[11,6.6],[16,6.6],[21,6.6]],board:{x:13.5,y:3.1},sim:{x:26.4,y:6.4},pack:{x:30.4,y:6.6},
   racks:[27,29,31,33],server:{x:30,y:15.2},desks:[[27.5,18.6],[31.5,18.6]],step:6000,
   sims:[{num:'0886.68.68.68',cat:'Lộc phát',price:25000000},{num:'0915.888.999',cat:'Tam hoa kép',price:30000000},{num:'0919.39.79.79',cat:'Thần tài',price:18000000},
     {num:'0943.456.789',cat:'Sảnh tiến',price:12000000},{num:'0812.345.678',cat:'Sảnh 7',price:8000000},{num:'0818.181.818',cat:'Lặp kép',price:6500000},

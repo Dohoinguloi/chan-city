@@ -165,6 +165,11 @@ const callDesk=()=>S(42,34,21,31,(g,P)=>{ P.rect(0,0,42,18,'#7a8ea0'); P.rect(1,
   P.rect(5,19,8,3,'#3a3a42'); P.rect(6,19,6,1,'#5a5a66'); });
 const packStand=()=>S(24,42,12,40,(g,P)=>{ P.rect(3,0,18,36,'#0b6bc2'); P.rect(3,0,18,1,'#4a9ae8'); text3(P,5,3,'DATA','#ffffff'); text3(P,5,10,'5G','#ffe680',2);
   P.rect(5,22,14,9,'#ffffff'); P.rect(6,23,4,3,'#e8c040'); text3(P,11,23,'99','#0b6bc2'); P.rect(6,28,12,1,'#7a8a9a'); P.rect(10,36,4,4,'#5a626a'); P.rect(6,40,12,2,'#3a3a42'); });
+// trạm sạc điện thoại miễn phí: tủ 6 ngăn có cửa kính, dây sạc, đèn báo, màn hình "SAC MIEN PHI" (fr: đèn chạy)
+const chargeStation=(fr=0)=>S(30,44,15,42,(g,P)=>{ P.rect(2,0,26,40,'#f4f6f8'); P.rect(2,0,26,6,'#0b6bc2'); P.rect(2,0,26,1,'#3a8ee0'); text3(P,4,1,'SAC','#ffffff'); P.rect(17,1,9,4,'#ffd84a'); P.rect(19,2,3,2,'#0b6bc2'); P.px(22,2,'#0b6bc2');
+  P.rect(4,8,22,6,'#1c2a3a'); text3(P,5,9,'FREE','#7fe0ff');
+  for(let r=0;r<3;r++) for(let c=0;c<2;c++){ const x=4+c*11, y=16+r*8, on=(r*2+c+fr)%4!==0; P.rect(x,y,10,7,'#c8d0d8'); P.rect(x+1,y+1,8,5,'#dff2fa'); P.rect(x+3,y+2,3,4,'#26262c'); P.rect(x+4,y+3,1,2,on?'#5fe06a':'#3a4a3a'); P.px(x+8,y+1,on?'#5fe06a':'#d23a2e'); P.rect(x+1,y+1,1,5,'rgba(255,255,255,.6)'); }
+  P.rect(2,40,26,3,'#0a3e74'); P.rect(27,8,1,32,'#d8e0e8'); });
 const waterCooler=()=>S(14,32,7,30,(g,P)=>{ P.rect(3,0,8,10,'#9ad6f2'); P.rect(4,1,2,8,'#c8ecfc'); P.rect(2,10,10,20,'#f4f6f8'); P.rect(2,10,10,1,'#ffffff'); P.rect(4,14,2,2,'#2a6ad0'); P.rect(8,14,2,2,'#d23a2e'); P.rect(3,22,8,1,'#c8d0d8'); P.rect(2,29,10,2,'#a8b0b8'); });
 
 /* ================= MIẾU ÔNG TRƯỜNG CON ================= */
@@ -292,7 +297,7 @@ const ICONS6={
 const oldIcon6=A.icon; A.icon=function(name,scale=1){ const f=ICONS6[name]; if(!f) return oldIcon6(name,scale); const c=A.cv(14,14); f(A.painter(c.getContext('2d'))); A.outline(c);
   if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
 Object.assign(A,{text3,bpNeon,bpDesk,meshChair,moodWall,renderStation,motionDesk,awardShelf,glassWallV,meetTable,bpTV,coffeeBar,bearMascot,bearHead,beanbag,riverWindow,logoRug,
-  vnptLogo,vnptCounter,queueBoard,ticketKiosk,waitChairs,simCabinet,serverRack,callDesk,packStand,waterCooler,
+  vnptLogo,vnptCounter,queueBoard,ticketKiosk,waitChairs,simCabinet,serverRack,callDesk,packStand,waterCooler,chargeStation,
   shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,gate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,
   pingPong,designShelf,monstera,photoCorner,brochureRack,myTV,poster5G,plumeria,stoneLantern});
 })();

@@ -25,6 +25,7 @@ MAPX.vn=async(op,it)=>{
   if(op==='sim') return UI.vnptSim();
   if(op==='pack') return UI.vnptPack();
   if(op==='water'||op==='server') return tell(await act({t:'vn',op}));
+  if(op==='charge'){ const r=await act({t:'vn',op:'charge'}); if(done(r)) toast('🔌 Đang sạc ở trạm VNPT, đứng yên chút nhé','quest'); return; }
   if(op==='call'){ const r=await act({t:'vn',op:'call',i:it.i}); if(done(r)) callAsk(r); return; } };
 async function counter(i){ const r=await act({t:'vn',op:'counter',i}); if(!done(r)) return; MAPX.tk=null; UI.vnptDesk(i); }
 function callAsk(q){ GAME.sfx('blip',.5); GAME.ask(`☎ Cuộc gọi ${q.n}/${q.of}: "${q.q}"`,'vn_caller',q.opts,async a=>{ const r=await act({t:'vn',op:'answer',a}); if(!done(r)) return;
@@ -73,6 +74,7 @@ MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; const B=SD.BEARPLUS, V
 const CACHE={}, cached=(k,fn)=>CACHE[k]||(CACHE[k]=fn());
 MAPX.anim=(o,clock)=>{ const a=o.anim;
   if(a==='render'){ const f=Math.floor(clock*4)%4; return cached('rd'+f,()=>A.renderStation(f)); }
+  if(a==='charger'){ const f=Math.floor(clock*2)%4; return cached('cg'+f,()=>A.chargeStation(f)); }
   if(a==='rack'){ const f=(Math.floor(clock*3)+Math.round(o.x/16))%6; return cached('rk'+f,()=>A.serverRack(f)); }
   if(a==='shrine'){ const f=Math.floor(clock*5)%3; return cached('sh'+f,()=>A.shrine(f)); }
   if(a==='gate'){ const f=Math.floor(clock*2)%4; return cached('gt'+f,()=>A.gate(f)); }
