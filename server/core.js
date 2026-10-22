@@ -44,6 +44,8 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   if(!(p.flags&&p.flags.topup2m)){ p.money=Math.max(p.money||0,2000000); p.flags.topup2m=true; }
   // quà admin: tài khoản Mèn mén được cộng 3.000.000đ (1 lần)
   if(String(p.name||name||'').normalize('NFC').toLowerCase()==='mèn mén'.normalize('NFC')&&!(p.flags&&p.flags.gift3m)){ p.money+=3000000; p.flags.gift3m=true; }
+  // quà admin: tài khoản Ben Jr được cộng 2.000.000đ (1 lần)
+  if(String(p.name||name||'').normalize('NFC').toLowerCase()==='ben jr'&&!(p.flags&&p.flags.gift2mBen)){ p.money+=2000000; p.flags.gift2mBen=true; }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
   if(String(p.name||name||'').toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
   // skin riêng Kaixa theo ảnh: tóc xám tro dựng, kính vuông tròng xanh, blazer satin đen + dây chuyền, quần ống rộng, đồng hồ (mặc 1 lần, sau tự đổi trong tủ đồ)

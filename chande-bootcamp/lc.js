@@ -53,7 +53,8 @@ const c0=X.consider; X.consider=(consider,dist)=>{ c0(consider,dist); const S=GA
   for(const w of wildNow()){ const d=dist(w.x*T,w.y*T); if(d<30) consider(d*.6,{type:'mapx',k:'lcwild',i:w.i,label:tr?`⚔ Đấu ${SP[w.sp].name} hoang · Lv${w.lv}`:`${SP[w.sp].name} hoang (học Huấn luyện Lính Cát để đấu)`}); }
   if(tr) L.farm.forEach((f,i)=>{ const [x,y]=farmPos(f,i,GAME.clock), d=dist(x*T,y*T); if(d<28) consider(d*.7,{type:'mapx',k:'lcfarm',i,label:'⚔ Cho Lính Cát đấu với '+SP[f[2]].name}); });
   if(tr) for(const s of SD.PARK.spots){ const sp=L.park[s.k]; if(!sp) continue; const d=dist(s.x*T,s.y*T); if(d<46) consider(d+12,{type:'mapx',k:'lcpark',park:s.k,label:`⚔ Đấu với ${SP[sp].name} (thú bảo tồn, dễ bị bắt!)`}); } };
-const p0=X.pick; X.pick=x=>{ if(x.k==='lcwild'||x.k==='lcfarm'||x.k==='lcpark'){ if(!trained()) return toast('Học <b>Huấn luyện Lính Cát</b> ở Trung tâm Lính Cát (thị trấn Đà Bắc) trước đã','quest');
+UI.lcNeed=()=>UI.open('Chưa biết huấn luyện Lính Cát',()=>`<p>Muốn đấu và thu phục Lính Cát thì phải học <b>Huấn luyện Lính Cát</b> với Giáo sư Cát ở <b>Trung tâm Lính Cát</b> (thị trấn Đà Bắc, toà mái đỏ phía Đông chợ). Học xong được tặng 1 con khởi đầu.</p>${btn('lcgo','➜ Chỉ đường tới Trung tâm Lính Cát',{},'pri')}`);
+const p0=X.pick; X.pick=x=>{ if(x.k==='lcwild'||x.k==='lcfarm'||x.k==='lcpark'){ if(!trained()) return UI.lcNeed();
     return battle(x.k==='lcwild'?{op:'wild',i:x.i}:x.k==='lcfarm'?{op:'farm',i:x.i}:{op:'park',k:x.park}); } return p0(x); };
 const a0=X.anim; X.anim=(o,clock)=>{ const a=o.anim;
   if(a==='lcheal'){ const f=Math.floor(clock*2)%7; return SPR['h'+f]||(SPR['h'+f]=A.healMachine(f)); } if(a==='lcpc'){ const f=Math.floor(clock*2)%2; return SPR['p'+f]||(SPR['p'+f]=A.pcBox(f)); } return a0(o,clock); }; const SPR={};
