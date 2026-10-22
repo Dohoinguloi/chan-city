@@ -1118,15 +1118,17 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
       attacks:[{k:'baoboi',kind:'single',name:'Ném Bảo Bối',every:2.6,warn:.7,range:9,r:1.4,dmg:24},{k:'canhcua',kind:'blink',name:'Cánh Cửa Thần Kỳ',every:11,warn:.7,r:1.9,dmg:40},
         {k:'chongchong',kind:'buff',name:'Chong Chóng Tre',every:15,dur:6,dodge:.5,fly:1},{k:'sungkhi',kind:'circle',name:'Súng Không Khí',every:7,warn:1,r:2,dmg:30,phase:2},
         {k:'tuithan',kind:'rain',name:'Túi Thần Kỳ Đổ Đồ',every:13,warn:1.3,n:7,r:1.6,dmg:26,phase:3}],phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.2,drops:'doraemon'},
-    nobita:{name:'Nobita',sprite:'nobita',west:1,perma:240,hp:52000,perPlayer:28000,def:7,   /* máu ×20 (trước 2600 / 1400) */home:{x:20,y:36},area:A(Z.dora),
+    nobita:{name:'Nobita',sprite:'nobita',west:1,perma:240,hp:39000,perPlayer:21000,def:7,   /* máu ×20 rồi giảm 25% (gốc 2600 / 1400) */
+      cup:{hp:.5,every:15,dur:2,r:10,dmg:20,fx:{stun:1.5,dot:{pct:.03,dur:4,k:'doc'}}},   /* còn 50% máu: chui vào cốc mỳ ly phòng thủ 2 giây (miễn sát thương), chui ra nổ choáng + độc 10 ô; dưới 50% cứ 15 giây lại chui */home:{x:20,y:36},area:A(Z.dora),
       attacks:[{k:'banhran',kind:'single',name:'Ném Bánh Rán',every:2.8,warn:.7,range:9,r:1.4,dmg:18,fx:{slow:.5,aslow:1.7,dur:3}},{k:'khocnhe',kind:'ring',name:'Khóc Nhè',every:10,warn:1.2,r:4,dmg:20,fx:{slow:.6,dur:2},phase:2},
         {k:'mabanhran',kind:'multi',name:'Mưa Bánh Rán',every:9,warn:1.1,n:4,r:1.5,dmg:18,fx:{slow:.5,aslow:1.7,dur:3},phase:3}],phases:[.6,.3],enrage:{mul:1.3,speed:1.3},move:1.5,drops:'nobita'},
     conan:{name:'Conan',sprite:'conan',west:1,perma:240,hp:3600,perPlayer:1900,def:10,home:{x:48,y:35},area:A(Z.conan),
       attacks:[{k:'gayme',kind:'single',name:'Súng Gây Mê',every:4,warn:.6,range:10,r:1.2,dmg:6,fx:{stun:2},shot:1},{k:'luot',kind:'line',name:'Lướt Theo Đường Đạn',every:7,warn:.5,range:9,w:.8,dmg:12,dash:1,alongShot:1,noSpd:1,guard:{dur:4,armor:.2,resist:.2}},   /* lướt dọc đường đạn gây mê vừa bắn: giáp +20%, kháng phép +20% trong 4 giây; không nhanh lên theo dạng Áo Đen */{k:'sutbong',kind:'line',name:'Giày Tăng Lực: Sút Bóng',every:6,warn:.9,range:11,w:1,dmg:17},   /* sát thương đòn Conan đã giảm 50% */
         {k:'thatlung',kind:'circle',name:'Thắt Lưng Bơm Bóng',every:8,warn:1,r:2.2,dmg:15,phase:2}],phases:[.6,.3],enrage:{mul:1.3,speed:1.2},move:1.5,drops:'conan',
       forms:[{k:'den',when:{t:10},name:'Hung Thủ Áo Đen',say:'Chân tướng chỉ có một!',spd:10,dodge:.3,dot:{pct:.03,dur:5,k:'chay'},tint:'#120c16'}]},
-    eren:{name:'Eren',sprite:'eren',west:1,perma:300,hp:4200,perPlayer:2200,def:12,home:{x:15,y:59},area:A(Z.eren),big:1,reach:5,spd:40,   /* tầm đánh +5 ô, ra đòn nhanh ×40 */
-      attacks:[{k:'dongdat',kind:'ring',name:'Động Đất',every:8,warn:1.2,r:5,dmg:26,fx:{slow:.5,aslow:1.5,dur:3,stunChance:.3,stun:1.2}},{k:'dam',kind:'single',name:'Cú Đấm',every:2.5,warn:.6,range:5,r:1.4,dmg:22},
+    eren:{name:'Eren',sprite:'eren',west:1,perma:300,hp:4200,perPlayer:2200,def:12,home:{x:15,y:59},area:A(Z.eren),big:1,reach:2.5,spd:40,   /* tầm đánh +2,5 ô (đã giảm nửa từ +5), ra đòn nhanh ×40 */
+      attacks:[{k:'dongdat',kind:'ring',name:'Động Đất',every:8,warn:1.2,r:2.5,dmg:26,fx:{slow:.5,aslow:1.5,dur:3,stunChance:.3,stun:1.2}},{k:'dam',kind:'single',name:'Cú Đấm',every:2.5,warn:.6,range:2.5,r:1.4,dmg:22},   /* phạm vi giảm 50% */
+        {k:'goititan',kind:'summon',name:'Gọi Titan Nhỏ',minion:'titannho',n:20,every:40,noSpd:1},   /* gọi 20 Titan Nhỏ, máu mỗi con = 1/40 Eren */
         {k:'giam',kind:'jump',name:'Giẫm Nát',every:12,warn:1.2,r:2.6,dmg:38,fx:{slow:.5,dur:2},phase:2},{k:'nuot',kind:'grab',name:'Bắt & Nuốt',every:9,warn:1.2,r:1.4,swallow:[200000,500000],form:'titan'}],
       phases:[.6,.3],enrage:{mul:1.3,speed:1.2},move:1.3,drops:'eren',
       forms:[{k:'titan',when:{hp:.5},name:'Titan Tiến Công',say:'Tatakae! Tatakae!',spd:8,hpMul:3,regen:.02,move:3,size:3,sprite:'titan'}]},
@@ -1141,6 +1143,7 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
       phases:[.6,.3],enrage:{mul:1.3,speed:1},move:1,drops:'pepe'}});
   // quái con boss gọi ra: hpFrac phần máu so với boss lúc gọi, spd ô / giây (0 = đứng yên), đánh gần range ô mỗi every giây, laser: tia bắn người gần nhất
   MU.minions={pepe_con:{name:'Pepe Con',hpFrac:1/70,spd:4,range:1.3,every:1.1,dmg:18,def:6,sprite:'pepe_con'},egg:{name:'Trứng Laser',hpFrac:1/90,spd:0,def:8,sprite:'egg',laser:{every:3.2,warn:.9,range:10,w:.45,dmg:26}},
+    titannho:{name:'Titan Nhỏ',hpFrac:1/40,spd:2.2,range:1.3,every:1.4,dmg:16,def:8,sprite:'titannho'},
     ngocrong:{name:'Ngọc Rồng',hpFrac:1/60,spd:0,def:10,sprite:'ngocrong',stars:1,orb:{every:2,heal:.01,to:['songoku','rongxanh'],r:2.4,fx:{dot:{pct:.02,dur:3,k:'doc'},gw:.5}}},   /* 7 viên: 2 giây 1 lần hồi 1% máu cho Songoku + Rồng Dải Xanh; đứng gần 2,4 ô dính độc + giảm hồi máu 50%. Đập vỡ để cắt hồi máu */
     hoangha:{name:'Phạm Hoàng Hà',hpFrac:1/40,spd:2.4,keep:4.5,def:6,sprite:'hoangha',shoot:{every:2.4,range:9,speed:6.5,dmg:14}}};   /* Dươngg Vũ gọi ra: vây quanh người cách 4,5 ô, bắn đạn tròn đỏ hồng */
   // thưởng: như boss phụ; pas: +cấp sách nội tại ngẫu nhiên (buff chỉ số nội tại); badge: Huy Hiệu Pepe (top 3 chắc chắn, còn lại badgeChance)

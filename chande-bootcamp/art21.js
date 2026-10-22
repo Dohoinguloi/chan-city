@@ -111,6 +111,13 @@ B21.pochita={w:40,h:34,ax:18,ay:32,anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose
   const rv=atk?1:0; V.poly([[23,8+bob],[27,8+bob],[33-rv,2+rv],[29,2]],Ag,{n:[0,-.3,.95],g:'saw'}); for(let i=0;i<4;i++) V.px(28+i*1.4,(6-i*2)+bob,'#5a5e6a');   /* lưỡi cưa trên trán + răng */
   V.ell(19,11+bob,3,2.4,Od,{g:'earL'}); if(atk) V.px(33,2,'#ffe066').px(35,3,'#ff8a2a').px(31,1,'#ffffff'); }};
 
+// Titan Nhỏ (Eren gọi ra): người khổng lồ thu nhỏ da trần cơ bắp, đầu to, tóc rối, cười nhe răng; khung 1 vươn 2 tay chộp tới
+B21.titannho={w:24,h:30,ax:12,ay:29,draw(V,f){ const Sk=R('#e8a888'), Sd=R('#c87868'), Hr=[[90,70,60,255],[50,36,30,255],[34,24,20,255],[20,14,12,255]], a=f===1;
+  for(const [x,s] of [[9,-1],[15,1]]) V.tube([[x,19],[x+s,24],[x+s*(a?2:1),28]],[2.2,2,1.8],Sk,{g:'leg'+x});
+  V.ell(12,16,6,5.5,Sk,{g:'body'}); V.line(12,13,12,19,'#b06858').line(9,15,11,16,'#b06858').line(15,15,13,16,'#b06858');   /* cơ bụng */
+  if(a){ V.tube([[17,13],[21,12],[23,10]],[1.8,1.6,1.5],Sk,{g:'aR'}); V.tube([[7,13],[3,12],[1,10]],[1.8,1.6,1.5],Sd,{g:'aL'}); } else { V.tube([[17,13],[19,17],[19,21]],[1.8,1.6,1.5],Sk,{g:'aR'}); V.tube([[7,13],[5,17],[5,21]],[1.8,1.6,1.5],Sd,{g:'aL'}); }
+  V.ell(12,7,6.4,6,Sk,{g:'head'}); V.ell(12,2.6,6.6,2.6,Hr,{g:'hair'}); V.poly([[6,3],[5,8],[8,4]],Hr,{g:'hL'}); V.poly([[18,3],[19,8],[16,4]],Hr,{g:'hR'});
+  V.rect(8,6,3,2,'#ffffff').rect(13,6,3,2,'#ffffff'); V.px(9,6,'#1c1516').px(14,6,'#1c1516'); V.rect(8,10,8,2,'#5a1418'); for(let x=8;x<16;x+=2) V.px(x,10,'#ffffff'); }};   /* mắt trợn, cười nhe răng */
 // Ngọc Rồng 1–7 sao: quả cầu pha lê cam trong suốt, sao đỏ bên trong, ánh sáng loé (khung 1 sáng hơn)
 for(let n=1;n<=7;n++) B21['ngocrong'+n]={w:16,h:16,ax:8,ay:15,glow:'rgba(255,190,60,.45)',draw(V,f){ V.ell(8,8,6.6,6.6,[[255,246,200,255],[255,180,60,255],[230,120,20,255],[170,70,10,255]],{g:'ball'}); V.ell(6,5.5,2,1.4,[[255,255,240,255],[255,250,220,255],[255,240,200,255],[255,230,180,255]],{g:'hl',lift:.6});
   const P=[[8,8],[5,10],[11,10],[6,6],[10,6],[8,11],[8,5]]; for(let i=0;i<n;i++){ const [x,y]=P[i]; V.px(x,y,'#e8202a').px(x-1,y,'#ff4a3a').px(x+1,y,'#ff4a3a').px(x,y-1,'#ff4a3a'); } if(f) V.px(4,4,'#ffffff').px(12,4,'#ffffff'); }};

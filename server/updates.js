@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23r',title:'23/10 (Nobita + Eren)',items:['Nobita: máu giảm 25%; còn 50% máu chui vào cốc mỳ ly phòng thủ 2 giây (đánh không xi nhê), chui ra nổ choáng + độc trong 10 ô, cứ 15 giây lại chui','Eren: phạm vi đánh giảm một nửa, có chiêu gọi 20 Titan Nhỏ (máu mỗi con = 1/40 Eren)']},
   {v:'2026-10-23q',title:'23/10 (Dươngg Vũ)',items:['Dươngg Vũ dưới 35% máu: cứ 15 giây nuốt chửng 1 người bất kỳ 7 giây (đứng im trong bụng, mất 4% máu mỗi giây), hết giờ mới nhổ ra. Hạ boss sớm là cứu được đồng đội!']},
   {v:'2026-10-23p',title:'23/10 · Quỷ Cưa + Reze, Ngọc Rồng, Mưa Vĩ Thú',items:[
     'Quỷ Cưa miễn phép, chỉ mất máu vì đánh thường; bị đánh dồn thì xoay cưa vòng tròn (đòn ×4). Còn 50% máu gọi Quỷ Bom Reze ném lựu đạn gây choáng; có Reze thì Quỷ Cưa thi thoảng hoá Pochita, Reze thả BOM HẠT NHÂN cả khu: nấp sát Pochita mới sống!',
