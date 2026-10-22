@@ -286,6 +286,7 @@ const NPCS=[
   {id:'do',scene:'yenlang',x:4.6,y:6.6,place:'yenlang'},
   {id:'hlv_pickle',scene:'pickle',x:4.4,y:20.4,place:'pickle'},
   {id:'qnt',scene:'yenlang',x:13.2,y:9.6,place:'qnt'},
+  {id:'pk_shop',scene:'pickle',x:26.4,y:20.6,place:'pkshop'},
 ];
 // NPC phụ dựng từ template (không có sheet riêng)
 const NPC_LOOKS={
@@ -316,6 +317,7 @@ const NPC_LOOKS={
   hlv_pickle:{name:'HLV Tuấn (pickleball)',look:{gender:'nam',hair:'cap',hairColor:'1c1820',skin:'d8986e',outfit:{top:'ao_pickle',bottom:'short_xam',shoes:'giay_trang',head:'mu_do'},opts:{mouth:'smile',watch:true}}},
   qnt:{name:'Quang Nịnh Thần (QNT)',look:{gender:'nam',hair:'fade',hairColor:'f0506a',skin:'f0c4a0',outfit:{top:'ao_qnt',bottom:'quan_annie',shoes:'giay_trang',eyes:'kinh_qnt'},opts:{earring:true}}},
   mck:{name:'MCK',look:{gender:'nam',hair:'messy',hairColor:'14121a',skin:'eec4a0',outfit:{top:'ao_mck',bottom:'quan_mck',shoes:'giay_den',neck:'day_bac'},opts:{mouth:'smirk'}}},
+  pk_shop:{name:'Chị Hà (shop đồ pickleball)',look:{gender:'nu',hair:'ponytail',hairColor:'3a2418',skin:'f3c4a4',outfit:{top:'ao_pickle',bottom:'short_xam',shoes:'giay_trang',head:'mu_do'},opts:{mouth:'smile'}}},
   oii:{name:'Ộ i i',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e6b08e',outfit:{top:'ao_oii',bottom:'quan_oii',shoes:'giay_den',head:'mu_oii',neck:'vong_oii'}}},
   csgt:{name:'Cảnh sát giao thông',look:{gender:'nam',hair:'buzz',hairColor:'211c21',skin:'e8a882',outfit:{top:'ao_csgt',bottom:'quan_csgt',shoes:'giay_den',head:'mu_csgt'}}},
   kiemlam:{name:'Chú kiểm lâm (vườn quốc gia)',look:{gender:'nam',hair:'buzz',hairColor:'3a2f37',skin:'c98a64',outfit:{top:'ao_kiemlam',bottom:'kaki',shoes:'giay_den',head:'mu_ca'}}},
@@ -526,13 +528,31 @@ const DOGS={shiba:{name:'Shiba Inu',price:250000,desc:'Doạ trộm: 35% kẻ tr
 // 120 Yên Lãng (Hà Nội): nhà anh Độ, phòng stream theo ảnh (tường xám xanh treo súng mô hình, bàn 3 màn hình, tủ kính figure, tường gạch, Hulkbuster, sofa da).
 // Ộ i i hay về đây: buổi tối 19–23h chỉ ở nhà anh Độ. Lên sóng cùng anh Độ (20h–2h, mỗi ngày 1 lần) ở ghế khách cạnh bàn stream
 // Sân pickleball (Hà Nội): HLV Tuấn dạy (mở kỹ năng Pickleball, cần để vào trận). Đấu 2 vs 2 chạm 7 điểm (hơn 2, tối đa 11), tính điểm mỗi pha bóng.
-// Bóng bay tới ai thì người đó bấm SPACE đúng lúc bóng chạm vòng vàng; chọn cú trả bằng mũi tên: ↑ drive (nhanh, khó đỡ), ↓ dink (chậm), ← → lob (bổng).
+// Bóng rơi vào vòng vàng ở nửa sân đội nhận: chạy tới (WASD / mũi tên), đứng trong tầm vợt `reach` ô, bấm J drive / K dink / L lob (SPACE: cú vừa chọn) đúng lúc.
 // Thiếu người thì người bấm bắt đầu thuê bot tuyển thủ (Lý Hoàng Nam + các tuyển thủ pickleball), mỗi bot `hire`đ. Đội A ở nửa dưới (ghế 0,1), đội B nửa trên (2,3)
-const PICKLE={W:30,H:24,spawn:{x:15,y:22.4},court:{x0:8,y0:3,x1:21,y1:18},net:10.5,slots:[[11.5,16.4],[17.5,16.4],[11.5,5.2],[17.5,5.2]],target:7,cap:11,
+const PICKLE={W:30,H:24,spawn:{x:15,y:22.4},reach:1.6,botSpeed:4.6,court:{x0:8,y0:3,x1:21,y1:18},net:10.5,slots:[[11.5,16.4],[17.5,16.4],[11.5,5.2],[17.5,5.2]],target:7,cap:11,
   lesson:{price:300000,dur:20,exp:40},hire:40000,win:{exp:120,vnd:200000},lose:{exp:30},
   shots:{serve:{name:'Giao bóng',flight:1400,win:340,bot:1},drive:{name:'Drive',flight:850,win:210,bot:.86},dink:{name:'Dink',flight:1500,win:330,bot:1},lob:{name:'Lob',flight:1750,win:290,bot:.94}},
   bots:[['Lý Hoàng Nam',.9,'nam','c4382e'],['Ben Johns',.93,'nam','2a3a5a'],['Anna Leigh Waters',.92,'nu','e8823a'],['Federico Staksrud',.88,'nam','2f9a52'],
     ['Anna Bright',.87,'nu','a259ff'],['JW Johnson',.86,'nam','3f6fb0'],['Tyson McGuffin',.85,'nam','26242a'],['Catherine Parenteau',.86,'nu','e05a8a']]};
+// shop đồ pickleball ở sân Cầu Giấy: 10 set (5 nam, 5 nữ), 2 set premium (giá cao; mặc đủ cả bộ khi thắng trận được ×1,5 EXP). Mua là có cả bộ, mặc được ngay
+const PK_SETS=[
+  {id:'pk_n1',g:'nam',name:'Court Classic',top:'1f6fb2',bottom:'shorts',pants:'f4f1ea',cap:'f4f1ea',price:450000},
+  {id:'pk_n2',g:'nam',name:'Kitchen Green',top:'2f9a52',print:'e8f040',pat:'vstripe',bottom:'shorts',pants:'26242a',price:520000},
+  {id:'pk_n3',g:'nam',name:'Dink Master',top:'e8823a',bottom:'shorts',pants:'2a3a5a',cap:'2a3a5a',price:520000},
+  {id:'pk_n4',g:'nam',name:'Night Rally',top:'26242a',print:'7fe0ff',pat:'vstripe',bottom:'pants',pants:'26242a',price:600000},
+  {id:'pk_n5',g:'nam',name:'Pro Tour Gold',premium:true,top:'f2c43d',print:'1c1516',pat:'vstripe',bottom:'shorts',pants:'1c1516',cap:'1c1516',shoes:'f2c43d',price:3500000},
+  {id:'pk_f1',g:'nu',name:'Pastel Pink',top:'f2b8c6',bottom:'skirt',pants:'f4f1ea',price:450000},
+  {id:'pk_f2',g:'nu',name:'Mint Rally',top:'7fd8b0',bottom:'skirt',pants:'f4f1ea',cap:'f4f1ea',price:520000},
+  {id:'pk_f3',g:'nu',name:'Sunset Drive',top:'ff7a55',print:'f2c43d',pat:'polka',bottom:'skirt',pants:'26242a',price:520000},
+  {id:'pk_f4',g:'nu',name:'Lavender Lob',top:'a87ac8',bottom:'shorts',pants:'5a3a8a',price:600000},
+  {id:'pk_f5',g:'nu',name:'Champion White',premium:true,top:'fbfaf6',print:'d4a83a',pat:'vstripe',bottom:'skirt',pants:'fbfaf6',cap:'d4a83a',shoes:'d4a83a',price:3500000}];
+for(const z of PK_SETS){ const tag=z.premium?' (premium)':'';
+  z.items={top:z.id+'_ao',bottom:z.id+'_quan',shoes:z.id+'_giay',...(z.cap?{head:z.id+'_mu'}:{})};
+  CLOTHES[z.items.top]={name:`Áo ${z.name}${tag}`,slot:'top',price:0,hidden:true,pk:z.id,opts:z.pat?{[z.pat]:true}:{},colors:{top:z.top,...(z.print?{print:z.print}:{})}};
+  CLOTHES[z.items.bottom]={name:`${z.bottom==='skirt'?'Váy':'Quần'} ${z.name}${tag}`,slot:'bottom',price:0,hidden:true,pk:z.id,opts:{bottom:z.bottom},colors:{pants:z.pants}};
+  CLOTHES[z.items.shoes]={name:`Giày ${z.name}${tag}`,slot:'shoes',price:0,hidden:true,pk:z.id,colors:{shoes:z.shoes||'f4f1ea'}};
+  if(z.cap) CLOTHES[z.items.head]={name:`Mũ lưỡi trai ${z.name}${tag}`,slot:'head',price:0,hidden:true,pk:z.id,opts:{hair:'cap'},colors:{cap:z.cap}}; }
 PICKLE.bots.forEach((b,i)=>{ CLOTHES['ao_pk'+i]={name:'Áo thi đấu '+b[0],slot:'top',price:0,hidden:true,colors:{top:b[3]}}; });   // áo thi đấu của từng bot
 const YENLANG={W:26,H:18,flatter:{buff:{mul:1.08,min:20},energy:10,lines:['Đẹp trai thế này mà chưa nổi tiếng thì phí quá!','Gu ăn mặc này phải lên bìa tạp chí!','Anh em mà chơi game là auto thắng!','Nhìn thần thái là biết dân chơi hệ sang!']},spawn:{x:12.5,y:16.2},hulk:{x:22.5,y:7.8},guest:{x:7.6,y:6.8},oii:{x:17.4,y:13.6},home:{from:19,to:23},
   pho:{x:106.6,y:90.6,price:50000},lau:{dur:15},stream:{from:20,to:2,dur:20,exp:100,vnd:150000}};
@@ -775,6 +795,6 @@ function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(
 
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
-  lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
+  lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

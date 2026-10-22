@@ -106,6 +106,9 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     if(!p.skills.channuoi) return {err:'Chưa học Chăn nuôi (học online ở phòng)'};
     if(p.animals.filter(x=>x.k===m.k).length>=a.max) return {err:`Tối đa ${a.max} ${a.name.toLowerCase()}`};
     if(!take(pl,a.price)) return {err:`${a.name} giá ${fmt(a.price)}, không đủ tiền`}; p.animals.push({k:m.k,at:t,fed:0,cyc:0,loc:ke?'ke':'dl'}); markDirty(pl); return {}; }
+  if(m.op==='release'){ const B=S.ANIMALS.lon, n=Math.max(1,Math.min(10,m.n|0||1)); if(!has(pl,'lon_con')) return {err:'Không có lợn con trong túi'}; if(!penNear(pl,'lon','dl')) return {err:'Ra chuồng lợn trại chú Sáu (Đà Lạt) để thả'};   // thả lợn con vào chuồng
+    let k=0; while(k<n&&has(pl,'lon_con')&&p.animals.filter(x=>x.k==='lon').length<B.max){ addItem(pl,'lon_con',-1); p.animals.push({k:'lon',at:t,fed:0,cyc:0,loc:'dl'}); k++; }
+    if(!k) return {err:`Chuồng lợn đầy (tối đa ${B.max} con), bán bớt hoặc chờ xuất chuồng`}; markDirty(pl); return {n:k,msg:`Đã thả ${k} lợn con vào chuồng, cho ăn cám để lớn`}; }
   if(m.op==='feedbuy'){ const f=S.FEED[m.k], n=Math.max(1,Math.min(20,m.n|0||1)); if(!f) return {err:'?'}; const ke=atKeShop(pl); if(ke&&m.k!=='thoc') return {err:'Tiệm cô Ké chỉ bán thóc'}; if(!ke&&!P.nearNpc(pl,'chusau')) return {err:'Mua ở trại chú Sáu'};
     if(!take(pl,f.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.k,n); return {n}; }
   if(m.op==='steal'){ const R=S.PIG_STEAL, o=players.get(m.pid|0); if(!o||o===pl) return {err:'Chủ chuồng này không còn online'};
@@ -130,9 +133,8 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     addItem(pl,a.feed,-1); an.cyc=t+a.cycle*1000; markDirty(pl); return {cyc:an.cyc}; }
   if(m.op==='collect'){ if(!an.cyc||t<an.cyc) return {err:'Chưa xong lứa'}; an.cyc=0;
     if(a.feeds&&++an.fed<a.feeds){ markDirty(pl); return {msg:`${a.name} ${a.birth?'mang thai':'lớn thêm'} (${an.fed}/${a.feeds} lứa)`}; }
-    if(a.birth){ const n=a.yield+crypto.randomInt(3), B=S.ANIMALS[a.birth]; let kept=0; an.fed=0;   // lợn nái đẻ
-      for(let k=0;k<n;k++){ if(p.animals.filter(x=>x.k===a.birth).length<B.max){ p.animals.push({k:a.birth,at:t,fed:0,cyc:0,loc:an.loc}); kept++; } else addItem(pl,a.product,1); }
-      const g=C.gainExp(pl,a.exp); markDirty(pl); return {msg:`${a.name} đẻ ${n} lợn con! ${kept} con vào chuồng${n>kept?`, ${n-kept} con chuồng đầy (bán được ${fmt(S.SELL[a.product])}/con)`:''} · +${g.exp} EXP`}; }
+    if(a.birth){ const n=a.yield+crypto.randomInt(3); an.fed=0; addItem(pl,a.product,n);   // lợn nái đẻ: lợn con vào túi đồ, ra chuồng lợn thả vào nuôi lớn (hoặc giữ bán cho chú Sáu)
+      const g=C.gainExp(pl,a.exp); markDirty(pl); return {item:a.product,n,exp:g.exp,msg:`${a.name} đẻ ${n} lợn con! Đã vào túi đồ: thả vào chuồng lợn để nuôi lớn, hoặc bán cho chú Sáu (${fmt(S.SELL[a.product])}/con) · +${g.exp} EXP`}; }
     addItem(pl,a.product,a.yield); const g=C.gainExp(pl,a.exp); if(!a.keep) p.animals.splice(i,1); markDirty(pl); return {item:a.product,n:a.yield,exp:g.exp}; } });
 
 /* ---------- ngựa ---------- */

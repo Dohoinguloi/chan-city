@@ -356,6 +356,7 @@ function buildPickle(){ const K=SD.PICKLE, W=K.W, H=K.H, C=K.court, Kt=kit(), {p
   put(A.paddleRack(),4.4,16.2); block(3,15,5,15); put(A.drinkFridge('#3f9a4a'),26,16.6); block(25,15,26,15); act(26,17.6,'Bình nước miễn phí (+5 năng lượng)',{do:'pkwater'},22);
   for(const [x,y] of [[1.8,3.6],[28.2,3.6],[1.8,21.6],[28.2,21.6]]){ put(A.pottedFern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   act((C.x0+C.x1+1)/2,19.4,'Vào sân đấu 2 vs 2',{do:'pickle'},40);
+  put(A.rack(['#1f6fb2','#2f9a52','#e8823a','#f2b8c6','#f2c43d']),23.4,21.4); block(22,20,24,20); put(A.counter(40,'#c89a5a'),26.4,21.8); block(25,21,27,21); put(A.label('DO PICKLEBALL','#1e4a3a','#e8f040'),25,19.2,{flat:true});   // quầy đồ pickleball của chị Hà
   act(14.5,22.6,'Ra đường (gọi Grab)',{do:'grab'},24);
   return {name:'Sân pickleball Cầu Giấy · Hà Nội',W,H,grid:g,obj:Kt.obj,solid:Kt.solid,inter:Kt.inter,spawn:{x:K.spawn.x*T,y:K.spawn.y*T},indoor:true,music:'music_room'}; }
 Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,buildDeo,buildDas,buildLumen,buildDiep,buildYenLang,buildPickle,TRACK});

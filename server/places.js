@@ -285,7 +285,7 @@ on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items
 // hạt giống: rau Ké ở tiệm cô Ké, cây Đà Lạt ở bác Trang
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};
-  if((c.kind==='cay'||c.kind==='caosu'||c.kind==='cafe')&&!pl.prof.skills.lamvuon) return {err:'Chưa học Làm vườn lâu năm'};
+  if((c.kind==='cay'||c.kind==='caosu'||c.kind==='cafe')&&!pl.prof.skills.lamvuon) return {err:'Chưa học Làm vườn lâu năm (học online bằng laptop ở phòng)'};
   if(!take(pl,c.seed*n)) return {err:`${n} × ${fmt(c.seed)} = ${fmt(c.seed*n)}, không đủ tiền`}; addItem(pl,'hat_'+m.crop,n); return {n}; });
 
 /* ---------- học kỹ năng online (ở phòng) ---------- */

@@ -37,7 +37,9 @@ function clank(f,vol,at){ const c=synCtx(); if(!c||AUD.muted) return; const n=c.
 function transformSnd(){ if(AUD.muted) return; tone('sawtooth',180,980,.7,.12,3000); setTimeout(()=>tone('square',900,260,.6,.08,2200),420);
   [[0,1800],[.12,1200],[.22,2600],[.36,900],[.5,2100],[.62,1500],[.78,3000],[.9,1100],[1.05,2400]].forEach(([at,f],i)=>clank(f,.5+(i%3)*.15,at)); }
 function sayLine(text,pitch,lang){ try{ if(AUD.muted||!window.speechSynthesis) return; const u=new SpeechSynthesisUtterance(text), vs=speechSynthesis.getVoices(), v=lang?vs.find(v=>v.lang.toLowerCase().startsWith(lang)):vs.find(v=>/en-(US|GB)/i.test(v.lang)&&/male|daniel|fred|alex|google uk english male/i.test(v.name))||vs.find(v=>/^en/i.test(v.lang));
-  if(v) u.voice=v; u.lang=v?v.lang:lang==='vi'?'vi-VN':'en-US'; u.pitch=pitch!=null?pitch:.1; u.rate=pitch!=null?.9:.82; u.volume=1; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }                                                    // rú ga bốc đầu
+  if(v) u.voice=v; u.lang=v?v.lang:lang==='vi'?'vi-VN':'en-US'; u.pitch=pitch!=null?pitch:.1; u.rate=pitch!=null?.9:.82; u.volume=1; speechSynthesis.cancel(); speechSynthesis.resume();
+  SAY_KEEP.push(u); u.onend=u.onerror=()=>{ const i=SAY_KEEP.indexOf(u); if(i>=0) SAY_KEEP.splice(i,1); }; setTimeout(()=>speechSynthesis.speak(u),30); }catch(e){} }   // giữ câu đang đọc kẻo bị dọn bộ nhớ (Chrome im luôn), chờ 1 nhịp sau cancel
+const SAY_KEEP=[]; try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }catch(e){}                                                    // rú ga bốc đầu
 function crashSnd(){ const c=synCtx(); if(!c||AUD.muted) return; const n=c.sampleRate*.6, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);
   const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); s.buffer=b; f.type='lowpass'; f.frequency.value=900; g.gain.value=.35; s.connect(f); f.connect(g); g.connect(c.destination); s.start(); tone('square',180,60,.5,.12,600); }
 // ma sói: sói tru, gà gáy, chuông bỏ phiếu, tiếng chết, nhạc thắng thua, dế + gió ban đêm
@@ -163,6 +165,7 @@ function enterScene(m){ const d=sceneData(m.s,m.room);
   banner(m.s==='stay'?(m.own?'Phòng của bạn · ':'Phòng của '+m.host+' · ')+S.map.name:S.map.name);
   if(m.s==='room'&&!G.flags.called) ringTimer=2.2;
   if(m.ride) travelAnim(m.ride);
+  if(LEARN_AFTER&&(m.s==='room'||(String(m.s).startsWith('stay')&&m.own))){ LEARN_AFTER=false; setTimeout(learnGo,600); } else if(m.s!=='retreat') LEARN_AFTER=false;
   AUTO=null; if(NEED_AFTER&&(m.s==='room'||String(m.s).startsWith('stay')||(m.s==='retreat'&&NEED_AFTER==='clean'))){ const k=NEED_AFTER; NEED_AFTER=null; setTimeout(()=>needGo(k),600); } else if(m.s!=='retreat') NEED_AFTER=null;
   if(ROUTE) setTimeout(runRoute,500); if(homeAfterExit&&m.s==='retreat'){ homeAfterExit=false; setTimeout(goHome,300); } else homeAfterExit=false;
   UI.closeAll&&UI.closeAll(); renderHUD(); }
@@ -217,7 +220,8 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 function banner(text){ const b=$('#banner'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
 function bigText(text){ const b=$('#bigtext'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
 // gửi lệnh lên server, báo lỗi nếu có
-async function act(msg,okMsg){ const r=await NET.req(msg); if(r.err){ toast(esc(r.err),'lock'); sfx('blip',.2); } else if(okMsg) toast(okMsg,'item'); return r; }
+async function act(msg,okMsg){ const r=await NET.req(msg); if(r.err){ const learn=/Chưa học /.test(r.err)&&!/HLV/.test(r.err);   // thiếu kỹ năng: kèm nút tự về phòng mở laptop học
+    toast(esc(r.err)+(learn?'<br><button class="learnGo" type="button">📚 Về phòng học ➜</button> <small>laptop ở phòng → Học kỹ năng</small>':''),'lock'); sfx('blip',.2); } else if(okMsg) toast(okMsg,'item'); return r; }
 
 /* ---------- cốt truyện Ké: 6 người nhờ việc ---------- */
 const Q=SD.QUESTS;
@@ -440,6 +444,14 @@ function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); co
   if(k==='clean'&&S.kind==='retreat'&&(!stay||SD.ROOMS[stay].bath==='chung')){ const B=SD.BATHHOUSE; return walkTo(B.x,B.y+.6,'Nhà tắm chung',()=>interact({type:'bath',label:'Tắm ở nhà tắm chung'})); }
   if(stay&&S.kind!=='room'&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map))){ NEED_AFTER=k; return goHome(); }
   NEED_AFTER=k; toast(`${H.low}: ${H.how}. Gọi Grab về phòng ở Hà Nội (hoặc phòng đã thuê ở Ké)`,'quest'); UI.grab(); }
+// học kỹ năng: ở phòng Hà Nội thì tới laptop mở tab Học; ở phòng thuê thì mở bằng điện thoại; ở ngoài thì về phòng trước (thuê ở Ké hoặc Grab về Hà Nội)
+let LEARN_AFTER=false;
+function learnGo(){ UI.closeAll&&UI.closeAll(); const today=vn().day, stay=G.stay&&G.stay.paid===today;
+  if(S.kind==='room'){ const it=(S.map.inter||[]).find(i=>i.do==='hub'); return it?walkTo(it.x/T,it.y/T,'Laptop',()=>UI.learn()):UI.learn(); }
+  if(S.kind==='stay'&&S.own) return UI.learn();
+  LEARN_AFTER=true; if(stay&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map))) return goHome();
+  toast('Về phòng ở Hà Nội để học: chọn "Phòng của bạn" trong Grab','quest'); UI.grab(); }
+document.addEventListener('click',e=>{ const b=e.target.closest('.learnGo'); if(!b) return; e.stopPropagation(); learnGo(); });
 // đi ăn: quán gần nhất ở map này (NPC bán hàng có thực đơn)
 function eatGo(){ const shops=npcs.filter(n=>{ const d=SD.NPCS.find(x=>x.id===n.id), pc=d&&d.place&&SD.PLACES[d.place]; return pc&&(pc.menu||[]).length; }).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));
   if(shops.length) return walkToNpc(shops[0].id);
@@ -463,28 +475,28 @@ function scholarGo(){ UI.closeAll&&UI.closeAll(); const ok=((G.das||{}).certs||[
   if(S.kind===to) return walkToNpc(npc); toast(ok?'Đủ chứng chỉ rồi: gọi Grab về Lumen Studio (Hà Nội) gặp Annie':'Bay vào DAS (TP.HCM) đăng ký khoá với thầy Huy Tạ: bấm G gọi Grab','quest'); UI.grab(); }
 /* ---------- trận pickleball 2 vs 2: bot ở ô của mình, bóng bay theo đường cong (lob cao, drive thấp), vòng ngắm co dần ở người phải đỡ ---------- */
 let PK=null, PKSHOT='drive', PKJUDGE=null; function pkView(){ return !!(S&&S.kind==='pickle'&&PK&&(PK.st==='play'||PK.st==='end')&&PK.me>=0); } const PKSWING={}, PKAV={}, PKBALL={};
-NET.listen('pk',m=>{ const old=PK; PK=m.v; if(PK.ball&&(!old||!old.ball||old.ball.t0!==PK.ball.t0)){ PKSWING[PK.ball.from]=performance.now(); PKFROMX=PKPOS[PK.ball.from]??SD.PICKLE.slots[PK.ball.from][0]; }
+NET.listen('pk',m=>{ const old=PK; PK=m.v; if(PK.ball&&(!old||!old.ball||old.ball.t0!==PK.ball.t0)) PKSWING[PK.ball.from]=performance.now();
   if(PK.st==='play'&&(!old||old.st!=='play')){ UI.closeAll&&UI.closeAll(); PKSHOT='drive'; } if(UI.isOpen&&UI.isOpen()) UI.refresh&&UI.refresh(); });
 function pkBotAv(s){ if(PKAV[s.name]) return PKAV[s.name]; const i=Math.max(0,SD.PICKLE.bots.findIndex(b=>b[0]===s.name)), nu=s.g==='nu';
   return PKAV[s.name]=AVATAR.build({gender:nu?'nu':'nam',hair:nu?'ponytail':'fade',hairColor:'2a1c18',skin:'eec0a0',outfit:{top:'ao_pk'+i,bottom:'short_xam',shoes:'giay_trang'},opts:{mouth:'smile'}}); }
-// người đỡ chạy ngang tới chỗ bóng rơi (lệch trái/phải theo pha bóng, mọi máy tính giống nhau), người khác lùi về ô; ai cũng cầm vợt, đánh thì vung vợt
-const PKPOS={}; let PKFROMX=null, PKCLK=0;
-const pkOff=b=>(((b.t0*7919)%1000)/1000*2-1)*2.4, pkGoal=i=>{ const b=PK.ball; return SD.PICKLE.slots[i][0]+(b&&PK.st==='play'&&b.to===i?pkOff(b):0); };
-function pkStep(){ const dt=Math.min(.1,clock-PKCLK); PKCLK=clock; for(let i=0;i<4;i++){ const g=pkGoal(i), c=PKPOS[i]??SD.PICKLE.slots[i][0], d=g-c; PKPOS[i]=c+Math.sign(d)*Math.min(Math.abs(d),dt*7); } }
-function drawPaddle(x,y,face,view,e,col){ const X=Math.round(x-cam.x), Y=Math.round(y-cam.y), sw=e<.35, side=view==='side'?face:1, a=sw?(-1.1+e/.35*2.2)*side:.5*side;
-  ctx.save(); ctx.translate(X+side*7,Y-20); ctx.rotate(a); ctx.fillStyle='#26262c'; ctx.fillRect(-1,0,3,6); ctx.fillStyle=col; ctx.fillRect(-4,-9,9,10); ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(-3,-8,3,3); ctx.strokeStyle='#1c1516'; ctx.lineWidth=1; ctx.strokeRect(-4.5,-9.5,10,11); ctx.restore(); }
-function drawPickle(list){ if(S.kind!=='pickle'||!PK||PK.st==='idle') return; const K=SD.PICKLE, now=NET.now(); pkStep();
-  PK.seats.forEach((s,i)=>{ if(!s) return; const y=K.slots[i][1]*T, x=(PKPOS[i]??K.slots[i][0])*T, net=i<2?'up':'down', mv=Math.abs(pkGoal(i)-(PKPOS[i]??0))>.05, e=(performance.now()-(PKSWING[i]||0))/1000;
-    const face=pkGoal(i)*T>x?1:-1, view=mv?'side':net, anim=mv?'walk':'idle_'+net, col=['#ff6a55','#ffd84a','#7fe0ff','#7de07a'][i];
-    if(s.pid===NET.pid){ list.push({y:y+1,d:()=>drawPaddle(P.x,P.y,P.face,P.view,e,col)}); return; }
-    const av=s.bot?pkBotAv(s):(REM.get(s.pid)||{}).av; if(!av) return;
-    list.push({y,d:()=>{ drawChar(ctx,av,x,y,face,view,anim,e<.35&&!mv?'attack':'',clock,e,0); drawPaddle(x,y,face,view,e,col); }}); SAYS.push({x,y:y-46,name:s.name+(s.bot?' 🤖':''),text:''}); });
-  const b=PK.ball; if(!b||PK.st!=='play') return; const [fx_,fy_]=K.slots[b.from], [,ty_]=K.slots[b.to], tx_=K.slots[b.to][0]+pkOff(b), sx_=PKFROMX??fx_, k=Math.max(0,Math.min(1,(now-b.t0)/(b.at-b.t0)));
-  const X=(sx_+(tx_-sx_)*k)*T, Yg=(fy_+(ty_-fy_)*k)*T, Z=Math.sin(k*Math.PI)*({lob:48,dink:14,serve:24,drive:8}[b.shot]||10)+18, bs=PKBALL.s||(PKBALL.s=A.pkBall());
+// bot đứng theo vị trí server gửi (nội suy cho mượt); người thật vẽ ở vị trí thật; ai cũng cầm vợt, đánh thì vung vợt
+const PKPOS={};
+function drawPaddle(x,y,face,view,e,col){ const X=Math.round(x-cam.x), Y=Math.round(y-cam.y), sw=e<.35, side=view==='side'?face:1, a=sw?(-1.4+e/.35*2.4)*side:.35*side;   // cán vợt nằm trong bàn tay (ngang hông), mặt vợt chĩa lên ra ngoài
+  ctx.save(); ctx.translate(X+side*8,Y-12); ctx.rotate(a); ctx.fillStyle='#26262c'; ctx.fillRect(-1,-4,3,6); ctx.fillStyle=col; ctx.fillRect(-3,-12,7,8); ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(-2,-11,2,2); ctx.strokeStyle='#1c1516'; ctx.lineWidth=1; ctx.strokeRect(-3.5,-12.5,8,9); ctx.restore(); }
+function drawPickle(list){ if(S.kind!=='pickle'||!PK||PK.st==='idle') return; const K=SD.PICKLE, now=NET.now(), b=PK.ball;
+  PK.seats.forEach((s,i)=>{ if(!s) return; const e=(performance.now()-(PKSWING[i]||0))/1000, col=['#ff6a55','#ffd84a','#7fe0ff','#7de07a'][i], net=i<2?'up':'down';
+    if(s.pid===NET.pid){ list.push({y:P.y+1,d:()=>drawPaddle(P.x,P.y,P.face,P.view,e,col)}); return; }
+    let x, y, mv=false, face=1, view=net, av;
+    if(s.bot){ const t=PK.pos&&PK.pos[i]||K.slots[i], c=PKPOS[i]||(PKPOS[i]={x:t[0],y:t[1]}), dx=t[0]-c.x, dy=t[1]-c.y; c.x+=dx*.25; c.y+=dy*.25; mv=Math.hypot(dx,dy)>.08; if(Math.abs(dx)>.02) c.f=dx>0?1:-1; face=c.f||1; x=c.x*T; y=c.y*T; av=pkBotAv(s); }
+    else { const r=REM.get(s.pid); if(!r||!r.av) return; x=r.x; y=r.y; mv=r.anim&&r.anim.startsWith('run')||r.anim&&r.anim.startsWith('walk'); face=r.face; av=r.av; }
+    if(mv) view='side'; const anim=mv?'run':'idle_'+net;
+    list.push({y,d:()=>{ drawChar(ctx,av,x,y,face,view,av.anims[anim]?anim:mv?'walk':'idle',e<.35&&!mv?'attack':'',clock,e,0); drawPaddle(x,y,face,view,e,col); }}); if(s.bot) SAYS.push({x,y:y-46,name:s.name+' 🤖',text:''}); });
+  if(!b||PK.st!=='play') return; const k=Math.max(0,Math.min(1,(now-b.t0)/(b.at-b.t0))), X=(b.fx+(b.tx-b.fx)*k)*T, Yg=(b.fy+(b.ty-b.fy)*k)*T, Z=Math.sin(k*Math.PI)*({lob:52,dink:16,serve:26,drive:10}[b.shot]||12)+16, bs=PKBALL.s||(PKBALL.s=A.pkBall());
   list.push({y:Yg+2,d:()=>{ shadow(X,Yg,3); ctx.drawImage(bs.c,Math.round(X-3-cam.x),Math.round(Yg-Z-3-cam.y)); }});
-  const mine=b.to===PK.me, R=6+(1-k)*24;
-  list.push({y:ty_*T-2,d:()=>{ const cx=Math.round(tx_*T-cam.x), cy=Math.round(ty_*T-cam.y); ctx.lineWidth=mine?2:1; ctx.strokeStyle=mine?'#ffd84a':'rgba(255,255,255,.55)';
-    ctx.beginPath(); ctx.ellipse(cx,cy,R,R*.45,0,0,7); ctx.stroke(); ctx.strokeStyle='#ffd84a'; ctx.beginPath(); ctx.ellipse(cx,cy,6,2.7,0,0,7); ctx.stroke(); }}); }
+  const mine=PK.me>=0&&(PK.me<2?0:1)===b.team, R=K.reach*T, rr=6+(1-k)*(R-6);
+  list.push({y:b.ty*T-30,d:()=>{ const cx=Math.round(b.tx*T-cam.x), cy=Math.round(b.ty*T-cam.y); ctx.lineWidth=mine?2:1;   // vòng ngoài = tầm vợt, vòng trong co dần tới lúc bóng tới
+    ctx.strokeStyle=mine?'rgba(255,216,74,.55)':'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(cx,cy,R,R*.45,0,0,7); ctx.stroke();
+    ctx.strokeStyle=mine?'#ffd84a':'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(cx,cy,rr,rr*.45,0,0,7); ctx.stroke(); }}); }
 /* ---------- boss MCK ở đấu trường góc Tây Bắc Ké ---------- */
 let MCKB=null; NET.listen('mck',m=>{ const old=MCKB; MCKB=m.v; if(MCKB&&old){ MCKB.dx=old.dx; MCKB.dy=old.dy; } });
 const inMck=()=>{ const a=SD.MCK.arena, x=P.x/T, y=P.y/T; return S&&S.kind==='retreat'&&x>=a.x0&&x<=a.x1+1&&y>=a.y0&&y<=a.y1+1; };
@@ -622,11 +634,15 @@ function update(dt){
     P.x=Math.min((S.W-6)*T,3*T+STUNT.speed*el); P.y=(SD.WHEELIE.lane+.5)*T; P.face=1; P.view='side'; P.moving=el>0; P.t+=dt; STUNT.wheelieT-=dt; STUNT.fallT-=dt;
     if(hit(' ')){ const i=STUNT.cues.findIndex((c,k)=>!STUNT.res[k]&&t>=c-STUNT.lead&&t<=c+STUNT.window+200); if(i>=0){ STUNT.res[i]='sent'; NET.send({t:'stunt',op:'hit',i,off:t-STUNT.cues[i]}); } }
     if(Math.random()<.3) fx.push({kind:'dust',x:P.x-14,y:P.y,vx:-30-Math.random()*20,vy:-Math.random()*8,t:0,life:.5}); return; }
-  if(S.kind==='pickle'&&PK&&PK.st==='play'&&PK.me>=0){ $('#prompt').hidden=true; AUTO=null; const [qx,qy]=SD.PICKLE.slots[PK.me];   // đang đấu pickleball: đứng ô của mình, chọn cú + SPACE
-    const gx=pkGoal(PK.me), cx=PKPOS[PK.me]??qx, mv=Math.abs(gx-cx)>.05; P.x=cx*T; P.y=qy*T; P.moving=mv; if(mv){ P.face=gx>cx?1:-1; P.view='side'; P.anim='walk'; } else { P.view=PK.me<2?'up':'down'; P.anim='idle_'+P.view; } P.t+=dt;   // chạy ngang tới chỗ bóng rơi
-    if(hit('arrowup','w')) PKSHOT='drive'; if(hit('arrowdown','s')) PKSHOT='dink'; if(hit('arrowleft','arrowright','a','d')) PKSHOT='lob';
-    if(hit(' ')&&PK.ball&&PK.ball.to===PK.me){ P.act='attack'; P.actT=0; sfx('dash',.3); NET.req({t:'pk',op:'hit',shot:PKSHOT}).then(r=>{ PKJUDGE={ok:r.ok,t:performance.now()}; }); }
-    if(P.act){ P.actT+=dt; if(P.actT>=.35) P.act=null; } return; }
+  if(S.kind==='pickle'&&PK&&PK.st==='play'&&PK.me>=0){ $('#prompt').hidden=true; AUTO=null; const K=SD.PICKLE, C=K.court, team=PK.me<2?0:1;   // đấu pickleball: tự chạy trong nửa sân của mình, J/K/L đánh
+    const y0=team===0?K.net+.8:C.y0-1.2, y1=team===0?C.y1+1.6:K.net-.8, dx=(down('d','arrowright')?1:0)-(down('a','arrowleft')?1:0), dy=(down('s','arrowdown')?1:0)-(down('w','arrowup')?1:0), len=Math.hypot(dx,dy)||1, sp=SD.RULES.run;
+    P.moving=!!(dx||dy); if(dx) P.face=Math.sign(dx); if(P.moving){ P.view=Math.abs(dy)>Math.abs(dx)?(dy>0?'down':'up'):'side'; P.x=Math.max((C.x0-1)*T,Math.min((C.x1+2)*T,P.x+dx/len*sp*dt)); P.y=Math.max(y0*T,Math.min(y1*T,P.y+dy/len*sp*dt)); }
+    else P.view=team===0?'up':'down';
+    const base=P.act?P.act:P.moving?'run':'idle', name=!P.act&&P.view!=='side'&&P.av&&P.av.anims[base+'_'+P.view]?base+'_'+P.view:base; if(P.anim!==name){ P.anim=name; P.t=0; } P.t+=dt;
+    const shot=hit('j')?'drive':hit('k')?'dink':hit('l')?'lob':hit(' ')?PKSHOT:''; if(shot){ PKSHOT=shot; P.act='attack'; P.actT=0; sfx('dash',.3); NET.req({t:'pk',op:'hit',shot}).then(r=>{ PKJUDGE={ok:r.ok,why:r.why,t:performance.now()}; }); }
+    if(P.act){ P.actT+=dt; if(P.actT>=.35) P.act=null; }
+    sendT-=dt; if(sendT<=0){ sendT=.1; const v=VIEWS.indexOf(P.view), a=Math.max(0,ANIMS.indexOf(P.anim.split('_')[0])), key=[Math.round(P.x),Math.round(P.y),P.face,v,a].join(); if(key!==lastSent){ lastSent=key; NET.send({t:'mv',x:P.x,y:P.y,f:P.face,v,a}); } }
+    return; }
   if(S.kind==='phongbay'&&DANCE&&DANCE.st==='play'&&DANCE.me>=0){ $('#prompt').hidden=true; UI.keys(pressed,keys); return; }
   if(CSGT_STOP){ $('#prompt').hidden=true; AUTO=null; P.moving=false; P.anim=P.view==='side'?'idle':'idle_'+P.view; P.t+=dt; if(!UI.isOpen()) UI.csgt(CSGT_STOP); return; }
   if(S.kind==='everfit'){ officeT-=dt; if(officeT<=0){ officeT=2; const was=S.closed; npcs=sceneNpcs('everfit'); if(was!==S.closed&&!S.closed) toast('Văn phòng đã mở cửa','item'); } }
@@ -723,7 +739,7 @@ let KEYHINT='';
 function keyHint(){ const s=SOC_ME(); let t='', k=[];
   if(s&&s.kind==='danhnhau'){ t='Đánh nhau'; k=[['J','Đấm',1],['X','Bỏ cuộc']]; }
   else if(s&&s.kind==='vattay'){ t='Vật tay'; k=[['SPACE','Bấm liên tục',1],['X','Bỏ cuộc']]; }
-  else if(S&&S.kind==='pickle'&&PK&&PK.st==='play'&&PK.me>=0){ t='Pickleball'; k=[['SPACE','Đánh (bóng tới vòng vàng)',1],['↑','Drive'+(PKSHOT==='drive'?' ✓':'')],['↓','Dink'+(PKSHOT==='dink'?' ✓':'')],['← →','Lob'+(PKSHOT==='lob'?' ✓':'')]]; }
+  else if(S&&S.kind==='pickle'&&PK&&PK.st==='play'&&PK.me>=0){ t='Pickleball'; k=[['WASD','Chạy tới vòng vàng',1],['J','Drive'+(PKSHOT==='drive'?' ✓':'')],['K','Dink'+(PKSHOT==='dink'?' ✓':'')],['L','Lob'+(PKSHOT==='lob'?' ✓':'')],['SPACE','Cú vừa chọn']]; }
   else if(MCKB&&S&&S.kind==='retreat'&&inMck()&&!P.opt){ t='Đấu MCK'; k=[['J','Đấm',1],['WASD','Né sóng âm tím'],['Shift','Chạy']]; }
   else if(MEGA&&P.opt&&S&&S.kind==='retreat'){ t='Đấu Megatron'; k=P.opt==='robot'?[['J','Đấm',1],['WASD','Né đạn tím'],['K','Hoá xe tải húc']]:[['WASD','Lao vào húc',1],['K','Hoá lại robot']]; }
   const html=t?`<b>${t}</b>`+k.map(([key,label,hot])=>`<span class="${hot?'hot':''}"><kbd>${key}</kbd>${label}</span>`).join(''):'';
@@ -821,8 +837,10 @@ function oiiUpdate(){ OIS.on=false; if(!S||OI.skip.includes(S.kind)) return;
     OIS.x=R.xs[a]+dx*k; OIS.y=R.ys[a]+dy*k; OIS.moving=!!(dx||dy); if(dx) OIS.face=dx>0?1:-1; OIS.view=dy&&!dx?(dy>0?'down':'up'):'side'; OIS.on=true; }
   const d=Math.hypot(OIS.x-P.x,OIS.y-P.y); if(d>4*T) OIS.away=true;                                                  // lại gần thì Ộ i i lên tiếng
   if(d<2.4*T&&OIS.away&&performance.now()-OIS.sayAt>15000){ OIS.away=false; oiiSay(); } }
-function oiiSay(){ OIS.sayAt=performance.now(); sayLine(OI.lines.join('. ')+'.',1,'vi'); }
-function drawOii(list,inView){ if(!OIS.on||!inView(OIS.x,OIS.y)) return; const x=OIS.x, y=OIS.y, e=performance.now()-OIS.sayAt, line=!OIS.sayAt?'':e<2400?OI.lines[0]:e<5200?OI.lines[1]:'';
+// giọng Ộ i i: file thu sẵn (giọng nam miền Bắc), không dựa vào bộ đọc chữ của trình duyệt (hay bị kẹt, máy không có giọng Việt); lỗi mới đọc bằng speechSynthesis
+const OII_VOICE=new Audio('audio/oii_voice.mp3'); OII_VOICE.preload='auto';
+function oiiSay(){ OIS.sayAt=performance.now(); if(AUD.muted) return; try{ OII_VOICE.currentTime=0; OII_VOICE.volume=.9; OII_VOICE.play().catch(()=>sayLine(OI.lines.join('. ')+'.',1,'vi')); }catch(e){ sayLine(OI.lines.join('. ')+'.',1,'vi'); } }
+function drawOii(list,inView){ if(!OIS.on||!inView(OIS.x,OIS.y)) return; const x=OIS.x, y=OIS.y, e=performance.now()-OIS.sayAt, line=!OIS.sayAt?'':e<2800?OI.lines[0]:e<6600?OI.lines[1]:'';
   list.push({y,d:()=>{ drawChar(ctx,starAv('oii'),x,y,OIS.face,OIS.view,(OIS.moving?'walk':'idle')+(OIS.view!=='side'?'_'+OIS.view:''),'',clock,clock,0); }});
   if(S.kind==='club'&&Math.random()<.05) fx.push({kind:'smoke',x:x-7,y:y-28,t:0,life:1.8});
   SAYS.push({x,y:y-46,name:'Ộ i i',text:line}); }
@@ -1159,12 +1177,12 @@ function drawOverlay(){ ug.setTransform(DPR,0,0,DPR,0,0); ug.clearRect(0,0,inner
     if(!inPasture()){ const cx=((z.x0+z.x1+1)/2)*T, cy=((z.y0+z.y1+1)/2)*T, an=Math.atan2(cy-P.y,cx-P.x), X=sx(P.x)+Math.cos(an)*70, Y=sy(P.y-20)+Math.sin(an)*70;
       ug.save(); ug.translate(X,Y); ug.rotate(an); ug.fillStyle='#ffd84a'; ug.strokeStyle='#1c1516'; ug.lineWidth=2; ug.beginPath(); ug.moveTo(16,0); ug.lineTo(-8,-11); ug.lineTo(-3,0); ug.lineTo(-8,11); ug.closePath(); ug.fill(); ug.stroke(); ug.restore();
       ug.font='14px VT323, monospace'; tag(X,Y-14,`🐎 Đồng cỏ ${Math.round(Math.hypot(cx-P.x,cy-P.y)/T)}m`,'','#ffd84a'); } }
-  if(S.kind==='pickle'&&PK&&PK.st!=='idle'){ const X=innerWidth/2, Y=innerHeight-250, nm=i=>PK.seats[i]?PK.seats[i].name:'trống';   // bảng điểm pickleball (ở dưới cho khỏi che đội trên)
-    ug.fillStyle='rgba(28,21,22,.86)'; ug.fillRect(X-250,Y-30,500,78); ug.textAlign='center'; ug.font='30px VT323, monospace';
-    ug.fillStyle='#ff6a55'; ug.fillText('ĐỘI A  '+PK.score[0],X-80,Y); ug.fillStyle='#fff3d6'; ug.fillText('–',X,Y); ug.fillStyle='#7fe0ff'; ug.fillText(PK.score[1]+'  ĐỘI B',X+80,Y);
-    ug.font='15px VT323, monospace'; ug.fillStyle='#c9b9a6'; ug.fillText(`${nm(0)} · ${nm(1)}   vs   ${nm(2)} · ${nm(3)}`,X,Y+18); ug.fillStyle='#ffd84a'; ug.fillText(PK.st==='lobby'?'Chờ vào sân · bấm "Bắt đầu" ở bảng sân (thiếu người thì thuê bot)':PK.log||'',X,Y+36);
-    if(PK.st==='play'&&PK.ball&&PK.ball.to===PK.me){ ug.font='34px VT323, monospace'; ug.fillStyle='#ffd84a'; ug.fillText('SPACE khi bóng chạm vòng vàng · cú: '+SD.PICKLE.shots[PKSHOT].name,X,Y-44); }
-    if(PKJUDGE&&performance.now()-PKJUDGE.t<700){ ug.font='40px VT323, monospace'; ug.fillStyle=PKJUDGE.ok?'#7de07a':'#ff6a55'; ug.fillText(PKJUDGE.ok?'CHUẨN!':'LỆCH NHỊP',sx(P.x),sy(P.y-60)); } }
+  if(S.kind==='pickle'&&PK&&PK.st!=='idle'){ const X=innerWidth/2, Y=34, nm=i=>PK.seats[i]?PK.seats[i].name:'trống';   // bảng điểm pickleball gọn ở trên cùng
+    ug.fillStyle='rgba(28,21,22,.82)'; ug.fillRect(X-200,Y-22,400,44); ug.textAlign='center'; ug.font='24px VT323, monospace';
+    ug.fillStyle='#ff6a55'; ug.fillText('A  '+PK.score[0],X-46,Y); ug.fillStyle='#fff3d6'; ug.fillText('–',X,Y); ug.fillStyle='#7fe0ff'; ug.fillText(PK.score[1]+'  B',X+46,Y);
+    ug.font='14px VT323, monospace'; ug.fillStyle='#ffd84a'; ug.fillText(PK.st==='lobby'?'Chờ vào sân · bấm "Bắt đầu" (thiếu người thì thuê bot)':PK.log||`${nm(0)} · ${nm(1)}  vs  ${nm(2)} · ${nm(3)}`,X,Y+16);
+    const b=PK.ball; if(PK.st==='play'&&b&&PK.me>=0&&(PK.me<2?0:1)===b.team){ ug.font='22px VT323, monospace'; ug.fillStyle='#ffd84a'; ug.fillText('Bóng sang sân bạn! Chạy vào vòng vàng, bấm J / K / L đúng lúc',X,Y+42); }
+    if(PKJUDGE&&performance.now()-PKJUDGE.t<800){ ug.font='34px VT323, monospace'; ug.fillStyle=PKJUDGE.ok?'#7de07a':'#ff6a55'; ug.fillText(PKJUDGE.ok?'CHUẨN!':{xa:'XA QUÁ',sớm:'SỚM QUÁ',muộn:'MUỘN RỒI'}[PKJUDGE.why]||'TRƯỢT',sx(P.x),sy(P.y-60)); } }
   for(const t of SAYS){ const X=sx(t.x), Y=sy(t.y); if(X<-90||Y<-60||X>innerWidth+90||Y>innerHeight+60) continue;   // tên NPC đi lại + bong bóng thoại (vẽ ở lớp giao diện cho chữ không bị phóng to)
     if(t.name){ ug.font='14px VT323, monospace'; tag(X,Y,t.name,'','#ffd84a'); }
     if(t.text){ ug.font='18px VT323, monospace'; const w=ug.measureText(t.text).width+14, by=Y-(t.name?22:4); ug.fillStyle='#fff3d6'; ug.fillRect(X-w/2,by-20,w,20); ug.fillStyle='#1c1516'; ug.fillRect(X-w/2,by,w,2); ug.fillRect(X-3,by,6,4); ug.fillText(t.text,X,by-5); } }

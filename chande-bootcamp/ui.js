@@ -4,13 +4,13 @@
 const SD=SHARED, $=s=>document.querySelector(s), fmt=SD.fmt, Gm=()=>GAME, G=()=>GAME.G, esc=s=>GAME.esc(s);
 const UI={}; let cur=null;                              // bảng đang mở: {el, render}
 const box=$('#panel'), inner=$('#panelInner'), title=$('#panelTitle');
-function open(t,render,o={}){ cur={render,t,o}; box.hidden=false; box.classList.toggle('wide',!!o.wide); box.classList.toggle('full',!!o.full); title.textContent=t; draw(); }
+function open(t,render,o={}){ cur={render,t,o}; box.hidden=false; box.classList.toggle('wide',!!o.wide); box.classList.toggle('xwide',!!o.xwide); box.classList.toggle('full',!!o.full); title.textContent=t; draw(); }
 // vẽ lại bảng nhưng giữ ô đang gõ/kéo (chat ma sói, thanh tố poker) khỏi bị reset mỗi lần server gửi trạng thái mới
 function draw(){ if(!cur) return; const a=document.activeElement, keep=a&&inner.contains(a)&&a.id?{id:a.id,v:a.value,s:a.selectionStart}:null; inner.innerHTML=cur.render();
   if(keep){ const b=document.getElementById(keep.id); if(b){ if(b.type!=='range'||(+keep.v>=+b.min&&+keep.v<=+b.max)) b.value=keep.v; b.focus(); try{ if(keep.s!=null) b.setSelectionRange(keep.s,keep.s); }catch(e){} if(b.id==='raiseTo'){ const l=document.getElementById('raiseLbl'); if(l) l.textContent=fmt(+b.value); } } } }
 UI.refresh=()=>{ if(cur&&!cur.o.static) draw(); };
 UI.isOpen=()=>!box.hidden;
-UI.closeAll=()=>{ cur=null; box.hidden=true; box.classList.remove('full'); inner.innerHTML=''; stopMini(); };
+UI.closeAll=()=>{ cur=null; box.hidden=true; box.classList.remove('full','xwide'); inner.innerHTML=''; stopMini(); };
 UI.blocking=()=>!!cur||!$('#ask').hidden||document.activeElement===$('#chatIn');
 $('#panelClose').onclick=()=>UI.closeAll();
 // nút trong bảng: data-a="tên hành động" + data-*
@@ -59,11 +59,11 @@ ACT.soc=async d=>{ const r=await GAME.act({t:'soc',op:'ask',to:+d.to,kind:d.k});
 const destOf=()=>SD.SCENE_DEST[GAME.S.kind];
 UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery);
   return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được':''}</p>`+money()+
-  `<div class="list">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
+  `<div class="list grab">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
     if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
     const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}</div>`; }).join('')}</div>
-  <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; });
+  <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; },{xwide:true});
 ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to}); if(!r.err) UI.closeAll(); };
 
 /* ---------- túi đồ + tủ quần áo ---------- */
@@ -167,6 +167,7 @@ ACT.hub=()=>UI.hub();
 /* ---------- laptop ở phòng: chợ online, học kỹ năng, chat online, làm remote ---------- */
 let hubTab='market', market=[], who=[], ochLog=[];
 UI.hub=()=>{ open('Laptop',()=>hubHtml(),{wide:true}); loadMarket(); };
+UI.learn=()=>{ hubTab='learn'; UI.hub(); };   // mở thẳng tab Học kỹ năng
 async function loadMarket(){ const r=await NET.req({t:'mk',op:'list'}); market=r.list||[]; const w=await NET.req({t:'who'}); who=w.list||[]; UI.refresh(); }
 function hubHtml(){ const g=G(), tabs=[['market','Chợ online'],['learn','Học kỹ năng'],['chat','Chat online'],['work','Làm remote']];
   let body='';
@@ -301,7 +302,8 @@ UI.pen=(k,loc)=>open(loc==='ke'?'Sân gà Ké':SD.ANIMALS[k].name,()=>{ const g=
   return `<div class="list">${list.map(([a,i],n)=>{ const ready=a.cyc&&now>=a.cyc; const A=SD.ANIMALS[a.k]; return `<div class="row"><span>${esc(A.name)} #${n+1}${A.feeds?` · ${a.fed}/${A.feeds} ${A.birth?'lứa mang thai':'lứa'}`:''}</span><span>${!a.cyc?'đói':ready?'xong lứa':Math.ceil((a.cyc-now)/1000)+' giây'}</span>${!a.cyc?btn('feed','Cho ăn',{i},'pri'):ready?btn('collect',A.feeds&&a.fed+1<A.feeds?'Xong lứa':'Thu',{i},'pri'):''}</div>`; }).join('')||(loc==='ke'?'<p class="muted">Chưa có gà ở sân Ké. Mua gà giống ở tiệm cô Ké.</p>':'<p class="muted">Bạn chưa có con nào. Mua ở trại chú Sáu.</p>'+goBtn('chusau','trại chú Sáu'))}</div>
     ${(()=>{ const hungry=list.filter(([a])=>!a.cyc).map(([,i])=>i), done=list.filter(([a])=>a.cyc&&now>=a.cyc).map(([,i])=>i);   // cho ăn / thu cả đàn 1 lần bấm
       return hungry.length>1||done.length>1?`<div class="col">${hungry.length>1?btn('feedall',`Cho tất cả ăn (${hungry.length} con)`,{is:hungry.join(',')},'pri'):''}${done.length>1?btn('collectall',`Thu tất cả (${done.length})`,{is:done.join(',')},'pri'):''}</div>`:''; })()}
-    <p class="muted">Cần ${SD.FEED[A.feed].name.toLowerCase()} (có ${g.items[A.feed]||0}).</p>${k==='lon'&&loc!=='ke'?pigSteal():''}`; });
+    <p class="muted">Cần ${SD.FEED[A.feed].name.toLowerCase()} (có ${g.items[A.feed]||0}).</p>${k==='lon'&&loc!=='ke'&&g.items.lon_con?`<div class="col"><p>Lợn con trong túi: <b>${g.items.lon_con}</b></p>${btn('release','Thả 1 lợn con vào chuồng',{n:1},'pri')}${g.items.lon_con>1?btn('release',`Thả hết (${g.items.lon_con})`,{n:g.items.lon_con}):''}</div>`:''}${k==='lon'&&loc!=='ke'?pigSteal():''}`; });
+ACT.release=d=>req({t:'animal',op:'release',n:+d.n}).then(r=>{ if(!r.err&&r.msg) GAME.toast(esc(r.msg),'item'); });
 // lợn nhà người khác đang online: trộm 1 con (40%), nhà có chó canh thì chó ra tay trước
 function pigSteal(){ const R=SD.PIG_STEAL, rows=[]; for(const h of GAME.herds||[]) if(h.pid!==NET.pid) h.a.forEach((a,i)=>{ if(R.kinds.includes(a.k)&&a.loc!=='ke'){ const dog=(GAME.dogs||[]).find(d=>d.n===h.n);
       rows.push(`<div class="row"><span>${esc(SD.ANIMALS[a.k].name)} của <b>${esc(h.n)}</b>${dog?` · 🐕 ${esc(SD.DOGS[dog.k].name)} canh`:''}</span>${btn('pigsteal','Trộm',{pid:h.pid,i})}</div>`); } });
@@ -311,8 +313,8 @@ ACT.pigsteal=d=>req({t:'animal',op:'steal',pid:+d.pid,i:+d.i}).then(r=>{ if(!r.e
 ACT.feed=d=>req({t:'animal',op:'feed',i:+d.i});
 ACT.feedall=async d=>{ let n=0, err=''; for(const i of String(d.is).split(',')){ const r=await GAME.act({t:'animal',op:'feed',i:+i}); if(r.err){ err=r.err; break; } n++; }
   GAME.toast(n?`Đã cho <b>${n}</b> con ăn`+(err?' · '+esc(err):''):esc(err||'Không con nào đói'),n?'item':'lock'); };
-ACT.collectall=async d=>{ const got={}; for(const i of String(d.is).split(',').reverse()){ const r=await GAME.act({t:'animal',op:'collect',i:+i}); if(r.err) break; if(r.item) got[r.item]=(got[r.item]||0)+(r.n||1); }
-  const t=Object.entries(got).map(([k,n])=>`${n} ${esc(SD.ITEMS[k].name.toLowerCase())}`).join(', '); if(t) GAME.toast(`Thu <b>${t}</b>`,'vnd'); }; ACT.collect=d=>req({t:'animal',op:'collect',i:+d.i}).then(r=>{ if(!r.err&&r.item) GAME.toast(`Thu <b>${r.n} ${esc(SD.ITEMS[r.item].name.toLowerCase())}</b>`,'vnd'); else if(r.msg) GAME.toast(esc(r.msg),'item'); });
+ACT.collectall=async d=>{ const got={}; for(const i of String(d.is).split(',').reverse()){ const r=await GAME.act({t:'animal',op:'collect',i:+i}); if(r.err) break; if(r.item) got[r.item]=(got[r.item]||0)+(r.n||1); else if(r.msg) GAME.toast(esc(r.msg),'item'); }
+  const t=Object.entries(got).map(([k,n])=>`${n} ${esc(SD.ITEMS[k].name.toLowerCase())}`).join(', '); if(t) GAME.toast(`Thu <b>${t}</b>`,'vnd'); }; ACT.collect=d=>req({t:'animal',op:'collect',i:+d.i}).then(r=>{ if(!r.err&&r.msg) GAME.toast(esc(r.msg),'item'); else if(!r.err&&r.item) GAME.toast(`Thu <b>${r.n} ${esc(SD.ITEMS[r.item].name.toLowerCase())}</b>`,'vnd'); });
 PLACE.stable=n=>open(n&&n.id==='chuongngua'?'Trại ngựa Đà Bắc · Chú Hải':'Trại ngựa · Anh Phong',()=>{ const g=G(), h=g.horse, now=NET.now();
   return money()+(g.skills.cuoingua?'':'<p class="bad">Cần học Cưỡi ngựa (laptop ở phòng)</p>')+`<p>Ngựa: ${h&&h.own?'<b>ngựa của bạn</b>':h&&h.until>now?`thuê còn ${Math.ceil((h.until-now)/60000)} phút`:'chưa có'} · bấm <kbd>H</kbd> để lên/xuống ngựa (chạy ×${SD.HORSE.speed}, chở ${SD.HORSE.carry} thùng hàng)</p>
     <div class="col">${btn('horse','Thuê 1 giờ · '+fmt(SD.HORSE.rent),{op:'rent'})}${h&&h.own?'':btn('horse','Mua ngựa · '+fmt(SD.HORSE.buy),{op:'buy'})}</div>
@@ -484,7 +486,7 @@ PLACE.yenlang=()=>open('Anh Độ · 120 Yên Lãng',()=>{ const g=G(), Y=SD.YEN
     <h5>Lên sóng cùng anh Độ</h5><p class="muted">Từ ${Y.stream.from}:00 tới ${Y.stream.to}:00, ngồi ghế khách đỏ cạnh bàn stream bấm E: ${Y.stream.dur} giây, +${Y.stream.exp} EXP + ${fmt(Y.stream.vnd)} tiền donate. Mỗi ngày 1 lần. Buổi tối Ộ i i cũng về đây.</p>`; });
 
 /* ---------- Sân pickleball: HLV Tuấn dạy chơi, bảng vào sân đấu 2 vs 2 (thiếu người thuê bot tuyển thủ) ---------- */
-const PK_RULE=K=>`Chạm ${K.target} điểm (hơn 2, tối đa ${K.cap}), tính điểm mỗi pha bóng. Bóng bay tới bạn thì bấm <kbd>SPACE</kbd> đúng lúc bóng chạm vòng vàng; chọn cú trả trước bằng mũi tên: <kbd>↑</kbd> drive (nhanh, đối thủ khó đỡ), <kbd>↓</kbd> dink (chậm, chắc), <kbd>← →</kbd> lob (bổng).`;
+const PK_RULE=K=>`Chạm ${K.target} điểm (hơn 2, tối đa ${K.cap}), tính điểm mỗi pha bóng. Bóng sang sân mình thì <b>chạy</b> (<kbd>WASD</kbd> / mũi tên) vào vòng vàng chỗ bóng rơi, bấm đúng lúc bóng tới: <kbd>J</kbd> drive (nhanh, đối thủ khó đỡ), <kbd>K</kbd> dink (thả nhẹ sát lưới), <kbd>L</kbd> lob (bổng ra cuối sân), <kbd>SPACE</kbd> đánh lại cú vừa chọn.`;
 PLACE.pickle=()=>open('HLV Tuấn · pickleball',()=>{ const K=SD.PICKLE, g=G();
   return money()+`<p>"Pickleball dễ chơi mà nghiện lắm! Học với anh 1 buổi là vào sân đánh được, thiếu người thì thuê bot tuyển thủ, có cả Lý Hoàng Nam đấy."</p><p class="muted">${PK_RULE(K)}</p>
     ${g.skills.pickle?'<p class="good">Bạn đã biết chơi. Ra giữa sân bấm E để vào trận.</p>':btn('pklesson',`Học 1 buổi · ${fmt(K.lesson.price)} · ${K.lesson.dur} giây`,{},'pri')}`; });
@@ -496,6 +498,17 @@ UI.pickle=()=>open('Sân pickleball · đấu 2 vs 2',()=>{ const K=SD.PICKLE, v
     ${v.st==='play'?`<p>Đang đấu: <b>${v.score[0]} – ${v.score[1]}</b></p>`:v.st==='end'?`<p>${esc(v.log||'')}</p>`:''}
     ${me>=0&&v.st==='lobby'?`<div class="col">${btn('pkstart',empty?`Bắt đầu · thuê ${empty} bot (${fmt(empty*K.hire)})`:'Bắt đầu trận',{},'pri')}${btn('pkleave','Rời sân')}</div>`:''}
     <p class="muted">Bot tuyển thủ: ${K.bots.map(b=>esc(b[0])).join(', ')}. Thắng: +${K.win.exp} EXP + ${fmt(K.win.vnd)}.</p>`; });
+// shop đồ pickleball: 10 set, ảnh xem trước là chính nhân vật của bạn mặc set đó
+const PKPRE={}; function pkPreview(z){ const g=G(); if(!g.look||!window.AVATAR) return ''; const key=z.id+JSON.stringify(g.look); if(PKPRE[key]) return PKPRE[key];
+  try{ const av=AVATAR.build({...g.look,outfit:{...g.look.outfit,...z.items}}), f=(av.anims.idle_down||av.anims.idle).frames[0]; return PKPRE[key]=f.toDataURL(); }catch(e){ return ''; } }   // cả người, nhìn rõ áo quần giày
+PLACE.pkshop=()=>open('Chị Hà · đồ pickleball',()=>{ const g=G(), sets=SD.PK_SETS, card=z=>{ const have=Object.values(z.items).every(k=>g.owned[k]), wearing=Object.entries(z.items).every(([sl,k])=>g.look&&g.look.outfit[sl]===k), img=pkPreview(z);
+    return `<div class="row tall"><span style="display:flex;gap:8px;align-items:center">${img?`<img src="${img}" alt="" style="width:48px;height:72px;object-fit:contain;image-rendering:pixelated;background:#3f7fae;border:2px solid ${z.premium?'#d4a83a':'#3a3a44'}">`:''}<span><b>${esc(z.name)}</b>${z.premium?' <b class="good">★ PREMIUM</b>':''}<br><small class="muted">${z.g==='nam'?'Nam':'Nữ'} · áo, ${z.bottom==='skirt'?'váy':'quần'}, giày${z.cap?', mũ':''}${z.premium?' · mặc đủ bộ thắng trận ×1,5 EXP':''}</small></span></span>
+      <span>${have?(wearing?'đang mặc':'đã có'):fmt(z.price)}</span>${have?(wearing?'':btn('pkwear','Mặc',{id:z.id},'pri')):btn('pkbuy','Mua & mặc',{id:z.id},'pri')}</div>`; };
+  return money()+`<p>"Ra sân thì phải đẹp mới đánh hay! Chị có 10 set chuẩn pickleball, 2 set premium hàng tuyển thủ."</p>
+    <h5>Set nam</h5><div class="list">${sets.filter(z=>z.g==='nam').map(card).join('')}</div><h5>Set nữ</h5><div class="list">${sets.filter(z=>z.g==='nu').map(card).join('')}</div>
+    <p class="muted">Đồ đã mua nằm trong tủ đồ (phím U), thay lẻ từng món được.</p>`; },{wide:true});
+ACT.pkbuy=async d=>{ const r=await req({t:'pk',op:'buyset',id:d.id,wear:true}); if(!r.err) GAME.toast(esc(r.msg),'item'); };
+ACT.pkwear=async d=>{ const r=await req({t:'pk',op:'wearset',id:d.id}); if(!r.err) GAME.toast(esc(r.msg),'item'); };
 ACT.pklesson=async()=>{ const r=await GAME.act({t:'pk',op:'lesson'}); if(!r.err) UI.closeAll(); };
 ACT.pkjoin=d=>req({t:'pk',op:'join',seat:+d.seat}); ACT.pkleave=()=>req({t:'pk',op:'leave'});
 ACT.pkstart=async()=>{ const r=await req({t:'pk',op:'start'}); if(!r.err) UI.closeAll(); };
