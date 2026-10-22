@@ -645,18 +645,69 @@ for(const id of ['#btnDaily','#mDaily']) $(id).addEventListener('click',e=>{ e.c
 /* ---------- chuyển cảnh ---------- */
 let ringing=null, ringTimer=0, travelling=false;
 function fadeOnly(text){ const f=$('#fade'); $('#fadeText').textContent=text||''; f.classList.add('on'); setTimeout(()=>f.classList.remove('on'),900); }
-function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=false; sfx('car_4wd',.5);
-  $('#travelText').textContent=`${(SD.DEST[ride.to]&&SD.DEST[ride.to].plane)||(SD.DEST[ride.from]&&SD.DEST[ride.from].plane)?'✈ Bay':'Grab'}: ${SD.DEST[ride.from]?SD.DEST[ride.from].name:''} → ${SD.DEST[ride.to].name}`+(ride.free?' · Pháp bao':ride.fare?' · '+fmt(ride.fare):'');
-  const c=$('#travelCv'), g=c.getContext('2d'), car=A.car().c, t0=performance.now(), city=ride.to==='home'||ride.to==='everfit';
-  const anim=()=>{ const t=(performance.now()-t0)/1000; g.imageSmoothingEnabled=false; g.fillStyle=city?'#cfe3ee':'#f6d7a7'; g.fillRect(0,0,240,100);
-    if(city){ g.fillStyle='#8fa4b8'; for(let x=0;x<240;x+=14){ const h=30+((x*7)%5)*8; g.fillRect(x,80-h,12,h); g.fillStyle='#e8f4f8'; for(let y=84-h;y<76;y+=6) g.fillRect(x+3,y,2,2); g.fillStyle='#8fa4b8'; } }
-    else { g.fillStyle='#9bb7a0'; for(let x=0;x<240;x++){ const h=40+18*Math.sin(x*.035)+8*Math.sin(x*.11); g.fillRect(x,100-h-20,1,h); }
-      g.fillStyle=ride.to==='dalat'?'#3a6e46':'#5f8d62'; for(let x=0;x<240;x++){ const h=26+10*Math.sin(x*.06+2)+5*Math.sin(x*.17); g.fillRect(x,100-h-14,1,h); } }
-    g.fillStyle='#3b8ed3'; if(!city) g.fillRect(0,86,240,14); g.fillStyle='#c2bcb0'; g.fillRect(0,80,240,city?20:6);
-    const fly=(SD.DEST[ride.to]&&SD.DEST[ride.to].plane)||(SD.DEST[ride.from]&&SD.DEST[ride.from].plane);   // đi/về TP.HCM: máy bay bay ngang trời
-    if(fly){ const px=(t*110)%320-60, py=30-Math.sin(t*1.5)*4; g.fillStyle='#f4f1ea'; g.fillRect(px,py,40,8); g.fillRect(px+34,py+2,8,4); g.fillStyle='#c4382e'; g.fillRect(px,py-8,6,9); g.fillStyle='#d8d8d2'; g.fillRect(px+14,py+6,14,4); g.fillRect(px+14,py-4,10,4); g.fillStyle='#3a6ea8'; for(let w=0;w<5;w++) g.fillRect(px+10+w*5,py+2,2,2); }
-    else { g.drawImage(car,(t*80)%300-50,58+(Math.floor(t*8)%2)); g.fillStyle='#00b14f'; g.fillRect(((t*80)%300-50)+18,60,18,4); }
-    if(t<2.4) requestAnimationFrame(anim); else { tc.hidden=true; travelling=false; } };
+/* ---------- màn chờ di chuyển: cảnh nhiều lớp chạy lệch tốc độ theo điểm đến, trời đổi màu theo giờ thật,
+   xe Grab (đi tỉnh) / GrabBike (trong phố) / máy bay (TP.HCM), thanh tiến trình + mẹo chơi ---------- */
+const TRAVEL_TIPS=['Bấm Y mở Hằng ngày: điểm danh, 3 việc nhỏ và rương mỗi ngày','Hết pin ngoài đường? Bấm 🔌 Xin sạc nhờ người gần đó','Top 10 đại gia có danh hiệu óng ánh trên đầu',
+  'Thuê chó canh chuồng ở chú Sáu / chú Ba để khỏi bị trộm vật nuôi','Thắp hương ở miếu ông Trường Con: +10% EXP, mùng 1 và rằm gấp đôi','VNPT có trạm sạc điện thoại miễn phí cạnh máy lấy số',
+  'Sổ sưu tầm: lần đầu có món mới là được ghi, đủ bộ nhận thưởng lớn','Lên cấp tròn chục từ cấp 20 được thưởng tiền','Mỗi giờ bí ngô mọc chỗ mới ở Ké và Đà Lạt','Bearplus Studio nhận việc freelance, làm đêm EXP gấp đôi'];
+function skyPal(h){ if(h>=5&&h<6.5) return {top:'#3a4a8a',bot:'#f6a878',sun:'#ffb070',night:0,dusk:1}; if(h>=6.5&&h<16.5) return {top:'#5aa8e8',bot:'#d8f0f8',sun:'#fff6c8',night:0,dusk:0};
+  if(h>=16.5&&h<18.6) return {top:'#5a4a9a',bot:'#ff9a68',sun:'#ff8a4a',night:0,dusk:1}; return {top:'#0c1430',bot:'#2a3a6a',sun:'#f4f0d8',night:1,dusk:0}; }
+function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=false; const D=SD.DEST, to=D[ride.to]||{}, from=D[ride.from]||{}, fly=!!(to.plane||from.plane), city=to.city||'hn', same=from.city&&from.city===to.city;
+  const mode=fly?'plane':same?'bike':'car'; sfx(fly?'power_up':'car_4wd',.5);
+  $('#tvMode').textContent=fly?'✈ BAY':mode==='bike'?'🛵 GRABBIKE':'🚗 GRABCAR'; $('#tvTo').textContent=to.name||''; $('#tvRoute').textContent=`${from.name?from.name.split(' (')[0]:''} → ${(to.name||'').split(' (')[0]}`;
+  $('#travelText').textContent=ride.free?'Pháp bao chuyến này':ride.fare?'Cước '+fmt(ride.fare):''; $('#tvTip').textContent='💡 '+TRAVEL_TIPS[Math.floor(Math.random()*TRAVEL_TIPS.length)];
+  const c=$('#travelCv'), g=c.getContext('2d'), W=c.width, H=c.height, t0=performance.now(), DUR=2.8, pal=skyPal(vn().hf), fill=$('#tvFill'), icon=$('#tvIcon'); icon.textContent=fly?'✈':mode==='bike'?'🛵':'🚗';
+  const R=(x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h)); };
+  const hsh=n=>{ n=Math.imul(n^0x9e3779b9,2654435761); return ((n^(n>>>15))>>>0)/4294967296; };
+  const anim=()=>{ const t=(performance.now()-t0)/1000, k=Math.min(1,t/DUR); g.imageSmoothingEnabled=false;
+    // trời + mặt trời / trăng + sao
+    for(let y=0;y<H;y++){ const q=y/H; g.fillStyle=`color-mix(in srgb, ${pal.bot} ${Math.round(q*100)}%, ${pal.top})`; g.fillRect(0,y,W,1); }
+    if(pal.night){ for(let i=0;i<40;i++){ const x=hsh(i)*W, y=hsh(i+99)*H*.55, tw=Math.sin(t*3+i)>.3; if(tw) R(x,y,1,1,'#fff8e0'); } g.fillStyle='#f4f0d8'; g.beginPath(); g.arc(W*.8,26,9,0,7); g.fill(); g.fillStyle=pal.top; g.beginPath(); g.arc(W*.8+4,23,8,0,7); g.fill(); }
+    else { g.fillStyle=pal.sun; g.beginPath(); g.arc(W*.78,pal.dusk?H*.5:30,pal.dusk?14:10,0,7); g.fill(); g.globalAlpha=.25; g.beginPath(); g.arc(W*.78,pal.dusk?H*.5:30,pal.dusk?22:16,0,7); g.fill(); g.globalAlpha=1; }
+    // mây trôi (bay thì mây nhiều, chạy nhanh)
+    for(let i=0;i<(fly?9:5);i++){ const sp=fly?60+i*14:6+i*3, x=((hsh(i+7)*W*1.5-t*sp)%(W+80)+W+80)%(W+80)-60, y=8+hsh(i+3)*(fly?H*.8:40), cw=26+hsh(i+5)*30;
+      g.fillStyle=pal.night?'rgba(120,140,190,.35)':'rgba(255,255,255,.85)'; R(x,y,cw,6,g.fillStyle); R(x+5,y-4,cw*.55,5,g.fillStyle); R(x+cw*.45,y-6,cw*.35,6,g.fillStyle); }
+    if(fly){ // trên mây: thảm mây dưới thân máy bay, máy bay giữa khung lắc nhẹ, vệt khói
+      g.fillStyle=pal.night?'#3a4a7a':'#f4f8fc'; for(let x=0;x<W;x+=2){ const yy=H-22+Math.sin((x+t*90)*.06)*4+Math.sin((x+t*50)*.15)*2; g.fillRect(x,yy,2,H-yy); }
+      const px=W*.32+Math.sin(t*1.3)*6, py=H*.42+Math.sin(t*2.1)*3; g.globalAlpha=.6; for(let i=0;i<10;i++) R(px-8-i*9-((t*120)%9),py+6+Math.sin(i)*1,8,2,'#ffffff'); g.globalAlpha=1;
+      R(px,py,64,11,'#f4f1ea'); R(px+60,py+2,8,7,'#f4f1ea'); R(px+64,py+3,6,4,'#cfd8e0'); R(px+4,py+9,58,2,'#c8ccd2'); R(px,py-12,8,13,'#1f6fb2'); R(px+2,py-10,4,9,'#ffd84a');
+      for(let w=0;w<9;w++) R(px+14+w*5,py+3,3,3,'#3a6ea8'); R(px+60,py+3,4,3,'#2a3a5a'); R(px+20,py+8,26,4,'#d8d8d2'); R(px+28,py+12,10,4,'#a8acb2'); R(px+22,py-3,14,3,'#d8d8d2');
+      if(pal.night&&Math.floor(t*3)%2) R(px+44,py+10,2,2,'#ff3a3a'); }
+    else { const far=(sp,col,fn)=>{ g.fillStyle=col; for(let x=0;x<W;x++) fn(x+t*sp,x); };
+      // lớp xa theo thành phố đích
+      if(city==='hb'||city==='dl'){ far(8,pal.night?'#2a3a5a':'#8aa8b8',(u,x)=>{ const h=46+20*Math.sin(u*.03)+9*Math.sin(u*.09); g.fillRect(x,H-46-h,1,h+46); });
+        far(18,pal.night?'#1f3a3a':(city==='dl'?'#2f6a46':'#4f8a56'),(u,x)=>{ const h=24+12*Math.sin(u*.05+2)+5*Math.sin(u*.21); g.fillRect(x,H-38-h,1,h+38); });
+        if(city==='dl') for(let i=0;i<14;i++){ const x=((i*37-t*30)%(W+40)+W+40)%(W+40)-20, y=H-50-((i*13)%10); R(x+3,y-14,2,16,'#5a3a22'); for(let r=0;r<4;r++) R(x+3-r*2,y-14+r*4,4+r*4,3,'#1f5a36'); }
+        if(city==='hb'){ R(0,H-40,W,8,pal.night?'#2a4a7a':'#5aa0d8'); for(let x=0;x<W;x+=9) R((x+t*25)%W,H-37,4,1,'#bfe2f8'); } }
+      else if(city==='hp'){ R(0,H-44,W,12,pal.night?'#1a3a6a':'#4a8ac0'); for(let x=0;x<W;x+=11) R((x+t*20)%W,H-40,5,1,'#cfe8f8');
+        for(let i=0;i<5;i++){ const x=((i*90-t*14)%(W+90)+W+90)%(W+90)-40; R(x,H-96,4,52,'#c84a2a'); R(x-18,H-96,52,4,'#c84a2a'); R(x+28,H-92,2,22,'#7a2a1a'); R(x+24,H-72,10,6,'#3a6aa8'); }
+        for(let i=0;i<10;i++){ const x=((i*41-t*40)%(W+40)+W+40)%(W+40)-20; R(x+5,H-52,3,14,'#5a3a22'); g.fillStyle='#d8281e'; g.beginPath(); g.ellipse(x+6,H-56,11,7,0,0,7); g.fill(); R(x+1,H-60,3,2,'#ff6a3a'); R(x+9,H-57,3,2,'#ff8a4a'); } }
+      else { // phố: dãy nhà cao tầng, đêm sáng đèn; TP.HCM có Bitexco + Landmark 81
+        for(let i=0;i<26;i++){ const bw=16+hsh(i)*16, bh=30+hsh(i+50)*60, x=((i*26-t*14)%(W+60)+W+60)%(W+60)-40, y=H-38-bh; R(x,y,bw,bh+4,pal.night?'#1f2a44':'#8a9ab0'); R(x,y,bw,2,pal.night?'#2a3a5a':'#a8b8cc');
+          for(let wy=y+5;wy<H-42;wy+=6) for(let wx=x+3;wx<x+bw-3;wx+=5) if(hsh(i*97+wy*7+wx)>.45) R(wx,wy,2,3,pal.night?'#ffd86a':'#d8e8f4'); }
+        if(city==='hcm'){ const bx=((140-t*14)%(W+60)+W+60)%(W+60)-40; R(bx,H-128,10,90,pal.night?'#2a3550':'#5a6a80'); R(bx-5,H-104,20,3,'#7a8a98'); const lx=((250-t*14)%(W+60)+W+60)%(W+60)-40; for(let y=0;y<100;y++) R(lx+Math.floor(y/18),H-138+y,12-Math.floor(y/18)*2+Math.floor(y/6),1,pal.night?'#26304a':'#6a7a8c'); } }
+      // cây / cột đèn bên đường chạy nhanh
+      for(let i=0;i<8;i++){ const x=((i*60-t*120)%(W+60)+W+60)%(W+60)-30; R(x,H-60,2,26,'#4a4a52'); R(x-3,H-62,8,2,'#4a4a52'); if(pal.night){ g.globalAlpha=.3; g.fillStyle='#ffd86a'; g.beginPath(); g.arc(x+1,H-58,10,0,7); g.fill(); g.globalAlpha=1; R(x-1,H-61,4,2,'#fff3a0'); } }
+      // đường + vạch kẻ + lan can
+      R(0,H-34,W,34,'#4a4e56'); R(0,H-34,W,2,'#6a6e76'); for(let x=0;x<W+20;x+=24) R(((x-t*160)%(W+24)+W+24)%(W+24)-12,H-18,12,2,'#f4f4f2'); R(0,H-36,W,2,'#9aa0a8'); for(let x=0;x<W+14;x+=14) R(((x-t*160)%(W+14)+W+14)%(W+14)-7,H-40,2,6,'#9aa0a8');
+      const bob=Math.floor(t*10)%2, vx=W*.34+Math.sin(t*1.6)*4, vy=H-28-bob;
+      if(mode==='car'){ // GrabCar: thân xanh, kính, tài xế, đèn, bánh quay
+        g.fillStyle='rgba(0,0,0,.3)'; g.fillRect(vx+2,H-14,62,3);
+        R(vx,vy-8,64,12,'#00a84a'); R(vx+2,vy-9,60,2,'#2ac86a'); for(let r=0;r<10;r++) R(vx+16+Math.max(0,8-r),vy-18+r,34-Math.max(0,8-r)-Math.max(0,r-6)*0,1,'#00a84a');
+        R(vx+20,vy-16,12,7,'#bfe8ff'); R(vx+34,vy-16,12,7,'#bfe8ff'); R(vx+37,vy-14,5,5,'#26262c'); R(vx+38,vy-16,3,2,'#1c1820'); R(vx,vy-4,64,2,'#f4f4f2'); R(vx+32,vy-8,1,10,'#008a3a');
+        R(vx+61,vy-7,3,3,'#fff3a0'); R(vx,vy-7,2,3,'#d23a2e'); if(pal.night){ g.globalAlpha=.25; g.fillStyle='#fff3a0'; g.beginPath(); g.moveTo(vx+64,vy-6); g.lineTo(vx+110,vy-14); g.lineTo(vx+110,vy+4); g.fill(); g.globalAlpha=1; }
+        for(const wx of [vx+14,vx+50]){ g.fillStyle='#1c1820'; g.beginPath(); g.arc(wx,vy+4,6,0,7); g.fill(); g.fillStyle='#8a8a94'; g.beginPath(); g.arc(wx,vy+4,3,0,7); g.fill(); const a=t*18; R(wx+Math.cos(a)*2-1,vy+4+Math.sin(a)*2-1,2,2,'#26262c'); }
+        if(Math.floor(t*8)%2) R(vx-6,vy-1,4,3,'rgba(220,220,220,.6)'); }
+      else { // GrabBike: xe máy, tài xế áo + mũ xanh, khách ngồi sau
+        g.fillStyle='rgba(0,0,0,.3)'; g.fillRect(vx-2,H-14,40,3); for(const wx of [vx+4,vx+30]){ g.fillStyle='#1c1820'; g.beginPath(); g.arc(wx,vy+4,6,0,7); g.fill(); g.fillStyle='#8a8a94'; g.beginPath(); g.arc(wx,vy+4,2,0,7); g.fill(); }
+        R(vx+4,vy-4,28,5,'#3a3a42'); R(vx+22,vy-10,10,7,'#d23a2e'); R(vx+30,vy-14,2,8,'#5a5a66'); R(vx+31,vy-15,4,2,'#3a3a42');
+        R(vx+18,vy-24,8,12,'#00a84a'); R(vx+19,vy-30,7,6,'#00a84a'); R(vx+25,vy-28,2,3,'#1c1820'); R(vx+20,vy-12,3,8,'#2a2a30'); R(vx+24,vy-20,6,2,'#00a84a');
+        R(vx+8,vy-22,8,11,'#3a6ea8'); R(vx+9,vy-28,6,6,'#f4f4f2'); R(vx+9,vy-12,3,8,'#2a2a30');
+        if(Math.floor(t*8)%2) R(vx-4,vy,3,2,'rgba(220,220,220,.6)'); } }
+    // vệt sáng tốc độ
+    g.globalAlpha=.35; for(let i=0;i<6;i++){ const y=10+hsh(i+33)*(H-50), x=W-((t*(260+i*40)+i*70)%(W+60)); R(x,y,30,1,'#ffffff'); } g.globalAlpha=1;
+    fill.style.width=(k*100)+'%'; icon.style.left=(k*100)+'%';
+    if(t<DUR) requestAnimationFrame(anim); else { tc.hidden=true; travelling=false; } };
   anim(); }
 
 /* ---------- cập nhật mỗi khung ---------- */
@@ -1463,6 +1514,10 @@ NET.listen('me',m=>{ const old=G; G=m.p; window.CHANDE&&(CHANDE._g=G); if(old&&s
   if(old&&old.level<G.level){ bigText(`LÊN CẤP ${G.level}!`); sfx('level_up',.6); }
   if(G.flags.phapForm==='cam') delete PORTRAIT.phap; renderHUD(); UI.refresh&&UI.refresh(); });
 NET.listen('scene',m=>{ if(!started) return; enterScene(m); });
+// có người gọi điện: nghe máy (nói chuyện) hoặc nghe rồi Grab tới chỗ người gọi
+NET.listen('ring',m=>{ if(!started) return; const ring=sfx('phone_ring',.5); const opts=m.come?[`Nghe + Grab tới ${m.where.split(' (')[0]}${m.fare?' ('+fmt(m.fare)+')':''}`,'Nghe máy','Từ chối']:['Nghe máy','Từ chối'];
+  ask(`📞 ${m.name} (${m.num}) đang gọi cho bạn${m.come?': "Qua đây chơi với tao đi!"':''}`,'me',opts,async i=>{ if(ring&&ring.pause) ring.pause(); const go=m.come&&i===0, talk=m.come?i===1:i===0; if(!go&&!talk) return; const r=await act({t:'pickup',go}); if(r&&!r.err&&r.msg) toast(esc(r.msg),'item'); }); });
+NET.listen('sms',m=>{ sfx('blip',.5); });
 let MYRANK=0; NET.listen('rk',m=>{ const up=m.rk&&(!MYRANK||m.rk<MYRANK); MYRANK=m.rk||0; if(up&&started){ bigText(SD.TOP_TITLES[MYRANK-1].name.toUpperCase()); sfx('level_up',.6); toast(`🏆 Top ${MYRANK} đại gia: nhận danh hiệu <b>${SD.TOP_TITLES[MYRANK-1].name}</b>`,'item'); } });
 // bảng Hằng ngày: điểm danh, việc hôm nay, sổ sưu tầm. Vào game lần đầu trong ngày thì tự mở trang điểm danh (kiểu game mobile)
 let DQ=null, DQ_OPENED='';

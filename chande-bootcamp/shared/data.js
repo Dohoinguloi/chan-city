@@ -268,7 +268,7 @@ const SONGS=[{id:'dance01',name:'Bay Lên Ké',bpm:132},{id:'dance02',name:'Đê
   {id:'dance05',name:'Lửa Trại',bpm:120},{id:'dance06',name:'Đà Lạt Sương Mù',bpm:124},{id:'dance07',name:'Disco Nông Trại',bpm:118},{id:'dance08',name:'Everfit Workout',bpm:130},
   {id:'dance09',name:'Hokage Drop',bpm:136},{id:'dance10',name:'Saiyan Rave',bpm:150}];
 const DANCE={tip:500000,maxDancers:6,rounds:8,lobbyMs:12000,judge:[[50,'PERFECT',1000],[110,'GREAT',700],[190,'COOL',400],[280,'BAD',100]],combo:100,exp:[60,40,30,20,15,10],door:{x:2.2,y:9}};
-const TREASURE={every:420,chance:.2,daily:6,items:{dong_xu_co:{name:'Đồng xu cổ',w:55,price:80000},binh_gom:{name:'Bình gốm cổ',w:26,price:300000},
+const TREASURE={every:300,chance:.4,daily:8,items:{dong_xu_co:{name:'Đồng xu cổ',w:55,price:80000},binh_gom:{name:'Bình gốm cổ',w:26,price:300000},
   ngoc_trai:{name:'Ngọc trai sông Đà',w:14,price:500000},ruong_bau:{name:'Rương báu',w:5,price:2000000}}};
 
 /* ---------- Vị trí trên map Ké Retreat ---------- */
@@ -828,6 +828,10 @@ const VNPT={W:36,H:24,spawn:{x:18,y:22},kiosk:{x:3.4,y:18.6},charger:{x:3.4,y:13
   sims:[{num:'0886.68.68.68',cat:'Lộc phát',price:25000000},{num:'0915.888.999',cat:'Tam hoa kép',price:30000000},{num:'0919.39.79.79',cat:'Thần tài',price:18000000},
     {num:'0943.456.789',cat:'Sảnh tiến',price:12000000},{num:'0812.345.678',cat:'Sảnh 7',price:8000000},{num:'0818.181.818',cat:'Lặp kép',price:6500000},
     {num:'0889.22.11.22',cat:'Gánh đảo',price:2500000},{num:'0911.11.02.97',cat:'Năm sinh',price:900000},{num:'random',cat:'Sim thường',price:50000}],
+  // SIM số đẹp mang lộc (mỗi loại 1 công dụng); SIM nào cũng nhắn tin / gọi được cho bạn bè có SIM
+  simPerks:{'Lộc phát':{sell:.05,desc:'+5% tiền bán nông sản, cá, đồ cổ'},'Thần tài':{daily:{vnd:39000},desc:'Mỗi ngày vào game nhận 39.000đ lộc thần tài'},'Tam hoa kép':{exp:.05,desc:'+5% EXP mọi việc'},
+    'Sảnh tiến':{exp:.03,sell:.03,desc:'+3% EXP, +3% tiền bán hàng'},'Sảnh 7':{exp:.03,desc:'+3% EXP mọi việc'},'Lặp kép':{grab:.2,desc:'Đi Grab rẻ hơn 20%'},'Gánh đảo':{battery:.15,desc:'Pin hao chậm hơn 15%'},
+    'Năm sinh':{daily:{exp:30},desc:'Mỗi ngày vào game +30 EXP'},'Sim thường':{desc:'Nhắn tin, gọi điện cho bạn bè'}},sms:{price:500,cd:8},
   packs:{ngay:{name:'Gói ngày D1',price:10000,h:24},tuan:{name:'Gói tuần D7',price:50000,h:168},thang:{name:'Gói tháng D30',price:150000,h:720}},packMul:.6,
   fiber:{price:300000,mul:1.6},keWifi:1.3,
   fiberPts:[{x:49.6,y:86.8,name:'Hộp cáp cạnh lễ tân Ké'},{x:61.5,y:69.6,name:'Cột điện trước Nhà giải trí'},{x:36.5,y:80.6,name:'Hộp cáp cạnh Lều bể bơi'}],

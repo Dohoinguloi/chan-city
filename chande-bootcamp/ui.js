@@ -160,7 +160,16 @@ UI.phone=()=>open('Điện thoại',()=>{ const g=G(), S=GAME.S, own=S.kind==='r
   return `<p>Pin: <b>${Math.round(g.needs.battery)}%</b> · TikTok ${d.tiktok}/${R.tiktok.daily} · sống ảo ${d.posts}/${R.songao.daily} hôm nay</p><div class="col">
     ${own?btn('ra','Lướt TikTok (+EXP, -'+R.tiktok.battery+'% pin)',{act:'tiktok'}):'<p class="muted">Lướt TikTok, up ảnh: về phòng mới làm được.</p>'}${btn('lo','Xem phim người lớn 🔞 (giải toả)')}
     ${g.photos.map((p,i)=>btn('post',`Up ảnh "${esc(p.name)}" (×${p.mul})`,{i})).join('')||'<p class="muted">Chưa có ảnh. Bấm P để chụp (ở đây hoặc chỗ đẹp ngoài trời).</p>'}
-    ${S.kind==='stay'&&!own?btn('sleepask','Xin ngủ lại đêm nay'):''}${own?btn('hub','Mở chợ online / học / chat'):''}</div>`; });
+    ${S.kind==='stay'&&!own?btn('sleepask','Xin ngủ lại đêm nay'):''}${own?btn('hub','Mở chợ online / học / chat'):''}</div>${simHtml()}`; });
+let SIMBOOK=null;
+function simHtml(){ const g=G(), V=SD.VNPT; if(!g.sim) return `<h5>📱 SIM</h5><p class="muted">Chưa có SIM. Mua SIM ở VNPT (Hà Nội) để nhắn tin, gọi bạn bè, số đẹp còn có lộc riêng.</p>`;
+  if(!SIMBOOK){ SIMBOOK=[]; NET.req({t:'who'}).then(r=>{ SIMBOOK=(r.list||[]).filter(w=>w.sim&&w.id!==NET.pid); UI.refresh(); setTimeout(()=>{ SIMBOOK=null; },20000); }); }
+  return `<h5>📱 SIM ${esc(g.sim.num)} · ${esc(g.sim.cat)}</h5><p class="good">✨ ${esc((V.simPerks[g.sim.cat]||{}).desc||'')}</p><input id="smsText" maxlength="80" placeholder="Nội dung tin nhắn (${fmt(V.sms.price)}/tin)" style="width:100%;font:18px var(--f);padding:4px 8px">
+    <div class="list">${(SIMBOOK||[]).map(w=>`<div class="row"><span><b>${esc(w.n)}</b> <small class="muted">${esc(w.sim)} · ${esc((w.where||'').split(' (')[0])}</small></span><span>${btn('smsto','✉ Nhắn',{to:w.sim})} ${btn('ringto','📞 Gọi',{to:w.sim})}</span></div>`).join('')||'<p class="muted">Chưa có ai có SIM đang online.</p>'}</div>
+    <div class="col"><input id="smsNum" maxlength="16" placeholder="Hoặc nhập số máy..." style="font:18px var(--f);padding:4px 8px">${btn('smsnum','✉ Nhắn số này')} ${btn('ringnum','📞 Gọi số này')}</div>`; }
+ACT.smsto=d=>GAME.act({t:'sms',to:d.to,msg:(document.getElementById('smsText')||{}).value||''}).then(r=>{ if(r&&!r.err){ GAME.toast(esc(r.msg),'item'); const i=document.getElementById('smsText'); if(i) i.value=''; } });
+ACT.ringto=d=>GAME.act({t:'ring',to:d.to}).then(r=>{ if(r&&!r.err) GAME.toast('📞 '+esc(r.msg),'item'); });
+ACT.smsnum=()=>ACT.smsto({to:(document.getElementById('smsNum')||{}).value||''}); ACT.ringnum=()=>ACT.ringto({to:(document.getElementById('smsNum')||{}).value||''});
 ACT.ra=d=>{ UI.closeAll(); GAME.startRoomAct(d.act,undefined,d.act==='tiktok'?GAME.bedSpot():undefined); };   // lướt TikTok thì nằm lên giường
 ACT.post=d=>{ UI.closeAll(); GAME.act({t:'ra',act:'songao',photo:+d.i}); };
 ACT.sleepask=async()=>{ const r=await GAME.act({t:'sleepAsk'}); if(!r.err) GAME.toast('Đã xin, đợi chủ phòng trả lời','item'); };
@@ -538,7 +547,7 @@ PLACE.vnpt=n=>{ const i=n.id==='vn_minh'?3:1; GAME.act({t:'vn',op:'counter',i}).
 let vnTab='sim';
 UI.vnptDesk=i=>{ open(`Quầy ${i+1} · VNPT`,()=>{ const g=G(), V=SD.VNPT, now=NET.now(), data=g.data&&g.data.until>now;
   const tabs=[['sim','SIM số đẹp'],['pack','Gói data'],['fiber','Cáp quang']].map(([k,n])=>`<button class="tab ${k===vnTab?'on':''}" data-a="vntab" data-k="${k}">${n}</button>`).join('');
-  let b=''; if(vnTab==='sim') b=`<p class="muted">Số đang dùng: <b>${g.sim?esc(g.sim.num)+' ('+esc(g.sim.cat)+')':'chưa có'}</b>. Số hiện cạnh tên bạn trong danh sách online.</p><div class="list">${V.sims.map((s,k)=>`<div class="row"><span><b>${s.num==='random'?'09x.xxx.xxx':s.num}</b> <span class="muted">${s.cat}</span></span><span>${fmt(s.price)} ${btn('vnbuy','Mua',{i:k})}</span></div>`).join('')}</div>`;
+  let b=''; if(vnTab==='sim') b=`<p class="muted">Số đang dùng: <b>${g.sim?esc(g.sim.num)+' ('+esc(g.sim.cat)+')':'chưa có'}</b>. Số hiện cạnh tên bạn trong danh sách online.</p><div class="list">${V.sims.map((s,k)=>`<div class="row"><span><b>${s.num==='random'?'09x.xxx.xxx':s.num}</b> <span class="muted">${s.cat}</span><br><small class="good">✨ ${esc((V.simPerks[s.cat]||{}).desc||'')}</small></span><span>${fmt(s.price)} ${btn('vnbuy','Mua',{i:k})}</span></div>`).join('')}</div><p class="muted">SIM nào cũng nhắn tin, gọi điện được cho bạn bè có SIM (mở Điện thoại trong menu Esc).</p>`;
   if(vnTab==='pack') b=packHtml(data,g);
   if(vnTab==='fiber') b=`<p>Lắp cáp quang FiberVNN cho phòng trọ Hà Nội: lướt TikTok ở phòng được <b>×${V.fiber.mul} EXP</b>.</p>${g.flags.fiber?'<p class="muted">✔ Phòng bạn đã có cáp quang.</p>':btn('vnfiber','Lắp ngay · '+fmt(V.fiber.price),{},'pri')}`;
   return `<p class="muted">"Dạ em chào anh/chị, em có thể giúp gì ạ?"</p><div class="tabs">${tabs}</div>${b}`; }); };

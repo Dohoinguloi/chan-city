@@ -255,7 +255,12 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 #cHairCol,#cSkin{display:flex;gap:6px;flex-wrap:wrap}
 #cOutfit{display:grid;grid-template-columns:repeat(3,1fr);gap:6px} .ocard{font:17px var(--f);background:var(--panel2);color:var(--cream);border:2px solid var(--line);padding:6px;text-align:left;cursor:pointer;display:grid;gap:2px} .ocard b{font-weight:400;color:var(--gold);font-size:20px} .ocard.on{border-color:var(--gold)}
 #travel{background:#0c0a0e;z-index:10} #travel .box{display:grid;gap:10px;justify-items:center;text-align:center}
-#travelCv{width:min(720px,94vw);image-rendering:pixelated;border:2px solid var(--line)}
+#travelCv{width:min(800px,94vw);image-rendering:pixelated;border:3px solid #120c16;box-shadow:0 0 0 2px #5a4a6a,0 10px 40px rgba(0,0,0,.6)}
+#travel{background:radial-gradient(ellipse at center,#2a2038 0%,#120c16 70%)} #travel .box{gap:12px;width:min(800px,94vw)}
+.tvHead{display:grid;justify-items:center;gap:2px} #tvMode{padding:1px 12px;background:#00a84a;color:#fff;border:2px solid #120c16;box-shadow:0 2px 0 #0a5a2a;font-size:16px;letter-spacing:2px}
+#tvTo{font-weight:400;font-size:30px;color:#ffe680;text-shadow:3px 3px 0 #120c16;line-height:1.05} #tvRoute{color:#c8b8d8;font-size:17px}
+.tvBar{position:relative;width:100%;height:14px;background:#120c16;border:2px solid #120c16;box-shadow:0 0 0 2px #5a4a6a} #tvFill{display:block;height:100%;width:0;background:linear-gradient(#7ff0a8,#00a84a);box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+#tvIcon{position:absolute;top:-14px;left:0;transform:translateX(-50%);font-size:20px;filter:drop-shadow(1px 2px 0 #120c16)} #travelText{color:#ffe680;font-size:18px} #tvTip{color:#bfe8ff;font-size:17px;max-width:90%;text-align:center}
 #mapView .box{display:grid;gap:8px;padding:10px 12px;max-height:98vh;max-width:98vw}
 #mapCv{image-rendering:pixelated;border:2px solid var(--line)}
 #mapSide{order:-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px} #mapSide h3{margin:0;font-weight:400;color:var(--gold);font-size:26px} #mapSide>div:last-child{font-size:17px;color:var(--muted)} #mapClose{order:9;margin-left:auto}   /* thanh tiêu đề gọn trên đầu bản đồ */
@@ -484,7 +489,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
   </div>
 </div>
 <div id="kicked" class="overlay" hidden><div class="box panel" style="padding:18px 26px;display:grid;gap:10px;justify-items:center"><div id="kickMsg"></div><button class="btn pri" onclick="location.reload()">Vào lại ở đây</button></div></div>
-<div id="travel" class="overlay" hidden><div class="box"><canvas id="travelCv" width="240" height="100"></canvas><div id="travelText"></div></div></div>
+<div id="travel" class="overlay" hidden><div class="box"><div class="tvHead"><span id="tvMode">GRAB</span><b id="tvTo"></b><small id="tvRoute"></small></div><canvas id="travelCv" width="320" height="150"></canvas><div class="tvBar"><i id="tvFill"></i><span id="tvIcon">🚗</span></div><div id="travelText"></div><div id="tvTip"></div></div></div>
 <div id="mapView" class="overlay" hidden><div class="box panel"><canvas id="mapCv"></canvas>
   <div id="mapSide"><button id="mapClose" class="btn sm" type="button" aria-label="Đóng bản đồ" style="justify-self:end">✕ Đóng</button><h3 id="mapTitle">Bản đồ</h3><div id="mapLegend"></div><div><kbd>M</kbd> đóng bản đồ</div></div></div></div>
 

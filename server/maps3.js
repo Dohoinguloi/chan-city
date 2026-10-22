@@ -61,7 +61,7 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
     if(p.sim&&p.sim.num===s.num) return {err:'Bạn đang dùng số này rồi'}; if(!take(pl,s.price)) return {err:`Số này ${S.fmt(s.price)}, ví không đủ`};
     let num=s.num; if(num==='random'){ const r=()=>Math.floor(Math.random()*10); num=`09${r()}${r()}.${r()}${r()}${r()}.${r()}${r()}${r()}`; }
     p.sim={num,cat:s.cat,at:t}; markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
-  if(op==='pack'){ const k=V.packs[m.k]; if(!k) return {err:'?'}; if(!atDesk()&&!near(pl,V.pack.x,V.pack.y+.9,30)) return {err:'Ra quầy hoặc tới standee gói cước'};
+  if(op==='pack'){ const k=V.packs[m.k]; if(!k) return {err:'?'}; if(!p.sim) return {err:'Cần có SIM VNPT trước (mua ở quầy giao dịch)'}; if(!atDesk()&&!near(pl,V.pack.x,V.pack.y+.9,30)) return {err:'Ra quầy hoặc tới standee gói cước'};
     if(!take(pl,k.price)) return {err:'Không đủ tiền'}; const from=Math.max(t,(p.data&&p.data.until)||0); p.data={name:k.name,until:from+k.h*3600e3}; markDirty(pl);
     return {msg:`Đăng ký ${k.name} thành công! Pin điện thoại hao chậm hơn ${Math.round((1-V.packMul)*100)}% tới ${S.vnTime(p.data.until).day.split('-').reverse().join('/')}`}; }
   if(op==='fiber'){ if(!atDesk()) return {err:'Ra quầy giao dịch (bốc số trước) để đăng ký'}; if(p.flags.fiber) return {err:'Phòng bạn có cáp quang rồi'}; if(!take(pl,V.fiber.price)) return {err:'Không đủ tiền'};
@@ -102,6 +102,29 @@ on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDa
     if(d.tcclip) return {err:'Hôm nay quay với Trường Con rồi, mai lên clip mới'}; return P.startTask(pl,'tiktok',M.clip.dur,()=>{ d.tcclip=1; d.tiktok=(d.tiktok||0)+1; const g=C.gainExp(pl,M.clip.exp); markDirty(pl); return {msg:`Clip lên xu hướng! +${g.exp} EXP`}; },{name:'Quay clip cùng Trường Con'}); }
   return {err:'?'}; });
 
+/* ---------- SIM: lộc hằng ngày, nhắn tin, gọi bạn tới chỗ mình ---------- */
+hook('login',pl=>{ const p=pl.prof, k=C.simPerk(p).daily; if(!k||p.daily.simGift) return; p.daily.simGift=1; if(k.vnd) give(pl,k.vnd); if(k.exp) C.gainExp(pl,k.exp); markDirty(pl);
+  setTimeout(()=>{ if(pl.prof) note(pl,`📱 Lộc SIM ${p.sim.cat} (${p.sim.num}): ${k.vnd?'+'+S.fmt(k.vnd):'+'+k.exp+' EXP'}`,'vnd'); },2500); });
+const byNum=num=>{ for(const q of C.players.values()) if(q.prof.sim&&q.prof.sim.num===num) return q; return null; };
+on('sms',(pl,m)=>{ const p=pl.prof, V=S.VNPT, msg=String(m.msg||'').trim().slice(0,80), to=String(m.to||''), t=now(); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'};
+  if(p.needs.battery<S.GRAB.minBattery) return {err:'Hết pin rồi'}; if(!msg) return {err:'Gõ nội dung tin nhắn đã'}; if(pl.smsAt&&t-pl.smsAt<V.sms.cd*1000) return {err:'Nhắn chậm thôi'};
+  if(to===p.sim.num) return {err:'Đây là số của bạn'}; if(!take(pl,V.sms.price)) return {err:'Không đủ tiền cước'}; pl.smsAt=t; p.needs.battery=Math.max(0,p.needs.battery-1); markDirty(pl);
+  const q=byNum(to), line=`📩 SMS từ ${p.sim.num} (${p.name}): ${msg}`;
+  if(q){ note(q,line,'quest'); send(q,{t:'sms',from:p.sim.num,name:p.name,msg}); return {msg:`Đã gửi tới ${to}`}; }
+  for(const r of C.db.allProfiles()) if(r.sim&&r.sim.num===to){ const prof=C.db.profile(r._uid); if(prof){ (prof.inbox=prof.inbox||[]).push(line); C.db.saveProfile(r._uid,prof); return {msg:`${to} đang offline, tin nhắn chờ trong hộp thư`}; } }
+  return {err:'Số máy quý khách vừa gọi hiện không có thật'}; });
+// gọi điện: người nghe máy được Grab tới chỗ người gọi (cước theo 2 thành phố); người gọi đang ở phòng riêng / chỗ đặc biệt thì chỉ nói chuyện
+const CALL_OK=new Set(['retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);
+on('ring',(pl,m)=>{ const p=pl.prof, t=now(), to=String(m.to||''); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'}; if(p.needs.battery<S.GRAB.minBattery) return {err:'Hết pin rồi'};
+  if(pl.ringAt&&t-pl.ringAt<15000) return {err:'Vừa gọi xong, chờ chút'}; const q=byNum(to); if(!q) return {err:'Thuê bao quý khách vừa gọi tạm thời không liên lạc được'}; if(q===pl) return {err:'Đây là số của bạn'};
+  pl.ringAt=t; p.needs.battery=Math.max(0,p.needs.battery-2); markDirty(pl); const k=kindOf(pl.scene), dest=S.SCENE_DEST[k], come=CALL_OK.has(k)&&dest;
+  q.call={from:pl.pid,until:t+30000,come}; send(q,{t:'ring',name:p.name,num:p.sim.num,come:!!come,where:come?S.DEST[dest].name:'',fare:come?S.grabFare(S.SCENE_DEST[kindOf(q.scene)]||'home',dest):0});
+  return {msg:`Đang gọi ${to}...`}; });
+on('pickup',(pl,m)=>{ const c=pl.call, t=now(); if(!c||t>c.until) return {err:'Cuộc gọi đã kết thúc'}; pl.call=null; const o=C.players.get(c.from); if(!o) return {err:'Người gọi đã offline'};
+  if(!m.go){ note(o,`📞 ${pl.prof.name} đã nghe máy: "Ừ, alo!"`,'quest'); return {msg:`Đang nói chuyện với ${o.prof.name}`}; }
+  if(!c.come) return {err:'Người gọi đang ở chỗ riêng, không tới được'}; if(pl.task) return {err:'Đang làm việc khác'}; if(pl.prof.jail&&pl.prof.jail.until>t) return {err:'Đang bị tạm giữ ở đồn'};
+  const fare=Math.round(S.grabFare(S.SCENE_DEST[kindOf(pl.scene)]||'home',S.SCENE_DEST[kindOf(o.scene)])*(1-(C.simPerk(pl.prof).grab||0))); if(fare&&!take(pl,fare)) return {err:`Grab tới đó ${S.fmt(fare)}, ví không đủ`};
+  C.moveTo(pl,o.scene,o.x/C.T+.8,o.y/C.T+.4,{ride:{from:S.SCENE_DEST[kindOf(pl.scene)]||'home',to:S.SCENE_DEST[kindOf(o.scene)],fare}}); note(o,`📞 ${pl.prof.name} đang Grab tới chỗ bạn!`,'quest'); return {msg:'Đang tới'}; });
 // điều ước buộc ở cây đa: hôm sau vào game là linh nghiệm
 hook('login',pl=>{ const p=pl.prof, w=p.wish; if(!w||w.day>=today()) return; const def=S.MIEU.wishes[w.k]; p.wish=null; if(!def) return; const g=def.gift;
   if(g.vnd) give(pl,g.vnd); if(g.exp) C.gainExp(pl,g.exp); if(g.item) addItem(pl,g.item); if(g.energy) p.needs.energy=Math.min(100,p.needs.energy+g.energy); markDirty(pl);

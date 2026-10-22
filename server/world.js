@@ -125,7 +125,7 @@ hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.v
     const before=[n.energy|0,n.clean|0,n.battery|0];
     n.energy=Math.max(0,n.energy-dt/S.NEEDS.energy.decay*(out?2:1)*(pl.riding?.5:1));
     n.clean=Math.max(0,n.clean-dt/S.NEEDS.clean.decay*(pl.soc&&pl.soc.kind==='danhnhau'?3:1));
-    if(!(pl.task&&pl.task.act==='sac')) n.battery=Math.max(0,n.battery-dt/S.NEEDS.battery.decay*(pl.prof.data&&pl.prof.data.until>now()?S.VNPT.packMul:1));   // gói data VNPT: pin hao chậm hơn
+    if(!(pl.task&&pl.task.act==='sac')) n.battery=Math.max(0,n.battery-dt/S.NEEDS.battery.decay*(pl.prof.data&&pl.prof.data.until>now()?S.VNPT.packMul:1)*(1-(C.simPerk(pl.prof).battery||0)));   // gói data VNPT: pin hao chậm hơn
     if(before.join()!==[n.energy|0,n.clean|0,n.battery|0].join()){ send(pl,{t:'nd',n:{energy:+n.energy.toFixed(1),clean:+n.clean.toFixed(1),battery:+n.battery.toFixed(1)}}); markDirty(pl); } } });
 
 /* ---------- Grab ---------- */
@@ -141,7 +141,7 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
   if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Bấm 🔌 Xin sạc nhờ để cắm sạc nhờ người gần đó'};
   if(to==='retreat'&&!p.flags.called) return {err:'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.'};
-  let fare=S.grabFare(from,to), free=false;
+  let fare=Math.round(S.grabFare(from,to)*(1-(C.simPerk(p).grab||0))), free=false;   // SIM Lặp kép: Grab rẻ hơn
   if(to==='retreat'&&!p.flags.freeRide){ fare=0; free=true; }
   if(fare&&!take(pl,fare)) return {err:`Chuyến này ${S.fmt(fare)}, trong ví còn ${S.fmt(p.money)}`};
   if(free) p.flags.freeRide=true; if(to==='retreat') p.flags.arrived=true;

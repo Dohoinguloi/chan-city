@@ -52,6 +52,8 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
     Object.assign(p.look,{gender:'nam',hair:'messy',hairColor:'a59c9a',skin:'eeb896'}); p.look.outfit={...(p.look.outfit||{}),top:'blazer_kaixa',bottom:'quan_kaixa',eyes:'kinh_kaixa',wrist:'dong_ho',shoes:'giay_den'}; }
   p.level=Math.max(p.level||1,S.levelOf(p.exp||0));   // bảng cấp nối dài tới 200: ai đủ EXP thì lên luôn
   return p; }
+// lộc của SIM số đẹp đang dùng (VNPT)
+const simPerk=p=>(p.sim&&S.VNPT.simPerks[p.sim.cat])||{};
 function markDirty(pl){ pl.dirty=true; if(!pl.saveAt) pl.saveAt=now()+4000; }
 function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
 // gửi hồ sơ cho chính người đó (kèm phần tính sẵn)
@@ -66,7 +68,7 @@ function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
-  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.needs.clean<20) m*=.85; return m; }
+  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.needs.clean<20) m*=.85; return m; }
 function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.needs.energy<20?.8:1)*S.lvSpeed(pl.prof.level); }
 // cộng EXP; kind 'game' bị giới hạn mỗi ngày
 function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
@@ -101,5 +103,5 @@ function moveTo(pl,id,x,y,extra={}){
 }
 
 module.exports={stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  defaults,fixProfile,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
+  simPerk,defaults,fixProfile,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};
