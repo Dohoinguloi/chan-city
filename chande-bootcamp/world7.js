@@ -52,7 +52,7 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
   for(const [x,y] of [[46,19],[68,19],[46,28],[68,28]]) tree(x,y); put(A.label('DAM RONG','#1a5a30','#9ae8a0'),57,17.9,{flat:true});
   /* --- nghĩa địa phía Đông Bắc: bia mộ, cây khô, đèn ma, quan tài --- */
   put(A.label('NGHIA DIA BONG MA','#2a1a3a','#c8a0ff'),83,2.6,{flat:true});
-  let gi=0; for(let y=4;y<=13;y+=3) for(let x=74;x<=92;x+=4){ if(Math.abs(x-84)<4&&Math.abs(y-8)<4) continue; put(A.muGrave(gi++),x+(y%2),y); block(x+(y%2),y-1,x+(y%2),y-1); }
+  let gi=0; for(let y=4;y<=13;y+=3) for(let x=74;x<=92;x+=4){ if(Math.abs(x-84)<4&&Math.abs(y-8)<4) continue; put(A.muGrave(gi++),x+(y%2),y); }   /* bia mộ đi xuyên qua được (không chặn đường) */
   for(const [x,y] of [[73,3.5],[93,13],[77,13.5]]){ put(A.muDeadTree(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   for(const [x,y] of [[79,8],[89,8]]) put(A.muGhostLamp(0),x,y,{anim:'mulamp'}); put(A.muCoffin(),84,12.6,{flat:true});
   /* --- bãi phế liệu phía Đông Nam: đống sắt vụn, lốp xe, thùng phuy, biển cưa máy --- */

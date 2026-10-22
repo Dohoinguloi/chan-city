@@ -940,16 +940,24 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
       attacks:[{k:'shuriken',kind:'single',name:'Phi Tiêu Gió',every:2.6,warn:.6,range:8,r:1.2,dmg:16},{k:'rasengan',kind:'jump',name:'Rasengan',every:8,warn:1.1,r:1.8,dmg:34,then:{kind:'ring',r:2.8,dmg:22,warn:.5,phase:2}},{k:'rendan',kind:'trail',name:'Uzumaki Rendan',every:10,warn:.9,n:5,step:190,r:1.5,dmg:26},
         {k:'rasenshuriken',kind:'chase',name:'Phong Độn: Rasen Shuriken',every:11,warn:2.2,lock:.5,r:2.3,dmg:40,phase:2},{k:'daidotpha',kind:'donut',name:'Phong Độn: Đại Đột Phá',every:13,warn:1.4,r0:2.2,r:7,dmg:34,phase:2},
         {k:'vithu',kind:'line',name:'Vĩ Thú Ngọc',every:15,warn:1.4,range:13,w:1.5,dmg:50,phase:3},
-        {k:'bunshin',kind:'multi',name:'Ảnh Phân Thân Chi Thuật',every:12,warn:1.4,n:3,r:1.8,dmg:22,phase:2},{k:'roar',kind:'ring',name:'Cửu Vĩ Gầm',every:14,warn:1.5,r:6,dmg:28,phase:3}],
+        {k:'bunshin',kind:'multi',name:'Ảnh Phân Thân Chi Thuật',every:12,warn:1.4,n:3,r:1.8,dmg:22,phase:2},{k:'roar',kind:'ring',name:'Cửu Vĩ Gầm',every:14,warn:1.5,r:6,dmg:28,phase:3},
+        {k:'muavithu',kind:'rain',name:'Mưa Bom Vĩ Thú',form:'cuuvi',hpBelow:.25,noSpd:1,every:7,warn:1.2,n:10,r:1.8,pct:.2}],   /* Cửu Vĩ dưới 25% máu: 10 quả bom vĩ thú rơi, mỗi quả trừ 20% máu tối đa (xuyên giáp) */
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.8,drops:'naruto',
-      forms:[{k:'cuuvi',when:{hp:.5},name:'Cửu Vĩ Hồ Ly',say:'Sức mạnh Cửu Vĩ... bùng nổ!',spd:20,rangeMul:3,size:2,move:1.5,sprite:'cuuvi'}]},   /* hoá Cửu Vĩ: tầm ×3, đánh nhanh ×20 */
+      forms:[{k:'cuuvi',when:{hp:.5},name:'Cửu Vĩ Hồ Ly',say:'Sức mạnh Cửu Vĩ... bùng nổ!',spd:20,rangeMul:3,size:2,move:1.5,sprite:'cuuvi',guard:{armor:.25,resist:.25}}]},   /* Cửu Vĩ: giáp +25%, kháng phép +25% */   /* hoá Cửu Vĩ: tầm ×3, đánh nhanh ×20 */
     cuamay:{name:'Quỷ Cưa',sprite:'cuamay',every:12*60e3,offset:3*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:23},area:{x0:72,x1:94,y0:17,y1:27},
       attacks:[{k:'cua',kind:'single',name:'Cưa Xé',every:2.4,warn:.6,range:5,r:1.4,dmg:18},{k:'lao',kind:'jump',name:'Lao Cưa',every:8,warn:1,r:2,dmg:32},{k:'xegio',kind:'line',name:'Cưa Lao Xé Gió',every:9,warn:1.1,range:10,w:1.1,dash:1,dmg:40},
         {k:'xichcua',kind:'cross',name:'Xích Cưa Tứ Phương',every:14,warn:1.2,n:4,waves:2,gap:600,range:8,w:.9,dmg:34,phase:2},{k:'cuatruy',kind:'chase',name:'Cưa Truy Hồn',every:12,warn:2.2,lock:.45,r:2,dmg:38,phase:3},
         {k:'xoaycua',kind:'ring',name:'Bão Cưa Xoay',every:12,warn:1.4,r:4.5,dmg:30,phase:2},{k:'manh',kind:'multi',name:'Mưa Mảnh Kim Loại',every:11,warn:1.5,n:4,r:1.6,dmg:20,phase:3}],
-      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.6,drops:'cuamay'},
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.6,drops:'cuamay',basicOnly:1,
+      spin:{hits:8,win:3,dur:3,r:3,tick:.5,dmg:8,mul:4,cd:6},call:{k:'reze',hp:.5},pochita:{every:22,dur:6,first:8,nuke:{warn:3,dmg:70,safe:2.6,fx:{stun:1}}}},
+    /* Quỷ Cưa: miễn phép, chỉ mất máu vì đánh thường; bị đánh dồn (8 đòn / 3 giây) thì xoay cưa vòng tròn 3 giây, mọi đòn ×4; còn 50% gọi Quỷ Bom Reze;
+       có Reze thì cứ 22 giây hoá Pochita 6 giây (đứng im, không đánh), lúc đó Reze thả bom hạt nhân phủ cả khu, chỉ nấp sát Pochita (2,6 ô) là an toàn */
+    reze:{name:'Quỷ Bom Reze',sprite:'reze',summon:1,every:12*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:22},area:{x0:72,x1:94,y0:17,y1:27},
+      attacks:[{k:'luudan',kind:'rain',name:'Mưa Lựu Đạn',every:4,warn:.9,n:6,r:1.4,dmg:18,fx:{stun:.5}},{k:'nobom',kind:'single',name:'Bom Hẹn Giờ',every:3,warn:.8,range:8,r:1.6,dmg:24},
+        {k:'phaobom',kind:'line',name:'Pháo Bom Xé Gió',every:9,warn:1.2,range:12,w:1.2,dmg:40,phase:2},{k:'nobomvong',kind:'ring',name:'Nổ Bom Toàn Thân',every:13,warn:1.4,r:4.5,dmg:36,phase:2}],
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.6,drops:'reze'},
     duongvu_ma:{name:'Dươngg Vũ',sprite:'gengar',every:15*60e3,offset:8*60e3,life:7*60e3,hp:1900,perPlayer:1050,def:8,home:{x:84,y:8},area:{x0:72,x1:94,y0:3,y1:14},
-      attacks:[{k:'bongma',kind:'ghost',name:'Hoá Bóng Ma',every:5,exact:1,dur:2.5,r:3,tick:.5,dmg:10,fx:{dot:{pct:.03,dur:4,k:'doc'}}},{k:'bongden',kind:'single',name:'Cầu Bóng Đêm',every:2.8,warn:.7,range:8,r:1.4,dmg:18},{k:'xuyen',kind:'jump',name:'Xuyên Tường',every:9,warn:1.2,r:2,dmg:30},{k:'bongtruy',kind:'chase',name:'Bóng Ma Truy Đuổi',every:9,warn:2.2,lock:.4,r:2,dmg:34},
+      attacks:[{k:'bongma',kind:'ghost',name:'Hoá Bóng Ma',every:5,exact:1,dur:2.5,r:3,tick:.5,dmg:10,fx:{dot:{pct:.03,dur:4,k:'doc'}}},{k:'nuot',kind:'gulp',name:'Nuốt Chửng',hpBelow:.35,noSpd:1,every:15,dur:7,pct:.04},   /* dưới 35% máu: nuốt 1 người bất kỳ 7 giây (đứng im trong bụng, mất 4% máu / giây), hết giờ nhổ ra */{k:'bongden',kind:'single',name:'Cầu Bóng Đêm',every:2.8,warn:.7,range:8,r:1.4,dmg:18},{k:'xuyen',kind:'jump',name:'Xuyên Tường',every:9,warn:1.2,r:2,dmg:30},{k:'bongtruy',kind:'chase',name:'Bóng Ma Truy Đuổi',every:9,warn:2.2,lock:.4,r:2,dmg:34},
         {k:'vongma',kind:'donut',name:'Vòng Ma Ám',every:13,warn:1.4,r0:2.2,r:6.5,dmg:32,phase:2},{k:'xuyenhon',kind:'trail',name:'Xuyên Hồn',every:12,warn:1,n:6,step:170,r:1.5,dmg:26,phase:3},
         {k:'thoimien',kind:'multi',name:'Thôi Miên',every:11,warn:1.5,n:3,r:1.8,dmg:22,phase:2},{k:'nguyenrua',kind:'ring',name:'Lời Nguyền Zen',every:14,warn:1.6,r:6,dmg:30,phase:3}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.5,drops:'duongvu_ma',minAt:{hp:.5,k:'hoangha',n:10}},   /* còn 50% máu gọi 10 Phạm Hoàng Hà */
@@ -966,7 +974,8 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
         {k:'dichchuyen',kind:'blink',name:'Dịch Chuyển Tức Thời',every:12,warn:.7,r:1.9,dmg:38},{k:'kaioken',kind:'trail',name:'Kaioken Liên Hoàn Cước',every:11,warn:1,n:6,step:160,r:1.5,dmg:28,phase:2},
         {k:'genki',kind:'circle',name:'Genki Dama',every:20,warn:2.8,r:3.6,dmg:90,phase:2},{k:'superkame',kind:'line',name:'Super Kamehameha',form:'ssj',every:10,warn:1.4,range:18,w:2.6,dmg:70}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.7,drops:'songoku',
-      forms:[{k:'ssj',when:{hp:.5},name:'Siêu Saiyan',say:'Ta là... Siêu Saiyan Son Goku!',spd:2.5,move:1.6,dodge:.2,size:1.15,sprite:'songoku_ssj'}]}},
+      forms:[{k:'ssj',when:{hp:.5},name:'Siêu Saiyan',say:'Ta là... Siêu Saiyan Son Goku!',spd:2.5,move:1.6,dodge:.2,size:1.15,sprite:'songoku_ssj'}],
+      minAt:{hp:.2,k:'ngocrong',n:7}}},   /* còn 20% máu gọi 7 viên Ngọc Rồng */
   // độ khó chung mọi boss MU: máu ×hp, đòn ×dmg, thời gian cảnh báo ×warn (ngắn hơn), vùng đánh ×r (to hơn), hồi chiêu ×cd (ra đòn dày hơn)
   bossHard:{hp:40,dmg:15,warn:.75,r:1.15,cd:.8},   /* máu ×40 (trước ×15), đòn ×15 */
   // mỗi người hạ mỗi boss tối đa bossPerDay lần / ngày (tính lúc boss chết, ai góp sát thương đều tính 1 lần); hạ đủ thì không gây sát thương, không có thưởng nữa: chống đánh hộ
@@ -976,7 +985,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
   // phần thưởng boss phụ: ai góp sức đều có EXP + tiền, có tỉ lệ rơi trang phục / vũ khí riêng của boss, lần đầu hạ được thì lộ nhiệm vụ ẩn
   reward:{luffy:{exp:150,vnd:200000,mu:120,jewel:.35,fruitPer:10},naruto:{exp:100,vnd:120000,mu:80,costume:'mu_naruto',weapon:'vk_kunai',chance:.25,secret:'mu_cuontruc'},
     cuamay:{exp:100,vnd:120000,mu:80,costume:'mu_cuamay',weapon:'vk_cua',chance:.25,secret:'mu_banhmut'},duongvu_ma:{exp:110,vnd:130000,mu:85,costume:'mu_bongma',weapon:'vk_luoihai',chance:.25,secret:'mu_lua_ma'},
-    rongxanh:{exp:130,vnd:160000,mu:100,costume:'mu_rongxanh',weapon:'vk_vayrong',chance:.22,secret:'mu_vayrong'},songoku:{exp:150,vnd:180000,mu:110,gems:1,jewels:1}},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen'],
+    rongxanh:{exp:130,vnd:160000,mu:100,costume:'mu_rongxanh',weapon:'vk_vayrong',chance:.22,secret:'mu_vayrong'},songoku:{exp:150,vnd:180000,mu:110,gems:1,jewels:1},reze:{exp:140,vnd:170000,mu:105,gems:1,jewels:1}},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen'],
   // bố cục: quảng trường (x 2–41) · rừng Làng Lá (x 44–69: Bắc Naruto, Nam Đầm Rồng) · phía Đông (x 72–95: Bắc nghĩa địa, Nam bãi phế liệu); cổng ở hàng gateN / gateS, tường ngang y 15–16 có lối giữa
   zones:{gateN:{y0:6,y1:9},gateS:{y0:21,y1:25},split:15,gapF:[55,58],gapE:[82,85],lake:{x:57,y:23,rx:8,ry:4}},
   // đồ nhiệm vụ ẩn giấu trong từng khu: cuộn trục (rừng Làng Lá), bánh mì phết mứt (bãi phế liệu), đốm lửa ma (nghĩa địa, chỉ hiện ban đêm)
@@ -1105,14 +1114,15 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
 { const Z=MU.west.zones, A=z=>({x0:z.x0+1,x1:z.x1-1,y0:z.y0+1,y1:z.y1-1});   /* khu đánh: trong tường bao */
   Object.assign(MU.bosses,{
     doraemon:{name:'Doraemon',sprite:'doraemon',west:1,perma:240,hp:3800,perPlayer:2000,def:11,home:{x:12,y:35},area:A(Z.dora),
+      rage:{hits:8,win:3,cd:10,atk:{k:'muabanhran',kind:'rain',name:'Mưa Bánh Rán',n:9,warn:1,r:1.5,dmg:16,fx:{dot:{pct:.03,dur:4,k:'doc'}}}},   /* bị đánh dồn (8 đòn / 3 giây): gọi mưa bánh rán, trúng là trúng độc */
       attacks:[{k:'baoboi',kind:'single',name:'Ném Bảo Bối',every:2.6,warn:.7,range:9,r:1.4,dmg:24},{k:'canhcua',kind:'blink',name:'Cánh Cửa Thần Kỳ',every:11,warn:.7,r:1.9,dmg:40},
         {k:'chongchong',kind:'buff',name:'Chong Chóng Tre',every:15,dur:6,dodge:.5,fly:1},{k:'sungkhi',kind:'circle',name:'Súng Không Khí',every:7,warn:1,r:2,dmg:30,phase:2},
         {k:'tuithan',kind:'rain',name:'Túi Thần Kỳ Đổ Đồ',every:13,warn:1.3,n:7,r:1.6,dmg:26,phase:3}],phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.2,drops:'doraemon'},
-    nobita:{name:'Nobita',sprite:'nobita',west:1,perma:240,hp:2600,perPlayer:1400,def:7,home:{x:20,y:36},area:A(Z.dora),
+    nobita:{name:'Nobita',sprite:'nobita',west:1,perma:240,hp:52000,perPlayer:28000,def:7,   /* máu ×20 (trước 2600 / 1400) */home:{x:20,y:36},area:A(Z.dora),
       attacks:[{k:'banhran',kind:'single',name:'Ném Bánh Rán',every:2.8,warn:.7,range:9,r:1.4,dmg:18,fx:{slow:.5,aslow:1.7,dur:3}},{k:'khocnhe',kind:'ring',name:'Khóc Nhè',every:10,warn:1.2,r:4,dmg:20,fx:{slow:.6,dur:2},phase:2},
         {k:'mabanhran',kind:'multi',name:'Mưa Bánh Rán',every:9,warn:1.1,n:4,r:1.5,dmg:18,fx:{slow:.5,aslow:1.7,dur:3},phase:3}],phases:[.6,.3],enrage:{mul:1.3,speed:1.3},move:1.5,drops:'nobita'},
     conan:{name:'Conan',sprite:'conan',west:1,perma:240,hp:3600,perPlayer:1900,def:10,home:{x:48,y:35},area:A(Z.conan),
-      attacks:[{k:'gayme',kind:'single',name:'Súng Gây Mê',every:4,warn:.6,range:10,r:1.2,dmg:6,fx:{stun:2}},{k:'sutbong',kind:'line',name:'Giày Tăng Lực: Sút Bóng',every:6,warn:.9,range:11,w:1,dmg:17},   /* sát thương đòn Conan đã giảm 50% */
+      attacks:[{k:'gayme',kind:'single',name:'Súng Gây Mê',every:4,warn:.6,range:10,r:1.2,dmg:6,fx:{stun:2},shot:1},{k:'luot',kind:'line',name:'Lướt Theo Đường Đạn',every:7,warn:.5,range:9,w:.8,dmg:12,dash:1,alongShot:1,noSpd:1,guard:{dur:4,armor:.2,resist:.2}},   /* lướt dọc đường đạn gây mê vừa bắn: giáp +20%, kháng phép +20% trong 4 giây; không nhanh lên theo dạng Áo Đen */{k:'sutbong',kind:'line',name:'Giày Tăng Lực: Sút Bóng',every:6,warn:.9,range:11,w:1,dmg:17},   /* sát thương đòn Conan đã giảm 50% */
         {k:'thatlung',kind:'circle',name:'Thắt Lưng Bơm Bóng',every:8,warn:1,r:2.2,dmg:15,phase:2}],phases:[.6,.3],enrage:{mul:1.3,speed:1.2},move:1.5,drops:'conan',
       forms:[{k:'den',when:{t:10},name:'Hung Thủ Áo Đen',say:'Chân tướng chỉ có một!',spd:10,dodge:.3,dot:{pct:.03,dur:5,k:'chay'},tint:'#120c16'}]},
     eren:{name:'Eren',sprite:'eren',west:1,perma:300,hp:4200,perPlayer:2200,def:12,home:{x:15,y:59},area:A(Z.eren),big:1,reach:5,spd:40,   /* tầm đánh +5 ô, ra đòn nhanh ×40 */
@@ -1120,7 +1130,7 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
         {k:'giam',kind:'jump',name:'Giẫm Nát',every:12,warn:1.2,r:2.6,dmg:38,fx:{slow:.5,dur:2},phase:2},{k:'nuot',kind:'grab',name:'Bắt & Nuốt',every:9,warn:1.2,r:1.4,swallow:[200000,500000],form:'titan'}],
       phases:[.6,.3],enrage:{mul:1.3,speed:1.2},move:1.3,drops:'eren',
       forms:[{k:'titan',when:{hp:.5},name:'Titan Tiến Công',say:'Tatakae! Tatakae!',spd:8,hpMul:3,regen:.02,move:3,size:3,sprite:'titan'}]},
-    yeunu:{name:'Nữ Yêu Tiếng Hét',sprite:'yeunu',west:1,perma:240,hp:3800,perPlayer:2000,def:10,home:{x:48,y:59},area:A(Z.yeunu),poisonStack:{hits:3,add:5},
+    yeunu:{name:'Nữ Yêu Tiếng Hét',sprite:'yeunu',west:1,perma:240,hp:7600,perPlayer:4000,def:10,   /* máu ×2 (trước 3800 / 2000) */home:{x:48,y:59},area:A(Z.yeunu),poisonStack:{hits:3,add:5},
       attacks:[{k:'tiethet',kind:'ring',name:'Tiếng Hét Xé Tai',every:6,warn:1,r:5,dmg:24,fx:{slow:.55,dur:3},say:['Á Á Á Á Á!! Điếc tai chưa!','Đừng có lại gần ta!','Nghe ta hát này!']},
         {k:'cao',kind:'single',name:'Cào Móng',every:2.6,warn:.6,range:5,r:1.4,dmg:20},{k:'vungdoc',kind:'flood',name:'Vũng Độc Lan',every:20,first:20,warn:1.5,r:13,dmg:0,fx:{dot:{pct:.03,dur:5,k:'doc'}}}],
       phases:[.6,.3],enrage:{mul:1.3,speed:1.2},move:1.3,drops:'yeunu',
@@ -1131,6 +1141,7 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
       phases:[.6,.3],enrage:{mul:1.3,speed:1},move:1,drops:'pepe'}});
   // quái con boss gọi ra: hpFrac phần máu so với boss lúc gọi, spd ô / giây (0 = đứng yên), đánh gần range ô mỗi every giây, laser: tia bắn người gần nhất
   MU.minions={pepe_con:{name:'Pepe Con',hpFrac:1/70,spd:4,range:1.3,every:1.1,dmg:18,def:6,sprite:'pepe_con'},egg:{name:'Trứng Laser',hpFrac:1/90,spd:0,def:8,sprite:'egg',laser:{every:3.2,warn:.9,range:10,w:.45,dmg:26}},
+    ngocrong:{name:'Ngọc Rồng',hpFrac:1/60,spd:0,def:10,sprite:'ngocrong',stars:1,orb:{every:2,heal:.01,to:['songoku','rongxanh'],r:2.4,fx:{dot:{pct:.02,dur:3,k:'doc'},gw:.5}}},   /* 7 viên: 2 giây 1 lần hồi 1% máu cho Songoku + Rồng Dải Xanh; đứng gần 2,4 ô dính độc + giảm hồi máu 50%. Đập vỡ để cắt hồi máu */
     hoangha:{name:'Phạm Hoàng Hà',hpFrac:1/40,spd:2.4,keep:4.5,def:6,sprite:'hoangha',shoot:{every:2.4,range:9,speed:6.5,dmg:14}}};   /* Dươngg Vũ gọi ra: vây quanh người cách 4,5 ô, bắn đạn tròn đỏ hồng */
   // thưởng: như boss phụ; pas: +cấp sách nội tại ngẫu nhiên (buff chỉ số nội tại); badge: Huy Hiệu Pepe (top 3 chắc chắn, còn lại badgeChance)
   Object.assign(MU.reward,{doraemon:{exp:140,vnd:180000,mu:110,gems:1},nobita:{exp:110,vnd:130000,mu:85,gems:1},conan:{exp:140,vnd:180000,mu:110,gems:1},eren:{exp:170,vnd:220000,mu:130,gems:2},

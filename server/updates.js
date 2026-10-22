@@ -4,6 +4,12 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23q',title:'23/10 (Dươngg Vũ)',items:['Dươngg Vũ dưới 35% máu: cứ 15 giây nuốt chửng 1 người bất kỳ 7 giây (đứng im trong bụng, mất 4% máu mỗi giây), hết giờ mới nhổ ra. Hạ boss sớm là cứu được đồng đội!']},
+  {v:'2026-10-23p',title:'23/10 · Quỷ Cưa + Reze, Ngọc Rồng, Mưa Vĩ Thú',items:[
+    'Quỷ Cưa miễn phép, chỉ mất máu vì đánh thường; bị đánh dồn thì xoay cưa vòng tròn (đòn ×4). Còn 50% máu gọi Quỷ Bom Reze ném lựu đạn gây choáng; có Reze thì Quỷ Cưa thi thoảng hoá Pochita, Reze thả BOM HẠT NHÂN cả khu: nấp sát Pochita mới sống!',
+    'Doraemon bị đánh dồn gọi mưa bánh rán gây độc · Conan lướt theo đường đạn gây mê: giáp + kháng phép +20% · Songoku còn 20% gọi 7 viên Ngọc Rồng hồi máu cho Songoku + Rồng (đập vỡ ngọc, đứng gần bị độc + giảm hồi máu)',
+    'Cửu Vĩ: giáp + kháng phép +25%, dưới 25% máu gọi Mưa Bom Vĩ Thú trừ 20% máu mỗi quả · Nobita máu ×20, Nữ Yêu máu ×2',
+    'Minimap hiện rõ người chơi khác (chấm to, ở xa thì có mũi tên + tên ở mép) · MU / D-Day hiện thanh máu đồng đội trên đầu · nghĩa địa Dươngg Vũ đi xuyên qua bia mộ được']},
   {v:'2026-10-23o',title:'23/10 (Thợ Rèn + boss)',items:['Thợ Rèn Huyền Thoại bán Khiên của Hắc Hoàng Đế (ô Khiên riêng, đeo cùng vũ khí): máu +20%, hồi máu +80%, giáp +15%, chạy nhanh +15%','Dươngg Vũ còn 50% máu gọi ra 10 Phạm Hoàng Hà vây quanh bắn đạn tròn đỏ hồng','Cửu Vĩ Hồ Ly (Naruto hoá) vẽ lại: 9 đuôi xù như lửa, tai dài, mắt đỏ, nhe nanh vung vuốt']},
   {v:'2026-10-23n',title:'23/10 (cân bằng thưởng)',items:['Thưởng hạ boss MU: Ngọc Cường Hoá giảm 4 lần (×5 thay vì ×20), tiền thưởng giảm 3 lần. D-Day: tiền thưởng giảm 3 lần, thắng được 1 Ngọc Cường Hoá']},
   {v:'2026-10-23m',title:'23/10 · Cổng D-Day + class Đại Tượng + Songoku',items:[

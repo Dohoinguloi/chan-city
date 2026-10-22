@@ -90,6 +90,30 @@ B21.cuuvi={w:124,h:106,ax:62,ay:102,glow:'rgba(255,60,20,.45)',anim:ANIM5,draw(V
   for(const [x,y] of [[hx0+8,48],[hx0+9,50],[hx0+10,52]]) V.line(x,y+hy,x+5,y+hy,Bk);   /* vệt râu trên má */
   for(let i=0;i<7;i++){ const a=i*.9+ph, r=30+(i%3)*6; V.px(Math.round(64+Math.cos(a)*r*1.4),Math.round(62+Math.sin(a)*r*.8),i%2?'#ff4a2a':'#ffb050'); } }};   /* bọt chakra */
 
+// Quỷ Bom Reze: cô gái áo hai dây đen, quần soóc đen, tay chân trần; đầu là quả bom tròn xám đen mắt cam sáng, ngòi cháy toé lửa trên đỉnh, chốt lựu đạn tròn bạc ở cổ.
+// đi: chân so le tay vung; ra đòn: giơ tay ném quả lựu đạn xanh rút chốt
+B21.reze={w:48,h:66,ax:22,ay:64,glow:'rgba(255,150,40,.3)',anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose(f), Bk=R('#24202a'), Bd=R('#16121c'), Bm=R('#4a4652'), Gr=R('#4a8a3a'), Ag=R('#c8ccd8');
+  for(const [x,s] of [[17,-1],[25,1]]){ const ax=x+s*st*3; V.tube([[x,40+bob],[(x+ax)/2,51],[ax,60]],[3,2.6,2.3],SKIN,{g:'leg'+x}); V.ell(ax+s*.5,62,3.4,1.6,Bd,{g:'shoe'+x,lift:.15}); }
+  V.poly([[14,36+bob],[28,36+bob],[29,43+bob],[13,43+bob]],Bk,{n:[-.3,-.2,.93],g:'shorts'}); V.poly([[14,22+bob],[28,22+bob],[29,37+bob],[13,37+bob]],Bk,{n:[-.3,-.2,.93],g:'top'});
+  V.line(16,22+bob,17,18+bob,'#16121c').line(26,22+bob,25,18+bob,'#16121c');   /* 2 dây áo */
+  if(atk){ V.tube([[28,23],[33,15],[35,8]],[2.2,2,1.8],SKIN,{g:'armR'}); V.ell(36,5,3.6,3.6,Gr,{g:'gren',lift:.3}); V.rect(35,1,2,2,'#c8ccd8'); V.ell(39,2,1.6,1.6,Ag,{g:'pin'}); V.tube([[14,23],[9,28],[7,33]],[2.2,2,1.8],SKIN,{g:'armL'}); }
+  else { const sw=st*3; V.tube([[28,23+bob],[31,30],[32,36+sw]],[2.2,2,1.8],SKIN,{g:'armR'}); V.tube([[14,23+bob],[11,30],[10,36-sw]],[2.2,2,1.8],SKIN,{g:'armL'}); }
+  V.tube([[21,17+bob],[21,22+bob]],2.4,SKIN,{g:'neck'}); V.ell(21,19+bob,3.4,1.6,Ag,{g:'ring',lift:.3}); V.px(24,19+bob,'#ffffff');   /* chốt lựu đạn ở cổ */
+  V.ell(21,10+bob,9,8.6,Bm,{g:'bomb'}); V.line(13,10+bob,29,10+bob,'#2a2630').line(21,2+bob,21,18+bob,'#2a2630');   /* đầu bom có đường ghép */
+  V.rect(16,9+bob,3,2,'#ffb030').rect(23,9+bob,3,2,'#ffb030'); V.px(17,9+bob,'#fff3b0').px(24,9+bob,'#fff3b0'); V.rect(17,14+bob,8,1,'#1c1516');
+  V.tube([[24,3+bob],[27,0+bob]],[1,.8],R('#8a6a3a'),{g:'fuse'}); const sp=f%2; V.px(27+sp,0,'#ffe066').px(28-sp,1,'#ff8a2a').px(26,0+sp,'#ffffff'); }};   /* ngòi cháy toé lửa */
+// Pochita: chú chó cam nhỏ, lưỡi cưa bạc răng cưa mọc giữa trán, mắt đen tròn, 4 chân ngắn, đuôi là dây giật có tay cầm. Ra đòn: cưa rú lên toé lửa
+B21.pochita={w:40,h:34,ax:18,ay:32,anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose(f), Or=R('#f28a2a'), Od=R('#c8601a'), Ag=R('#c8ccd8');
+  V.tube([[6,20+bob],[2,16],[1,11]],[1.2,1,1],R('#3a3a44'),{g:'cord'}); V.rect(-1+1,8,3,3,'#e8302a');   /* đuôi dây giật */
+  for(const [x,s] of [[9,-1],[13,1],[21,-1],[25,1]]){ const ax=x+s*st*1.5; V.tube([[x,24+bob],[ax,30]],[2,1.8],x%2?Od:Or,{g:'leg'+x}); V.ell(ax,31,2.2,1.1,Od,{g:'paw'+x,lift:.1}); }
+  V.ell(17,22+bob,11,6.5,Or,{g:'body'}); V.ell(25,14+bob,8.5,7.5,Or,{g:'head'}); V.ell(30,17+bob,4,3,Or,{g:'snout'}); V.ell(33.5,16+bob,1.4,1.1,R('#1c1516'),{g:'nose',lift:.3});
+  V.rect(24,12+bob,2,2,'#1c1516').rect(29,12+bob,2,2,'#1c1516'); V.px(24,12+bob,'#ffffff').px(29,12+bob,'#ffffff'); V.line(30,19+bob,33,19+bob,'#7a3a1a');
+  const rv=atk?1:0; V.poly([[23,8+bob],[27,8+bob],[33-rv,2+rv],[29,2]],Ag,{n:[0,-.3,.95],g:'saw'}); for(let i=0;i<4;i++) V.px(28+i*1.4,(6-i*2)+bob,'#5a5e6a');   /* lưỡi cưa trên trán + răng */
+  V.ell(19,11+bob,3,2.4,Od,{g:'earL'}); if(atk) V.px(33,2,'#ffe066').px(35,3,'#ff8a2a').px(31,1,'#ffffff'); }};
+
+// Ngọc Rồng 1–7 sao: quả cầu pha lê cam trong suốt, sao đỏ bên trong, ánh sáng loé (khung 1 sáng hơn)
+for(let n=1;n<=7;n++) B21['ngocrong'+n]={w:16,h:16,ax:8,ay:15,glow:'rgba(255,190,60,.45)',draw(V,f){ V.ell(8,8,6.6,6.6,[[255,246,200,255],[255,180,60,255],[230,120,20,255],[170,70,10,255]],{g:'ball'}); V.ell(6,5.5,2,1.4,[[255,255,240,255],[255,250,220,255],[255,240,200,255],[255,230,180,255]],{g:'hl',lift:.6});
+  const P=[[8,8],[5,10],[11,10],[6,6],[10,6],[8,11],[8,5]]; for(let i=0;i<n;i++){ const [x,y]=P[i]; V.px(x,y,'#e8202a').px(x-1,y,'#ff4a3a').px(x+1,y,'#ff4a3a').px(x,y-1,'#ff4a3a'); } if(f) V.px(4,4,'#ffffff').px(12,4,'#ffffff'); }};
 // Khiên của Hắc Hoàng Đế: khiên đen tuyền viền vàng, mặt quỷ sừng vàng mắt đỏ, ngọc đỏ giữa trán. big: hình to cho quầy Thợ Rèn, không thì bản nhỏ đeo trên tay
 const SHIELD={}; A.muShield=(k,big)=>SHIELD[k+!!big]||(SHIELD[k+!!big]=(()=>{ const V=vol(26,30), Bk=R('#2a2234'), Gd=R('#e8b830');
   V.poly([[2,3],[24,3],[24,14],[13,28],[2,14]],Bk,{n:[-.2,-.3,.93],g:'face'}); for(const pts of [[[2,3],[24,3]],[[24,3],[24,14],[13,28]],[[2,3],[2,14],[13,28]]]) V.tube(pts,1.3,Gd,{g:'rim'});
