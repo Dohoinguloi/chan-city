@@ -850,7 +850,7 @@ const VNPT={W:36,H:24,spawn:{x:18,y:22},kiosk:{x:3.4,y:18.6},charger:{x:3.4,y:13
     ['Em ơi đăng ký 4G thế nào?','Anh ra quầy hoặc soạn tin theo cú pháp gói, em hướng dẫn từng bước ạ','Anh ra quán net cho nhanh','4G là gì ạ?']]};
 // Miếu ông Trường Con (Hải Phòng): sân gạch đỏ, cây đa, ao sen; lễ cầu an mùng 6 âm lịch hằng tháng
 const MIEU={W:40,H:32,spawn:{x:20,y:29.6},shrine:{x:20,y:9.8},altar:{x:20,y:10.8},burner:{x:20,y:14.6},offer:{x:15.4,y:12.8},fortune:{x:24.6,y:12.6},stele:{x:27.6,y:16.2},
-  banyan:{x:7.4,y:17},wish:{x:9.8,y:17.6},gate:{x:20,y:24.6},cart:{x:31.5,y:28.2},tiktok:{x:11.5,y:27.6},
+  banyan:{x:7.4,y:17},wish:{x:9.8,y:17.6},gate:{x:20,y:24.6},cart:{x:31.5,y:28.2},tiktok:{x:11.5,y:27.6},stove:{x:24.8,y:27.6},shop:{ga_thit:45000,rau_song:5000,bun:10000},
   incense:{price:10000,dur:5,mul:1.1,min:120,holy:{mul:1.2,min:180}},wishPrice:20000,banhda:{price:35000,energy:25},nem:{price:60000,energy:35},clip:{dur:8,exp:60},
   que:[['Thượng cát','Trời quang mây tạnh đường xa / Gieo hạt hôm nay mai được mùa','good'],['Thượng cát','Thuyền về bến cũ gió êm / Lộc vào cửa trước bình yên cửa sau','good'],
     ['Trung bình','Việc nhỏ làm kỹ thành to / Đừng ham nhanh vội mà lo nhỡ thì','mid'],['Trung bình','Nước chảy đá mòn từ từ / Chăm làm mỗi bữa ắt dư mỗi ngày','mid'],['Trung bình','Có bạn đồng hành vững tâm / Việc khó chia đôi nhẹ phần đôi vai','mid'],
@@ -891,6 +891,9 @@ Object.assign(QUESTS,{
   vn_fiber:{giver:'vn_tuan',title:'Kéo cáp quang lên Ké',desc:'Theo anh Tuấn lên Ké Retreat hàn nối 3 hộp cáp quang: cạnh lễ tân, cột điện trước Nhà giải trí, cạnh Lều bể bơi (mỗi hộp 6 giây). Xong thì wifi ở Ké mạnh hơn cho bạn.',prog:3,reward:{exp:300,vnd:400000}},
   vn_call:{giver:'vn_thu',title:'Ca trực tổng đài',desc:'Ngồi bàn tổng đài nghe 5 cuộc gọi, trả lời đúng ít nhất 4 cuộc.',prog:1,reward:{exp:220,vnd:250000}},
   mieu_cauan:{giver:'mieu_tu',title:'Lễ cầu an',desc:'Thắp hương ở lư hương, xin một quẻ ở ống xăm và buộc dải lụa ước nguyện lên cây đa.',prog:3,reward:{exp:200,vnd:200000}},
+  tc_luocga:{giver:'truongcon',title:'Luộc gà cúng',desc:'Ông Trường Con nhờ luộc con gà: mua 1 gà làm sẵn ở xe bà Lụa (hoặc mang gà đồi từ Ké), ra bếp củi cạnh xe bánh đa luộc (10 giây).',prog:1,reward:{exp:180,vnd:200000}},
+  tc_raubun:{giver:'truongcon',title:'Mua tý rau tý bún',desc:'Ra xe bà Lụa mua tý rau sống với tý bún tươi mang về cho ông.',need:{rau_song:1,bun:1},reward:{exp:120,vnd:150000}},
+  tc_antruc:{giver:'truongcon',after:'tc_raubun',title:'Đi ăn trực',desc:'Ông bảo: "Sang 120 Yên Lãng nhà anh Độ ăn trực một bữa, nhớ khen đồ ăn ngon!" Gặp anh Độ chọn Ăn trực.',prog:1,reward:{exp:220,vnd:250000}},
   tc_clip:{giver:'truongcon',title:'Quay TikTok cùng Trường Con',desc:'Đứng trước đèn vòng quay 3 clip hài cùng Trường Con (mỗi clip 8 giây).',prog:3,reward:{exp:250,vnd:300000}}});
 NPCS.push({id:'bp_lead',scene:'bearplus',x:17.4,y:8.6,place:'bearplus'},{id:'bp_my',scene:'bearplus',x:28.4,y:8.2,place:'bpstaff'},{id:'bp_dev',scene:'bearplus',x:12.4,y:8.4,place:'bpstaff'},
   {id:'bp_ngan',scene:'bearplus',x:11.6,y:3.8,place:'bpstaff'},{id:'bp_bear',scene:'bearplus',x:16,y:15.6,place:'bpbear',obj:true},
@@ -905,6 +908,7 @@ Object.assign(CLOTHES,{hoodie_bp:{name:'Hoodie Bearplus',slot:'top',price:0,hidd
   ao_baove:{name:'Áo bảo vệ',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'5a6a4a'}},
   ao_nau:{name:'Áo nâu',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'7a5232'}},
   ao_tc:{name:'Áo sơ mi nâu nhạt',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'b8864a'}},
+  mu_trang_tc:{name:'Mũ lưỡi trai trắng',slot:'head',price:0,hidden:true,opts:{hair:'cap'},colors:{cap:'f2f0ea'}},
   quan_vai_den:{name:'Quần vải đen',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'2a2420'}}});
 Object.assign(NPC_LOOKS,{
   bp_lead:{name:'Anh Khoa (Creative Director · Bearplus)',look:{gender:'nam',hair:'fade',hairColor:'1c1820',skin:'e0a882',outfit:{top:'tee_den',bottom:'jean',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
@@ -918,10 +922,10 @@ Object.assign(NPC_LOOKS,{
   vn_thu:{name:'Chị Thu (trưởng ca tổng đài)',look:{gender:'nu',hair:'long',hairColor:'2a1c16',skin:'f3c4a4',outfit:{top:'ao_vnpt',bottom:'vay_den',shoes:'giay_den',eyes:'kinh_can'},opts:{mouth:'smile'}}},
   vn_guard:{name:'Bác bảo vệ',look:{gender:'nam',hair:'buzz',hairColor:'9a9a9a',skin:'d8986e',outfit:{top:'ao_baove',bottom:'quan_vai_den',shoes:'giay_den'}}},
   mieu_tu:{name:'Ông Từ (giữ miếu)',look:{gender:'nam',hair:'bald',hairColor:'d8d8d8',skin:'d8a070',outfit:{top:'ao_nau',bottom:'quan_vai_den',shoes:'giay_den'}}},
-  truongcon:{name:'Trường Con',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e8b48a',outfit:{top:'ao_tc',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  truongcon:{name:'Ông Trường Con',look:{gender:'nam',hair:'cap',hairColor:'1c1820',skin:'e8b48a',outfit:{top:'tee_do',bottom:'jean',shoes:'giay_trang',head:'mu_trang_tc',eyes:'kinh_ram',neck:'day_vang',wrist:'dong_ho'},opts:{beard:'mustache',tattoo:true,watch:true}}},
   vn_caller:{name:'Khách gọi tổng đài',look:{gender:'nu',hair:'ponytail',hairColor:'3a2418',skin:'f3c4a4',outfit:{top:'tee_hong',bottom:'jean',shoes:'giay_trang'},opts:{mouth:'smile'}}},
   banhda:{name:'Bà Lụa (bánh đa cua Hải Phòng)',look:{gender:'nu',hair:'bun',hairColor:'8a8a8a',skin:'e0a882',outfit:{top:'somi_hoa',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'smile'}}}});
-Object.assign(ITEMS,{cafe_bp:{name:'Cà phê sữa đá Bearplus',icon:'cafe'},dau_gau:{name:'Đầu Bé Gấu',icon:'bearhead'},cup_sotd:{name:'Cúp Site of the Day',icon:'cup'},banh_da_cua:{name:'Bánh đa cua Hải Phòng',icon:'bowl'}});
+Object.assign(ITEMS,{bun:{name:'Bún tươi',icon:'dish'},cafe_bp:{name:'Cà phê sữa đá Bearplus',icon:'cafe'},dau_gau:{name:'Đầu Bé Gấu',icon:'bearhead'},cup_sotd:{name:'Cúp Site of the Day',icon:'cup'},banh_da_cua:{name:'Bánh đa cua Hải Phòng',icon:'bowl'}});
 
 /* ---------- Giữ chân người chơi (học từ game mobile, Stardew Valley, Animal Crossing) ----------
    Điểm danh 7 ngày: vào game mỗi ngày nhận quà, quà to dần, ngày 7 mở Rương vàng; lỡ 1 ngày thì quay lại ngày 1.

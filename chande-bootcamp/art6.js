@@ -262,6 +262,11 @@ const foodCart=()=>S(78,56,39,54,(g,P)=>{ for(let x=2;x<76;x+=8) P.rect(x,0,8,10
   P.rect(18,36,40,8,'#f4efe6'); text3(P,20,38,'BANH DA CUA','#c0281e'); });
 const plasticStool=(c='#d23a2e')=>S(12,12,6,10,(g,P)=>{ P.rect(1,2,10,3,c); P.rect(1,2,10,1,'rgba(255,255,255,.35)'); P.rect(2,5,2,5,c); P.rect(8,5,2,5,c); P.rect(4,7,4,1,c); },false);
 const lowTable=()=>S(26,16,13,14,(g,P)=>{ P.rect(1,2,24,6,'#2a5ab8'); P.rect(1,2,24,1,'#4a7ad8'); P.rect(3,8,2,6,'#1a4a9a'); P.rect(21,8,2,6,'#1a4a9a'); P.disc(8,4,2,'#f4efe6'); P.px(8,4,'#c06a2a'); P.disc(17,4,2,'#f4efe6'); P.rect(12,3,1,3,'#c89a4a'); });
+// bếp củi kiềng 3 chân + nồi luộc gà (fr: lửa bập bùng), củi chất bên cạnh
+const stove=(fr=0)=>S(34,30,17,28,(g,P)=>{ P.rect(4,20,26,8,'#7a5a42'); P.rect(4,20,26,2,'#9a7a5a'); P.rect(6,26,22,2,'#5a3e2a');
+  const fl=fr%2?['#ffd84a','#ff8a2a']:['#ff8a2a','#ffd84a']; P.rect(11,16,12,5,fl[1]); P.rect(13,13,3,4,fl[0]); P.rect(18,14,3,3,fl[0]); P.px(15,12,'#fff3a0');
+  P.rect(8,6,18,10,'#3a3a42'); P.rect(7,5,20,2,'#5a5a66'); P.rect(9,8,16,1,'#26262c'); P.rect(6,7,2,3,'#3a3a42'); P.rect(26,7,2,3,'#3a3a42'); P.rect(10,3,4,2,'#d8a060'); P.px(12,2,'#f0c080');
+  for(let i=0;i<4;i++) P.rect(28+(i%2),18+i*2,5,2,['#8a5a32','#6a4224'][i%2]); });
 // chân máy + đèn vòng + điện thoại (góc quay TikTok của Trường Con)
 const tripodRing=()=>S(18,44,9,42,(g,P)=>{ P.rect(8,12,2,22,'#3a3a42'); P.rect(5,34,1,8,'#3a3a42'); P.rect(12,34,1,8,'#3a3a42'); P.rect(8,34,2,8,'#3a3a42'); P.rect(6,33,6,2,'#26262c');
   for(let a=0;a<6.28;a+=.22) P.px(Math.round(9+Math.cos(a)*7),Math.round(7+Math.sin(a)*7),'#fff8e8'); P.rect(6,4,6,9,'#1c1c22'); P.rect(7,5,4,7,'#ff4fa3'); P.px(9,8,'#ffffff'); });
@@ -306,6 +311,6 @@ const oldIcon6=A.icon; A.icon=function(name,scale=1){ const f=ICONS6[name]; if(!
   if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
 Object.assign(A,{text3,bearMark,bpNeon,bpDesk,meshChair,moodWall,renderStation,motionDesk,awardShelf,glassWallV,meetTable,bpTV,coffeeBar,bearMascot,bearHead,beanbag,riverWindow,logoRug,
   vnptLogo,vnptCounter,queueBoard,ticketKiosk,waitChairs,simCabinet,serverRack,callDesk,packStand,waterCooler,chargeStation,
-  shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,gate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,
+  shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,gate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,stove,
   pingPong,designShelf,monstera,photoCorner,brochureRack,myTV,poster5G,plumeria,stoneLantern});
 })();

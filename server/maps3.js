@@ -97,11 +97,20 @@ on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDa
     p.needs.energy=Math.min(100,p.needs.energy+f.energy); const ds=today(); if(p.meals.day!==ds) p.meals={day:ds,eaten:{}}; const slot=S.mealStatus(p.meals,now()).find(s=>s.st==='now');
     if(slot&&!p.meals.eaten[slot.id]){ p.meals.eaten[slot.id]=true; C.track(pl,'meal'); } if(m.k!=='nem'&&!has(pl,'banh_da_cua')) addItem(pl,'banh_da_cua'); markDirty(pl);
     return {msg:`${name} nóng hổi${free?' (lộc cầu an, miễn phí!)':''}: +${f.energy} năng lượng${slot?', tính 1 bữa':''}`}; }
+  if(op==='buy'){ const k=String(m.k||''), price=M.shop[k]; if(!price) return {err:'?'}; if(!near(pl,M.cart.x,M.cart.y+.9,44)) return {err:'Lại gần xe bà Lụa'}; if(!take(pl,price)) return {err:'Không đủ tiền'};
+    addItem(pl,k); markDirty(pl); return {msg:`Bà Lụa: "Của cháu đây: ${S.ITEMS[k].name.toLowerCase()}, mới về sáng nay!"`}; }
+  if(op==='luoc'){ if(!near(pl,M.stove.x,M.stove.y+.9,44)) return {err:'Lại gần bếp củi'}; const q=pr(p); if(!active(p,'tc_luocga')||q.tc_luocga) return {err:'Bếp củi đang đỏ lửa. Ông Trường Con chưa nhờ luộc gì'};
+    const k=has(pl,'ga_thit')?'ga_thit':has(pl,'chicken')?'chicken':''; if(!k) return {err:'Chưa có gà. Mua gà làm sẵn ở xe bà Lụa (45.000đ)'};
+    return P.startTask(pl,'cook',10,()=>{ addItem(pl,k,-1); q.tc_luocga=1; markDirty(pl); return {msg:'Gà luộc vàng ươm, da giòn! Mang ra báo Ông Trường Con'}; },{anim:'cook',name:'Luộc gà cúng'}); }
   if(op==='clip'){ if(!near(pl,M.tiktok.x+.8,M.tiktok.y+.6,34)) return {err:'Đứng trước đèn vòng'}; const q=pr(p);
     if(active(p,'tc_clip')&&(q.tc_clip||0)<3) return P.startTask(pl,'tiktok',M.clip.dur,()=>{ q.tc_clip=(q.tc_clip||0)+1; markDirty(pl); return {msg:q.tc_clip>=3?'Đủ 3 clip! Báo Trường Con nhé':`Xong clip ${q.tc_clip}/3. Trường Con: "Mới Trường Con là như vậy!"`}; },{name:'Quay TikTok cùng Trường Con'});
     if(d.tcclip) return {err:'Hôm nay quay với Trường Con rồi, mai lên clip mới'}; return P.startTask(pl,'tiktok',M.clip.dur,()=>{ d.tcclip=1; d.tiktok=(d.tiktok||0)+1; const g=C.gainExp(pl,M.clip.exp); markDirty(pl); return {msg:`Clip lên xu hướng! +${g.exp} EXP`}; },{name:'Quay clip cùng Trường Con'}); }
   return {err:'?'}; });
 
+// "Đi ăn trực" (việc Ông Trường Con): sang nhà anh Độ được bữa miễn phí, tính 1 bữa
+on('antruc',(pl,m)=>{ const p=pl.prof, q=pr(p); if(!active(p,'tc_antruc')||q.tc_antruc) return {err:'Anh Độ: "Ăn gì chưa? Mà thôi, nhà hết cơm rồi!"'}; if(pl.scene!=='yenlang'||!P.nearNpc(pl,'do')) return {err:'Sang 120 Yên Lãng gặp anh Độ'};
+  q.tc_antruc=1; p.needs.energy=Math.min(100,p.needs.energy+30); const ds=today(); if(p.meals.day!==ds) p.meals={day:ds,eaten:{}}; const slot=S.mealStatus(p.meals,now()).find(s=>s.st==='now'||s.st==='missed');
+  if(slot&&!p.meals.eaten[slot.id]){ p.meals.eaten[slot.id]=true; C.track(pl,'meal'); } markDirty(pl); return {msg:'Anh Độ: "Ngồi xuống ăn đi em, khen ngon là được!" (+30 năng lượng). Về báo Ông Trường Con'}; });
 /* ---------- SIM: lộc hằng ngày, nhắn tin, gọi bạn tới chỗ mình ---------- */
 hook('login',pl=>{ const p=pl.prof, k=C.simPerk(p).daily; if(!k||p.daily.simGift) return; p.daily.simGift=1; if(k.vnd) give(pl,k.vnd); if(k.exp) C.gainExp(pl,k.exp); markDirty(pl);
   setTimeout(()=>{ if(pl.prof) note(pl,`📱 Lộc SIM ${p.sim.cat} (${p.sim.num}): ${k.vnd?'+'+S.fmt(k.vnd):'+'+k.exp+' EXP'}`,'vnd'); },2500); });

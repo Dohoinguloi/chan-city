@@ -502,7 +502,7 @@ PLACE.yenlang=()=>open('Anh Độ · 120 Yên Lãng',()=>{ const g=G(), Y=SD.YEN
     const ok=q.need?Object.entries(q.need).every(([k,c])=>(g.items[k]||0)>=c):n>=q.prog, prog=q.need?(ok?'Có phở rồi!':'Chưa có phở'):id==='goioii'?(n?'Đã gọi Ộ i i':'Chưa gọi'):`Đã làm ${Math.min(n,q.prog)}/${q.prog}`;
     const r=!st?btn('qstart','Nhận việc: '+q.title,{id},'pri'):st==='active'?(ok?btn('qfinish','Báo cáo: '+q.title,{id},'pri'):`<p>${prog}</p><button class="btn sm qgo" data-go="${id}">➜ Chỉ đường</button>`):'<p class="muted">Đã xong.</p>';
     return `<h5>${q.title}</h5><p class="muted">${q.desc} Thưởng ${q.reward.exp} EXP + ${fmt(q.reward.vnd)}.</p>${r}`; };
-  return `<p>"Chào anh em! Vào chơi tự nhiên, đừng sờ vào mô hình là được. Mà nhân tiện nhờ tí việc..."</p>${row('pho')}${row('hulk')}${row('goioii')}
+  return `<p>"Chào anh em! Vào chơi tự nhiên, đừng sờ vào mô hình là được. Mà nhân tiện nhờ tí việc..."</p>${g.quests.tc_antruc==='active'&&!(g.qprog||{}).tc_antruc?btn('antruc','🍚 Ăn trực (Ông Trường Con giới thiệu sang)',{},'pri'):''}${row('pho')}${row('hulk')}${row('goioii')}
     <h5>Lên sóng cùng anh Độ</h5><p class="muted">Từ ${Y.stream.from}:00 tới ${Y.stream.to}:00, ngồi ghế khách đỏ cạnh bàn stream bấm E: ${Y.stream.dur} giây, +${Y.stream.exp} EXP + ${fmt(Y.stream.vnd)} tiền donate. Mỗi ngày 1 lần. Buổi tối Ộ i i cũng về đây.</p>`; });
 
 /* ---------- Sân pickleball: HLV Tuấn dạy chơi, bảng vào sân đấu 2 vs 2 (thiếu người thuê bot tuyển thủ) ---------- */
@@ -571,13 +571,16 @@ PLACE.mieu=()=>open('Ông Từ · Miếu ông Trường Con',()=>{ const M=SD.MI
     <div class="row"><span>🎋 Xin quẻ ở ống xăm</span><span>miễn phí · 1 lần/ngày</span></div><div class="row"><span>🎀 Buộc dải lụa lên cây đa</span><span>${fmt(M.wishPrice)} · mai linh nghiệm</span></div></div>
     ${mb?`<p class="good">Đang có phúc bình an: +${Math.round((g.mbuff.mul-1)*100)}% EXP · còn ${Math.ceil((g.mbuff.until-NET.now())/60000)} phút</p>`:''}${qRow('mieu_cauan')}`; });
 let tcJoke=-1;
-PLACE.truongcon=()=>open('Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Trường Con kể chuyện',{},'pri')}${qRow('tc_clip')}
+PLACE.truongcon=()=>open('Ông Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé! Mới Trường Con là như vậy!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Ông Trường Con kể chuyện',{},'pri')}${qRow('tc_luocga')}${qRow('tc_raubun')}${qRow('tc_antruc')}${qRow('tc_clip')}
   <p class="muted">Xong việc thì mỗi ngày vẫn quay được 1 clip cùng Trường Con ở đèn vòng (+${SD.MIEU.clip.exp} EXP).</p>`; });
 ACT.tcjoke=()=>{ const J=SD.MIEU.jokes; let k; do{ k=Math.floor(Math.random()*J.length); }while(J.length>1&&k===tcJoke); tcJoke=k; GAME.sayLine(J[k],.7,'vi'); UI.refresh(); };
 PLACE.banhda=()=>open('Bà Lụa · bánh đa cua Hải Phòng',()=>{ const M=SD.MIEU, h=SD.holyDay(NET.now())==='Lễ cầu an mùng 6', free=h&&!G().daily.mieufree;
   return `<p>"Bánh đa đỏ, riêu cua đồng, chả lá lốt, rau muống chẻ. Ăn đi cho ấm bụng cháu!"</p><div class="list">
     <div class="row"><span>🍜 Bánh đa cua <span class="muted">+${M.banhda.energy} năng lượng, tính 1 bữa</span></span><span>${free?'<b class="good">Lộc cầu an: miễn phí</b>':fmt(M.banhda.price)} ${btn('mieufood','Ăn',{k:'banhda'},'pri')}</span></div>
-    <div class="row"><span>🥟 Nem cua bể <span class="muted">+${M.nem.energy} năng lượng</span></span><span>${fmt(M.nem.price)} ${btn('mieufood','Ăn',{k:'nem'})}</span></div></div>`; });
+    <div class="row"><span>🥟 Nem cua bể <span class="muted">+${M.nem.energy} năng lượng</span></span><span>${fmt(M.nem.price)} ${btn('mieufood','Ăn',{k:'nem'})}</span></div></div>
+    <h5>Bán mang về</h5><div class="list">${Object.entries(M.shop).map(([k,p])=>`<div class="row">${ico(k)}<span>${esc(SD.ITEMS[k].name)} <small class="muted">có ${G().items[k]||0}</small></span><span>${fmt(p)} ${btn('mieubuy','Mua',{k})}</span></div>`).join('')}</div>`; });
+ACT.antruc=()=>GAME.act({t:'antruc'}).then(r=>{ if(r&&!r.err){ GAME.sfx('eat',.5); GAME.toast(esc(r.msg),'quest'); } UI.refresh(); });
+ACT.mieubuy=d=>GAME.act({t:'mieu',op:'buy',k:d.k}).then(r=>{ if(r&&!r.err) GAME.toast(esc(r.msg),'item'); UI.refresh(); });
 ACT.mieufood=async d=>{ const r=await GAME.act({t:'mieu',op:'food',k:d.k}); if(r&&!r.err){ GAME.sfx('eat',.5); GAME.toast(esc(r.msg),'item'); } UI.refresh(); };
 
 /* ---------- Hằng ngày: điểm danh 7 ngày · việc hôm nay + rương · sổ sưu tầm · lễ hội theo mùa ---------- */

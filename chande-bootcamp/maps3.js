@@ -40,6 +40,7 @@ MAPX.mieu=async(op,it)=>{
   if(op==='wish'){ const W=SD.MIEU.wishes, ks=Object.keys(W); GAME.ask(`Mua dải lụa đỏ (${fmt(SD.MIEU.wishPrice)}) buộc lên cành đa. Cầu gì?`,'mieu_tu',ks.map(k=>W[k].name).concat(['Thôi']),async i=>{ if(i>=ks.length) return; tell(await act({t:'mieu',op:'wish',k:ks[i]})); }); return; }
   if(op==='food') return UI.place('banhda',{id:'banhda'});
   if(op==='clip') return tell(await act({t:'mieu',op:'clip'}));
+  if(op==='luoc'){ const r=await act({t:'mieu',op:'luoc'}); if(done(r)) toast('🍗 Đang luộc gà, chờ nước sôi...','quest'); return; }
   if(op==='stele'){ GAME.say([['me','(Bia đá đặt trên lưng rùa, chữ đã mờ theo năm tháng)'],['mieu_tu','Bia ghi công đức bà con trong làng góp tiền tu sửa miếu. Rùa đội bia là mong cho bền lâu, vững chãi đấy cháu.']]); return; }
   if(op==='altar'){ const l=SD.lunarDate(NET.now()), h=SD.holyDay(NET.now()); GAME.say([['mieu_tu',`Hôm nay mùng ${l.d} tháng ${l.m} âm lịch${h?` · ${h}`:''}. Vào lễ thì đứng ngay ngắn, chắp tay, khấn cho gia đình bình an là được.`],['me','(Chắp tay vái ba vái trước ban thờ)']]); GAME.sfx('bell',.3); return; } };
 
@@ -64,6 +65,9 @@ MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; const B=SD.BEARPLUS, V
     if(S.kind!=='retreat'){ toast('Lên <b>Ké Retreat</b> nối 3 hộp cáp quang (chấm cam trên minimap): bấm G gọi Grab','quest'); UI.grab(); return true; }
     const f=(G().flags&&G().flags.fpts)||{}, i=V.fiberPts.findIndex((p,k)=>!f[k]); if(i>=0) w(V.fiberPts[i].x,V.fiberPts[i].y+.6,V.fiberPts[i].name); return true; }
   if(id==='vn_call'){ if(S.kind!=='vnpt'){ grabTo('VNPT (Hà Nội)'); return true; } if(can) GAME.walkToNpc('vn_thu'); else w(V.desks[0][0],V.desks[0][1]+.9,'Bàn tổng đài'); return true; }
+  if(id==='tc_antruc'){ if(can) return S.kind==='mieu'?(GAME.walkToNpc('truongcon'),true):(grabTo('Miếu ông Trường Con (Hải Phòng)'),true); if(S.kind==='yenlang') return GAME.walkToNpc('do'),true; grabTo('120 Yên Lãng (nhà anh Độ)'); return true; }
+  if(id==='tc_luocga'||id==='tc_raubun'){ if(S.kind!=='mieu'){ grabTo('Miếu ông Trường Con (Hải Phòng)'); return true; } if(can) return GAME.walkToNpc('truongcon'),true;
+    const g=G(), gotGa=(g.items.ga_thit||0)+(g.items.chicken||0)>0; if(id==='tc_luocga'&&gotGa) return w(M.stove.x,M.stove.y+.9,'Bếp củi'),true; return w(M.cart.x,M.cart.y+.9,'Xe bà Lụa'),true; }
   if(id==='mieu_cauan'||id==='tc_clip'){ if(S.kind!=='mieu'){ grabTo('Miếu ông Trường Con (Hải Phòng)'); return true; }
     if(can) return GAME.walkToNpc(q.giver),true;
     if(id==='tc_clip') return w(M.tiktok.x+.8,M.tiktok.y+.6,'Đèn vòng'),true;
@@ -74,6 +78,7 @@ MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; const B=SD.BEARPLUS, V
 const CACHE={}, cached=(k,fn)=>CACHE[k]||(CACHE[k]=fn());
 MAPX.anim=(o,clock)=>{ const a=o.anim;
   if(a==='render'){ const f=Math.floor(clock*4)%4; return cached('rd'+f,()=>A.renderStation(f)); }
+  if(a==='stove'){ const f=Math.floor(clock*6)%2; return cached('sv'+f,()=>A.stove(f)); }
   if(a==='charger'){ const f=Math.floor(clock*2)%4; return cached('cg'+f,()=>A.chargeStation(f)); }
   if(a==='rack'){ const f=(Math.floor(clock*3)+Math.round(o.x/16))%6; return cached('rk'+f,()=>A.serverRack(f)); }
   if(a==='shrine'){ const f=Math.floor(clock*5)%3; return cached('sh'+f,()=>A.shrine(f)); }

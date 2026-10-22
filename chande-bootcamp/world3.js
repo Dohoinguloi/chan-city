@@ -77,6 +77,7 @@ function buildMieu(){ const M=SD.MIEU, W=M.W, H=M.H, K=kit(), {put,block,act}=K;
   for(const [x,y] of [[3.4,5.2],[4.8,7.4],[6.4,4.6],[33.4,4.8],[35,7.2],[36.6,4.6],[2.6,9.4],[37.4,9.2]]) put(A.bamboo(Math.floor(x*3)),x,y,{tree:true});
   put(A.foodCart(),M.cart.x,M.cart.y,{anim:'cart'}); block(29,26,34,27); act(M.cart.x,M.cart.y+.9,'Bánh đa cua bà Lụa',{do:'mieu:food'},28);
   for(const [x,y,c] of [[27,29.4,'#d23a2e'],[29.4,29.6,'#2a5ab8'],[33.6,29.6,'#d23a2e'],[36,29.4,'#2a5ab8']]) put(A.plasticStool(c),x,y); put(A.lowTable(),28.2,30.2); put(A.lowTable(),34.8,30.2);
+  put(A.stove(0),M.stove.x,M.stove.y,{anim:'stove'}); block(24,26,25,26); act(M.stove.x,M.stove.y+.9,'Bếp củi: luộc gà',{do:'mieu:luoc'},24);
   put(A.tripodRing(),M.tiktok.x,M.tiktok.y); block(11,27,11,27); act(M.tiktok.x+.8,M.tiktok.y+.6,'Góc quay TikTok của Trường Con',{do:'mieu:clip'},22);
   for(const [x,y] of [[2.6,28],[7,30.4],[37.4,26],[2.6,14],[2.6,20]]) put(A.tree(Math.floor(x*7+y)%3),x,y,{tree:true});
   put(A.label('MIEU ONG TRUONG CON · HAI PHONG','#6a1812','#ffe680'),20,31.3,{flat:true}); act(20,31.2,'Ra đường (gọi Grab)',{do:'grab'},24);
