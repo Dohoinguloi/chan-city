@@ -332,7 +332,7 @@ function nearest(){
 function plotLabel(id){ const p=PLOTS[id]; if(!p){ if(id[0]==='d'){ const L=LANDS.find(l=>l.plots.includes(id)); if(L&&L.n!==G.name) return 'Đất của '+L.n; if(!L) return 'Ô trống · thuê đất ở bác Trang'; } return 'Trồng ở ô đất này'; } const c=SD.CROPS[p.c], st=plotState(id,p);
   if(st==='growing') return `${c.name} · ${p.o===NET.pub?'của bạn':p.n} · còn ${Math.ceil((p.at+c.grow*1000-NET.now())/1000)}s`;
   if(p.o===NET.pub) return (c.verb||'Thu hoạch')+' '+c.name.toLowerCase(); return st==='open'&&!p.s?`Cướp ${c.name.toLowerCase()} của ${p.n}`:`${c.name} của ${p.n}`; }
-function plotState(id,p){ const s=SD.plotState(p,NET.now()); return id[0]==='d'&&s==='open'?'ripe':s; }
+function plotState(id,p){ return SD.plotState(p,NET.now()); }   // Đà Lạt cũng cướp được rau để quá giờ
 async function interact(x){
   if(x.type==='npc') return talk(x.n);
   if(x.type==='mapx') return MAPX.pick(x);

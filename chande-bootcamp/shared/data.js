@@ -142,7 +142,7 @@ const CROPS={
 };
 // vườn Ké: không thuê trồng được free ô; thuê đất của chú Ba (trả theo ngày) thì được nhiều ô hơn
 const KE_LAND=[{id:'luong',name:'Vài luống',plots:6,price:40000},{id:'vuon',name:'Mảnh vườn',plots:10,price:70000},{id:'trai',name:'Cả khu vườn',plots:16,price:120000}];
-const FARM={grace:90,maxPlots:6,free:2,steal:.5,stealExp:3,plots:[]};
+const FARM={grace:90,maxPlots:6,free:2,steal:.5,stealExp:3,plots:[],trang:{catch:.25,comp:100000}};   // trang: ở Đà Lạt bác Trang bắt quả tang kẻ cướp rau, bắt đền chủ vườn
 for(const y of [77,78,80,81,83,84]) for(const x of [50,51,52,53,54,55,56,57,59,60,61,62,63,64,65,66]) FARM.plots.push({x:x+.5,y:y+.5});
 // vườn mở thêm trong rừng: sườn đồi phía Tây (cạnh đường bộ) và phía Đông (dưới đường vòng)
 for(const y of [63,64,66,67,69,70]) for(let x=4;x<=13;x++) FARM.plots.push({x:x+.5,y:y+.5});

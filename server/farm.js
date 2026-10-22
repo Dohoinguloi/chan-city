@@ -28,7 +28,7 @@ on('dog',(pl,m)=>{ const p=pl.prof; if(m.op==='view') return {dogs:dogsView()}; 
     return {msg:`Đã mua ${D.name}${old?' (con cũ chú Ba nuôi hộ)':''}. Nó sẽ canh các ô rau của bạn ở Ké và cả chuồng lợn ở trại chú Sáu`}; }
   return {err:'?'}; });
 const mine=(uid,map)=>Object.entries(PLOTS).filter(([id,p])=>p.o===uid&&mapOf(id)===map).length;
-const state=(id,p,t)=>{ const s=S.plotState(p,t); return id[0]==='d'&&s==='open'?'ripe':s; };    // ở Đà Lạt bác Trang trông vườn, không ai cướp được
+const state=(id,p,t)=>S.plotState(p,t);    // Ké và Đà Lạt đều cướp được rau để quá giờ (Đà Lạt có bác Trang hay bắt quả tang)
 
 on('plant',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), c=S.CROPS[m.crop], p=pl.prof; if(!d||!c) return {err:'?'};
   if(pl.scene!==mapOf(id)||!near(pl,d.x,d.y,26)) return {err:'Đứng cạnh ô đất'}; if(PLOTS[id]) return {err:'Ô này có người trồng rồi'};
@@ -51,6 +51,8 @@ on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=n
   if(st!=='open') return {err:`Rau của ${pt.n}. Chủ còn ${Math.max(0,Math.ceil((pt.at+(c.grow+S.FARM.grace)*1000-t)/1000))} giây để thu`};
   if(pt.s) return {err:'Ô này bị cướp một lần rồi'}; if(pt.blk>t) return {err:'Con chó vẫn đang gầm gừ, chưa dám lại gần'};
   const owner=byUid.get(pt.o), dd=id[0]==='k'&&DOGOF.get(pt.o), D=dd&&S.DOGS[dd.k], dn=D?D.name:''; let extra='';
+  if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.min(pl.prof.money,S.FARM.trang.comp); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
+    if(owner) note(owner,`Bác Trang bắt quả tang ${pl.prof.name} định cướp rau của bạn! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); markDirty(pl); return {err:`Bác Trang quát: "Rau của ${pt.n} mà dám hái trộm à!" Bị bắt đền ${fmt(v)}`}; }
   if(D&&D.block&&Math.random()<D.block){ pt.blk=t+30000; if(owner) note(owner,`${dn} của bạn vừa doạ ${pl.prof.name} chạy mất dép!`,'quest'); return {err:`${dn} của ${pt.n} sủa ầm lên, bạn sợ quá bỏ chạy!`}; }
   const n=Math.max(1,Math.floor(c.yield*(D&&D.steal||S.FARM.steal))); pt.s=n; pt.th=pl.prof.name; addItem(pl,pt.c,n); P.stat(pl,'harvest',n); const g=C.gainExp(pl,S.FARM.stealExp);
   if(D&&D.drain){ pl.prof.needs.energy=Math.max(0,pl.prof.needs.energy-D.drain); extra+=` · ${dn} vờn bạn mệt lả (-${D.drain} năng lượng)`; }
@@ -62,9 +64,9 @@ on('clearPlot',(pl,m)=>{ const id=String(m.id||''), pt=PLOTS[id]; if(!pt||pt.o!=
 // báo chủ khi chín / sắp bị cướp; dọn ô bỏ hoang quá 1 ngày
 hook('slow',()=>{ const t=now();
   for(const [id,p] of Object.entries(PLOTS)){ const c=S.CROPS[p.c]; if(!c){ delete PLOTS[id]; push(id); continue; } const ripe=p.at+c.grow*1000, o=byUid.get(p.o);
-    if(t>=ripe&&!p.nt){ p.nt=1; if(o) note(o,`${c.name} chín rồi! ${id[0]==='k'?`Thu trong ${S.FARM.grace} giây kẻo bị người khác cướp 50%`:'Ra nông trại thu hoạch'}`,'quest'); }
+    if(t>=ripe&&!p.nt){ p.nt=1; if(o) note(o,`${c.name} ${id[0]==='d'?'ở nông trại bác Trang ':''}chín rồi! Thu trong ${S.FARM.grace} giây kẻo bị người khác cướp 50%`,'quest'); }
     if(id[0]==='k'&&o&&!p.s){ const dd=DOGOF.get(p.o), D=dd&&S.DOGS[dd.k]; if(D&&D.fetch&&t>=ripe+D.fetch*1000&&t<ripe+(p.g||S.FARM.grace)*1000){ const n=c.yield+(D.bonus||0); addItem(o,p.c,n); P.stat(o,'harvest',n); note(o,`${D.name} tha về ${n} ${c.name.toLowerCase()} cho bạn 🐶`,'item'); if(c.regrow) PLOTS[id]={...p,at:t+(c.regrow-c.grow)*1000,s:0,th:'',nt:0,nt2:0}; else delete PLOTS[id]; push(id); continue; } }
-    if(id[0]==='k'&&t>=ripe+(p.g||S.FARM.grace)*1000&&!p.nt2){ p.nt2=1; if(o&&!p.s) note(o,`${c.name} ở vườn Ké quá giờ thu, người khác cướp được rồi!`,'lock'); }
+    if((id[0]==='k'||id[0]==='d')&&t>=ripe+(p.g||S.FARM.grace)*1000&&!p.nt2){ p.nt2=1; if(o&&!p.s) note(o,`${c.name} ở ${id[0]==='k'?'vườn Ké':'nông trại bác Trang'} quá giờ thu, người khác cướp được rồi!`,'lock'); }
     if(t>ripe+864e5&&!c.regrow){ delete PLOTS[id]; push(id); } } });
 
 /* ---------- thuê đất nông trại (theo ngày) ---------- */
