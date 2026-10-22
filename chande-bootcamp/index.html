@@ -181,6 +181,9 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 
 #hudBottom{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);gap:6px;justify-items:center;max-width:calc(100vw - 420px);display:none}
 #hudItems{display:flex;gap:4px;padding:5px}
+/* đấu game đối kháng với Eva */
+#fgCv{width:100%;display:block;image-rendering:pixelated;background:#090c22;border:2px solid var(--line)} .fgPad{display:none;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px} body.touch .fgPad{display:grid} body.touch .fgHelp{display:none}
+.fgPad .btn{padding:8px 2px;font-size:15px;touch-action:none;user-select:none} .fgPad .btn.on{background:var(--gold);color:var(--ink)}
 /* kênh chat tổng ngay trên thanh đồ */
 #wchat{pointer-events:auto;min-width:0;padding:3px 6px 4px;display:grid;gap:3px;background:rgba(28,21,22,.78)} #wcLog{max-height:81px;overflow-y:auto;font-size:16px;line-height:1.15;scrollbar-width:thin}
 #wcLog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #wcLog b{font-weight:400;color:var(--gold)} #wcLog small{color:var(--muted);font-size:13px} #wcLog .me b{color:#7fe0ff} #wcLog:empty::before{content:'Kênh tổng: chưa ai nói gì, chào cả server đi!';color:var(--muted)}
@@ -212,7 +215,7 @@ body.touch #wcLog{max-height:52px;font-size:14px} body.touch #wcIn{font-size:15p
 #chatLog div{font-size:18px;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink);transition:opacity 1s} #chatLog div.old{opacity:0} #chatLog b{font-weight:400;color:var(--gold)}
 body:not(.skills) #hudSkills{display:none}
 #chatIn{pointer-events:auto;font:20px var(--f);background:var(--panel2);color:var(--cream);border:2px solid var(--gold);padding:4px 8px}
-#chatHint{position:absolute;right:0;bottom:100%;margin-bottom:6px;padding:2px 6px;white-space:nowrap;font-size:15px;color:#c9c0b0;background:rgba(28,21,22,.72);text-shadow:1px 1px 0 var(--ink);pointer-events:none}   /* dòng phím tắt: trên cột nút bên phải */
+#chatHint{position:absolute;right:0;bottom:100%;margin-bottom:6px;padding:3px 6px;display:grid;justify-items:end;gap:3px;white-space:nowrap;font-size:15px;color:#c9c0b0;background:rgba(28,21,22,.72);text-shadow:1px 1px 0 var(--ink);pointer-events:none}   /* dòng phím tắt: trên cột nút bên phải */
 #prompt{position:fixed;left:50%;bottom:142px;transform:translateX(-50%);padding:4px 12px;font-size:21px;pointer-events:auto;cursor:pointer} #prompt:hover{border-color:var(--gold)}
 #banner{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);padding:4px 18px;font-size:24px;color:var(--gold);transition:transform .35s;z-index:3}
 #banner.show{animation:ban 3s forwards}
@@ -448,7 +451,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
-  <div id="hudNav" class="hudTop"><div id="chatHint"><kbd>Enter</kbd> chat gần · <kbd>C</kbd> chat tổng · <kbd>G</kbd> Grab · <kbd>Esc</kbd> menu</div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
+  <div id="hudNav" class="hudTop"><div id="chatHint"><span>chat gần <kbd>Enter</kbd></span><span>chat tổng <kbd>C</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
 <div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
@@ -534,6 +537,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="ui.js?v=7"></script>
 <script src="maps3.js"></script>
 <script src="maps4.js"></script>
+<script src="fight.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>
 </body>

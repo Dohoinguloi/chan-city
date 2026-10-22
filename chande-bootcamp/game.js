@@ -300,12 +300,12 @@ function nearest(){
   for(const c of FOLLOW.values()) if(!c.hide){ const d=dist(c.x,c.y); if(d<(c.f.kind==='cat'?20:26)) consider(d*.55,{type:'follow',c,label:c.f.kind==='cat'?'Vuốt ve '+c.f.name:'Nghe '+c.f.name+' nói'}); }
   for(const it of S.map.inter){ const d=dist(it.x,it.y); if(d<it.r) consider(d,{type:'obj',it,label:it.label}); }
   for(const o of S.map.obj||[]) if(o.grab){ const d=dist(o.x,o.y+4); if(d<30) consider(d+1,{type:'grab',label:'Gọi Grab (G) · đi map khác / về phòng'}); }   // đứng gần biển Grab
+  for(const st of SD.BIKESHARE.stations) if(st.map===k){ const d=dist(st.x*T,st.y*T); if(d<40) consider(d,{type:'bikeshare',label:`Thuê xe đạp công cộng · ${fmt(SD.MOTO.models.xedap.price)}/${SD.BIKESHARE.min} phút`}); }   // trạm ở Ké và nông trại bác Trang (Đà Lạt)
   if(k==='retreat'){
     for(const [key,pc] of Object.entries(SD.PLACES)) if(pc.door&&(pc.map||'retreat')===S.kind){ const d=dist(pc.door.x*T,pc.door.y*T); if(d<26) consider(d,pc.scene?{type:'enter',place:key,label:'Vào '+pc.name}:{type:'place',place:key,label:pc.name}); }
     SD.PARK.spots.forEach((sp,i)=>{ const d=dist(sp.x*T,sp.y*T); if(d<30) consider(d,{type:'parkspot',i,label:'Quan sát: '+sp.name}); });
     if(P.pcar) return {type:'pcarpark',label:'Đỗ xe xuống'}; if(P.incar) return {type:'pcarleave',label:'Xuống xe'};
     if(PCAR&&PCAR.driving&&PCAR.driving!==NET.pid){ const dr=REM.get(PCAR.driving); if(dr&&dist(dr.x,dr.y)<60) consider(1,{type:'pcarride',label:'Lên xe Chika Phú (ghế phụ)'}); }
-    for(const st of SD.BIKESHARE.stations) if(st.map===S.kind){ const d=dist(st.x*T,st.y*T); if(d<40) consider(d,{type:'bikeshare',label:`Thuê xe đạp công cộng · ${fmt(SD.MOTO.models.xedap.price)}/${SD.BIKESHARE.min} phút`}); }
     if(S.kind==='retreat'&&WDINO){ const K=SD.WILDLIFE.dino.kinds[WDINO.k]||{}, d=dist((WDINO.dx||WDINO.x)*T,(WDINO.dy||WDINO.y)*T); if(d<(K.fly?7:5)*T) consider(d-20,{type:'dinophoto',label:`Chụp ảnh ${K.name} 📸`}); }
     if(S.kind==='retreat'&&P.opt==='robot'&&CSGT_POST){ const c=CSGT_POST, tx=(c.kind==='chot'?c.x+2.1:c.x)*T, ty=(c.kind==='chot'?c.y-1.4:c.y)*T, d=dist(tx,ty);
       if(!c.wreck&&d<64) consider(d-4,{type:'riot',op:'smash',label:'Đập xe CSGT 💥'}); if(c.kind==='chot'&&!c.ko){ const d2=dist(c.x*T,c.y*T); if(d2<48) consider(d2-6,{type:'riot',op:'punch',label:'Đánh CSGT 👊 (có thể bị bắt)'}); } }

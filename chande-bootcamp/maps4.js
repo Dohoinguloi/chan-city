@@ -6,11 +6,12 @@ const act=m=>GAME.act(m), toast=(h,k)=>GAME.toast(h,k), done=r=>r&&!r.err;
 const Q=id=>(G().quests||{})[id], here=()=>GAME.S&&GAME.S.kind==='nghienmotion';
 const CACHE={}, cached=(k,fn)=>CACHE[k]||(CACHE[k]=fn());
 const BOTS=['gundam','eva'];
-const START={sauna:'🧖 Ngồi xuống ghế gỗ, hơi nóng phả lên mặt... (giữ yên 15 giây)',game:'🎮 Vào trận với Eva! (10 giây)',tv:'📺 Bật showreel lên TV lớn, cả group xúm lại xem...',model:'🔧 Cầm kìm cắt runner lên...',desk:'🎬 Mở After Effects, bắt đầu keyframe...'};
+const START={sauna:'🧖 Ngồi xuống ghế gỗ, hơi nóng phả lên mặt... (giữ yên 15 giây)',tv:'📺 Bật showreel lên TV lớn, cả group xúm lại xem...',model:'🔧 Cầm kìm cắt runner lên...',desk:'🎬 Mở After Effects, bắt đầu keyframe...'};
 
 /* ---------- tương tác ---------- */
 const LOOK={toys:'Tủ kính chật kín: RX-78, Zaku, Eva-01, Optimus, Wing Zero, Zaku đỏ của Char, mấy em Haro. Dán giấy "CẤM SỜ, HỎI GIÁO CHỦ"',zaku:'Zaku II cao bằng người thật, mắt hồng quét qua quét lại. Ai bước vào cũng bị "soi"',optimus:'Optimus Prime đứng gác cạnh bảng kanban: "Autobots, render out!"'};
 X.nm=async(op,it)=>{ if(op==='snack') return UI.place('nm_tuck',{id:'nm_tuck'}); if(LOOK[op]){ GAME.sfx('blip',.4); return toast(LOOK[op],'item'); } const r=await act({t:'nm',op,i:it&&it.i}); if(!done(r)) return;
+  if(r.fight) return UI.evaFight(r.lv);
   if(r.msg) return toast(esc(r.msg),'quest');
   if(r.sec){ if(op==='sauna') GAME.sfx('splash',.35); toast(START[op]||'Đang làm...','quest'); } };
 

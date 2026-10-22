@@ -18,9 +18,12 @@ on('nm',(pl,m)=>{ const p=pl.prof, N=S.NMOTION, q=pr(p), op=m.op, d=p.daily; if(
     if(active(p,'gp_build')&&(q.gp_build||0)<3){ const st=['Cắt runner, gọt bavia','Lắp khung xương','Dán decal'][q.gp_build||0]; return job('gp_build',8,st,'work',()=>({msg:(q.gp_build||0)>=3?'Gunpla RX-78 đứng sừng sững! Báo Gundam':`Xong bước: ${st} (${q.gp_build}/3)`})); }
     if(active(p,'gp_panel')&&!q.gp_panel) return job('gp_panel',12,'Kẻ lằn chìm + phủ mờ');
     return {msg:'Bàn lắp mô hình bày đầy runner, kìm cắt và lọ sơn. Hỏi Gundam xem có việc gì không'}; }
-  if(op==='game'){ if(!near(pl,N.game.x,N.game.y+.9,44)) return {err:'Ngồi vào góc game'}; if((d.nmgame||0)>=6) return {err:'Chơi nhiều quá rồi, mỏi tay. Mai chơi tiếp'};
-    return P.startTask(pl,'work',10,()=>{ d.nmgame=(d.nmgame||0)+1; const win=Math.random()<N.gameWin, g=C.gainExp(pl,win?25:10); if(win&&active(p,'ev_win')&&(q.ev_win||0)<2) q.ev_win=(q.ev_win||0)+1; markDirty(pl);
-      return {msg:win?`🏆 Thắng ván! +${g.exp} EXP${active(p,'ev_win')?` (thắng Eva ${Math.min(2,q.ev_win||0)}/2)`:''}`:`Thua sát nút, Eva cười khẩy. +${g.exp} EXP`}; },{anim:'work',name:'Đấu game với Eva'}); }
+  // góc game: đấu đối kháng thật với Eva ở máy khách (fight.js), xong gửi kết quả; mỗi ngày game 6 ván
+  if(op==='game'){ if(!near(pl,N.game.x,N.game.y+.9,44)) return {err:'Ngồi vào góc game'}; if(pl.task) return {err:'Đang làm việc khác'}; if((d.nmgame||0)>=6) return {err:'Chơi nhiều quá rồi, mỏi tay. Mai chơi tiếp'};
+    pl.nmFight={at:now()}; return {fight:true,lv:Math.min(2,q.ev_win||0)}; }
+  if(op==='gameEnd'){ const f=pl.nmFight; pl.nmFight=null; if(!f) return {err:'Chưa vào trận'}; const el=now()-f.at; if(el<5000||el>180000) return {err:'Ván đấu không hợp lệ'};
+    d.nmgame=(d.nmgame||0)+1; const win=!!m.win, g=C.gainExp(pl,win?25:10); if(win&&active(p,'ev_win')&&(q.ev_win||0)<2) q.ev_win=(q.ev_win||0)+1; markDirty(pl);
+    return {win,msg:win?`🏆 Hạ gục Eva! +${g.exp} EXP${active(p,'ev_win')?` (thắng Eva ${Math.min(2,q.ev_win||0)}/2)`:''} · ván ${d.nmgame}/6 hôm nay`:`Eva thắng ván này. +${g.exp} EXP, luyện thêm rồi phục thù! · ván ${d.nmgame}/6 hôm nay`}; }
   if(op==='sauna'){ const Z=N.sauna, x=pl.x/C.T, y=pl.y/C.T; if(x<Z.x0||x>Z.x1+1||y<Z.y0||y>Z.y1+1) return {err:'Vào phòng xông hơi đã'}; if((d.sauna||0)>=N.saunaMax) return {err:`Hôm nay xông ${N.saunaMax} lần rồi, uống nước đi`};
     return P.startTask(pl,'sauna',N.saunaDur,()=>{ d.sauna=(d.sauna||0)+1; p.needs.energy=Math.min(100,p.needs.energy+N.saunaEnergy); p.needs.clean=Math.min(100,p.needs.clean+10);
       // xông hơi tập thể: có thêm người trong phòng thì được buff EXP

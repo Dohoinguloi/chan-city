@@ -20,6 +20,7 @@ function thumbify(root){ for(const row of root.querySelectorAll('.list:not(.rows
     else key=img.getAttribute('src').slice(-24);
     const w=document.createElement('i'); w.className='rth'+(img.classList.contains('dogi')?' wide':''); w.style.setProperty('--h',TH_HUE(key)); img.replaceWith(w); w.appendChild(img); } }
 UI.isOpen=()=>!box.hidden;
+UI.open=open;   // cho module ngoài (fight.js) mở bảng
 UI.closeAll=()=>{ cur=null; box.hidden=true; box.classList.remove('full','xwide'); inner.innerHTML=''; stopMini(); };
 UI.blocking=()=>!!cur||!$('#ask').hidden||document.activeElement===$('#chatIn')||document.activeElement===$('#wcIn');
 $('#panelClose').onclick=()=>UI.closeAll();
