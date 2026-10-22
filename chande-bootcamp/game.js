@@ -39,6 +39,23 @@ function sayLine(text){ try{ if(AUD.muted||!window.speechSynthesis) return; cons
   if(v) u.voice=v; u.lang=v?v.lang:'en-US'; u.pitch=.1; u.rate=.82; u.volume=1; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }                                                    // rú ga bốc đầu
 function crashSnd(){ const c=synCtx(); if(!c||AUD.muted) return; const n=c.sampleRate*.6, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);
   const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); s.buffer=b; f.type='lowpass'; f.frequency.value=900; g.gain.value=.35; s.connect(f); f.connect(g); g.connect(c.destination); s.start(); tone('square',180,60,.5,.12,600); }
+// ma sói: sói tru, gà gáy, chuông bỏ phiếu, tiếng chết, nhạc thắng thua, dế + gió ban đêm
+function howlSnd(delay=0,pitch=1){ const c=synCtx(); if(!c||AUD.muted) return; const t=c.currentTime+delay, o=c.createOscillator(), l=c.createOscillator(), lg=c.createGain(), f=c.createBiquadFilter(), g=c.createGain();
+  o.type='triangle'; o.frequency.setValueAtTime(280*pitch,t); o.frequency.exponentialRampToValueAtTime(640*pitch,t+.7); o.frequency.setValueAtTime(640*pitch,t+1.4); o.frequency.exponentialRampToValueAtTime(420*pitch,t+2.4);
+  l.frequency.value=5.5; lg.gain.value=14*pitch; l.connect(lg); lg.connect(o.frequency); f.type='lowpass'; f.frequency.value=1800;
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.18,t+.35); g.gain.setValueAtTime(.16,t+1.8); g.gain.exponentialRampToValueAtTime(.0001,t+2.5); o.connect(f); f.connect(g); g.connect(c.destination); o.start(t); l.start(t); o.stop(t+2.6); l.stop(t+2.6); }
+function roosterSnd(){ const c=synCtx(); if(!c||AUD.muted) return; let t=c.currentTime; for(const [f0,f1,d] of [[620,980,.14],[900,720,.12],[760,1180,.22],[1150,820,.6]]){ const o=c.createOscillator(), b=c.createBiquadFilter(), g=c.createGain();
+    o.type='sawtooth'; o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f1,t+d); b.type='bandpass'; b.frequency.value=1400; b.Q.value=2; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.2,t+.03); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(b); b.connect(g); g.connect(c.destination); o.start(t); o.stop(t+d+.02); t+=d*.92; } }
+function bellSnd(){ const c=synCtx(); if(!c||AUD.muted) return; for(const at of [0,.55]) for(const [f,v] of [[660,.16],[990,.08],[1320,.05]]){ const o=c.createOscillator(), g=c.createGain(), t=c.currentTime+at; o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0001,t+1.6); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+1.7); } }
+function deathSnd(){ tone('sine',90,40,.7,.3,400); setTimeout(()=>tone('triangle',220,110,.9,.08,800),120); }
+function winSnd(dan){ if(dan) [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone('square',f,f*1.01,.35,.1,3000),i*160)); else { [440,392,349,330].forEach((f,i)=>setTimeout(()=>tone('sawtooth',f,f*.98,.45,.08,1600),i*220)); howlSnd(.9,.9); } }
+const NIGHTAMB={t:0};
+function nightAmb(on){ clearInterval(NIGHTAMB.t); NIGHTAMB.t=0; if(!on) return;
+  NIGHTAMB.t=setInterval(()=>{ if(!document.querySelector('.masoifs.ph-night')||AUD.muted){ clearInterval(NIGHTAMB.t); NIGHTAMB.t=0; return; }
+    const c=synCtx(); if(!c) return; for(let k=0;k<3;k++){ const o=c.createOscillator(), g=c.createGain(), t=c.currentTime+k*.07; o.type='sine'; o.frequency.value=4300+Math.random()*300; g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.025,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+.05); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.06); }   // dế kêu
+    if(Math.random()<.18){ const n=c.sampleRate*1.6, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.sin(Math.PI*i/n); const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); s.buffer=b; f.type='lowpass'; f.frequency.value=500; g.gain.value=.05; s.connect(f); f.connect(g); g.connect(c.destination); s.start(); }   // gió
+    if(Math.random()<.04) howlSnd(0,.8+Math.random()*.3); },900); }
 function whistleSnd(){ for(const [d,len] of [[0,.18],[.26,.5]]) setTimeout(()=>tone('sine',2900,3100,len,.12,6000),d*1000); }       // tuýt tuýt
 function sirenSet(vol){ const c=synCtx(); if(!c) return; if(!SYN.sir){ if(vol<=.001) return; const o=c.createOscillator(), l=c.createOscillator(), lg=c.createGain(), f=c.createBiquadFilter(), g=c.createGain();
     o.type='square'; o.frequency.value=700; l.type='square'; l.frequency.value=1.4; lg.gain.value=170; l.connect(lg); lg.connect(o.frequency); f.type='lowpass'; f.frequency.value=1600; g.gain.value=0; o.connect(f); f.connect(g); g.connect(c.destination); o.start(); l.start(); SYN.sir={o,l,g}; }
@@ -1099,7 +1116,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={walkTo,walkToNpc,destThumb,get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={walkTo,walkToNpc,destThumb,snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};

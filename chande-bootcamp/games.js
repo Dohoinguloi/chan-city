@@ -116,6 +116,63 @@ const forestURL=night=>once('forest'+(night?'n':'d'),()=>{ const W=60, H=48, k=c
   else { g.fillStyle='#ffe066'; g.fillRect(47,4,5,5); g.fillStyle='#f4f1ea'; g.fillRect(6,6,9,2); g.fillRect(8,5,5,1); }
   for(let x=0;x<W;x+=7){ const h=10+(x*13)%9; g.fillStyle=night?'#14203a':'#3a5a70'; for(let y=0;y<h;y++){ const w=Math.max(1,Math.round(y*.55)); g.fillRect(x+3-w,H-14-h+y,w*2+1,1); } }
   g.fillStyle=night?'#23382e':'#4a6a58'; g.fillRect(0,H-14,W,14); g.fillStyle=night?'#2c4638':'#5a7c66'; for(let x=0;x<W;x++) g.fillRect(x,H-14-Math.round(Math.sin(x*.2)*2+2),1,3); return up(k,4).toDataURL(); });
+// nền bàn ma sói theo pha: đêm trăng tròn sói tru trên vách đá, mắt sói trong rừng, làng sáng đèn, sương; ngày làng + giếng + lửa;
+// bỏ phiếu trời đỏ có giá treo cổ, quạ; hết ván sói thắng trăng máu / dân thắng bình minh. Vẽ 320×180 rồi phóng ×4
+const wolfSceneURL=ph=>once('ws:'+ph,()=>{ const W=320, H=180, k=cv(W,H), g=k.getContext('2d'), R=(x,y,w,h,c)=>{ g.fillStyle=c; g.fillRect(x,y,w,h); }, D=(x,y,r,c)=>{ g.fillStyle=c; g.beginPath(); g.arc(x,y,r,0,7); g.fill(); };
+  const h1=(a,b)=>{ const s=Math.sin(a*127.1+b*311.7)*43758.5453; return s-Math.floor(s); }, dark=ph==='night'||ph==='endsoi'||ph==='wait';
+  const green=ph==='night'||ph==='wait';   // đêm tông xanh rêu như ảnh mẫu cắm trại
+  const SK={night:['#0a241c','#1e5a44'],day:['#7aa8d4','#cfe0ee'],vote:['#3a0e1e','#e0603a'],endsoi:['#1a0408','#6a1418'],enddan:['#f0a050','#ffe8b0'],wait:['#0e2a20','#235442']}[ph]||['#0a241c','#1e5a44'];
+  const gr=g.createLinearGradient(0,0,0,120); gr.addColorStop(0,SK[0]); gr.addColorStop(1,SK[1]); g.fillStyle=gr; g.fillRect(0,0,W,H);
+  if(dark||ph==='vote') for(let i=0;i<70;i++) R(h1(i,1)*W|0,h1(i,2)*90|0,1,1,green?(i%4?'#5ad08a':'#a8f0c0'):i%5?'#e8e8ff':'#ffe8a0');
+  if(green){ for(const [x,y] of [[30,20],[78,46],[140,14],[196,34],[300,24]]){ R(x-2,y,5,1,'#7de0a0'); R(x,y-2,1,5,'#7de0a0'); }   // sao chữ thập
+    for(const [y,c,ph2] of [[58,'#1c4e3c',0],[66,'#22583f',2],[84,'#1a4a38',5],[92,'#215a44',1]]) for(let x=0;x<W;x+=4){ const w=Math.round(10+8*Math.sin(x*.035+ph2)); if(h1(x,y)<.75) R(x,y-(Math.sin(x*.05+ph2)*3|0),4,Math.max(2,w/4|0),c); } }   // mây xếp tầng
+  // trăng / mặt trời
+  if(ph==='night'||ph==='wait'){ D(250,42,26,'rgba(200,240,210,.1)'); D(250,42,20,'#e6f2d8'); for(const [x,y,r] of [[243,36,3],[256,48,4],[252,33,2],[240,50,2]]) D(x,y,r,'#d8d2b0'); }
+  else if(ph==='endsoi'){ D(250,42,28,'rgba(200,30,30,.18)'); D(250,42,20,'#c4201a'); for(const [x,y,r] of [[243,36,3],[256,48,4]]) D(x,y,r,'#9a1410'); }
+  else if(ph==='vote'){ D(70,96,26,'rgba(255,140,80,.3)'); D(70,96,18,'#ff8a4a'); }
+  else if(ph==='enddan'){ D(160,104,30,'rgba(255,240,180,.35)'); D(160,104,20,'#fff0b0'); }
+  else { D(262,30,10,'#fff3c0'); }
+  // ban ngày (ảnh mẫu thung lũng): mây lớn sau rặng núi xanh 2 lớp có mặt sáng, rồi rừng thông
+  if(ph==='day'||ph==='enddan'){ for(const [cx,cy,r] of [[30,52,18],[60,44,22],[96,52,16],[210,50,20],[246,40,24],[286,48,20],[316,56,14]]){ D(cx,cy,r,'#f4ecd8'); D(cx-3,cy-4,r-5,'#ffffff'); }
+    const mt=(x,y0,a,f,p)=>Math.round(y0-a*(.6*Math.abs(Math.sin(x*f+p))+.4*Math.sin(x*f*2.7+p)));
+    for(let x=0;x<W;x++){ const y=mt(x,92,34,.021,.6); R(x,y,1,100-y,'#6a86b0'); if(Math.sin(x*.021*2+.6)>.2) R(x,y,1,Math.max(2,(100-y)*.35|0),'#a8bcd8'); }
+    for(let x=0;x<W;x++){ const y=mt(x,102,20,.033,2.2); R(x,y,1,110-y,'#5a7898'); if((x+y)%5<2) R(x,y+3,1,2,'#7a94b4'); } }
+  // vách đá + sói tru in bóng trăng
+  if(ph==='night'||ph==='endsoi'||ph==='wait'){ const rock=ph==='endsoi'?'#2a0a0c':'#0e1226'; g.fillStyle=rock; g.beginPath(); g.moveTo(206,92); g.lineTo(226,62); g.lineTo(262,58); g.lineTo(286,70); g.lineTo(300,92); g.fill();
+    const wx=244, wy=58; R(wx,wy-8,16,7,rock); R(wx+12,wy-14,5,7,rock); R(wx+14,wy-19,3,6,rock); R(wx+16,wy-20,2,3,rock); R(wx+13,wy-17,1,2,rock); R(wx+1,wy-2,2,4,rock); R(wx+11,wy-2,2,4,rock); R(wx-4,wy-9,5,2,rock); R(wx-6,wy-11,3,2,rock); }   // sói ngửa cổ tru
+  // rừng thông 2 lớp
+  for(const [y0,col,step] of [[96,green?'#123a2c':dark?'#101a30':ph==='vote'?'#2a1420':'#3e6a54',9],[110,green?'#0c2a20':dark?'#0a1222':ph==='vote'?'#1e0e16':'#2c5040',7]]) for(let x=-4;x<W+8;x+=step){ const h=14+(h1(x,y0)*14|0); for(let y=0;y<h;y++){ const w=Math.max(1,Math.round(y*.5)); R(x-w,y0-h+y,w*2+1,1,col); if(!dark&&ph!=='vote'&&y%4===1&&w>1) R(x-w,y0-h+y,2,1,'#7a9a3a'); } R(x,y0,1,3,col); }   // thông có viền nắng vàng xanh
+  if(dark) for(let i=0;i<7;i++){ const x=20+h1(i,7)*280|0, y=100+h1(i,8)*10|0; R(x,y,2,1,'#ff3a2a'); R(x+4,y,2,1,'#ff3a2a'); }   // mắt sói trong rừng
+  // mặt đất làng + nhà mái lá, cửa sổ sáng đèn ban đêm
+  R(0,112,W,H-112,green?'#16382a':dark?'#1c2418':ph==='vote'?'#2a1a14':'#5a7a3a'); for(let i=0;i<300;i++) R(h1(i,9)*W|0,114+(h1(i,10)*66|0),2+(i%3),1,green?(i%3?'#1e4a34':'#285c3c'):dark?'#28321e':'#6a8a44');   // cỏ có vệt
+  for(const [x,w] of [[14,34],[60,26],[234,30],[276,36]]){ const y=124; R(x,y-14,w,14,dark?'#3a2a20':'#8a5d3b'); for(let k=0;k<6;k++) R(x-4+k,y-20-k,w+8-k*2,1,dark?'#4a3a22':'#c8a060'); R(x+w/2-3|0,y-9,6,9,'#2a1e16');
+    R(x+4,y-11,5,4,dark?'#ffd86b':'#9fd3e6'); if(dark){ R(x+2,y-13,9,8,'rgba(255,216,107,.18)'); } }
+  if(ph==='day'||ph==='enddan'){ for(let i=0;i<260;i++) R(h1(i,21)*W|0,114+(h1(i,22)*66|0),2,1,i%3?'#c8c040':'#8aaa3a');   // đồng cỏ lốm đốm vàng
+    for(let y=112;y<H;y++){ const x=Math.round(282+12*Math.sin(y*.07)-(y-112)*.3), w=4+(y-112)*.12|0; R(x-w-1,y,w*2+2,1,'#5a4a3a'); R(x-w,y,w*2,1,'#8ab0d8'); if(y%5===0) R(x-w+2,y,w,1,'#c8dcf0'); }   // sông uốn khúc
+    for(const [x,y,w] of [[30,128,14],[236,166,16],[300,128,14],[118,170,16]]){ R(x,y,w,7,'#8a8078'); R(x+2,y,w-6,2,'#b0a89a'); R(x,y+6,w,1,'#5a5248'); } }
+  R(118,138,84,26,dark?'#2a2a20':'#a89068'); R(118,138,84,2,dark?'#3a3a2a':'#c8b088');                                       // sân làng đất nện
+  // lều cắm trại cạnh đống lửa (ảnh mẫu), đá + khúc gỗ ngồi
+  g.fillStyle=dark?'#3a3e44':'#6a6e74'; g.beginPath(); g.moveTo(186,160); g.lineTo(206,128); g.lineTo(244,130); g.lineTo(252,160); g.fill();
+  g.fillStyle=dark?'#c07a2a':'#e8a040'; g.beginPath(); g.moveTo(178,160); g.lineTo(204,126); g.lineTo(216,160); g.fill(); R(200,140,4,20,dark?'#1a1416':'#3a2a20'); for(const x of [190,198,206]) R(x,134+(x-190)/2|0,1,26-(x-190)/2|0,dark?'#8a5420':'#b87a30');
+  for(const [x,y,w] of [[124,152,10],[132,156,7],[96,154,14]]){ R(x,y,w,5,dark?'#3a4048':'#8a8a8a'); R(x+1,y,w-2,1,dark?'#5a6068':'#b0b0b0'); } R(104,160,22,4,'#5a3a22'); R(104,160,22,1,'#7a5232');
+  // đống lửa giữa làng có giá treo nồi
+  R(148,128,2,24,'#2a1e16'); R(170,128,2,24,'#2a1e16'); R(148,128,24,2,'#2a1e16'); R(158,130,1,5,'#5a5a5a'); R(155,135,8,5,'#3a3a40');
+  R(150,150,20,3,'#5a3a22'); R(154,147,12,3,'#6e472c'); for(const [x,y,c] of [[160,136,'#ff9a2a'],[156,141,'#ff6a1a'],[164,141,'#ff6a1a'],[160,144,'#ffd86b']]) D(x,y,ph==='night'||ph==='wait'?5:4,c);
+  D(160,142,24,dark?'rgba(255,150,60,.14)':'rgba(255,200,120,.08)');
+  // giếng làng ban ngày / giá treo cổ lúc bỏ phiếu / quạ
+  if(ph==='day'||ph==='enddan'){ R(100,140,14,10,'#9b968c'); R(100,140,14,2,'#bdb8ad'); R(100,130,2,10,'#6e472c'); R(112,130,2,10,'#6e472c'); R(98,128,18,3,'#a8322a'); }
+  if(ph==='vote'){ R(214,112,3,40,'#2a1410'); R(214,112,26,3,'#2a1410'); R(236,115,1,12,'#c8a060'); R(234,127,5,5,'#c8a060'); R(233,128,1,3,'#2a1410'); R(207,150,18,3,'#2a1410');
+    for(const [x,y] of [[60,40],[90,30],[130,52],[280,36]]){ R(x-3,y,3,1,'#1a0a10'); R(x+1,y,3,1,'#1a0a10'); R(x,y+1,1,1,'#1a0a10'); } }
+  if(ph==='enddan') for(let i=0;i<12;i++) R(130+h1(i,11)*60|0,96+h1(i,12)*16|0,1,2,'#fff3c0');
+  // sương đêm
+  if(dark) for(const [y,a] of [[104,.12],[118,.1],[150,.06]]) for(let x=0;x<W;x+=2) if(h1(x,y)<.7) R(x,y+(Math.sin(x*.07)*2|0),2,3,`rgba(190,200,230,${a})`);
+  return up(k,4).toDataURL(); });
+let msPrev=null;
+function masoiSound(v,key){ const S=GAME.snd; if(!S) return; const prev=msPrev; msPrev={key,alive:(v.players||[]).map(p=>p.alive)};
+  if(!prev&&v.st==='night') S.nightAmb(true);
+  if(prev&&prev.key!==key){ if(v.st==='night'){ S.howl(0); S.howl(.7,.86); S.nightAmb(true); } else S.nightAmb(false);
+    if(v.st==='day') S.rooster(); if(v.st==='vote') S.bell(); if(v.st==='end') S.win(v.winner!=='soi'); }
+  if(prev&&prev.alive) (v.players||[]).forEach((p,i)=>{ if(prev.alive[i]&&!p.alive) S.death(); }); }
 // quản trò dẫn chuyện: ban đêm lần lượt gọi Sói → Tiên tri → Bảo vệ theo thời gian còn lại của đêm
 function narrate(v){ const last=(v.log||[]).slice(-1)[0]||'';
   if(v.st==='wait') return ['', 'Quản trò: đợi đủ người là bắt đầu. Ít người thì thuê tôi tìm thêm (bot) nhé!'];
@@ -130,7 +187,8 @@ function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, 
   const banner=key!==lastPhase&&v.st!=='wait'?`<div class="mphase">${night?'🌙 ĐÊM '+v.day:v.st==='day'?'☀️ TRỜI SÁNG · NGÀY '+v.day:v.st==='vote'?'⚖️ BỎ PHIẾU':v.winner==='soi'?'🐺 SÓI THẮNG':'🏡 DÂN LÀNG THẮNG'}</div>`:''; lastPhase=key;
   const roleKey=name=>Object.keys(ROLE_INFO).find(k=>ROLE_INFO[k][0]===name)||'dan';
   const list=v.st==='end'&&v.reveal?v.reveal.map(r=>({name:r.name,alive:r.alive,role:r.role,win:r.win})):v.players;
-  return `<div class="fsg masoifs ph-${v.st}">${banner}<aside class="mside"><div class="mhead"><b>${ph}</b><span>Ngày ${v.day}${v.left?' · '+Math.ceil(v.left/1000)+'s':''}</span></div>
+  masoiSound(v,key); const scene=wolfSceneURL(v.st==='end'?(v.winner==='soi'?'endsoi':'enddan'):v.st);
+  return `<div class="fsg masoifs ph-${v.st}" style="background:url(${scene}) center bottom/cover no-repeat">${banner}<aside class="mside"><div class="mhead"><b>${ph}</b><span>Ngày ${v.day}${v.left?' · '+Math.ceil(v.left/1000)+'s':''}</span></div>
       ${RI?`<div class="mrole"><img src="${roleIcon(v.role)}" alt=""><div><b>Bạn là ${esc(v.roleName||RI[0])}</b><small>${RI[1]}${alive?'':' · bạn đã chết'}</small></div></div>`:''}
       <div class="mroles">${Object.keys(ROLE_INFO).map(r=>`<span class="${calling===r?'call':''}" title="${ROLE_INFO[r][1]}"><img src="${roleIcon(r)}" alt="">${ROLE_INFO[r][0]}</span>`).join('')}</div>
       <p class="muted">Phí ${fmt(v.fee)} · pot ${fmt(v.pot)}${v.seen&&v.seen.length?' · đã soi: '+v.seen.map(s=>esc(s.n)+(s.soi?' (SÓI)':' (dân)')).join(', '):''}</p>
