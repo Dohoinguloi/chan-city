@@ -9,7 +9,7 @@ function kit(){ const obj=[], solid=[], inter=[];
   return {obj,solid,inter,put,block,act}; }
 function buildLavi(){ const L=SD.LAVI, W=L.W, H=L.H, K=kit(), {put,block,act}=K, sp=L.spots;
   const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>y<=1||y===H-1||x===0||x===W-1?'8':'7'));
-  put(A.laviSign(),16,1.4,{flat:true});
+  put(A.laviSign(),16,1.7,{flat:true});
   put(A.typeWall(),7.6,3.9,{flat:true}); block(5,2,10,2); put(A.gridBoard(),15.6,3.9,{flat:true}); block(14,2,17,2); put(A.specimenShelf(),24,4.2); block(23,2,25,3);
   L.desks.forEach(([x,y],i)=>{ put(A.imacDesk(i),x,y); block(Math.floor(x)-1,Math.floor(y)-1,Math.floor(x)+1,Math.floor(y)-1); put(A.meshChair(i%2?'#b8a0e8':'#2a2436'),x,y+1.3); });
   put(A.vibeDesk(0),26.4,10.4,{anim:'lvvibe'}); block(25,9,28,9); put(A.laviScreen(0),4.6,10.2,{anim:'lvscreen'}); block(3,8,6,9);
