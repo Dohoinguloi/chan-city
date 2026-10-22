@@ -50,6 +50,7 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   if(String(p.name||name||'').toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
     for(const id of ['blazer_kaixa','quan_kaixa','kinh_kaixa','dong_ho','giay_den']) p.owned[id]=1;
     Object.assign(p.look,{gender:'nam',hair:'messy',hairColor:'a59c9a',skin:'eeb896'}); p.look.outfit={...(p.look.outfit||{}),top:'blazer_kaixa',bottom:'quan_kaixa',eyes:'kinh_kaixa',wrist:'dong_ho',shoes:'giay_den'}; }
+  p.level=Math.max(p.level||1,S.levelOf(p.exp||0));   // bảng cấp nối dài tới 200: ai đủ EXP thì lên luôn
   return p; }
 function markDirty(pl){ pl.dirty=true; if(!pl.saveAt) pl.saveAt=now()+4000; }
 function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
@@ -71,7 +72,8 @@ function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.need
 function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
   if(kind==='game'){ a=Math.max(0,Math.min(S.RULES.gameExpCap-p.daily.gameExp,a)); p.daily.gameExp+=a; }
   a=Math.round(a); if(a<=0) return {exp:0};
-  p.exp+=a; for(const f of hooks.exp) f(pl,a); const lv=S.levelOf(p.exp), out={exp:a}; if(lv>p.level){ p.level=lv; out.level=lv; } markDirty(pl); return out; }
+  p.exp+=a; for(const f of hooks.exp) f(pl,a); const lv=S.levelOf(p.exp), out={exp:a};
+  if(lv>p.level){ for(let L=p.level+1;L<=lv;L++){ const g=S.RULES.levelGift(L); if(g){ give(pl,g); note(pl,`🎉 Mốc cấp ${L}: thưởng ${S.fmt(g)}`,'quest'); } } p.level=lv; out.level=lv; } markDirty(pl); return out; }
 // thưởng + báo cho client hiện thông báo
 function reward(pl,r,msg){ const out={t:'rw',msg:msg||''};
   if(r.exp){ const g=gainExp(pl,r.exp,r.kind); out.exp=g.exp; if(g.level){ out.level=g.level; levelUp(pl); } }

@@ -10,7 +10,7 @@ const RULES={foodCd:15,
   tzOffsetH:7,                       // giờ Việt Nam
   walk:70, run:118, dash:250,        // px/giây
   startMoney:2000000,
-  levels:[0,100,250,450,700,1000,1400,2000,2700,3500,4500,6000,8000],
+  levels:[0,100,250,450,700,1000,1400,2000,2700,3500,4500,6000,8000],maxLevel:200,   // 13 cấp đầu giữ nguyên, từ cấp 14 nối tiếp tới cấp 200 (ngay dưới RULES)
   // 3 bữa/ngày; quá giờ mà chưa ăn thì bị đói (ăn bù được)
   meals:[{id:'sang',name:'Bữa sáng',from:6,to:10},{id:'trua',name:'Bữa trưa',from:11,to:14},{id:'toi',name:'Bữa tối',from:17,to:21}],
   hungrySpeed:[1,.85,.7,.55],        // theo số bữa đã bỏ
@@ -20,6 +20,10 @@ const RULES={foodCd:15,
   tickHz:10,
   gameExpCap:400,                     // EXP tối đa mỗi ngày từ bàn chơi + tương tác
 };
+// cấp 14 → 200: mỗi cấp cần thêm 2.000 + 150×(cấp − 13) EXP · cấp 50 ≈ 190 nghìn, cấp 100 ≈ 760 nghìn, cấp 200 ≈ 3 triệu EXP
+for(let L=RULES.levels.length+1;L<=RULES.maxLevel;L++) RULES.levels.push(RULES.levels[L-2]+Math.round((2000+150*(L-13))/50)*50);
+// mốc cấp tròn chục (từ cấp 20) thưởng tiền: cấp × 10.000đ
+RULES.levelGift=lv=>lv>=20&&lv%10===0?lv*10000:0;
 
 /* ---------- Ngoại hình ---------- */
 const LOOK={

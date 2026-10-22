@@ -1291,7 +1291,7 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   if(window.AMB&&AMB.W&&S){ const w=AMB.W, el=$('#hudWx'); if(el.textContent!==w.icon) el.textContent=w.icon; el.title=w.name+(S.map.indoor?' (ngoài trời)':''); }
   $('#hudMoney').textContent=fmt(G.money);
   const L=SD.RULES.levels, lo=L[G.level-1]||0, hi=L[G.level]||lo+1; $('#hudLevel').textContent='Cấp '+G.level+' · '+G.name+' · 📚 '+((G.stats||{}).know||0);
-  $('#hudExp').style.width=Math.min(100,(G.exp-lo)/(hi-lo)*100)+'%'; $('#hudExpTxt').textContent=`${G.exp}/${hi} EXP`;
+  const max=G.level>=SD.RULES.maxLevel; $('#hudExp').style.width=(max?100:Math.min(100,(G.exp-lo)/(hi-lo)*100))+'%'; $('#hudExpTxt').textContent=max?`MAX · ${fmt(G.exp).replace('đ','')} EXP`:`${G.exp}/${hi} EXP`;
   needsCheck(G.needs);
   const n=G.needs; for(const [k,id] of [['energy','#barEnergy'],['clean','#barClean'],['battery','#barBattery']]){ const v=Math.round(n[k]); $(id).style.width=v+'%'; $(id).classList.toggle('low',v<20); $(id+'T').textContent=v; }
   if(TOUCH){ let low=false; for(const [k,id] of [['energy','#mbE'],['clean','#mbC'],['battery','#mbB']]){ const v=Math.round(n[k]); $(id).style.height=Math.max(6,v)+'%'; $(id).classList.toggle('low',v<20); if(v<20) low=true; } $('#mLv').textContent='Cấp '+G.level; $('#mStat').classList.toggle('warn',low); }
