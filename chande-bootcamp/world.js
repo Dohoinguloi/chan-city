@@ -216,7 +216,11 @@ function buildRetreat(){
   // nhà dân trong thị trấn
   for(const [x,y,r,w] of TOWN_HOUSES) bld('Nhà dân',x,y,x+4,y+2,{roof:r,wall:w,doors:[30],windows:[8,52]});
   bld('Bảo tàng lịch sử Hoà Bình',124,84,136,91,{shop:true,roof:'stone',wall:'stone',doors:[96],windows:[12,40,150,180],sign:'BAO TANG',awning:'#8a3a2a'});
-  for(const [x,y] of STILTS) bld('Nhà sàn Mường',x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true});
+  // mỗi nhà sàn mang tên 1 tướng Liên Minh Huyền Thoại, không nhà nào trùng tên
+  const CHAMPS=['Ahri','Yasuo','Garen','Lux','Jinx','Teemo','Zed','Thresh','Lee Sin','Ezreal','Ashe','Darius','Katarina','Riven','Akali','Vayne','Annie','Master Yi','Morgana','Leona','Sona','Nasus','Malphite','Blitzcrank',
+    'Draven','Jhin','Kai\'Sa','Lucian','Yone','Sett','Seraphine','Pyke','Caitlyn','Ekko','Fiora','Irelia','Janna','Kayn','Miss Fortune','Nami','Rengar','Shen','Sylas','Talon','Veigar','Xin Zhao','Yuumi'];
+  let champ=0; const stiltName=()=>'Nhà sàn '+CHAMPS[champ++%CHAMPS.length];
+  for(const [x,y] of STILTS) bld(stiltName(),x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true});
   // công trình thị trấn mới
   bld('UBND xã Đà Bắc',114,60,122,63,{roof:'tile',wall:'yellow',doors:[65],windows:[10,28,100,118],sign:'UBND XA DA BAC',stoneBase:true});
   bld('Trường tiểu học Đà Bắc',129,60,140,63,{roof:'tile_blue',wall:'cream',doors:[89],windows:[10,26,42,58,118,134,150,166],sign:'TRUONG TIEU HOC'});
@@ -226,7 +230,7 @@ function buildRetreat(){
   bld('Khách sạn Đà Bắc',152,75,162,80,{roof:'tile_purple',wall:'brick',doors:[81],windows:[10,26,42,58,112,128,144],sign:'KHACH SAN',awning:'#7a52b0',wallH:30});
   // làng Mường: thêm nhà sàn ở chỗ trống (chỉ xây khi ô còn trống), nhà văn hoá bản, chợ phiên
   const STILTS2=[[86,166],[140,182],[184,180],[214,186],[268,180],[312,182],[324,212],[62,214],[196,222],[256,222],[300,224],[150,222],[20,186],[106,186],[176,196],[276,196]], built=[];
-  for(const [x,y] of STILTS2) if(free(x-1,y-1,x+5,y+3)){ rect(x-1,y-1,x+5,y+3,'G'); bld('Nhà sàn Mường',x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true}); stub(x+2,y+3); built.push([x,y]); }
+  for(const [x,y] of STILTS2) if(free(x-1,y-1,x+5,y+3)){ rect(x-1,y-1,x+5,y+3,'G'); bld(stiltName(),x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true}); stub(x+2,y+3); built.push([x,y]); }
   if(free(99,160,109,170)){ rect(99,160,109,170,'G'); bld('Nhà văn hoá bản Mường',100,161,108,164,{roof:'thatch',wall:'wood',stilt:true,doors:[64],windows:[12,32,100,120],sign:'NHA VAN HOA'}); rect(99,165,109,169,'C'); stub(104,169); EXTRA_ZONES.push({name:'Nhà văn hoá bản Mường',x0:99,y0:160,x1:109,y1:170}); }
   const CHO2=[[190,184],[170,226],[110,226],[312,160],[40,196],[260,232]].find(([x,y])=>free(x,y,x+16,y+10,['G','p','P'])); if(CHO2){ const [cx,cy]=CHO2; rect(cx,cy,cx+16,cy+10,'C'); stub(cx+8,cy+10); EXTRA_ZONES.push({name:'Chợ phiên Mường',x0:cx,y0:cy,x1:cx+16,y1:cy+10}); }
   const tents=[{name:'Lều 1',x0:30,y0:72,x1:32,y1:74},{name:'Lều 2',x0:24,y0:71,x1:26,y1:73}];
@@ -365,12 +369,12 @@ function buildRetreat(){
     {name:'Nhà Mái Đá',x0:40,y0:37,x1:47,y1:41},{name:'Nền khu cắm trại',x0:45,y0:24,x1:56,y1:31},{name:'Đường vòng lên đồi',x0:20,y0:42,x1:58,y1:46},
     {name:'Thị trấn Đà Bắc',x0:72,y0:60,x1:206,y1:94},{name:'Chùa Đà Bắc',x0:136,y0:26,x1:162,y1:58},{name:'Vườn quốc gia Đà Bắc',x0:212,y0:2,x1:337,y1:93},{name:'Cầu sang làng Mường',x0:108,y0:98,x1:113,y1:121},{name:'Làng Mường bên kia hồ',x0:0,y0:122,x1:339,y1:239},{name:'Hồ Hoà Bình',x0:72,y0:98,x1:339,y1:121}];
   const districts=[{name:'Khu nghỉ dưỡng Ké',x:34,y:66},{name:'Phố Đà Bắc',x:140,y:80},{name:'Khu tâm linh',x:149,y:34},{name:'Rừng phía Bắc',x:110,y:30},{name:'Vườn quốc gia',x:272,y:50},
-    {name:'Hồ Hoà Bình',x:170,y:110},{name:'Làng Mường',x:110,y:162},{name:'Đồng lúa bậc thang',x:270,y:150},{name:'Xóm chợ phiên',x:180,y:216},{name:'Ruộng phía Tây',x:46,y:206}];
+    {name:'Hồ Hoà Bình',x:170,y:110},{name:'Làng Mường',x:118,y:137},{name:'Đồng lúa bậc thang',x:270,y:150},{name:'Xóm chợ phiên',x:180,y:216},{name:'Ruộng phía Tây',x:46,y:206}];
   const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),{name:'Lều 1',x:31.5,y:72},{name:'Lều 2',x:25.5,y:71},{name:'Cổng',x:39.5,y:94},
     {name:'Bể bơi',x:22,y:76},{name:'Deck ngắm cảnh',x:23.5,y:42},{name:'Vườn rau phía Đông',x:62.5,y:51},{name:'Vườn rau phía Tây',x:8.5,y:62},{name:'Vườn rau Ké',x:58,y:76.5},{name:'Sân gà',x:63.5,y:43},{name:'Nền khu cắm trại',x:50,y:25},
     {name:'Đường bộ (~10 phút)',x:26,y:60},{name:'Bến hồ',x:43,y:104},{name:'Hồ Hoà Bình',x:20,y:106},
     ...ROADS.map(R=>{ const [x0,y0,x1,y1]=R.r, v=y1-y0>x1-x0; return {name:R.name,x:v?(x0+x1+1)/2:x0+(x1-x0)*.62,y:v?y0+(y1-y0)*.35:(y0+y1+1)/2}; }),
-    {name:'Thị trấn Đà Bắc',x:140,y:66},{name:'Vườn quốc gia',x:270,y:10},{name:'Làng Mường',x:110,y:140},...SHARED.PARK.spots.map(s=>({name:s.name,x:s.x,y:s.y-1}))];
+    {name:'Thị trấn Đà Bắc',x:140,y:66},{name:'Vườn quốc gia',x:270,y:10},...SHARED.PARK.spots.map(s=>({name:s.name,x:s.x,y:s.y-1}))];
   return {name:'Chande Bootcamp · Ké Retreat',W,H,grid:g,obj,solid,inter,zones,labels,districts,lights,fire,
     spawn:{x:39.5*T,y:96.6*T},carLow:{x:44*T,y:97.6*T},carTop:{x:47.5*T,y:43.6*T},shoreY:shore};
 }

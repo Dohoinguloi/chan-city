@@ -976,16 +976,19 @@ $('#mapCv').addEventListener('click',e=>{ const h=MAPHIT.find(m=>m.name===MAPHOV
 $('#mapCv').addEventListener('contextmenu',e=>{ e.preventDefault(); e.stopPropagation(); const c=e.target, rc=c.getBoundingClientRect(), k=c.width/(S.W*T), wx=(e.clientX-rc.left)*c.width/rc.width/k, wy=(e.clientY-rc.top)*c.height/rc.height/k;
   $('#mapView').hidden=true; MAPHOV=''; DEST={x:wx,y:wy,t:performance.now()}; walkTo(wx/T,wy/T,'chỗ đã chọn'); });
 function toggleMap(){ const v=$('#mapView'); if(S.kind!=='retreat'&&S.kind!=='dalat'){ toast('Bản đồ có ở Ké Retreat và nông trại Đà Lạt','lock'); return; } v.hidden=!v.hidden; if(!v.hidden) drawMap(); }
-function drawMap(){ const c=$('#mapCv'), g=c.getContext('2d'), m=S.map, ret=S.kind==='retreat', sx=0, sy=0, sw=S.W*T, sh=S.H*T, k=Math.min((innerHeight*.84)/sh,(innerWidth*.9)/sw);   // cả map (Ké + thị trấn + vườn quốc gia + làng)
+function drawMap(){ const c=$('#mapCv'), g=c.getContext('2d'), m=S.map, ret=S.kind==='retreat', sx=0, sy=0, sw=S.W*T, sh=S.H*T, k=Math.min((innerHeight*.8)/sh,(innerWidth*.94)/sw);   // cả map (Ké + thị trấn + vườn quốc gia + làng)
   c.width=Math.round(sw*k); c.height=Math.round(sh*k); g.imageSmoothingEnabled=false; if(!miniBase) buildMini(); g.drawImage(miniBase,sx/T,sy/T,sw/T,sh/T,0,0,c.width,c.height);
   g.fillStyle='rgba(30,60,30,.3)'; g.fillRect(0,0,c.width,c.height);
   for(const o of S.objs) if(o.house){ const s=o.spr; g.drawImage(s.c,(o.x-s.ax-sx)*k,(o.y-s.ay-sy)*k,s.c.width*k,s.c.height*k); }
   g.font=`${Math.max(13,Math.min(20,Math.round(13*k*2.4)))}px VT323, monospace`; g.textAlign='center';
   MAPHIT=[]; const doors=[...Object.values(SD.PLACES).filter(p=>p.door&&(p.map||'retreat')===S.kind).map(p=>p.door),...(ret?Object.values(SD.ROOMS).flatMap(r=>(r.doors||[]).map(([x,y])=>({x,y}))):[])];
   const fs=Math.max(13,Math.min(20,Math.round(13*k*2.4)));
-  for(const dz of m.districts||[]){ const x=(dz.x*T-sx)*k, y=(dz.y*T-sy)*k, f=Math.max(22,Math.min(40,Math.round(22*k*2.2))); g.font=`${f}px VT323, monospace`; g.lineWidth=4; g.strokeStyle='rgba(28,21,22,.85)'; g.strokeText(dz.name,x,y); g.fillStyle='#ffe066'; g.fillText(dz.name,x,y); }   // tên khu to
+  const PLACED=[], hitAny=r=>PLACED.some(q=>r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0);
+  for(const dz of m.districts||[]){ const x=(dz.x*T-sx)*k, y=(dz.y*T-sy)*k, f=Math.max(22,Math.min(40,Math.round(22*k*2.2))); g.font=`${f}px VT323, monospace`; g.lineWidth=4; g.strokeStyle='rgba(28,21,22,.85)'; g.strokeText(dz.name,x,y); g.fillStyle='#ffe066'; g.fillText(dz.name,x,y);
+    const w=g.measureText(dz.name).width; PLACED.push({x0:x-w/2,x1:x+w/2,y0:y-f*.8,y1:y+f*.2}); }   // tên khu to
   g.font=`${Math.max(13,Math.min(20,Math.round(13*k*2.4)))}px VT323, monospace`;
-  for(const l of m.labels||[]){ const x=(l.x*T-sx)*k, y=(l.y*T-sy)*k-4, hov=MAPHOV===l.name; g.font=`${hov?fs+4:fs}px VT323, monospace`; const w=g.measureText(l.name).width+8, h=hov?19:15;
+  for(const l of m.labels||[]){ const x=(l.x*T-sx)*k, hov=MAPHOV===l.name; let y=(l.y*T-sy)*k-4; g.font=`${hov?fs+4:fs}px VT323, monospace`; const w=g.measureText(l.name).width+8, h=hov?19:15;
+    for(let tries=0;tries<4&&hitAny({x0:x-w/2,x1:x+w/2,y0:y-h+3,y1:y+3});tries++) y+=h+2; PLACED.push({x0:x-w/2,x1:x+w/2,y0:y-h+3,y1:y+3});   // nhãn đè nhau thì lùi xuống
     g.fillStyle=hov?'#ffd84a':'rgba(28,21,22,.75)'; g.fillRect(x-w/2,y-h+3,w,h); if(hov){ g.strokeStyle='#1c1516'; g.lineWidth=2; g.strokeRect(x-w/2,y-h+3,w,h); } g.fillStyle=hov?'#1c1516':'#fff3d6'; g.fillText(l.name,x,y);
     const d=doors.map(o=>({o,d:Math.hypot(o.x-l.x,(o.y-l.y)*.6)})).filter(z=>z.d<6&&z.o.y>=l.y-1).sort((a,b)=>a.d-b.d)[0];   // nhà có cửa gần nhãn thì đi tới cửa
     MAPHIT.push({name:l.name,x0:x-w/2,y0:y-h+3,x1:x+w/2,y1:y+3,tx:d?d.o.x:l.x,ty:d?d.o.y+.6:l.y+1.5}); }

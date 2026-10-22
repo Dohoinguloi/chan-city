@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Chan City</title>
+<meta name="description" content="Chan City: game pixel online chơi cùng cả hội theo giờ Việt Nam thật. Ké Retreat, thị trấn Đà Bắc, nông trại Đà Lạt, DAS Sài Gòn.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/favicon.png" sizes="64x64" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Chan City"><meta property="og:title" content="Chan City · game pixel online">
+<meta property="og:description" content="Chơi cùng cả hội theo giờ Việt Nam thật: Ké Retreat, thị trấn Đà Bắc, nông trại Đà Lạt, đua ngựa, CSGT, Optimus Prime đấu Megatron.">
+<meta property="og:url" content="__ORIGIN__/"><meta property="og:image" content="__ORIGIN__/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="__ORIGIN__/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 <style>
@@ -118,10 +124,10 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #cOutfit{display:grid;grid-template-columns:repeat(3,1fr);gap:6px} .ocard{font:17px var(--f);background:var(--panel2);color:var(--cream);border:2px solid var(--line);padding:6px;text-align:left;cursor:pointer;display:grid;gap:2px} .ocard b{font-weight:400;color:var(--gold);font-size:20px} .ocard.on{border-color:var(--gold)}
 #travel{background:#0c0a0e;z-index:10} #travel .box{display:grid;gap:10px;justify-items:center;text-align:center}
 #travelCv{width:min(720px,94vw);image-rendering:pixelated;border:2px solid var(--line)}
-#mapView .box{display:grid;grid-template-columns:auto;gap:10px;align-items:start;padding:14px}
+#mapView .box{display:grid;gap:8px;padding:10px 12px;max-height:98vh;max-width:98vw}
 #mapCv{image-rendering:pixelated;border:2px solid var(--line)}
-#mapSide{display:grid;gap:8px;max-width:260px} #mapSide h3{margin:0;font-weight:400;color:var(--gold);font-size:28px}
-#mapLegend{display:grid;gap:4px;font-size:19px} #mapLegend i{display:inline-block;width:12px;height:12px;border:2px solid var(--ink);border-radius:50%;margin-right:8px;vertical-align:middle}
+#mapSide{order:-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px} #mapSide h3{margin:0;font-weight:400;color:var(--gold);font-size:26px} #mapSide>div:last-child{font-size:17px;color:var(--muted)} #mapClose{order:9;margin-left:auto}   /* thanh tiêu đề gọn trên đầu bản đồ */
+#mapLegend{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:17px} #mapLegend i{display:inline-block;width:12px;height:12px;border:2px solid var(--ink);border-radius:50%;margin-right:8px;vertical-align:middle}
 /* bảng giao diện */
 #panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,94vw);max-height:84vh;display:grid;grid-template-rows:auto 1fr;z-index:7}
 #panel.wide{width:min(860px,96vw)}

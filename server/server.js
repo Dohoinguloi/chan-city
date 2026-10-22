@@ -26,7 +26,7 @@ const blocked=k=>{ const f=fails.get(k); return f&&Date.now()-f.t<60000&&f.n>=10
 const fail=k=>{ const t=Date.now(), f=fails.get(k); if(!f||t-f.t>60000) fails.set(k,{n:1,t}); else f.n++; };
 const ROOT=path.resolve(__dirname,'..');
 const PUBLIC=['chande-bootcamp','pixel-sprite-forge'];             // chỉ phục vụ 2 thư mục này (không lộ server/data)
-const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.png':'image/png','.webp':'image/webp',
+const TYPES={'.svg':'image/svg+xml','.ico':'image/x-icon','.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.css':'text/css','.png':'image/png','.webp':'image/webp',
   '.jpg':'image/jpeg','.svg':'image/svg+xml','.mp3':'audio/mpeg','.ogg':'audio/ogg','.wav':'audio/wav','.ico':'image/x-icon'};
 
 // "phiên bản" client = thời điểm sửa mới nhất của các file game (đọc lại tối đa 10 giây 1 lần)
@@ -60,12 +60,17 @@ async function api(req,res,url){
 }
 function serveStatic(req,res,url){
   let p; try{ p=decodeURIComponent(url.pathname); }catch(e){ res.writeHead(400); return res.end(); }
-  if(p==='/'){ res.writeHead(302,{Location:'/chande-bootcamp/'}); return res.end(); }
+  // link gọn: game chạy thẳng ở "/", link cũ /chande-bootcamp/... chuyển về (giữ query); file game tìm trong chande-bootcamp trước
+  if(p==='/chande-bootcamp'||p.startsWith('/chande-bootcamp/')){ res.writeHead(301,{Location:(p.slice(16)||'/')+(url.search||'')}); return res.end(); }
   if(p.endsWith('/')) p+='index.html';
-  const file=path.normalize(path.join(ROOT,p)), rel=path.relative(ROOT,file);
+  const top=p.split('/')[1]; let file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)); const rel=path.relative(ROOT,file);
   if(rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])){ res.writeHead(404); return res.end('Không tìm thấy'); }
   fs.stat(file,(e,st)=>{ if(e||!st.isFile()){ res.writeHead(404); return res.end('Không tìm thấy'); }
     const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json'].includes(ext);
+    if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
+      const host=String(req.headers['x-forwarded-host']||req.headers.host||'localhost'), proto=String(req.headers['x-forwarded-proto']||(/^(localhost|127\.|\[::1\])/.test(host)?'http':'https')).split(',')[0];
+      const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
+      res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':html.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}); return res.end(html); }
     res.writeHead(200,{'Content-Type':TYPES[ext]||'application/octet-stream','Content-Length':st.size,'Cache-Control':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff'});
     fs.createReadStream(file).pipe(res); }); }
 const server=http.createServer((req,res)=>{ const url=new URL(req.url,'http://x');

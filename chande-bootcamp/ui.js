@@ -72,7 +72,7 @@ UI.bag=()=>open('Túi đồ',()=>{ const g=G(), it=Object.entries(g.items);
   <h5>Kỹ năng</h5><p class="muted">${Object.keys(g.skills).map(k=>SD.SKILLS[k]?SD.SKILLS[k].name:k).join(' · ')}</p>`; },{wide:true});
 function outfitHtml(shop){ const g=G(), out=g.look.outfit||{};
   return `<div class="shopwrap"><canvas id="pv" width="64" height="96"></canvas><div class="list">${[['hot','🔥 Set hot (mặc là thay cả bộ)'],...SD.SLOTS].map(([slot,name])=>{
-    const items=Object.entries(SD.CLOTHES).filter(([k,c])=>(slot==='hot'?c.hot:c.slot===slot&&!c.hot)&&!c.hidden&&(shop||g.owned[k])); if(!items.length) return '';
+    const items=Object.entries(SD.CLOTHES).filter(([k,c])=>(slot==='hot'?c.hot:c.slot===slot&&!c.hot)&&(!c.hidden||!shop&&g.owned[k])&&(shop||g.owned[k]));   // đồ riêng (ẩn ở shop) vẫn hiện trong tủ đồ của người sở hữu if(!items.length) return '';
     return `<h5>${name}</h5>`+items.map(([k,c])=>{ const own=g.owned[k], sl=c.slot, on=out[sl]===k;
       return `<div class="row ${on?'on':''}" data-a="preview" data-k="${k}"><img class="thumb" data-thumb="${k}" src="${thumbOf(k)}" alt=""><span>${esc(c.name)}</span><span>${own?(on?'đang mặc':'đã có'):fmt(c.price)}</span>${own?(on?(['top','bottom','shoes'].includes(sl)?'':btn('unequip','Cởi',{slot:sl})):btn('equip','Mặc',{k,slot:sl})):shop?btn('buyc','Mua',{k},'pri'):''}</div>`; }).join(''); }).join('')}</div></div>`; }
 // ảnh thu nhỏ từng món: dựng nhân vật của bạn mặc thử món đó, cắt đúng vùng (đầu / thân / chân), làm dần từng món cho khỏi giật

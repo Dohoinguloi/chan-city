@@ -78,6 +78,9 @@ const CLOTHES={
   // set hot: mặc 1 món là thay cả bộ (Superman giữ đầu nhân vật, Batman trùm kín đầu)
   set_superman:{name:'Set Superman 🔥',slot:'top',price:1990000,hot:true,set:'superman',opts:{top:'long',bottom:'pants'},colors:{top:'2a62c8',pants:'2a62c8',shoes:'c8282a'}},
   set_batman:{name:'Set Batman 🔥',slot:'top',price:2490000,hot:true,set:'batman',opts:{top:'long',bottom:'pants'},colors:{top:'8a8a96',pants:'3a3e4a',shoes:'1c1c22'}},
+  // skin riêng của Kaixa (chỉ tài khoản Kaixa có): blazer satin đen hở cổ đeo dây chuyền bạc, quần ống rộng đen, kính vuông tròng xanh nhạt
+  blazer_kaixa:{name:'Blazer satin đen · Kaixa',slot:'top',price:0,hidden:true,opts:{top:'jacket',chain:true},colors:{top:'202026',inner:'ecb898',gold:'d0d4da'}},quan_kaixa:{name:'Quần ống rộng satin đen · Kaixa',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'18181e'}},
+  kinh_kaixa:{name:'Kính vuông tròng xanh · Kaixa',slot:'eyes',price:0,hidden:true,opts:{glasses:'tint'}},
   ao_csgt:{name:'Áo cảnh sát giao thông',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'e8c860'}},quan_csgt:{name:'Quần CSGT',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'d8b850'}},mu_csgt:{name:'Mũ kê-pi CSGT',slot:'head',price:0,hidden:true,opts:{hair:'cap'},colors:{cap:'e8c860'}},
   ao_kiemlam:{name:'Áo kiểm lâm',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'4f6e3a'}},ao_nau:{name:'Áo nâu nhà chùa',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'8a5a2a'}},
   blazer_be:{name:'Blazer be (thầy Huy Tạ)',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'b8a070',inner:'1c1c22'}},

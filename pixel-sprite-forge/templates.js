@@ -270,6 +270,11 @@ const OVER={
     '......GGS.SGGGGS.G..',
     '........G..G..G..G..',
     '.........GG....GG...']],
+  tintglasses:[10,[                             // kính vuông gọng đen, tròng xanh nhạt nhìn thấy mắt (skin Kaixa)
+    '........GGGG..GGGG..',
+    '......GG4E4GGGG4EG..',
+    '........G455..G45G..',
+    '........GGGG..GGGG..']],
   sunglasses:[10,[                              // kính râm: tròng tối, chấm loá
     '........GGGG..GGGG..',
     '......GGGuGGGGGuGG..',
@@ -385,7 +390,7 @@ const DEFAULT={ // màu gốc lấy từ ref
   W:'eef1f2',w:'b3c3ca',R:'8e2b2c',r:'5e1a1e',
   U:'8a8178',P:'3a3c50',p:'26283a',F:'4a2c22',f:'2e1b16',
   K:'c3c6cb',k:'8f949b',Y:'e8b83a',y:'a8761e',V:'d4d8dc',g:'fbfaf6',A:'d4d8dc','1':'ffd84a','2':'ff9f2e','3':'fff7d6',z:'3b2b27',e:'c8352c',x:'8c231f',o:'d6d9df',
-  B:'e5b53a',b:'a87a1c',D:'2f2b38',M:'3f7f6f',N:'c4563c',j:'6a6d82',v:'2f6b3a',Z:'b8342e',Q:'f2efe8',u:'a3a3aa',l:'ecebe6'};
+  B:'e5b53a',b:'a87a1c',D:'2f2b38',M:'3f7f6f',N:'c4563c',j:'6a6d82',v:'2f6b3a',Z:'b8342e',Q:'f2efe8',u:'a3a3aa',l:'ecebe6','4':'bfe2f2','5':'e8f8ff'};
 
 function validate(){
   const bad=[]; const chk=(name,rows)=>rows.forEach((r,i)=>{ if(r.length!==W) bad.push(`${name}[${i}] dài ${r.length}`); });
@@ -405,7 +410,7 @@ function compose(o){
   if(o.hair==='long'){ overlay(rows,'longL'); overlay(rows,'longR'); }
   if(o.hair==='shag'){ overlay(rows,'shagL'); overlay(rows,'shagR'); }
   if(o.mask){ overlay(rows,'mask'); for(let x=0;x<W;x++) if(rows[18][x]==='d') rows[18][x]='s'; }   // cổ dưới khẩu trang: bỏ bóng đỏ sẫm
-  if(o.glasses) overlay(rows,o.glasses==='sun'?'sunglasses':'glasses');
+  if(o.glasses) overlay(rows,o.glasses==='sun'?'sunglasses':o.glasses==='tint'?'tintglasses':'glasses');
   const open=o.top==='jacket'||o.top==='suit'||o.top==='cardigan';
   if(o.top==='cardigan') overlay(rows,'coatTail');
   if(o.turtle){ overlay(rows,'turtle');
@@ -844,7 +849,8 @@ function composeView(o,view){
     if(o.beard&&!o.mask){ put([[8,14],[9,14],[10,14],[11,14]],'z'); if(o.beard==='goatee') put([[9,16],[10,16],[9,17],[10,17]],'z'); }
     if(o.mask){ for(let y=13;y<=17;y++) for(let x=0;x<W;x++) if(inSkull(x,y)) R[y][x]=y===15||y===17?'k':'K'; put([[2,12],[17,12]],'k'); }
     if(o.glasses){ put([[5,10],[6,10],[7,10],[12,10],[13,10],[14,10],[4,11],[4,12],[8,11],[8,12],[11,11],[11,12],[15,11],[15,12],[5,13],[6,13],[7,13],[12,13],[13,13],[14,13],[9,11],[10,11],[3,11],[16,11]],'G');
-      if(o.glasses==='sun'){ put([[5,11],[6,11],[7,11],[5,12],[6,12],[7,12],[12,11],[13,11],[14,11],[12,12],[13,12],[14,12]],'G'); put([[5,11],[12,11]],'u'); } }
+      if(o.glasses==='sun'){ put([[5,11],[6,11],[7,11],[5,12],[6,12],[7,12],[12,11],[13,11],[14,11],[12,12],[13,12],[14,12]],'G'); put([[5,11],[12,11]],'u'); }
+      if(o.glasses==='tint'){ put([[5,11],[7,11],[5,12],[7,12],[12,11],[14,11],[12,12],[14,12]],'4'); put([[5,11],[12,11]],'5'); put([[4,10],[15,10],[8,10],[11,10]],'G'); } }
     if(o.earring) put([[18,13]],'V');
     if(o.chain&&top!=='suit') { if(open||o.turtle) put([[8,19],[11,19],[9,20],[10,20]],'Y'),put([[9,21],[9,22]],'y'); else put([[7,19],[12,19],[8,20],[11,20],[9,21],[10,21]],'Y'),put([[9,22],[10,22]],'y'); }
     if(o.idcard&&!o.chain) put([[8,19],[11,19],[9,20],[10,20]],'D'),put([[9,21],[10,21],[9,22]],'Z'),put([[10,22]],'g');

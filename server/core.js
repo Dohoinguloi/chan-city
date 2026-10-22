@@ -42,6 +42,10 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   if((p.v||1)<3){ if(p.v) p.money+=S.RULES.startMoney-150000; p.v=3; }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
   if(String(p.name||name||'').toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
+  // skin riêng Kaixa theo ảnh: tóc xám tro dựng, kính vuông tròng xanh, blazer satin đen + dây chuyền, quần ống rộng, đồng hồ (mặc 1 lần, sau tự đổi trong tủ đồ)
+  if(String(p.name||name||'').toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
+    for(const id of ['blazer_kaixa','quan_kaixa','kinh_kaixa','dong_ho','giay_den']) p.owned[id]=1;
+    Object.assign(p.look,{gender:'nam',hair:'messy',hairColor:'a59c9a',skin:'eeb896'}); p.look.outfit={...(p.look.outfit||{}),top:'blazer_kaixa',bottom:'quan_kaixa',eyes:'kinh_kaixa',wrist:'dong_ho',shoes:'giay_den'}; }
   return p; }
 function markDirty(pl){ pl.dirty=true; if(!pl.saveAt) pl.saveAt=now()+4000; }
 function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
