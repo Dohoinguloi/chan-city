@@ -269,6 +269,16 @@ const TREASURE={every:420,chance:.2,daily:6,items:{dong_xu_co:{name:'Đồng xu 
 
 /* ---------- Vị trí trên map Ké Retreat ---------- */
 // scene: cảnh NPC đứng (mặc định retreat); place: bấm E mở menu của địa điểm
+// NPC đi dạo quanh Ké theo lộ trình cố định (tính sẵn theo đường mòn, các đoạn thẳng không xuyên tường), dừng `dwell` giây ở điểm neo.
+// Vị trí tính theo giờ server nên máy nào cũng thấy cùng 1 chỗ, server dùng luôn để kiểm tra "đứng gần người giao việc"
+const NPC_ROAM={phap:{speed:1.5,pts:[[34.5, 92.7, 8], [39.5, 92.7, 0], [39.5, 84.7, 0], [46.5, 84.7, 0], [46.5, 89.7, 0], [45.5, 89.7, 8], [46.5, 89.7, 0], [46.5, 84.7, 0], [40.5, 84.7, 8], [38.5, 84.7, 0], [38.5, 85.7, 0], [29.5, 87.7, 8], [23.5, 88.7, 0], [21.5, 88.7, 0], [21.5, 94.7, 8], [29.5, 93.7, 0], [33.5, 93.7, 8]]},
+  khabanh:{speed:1.5,pts:[[37.5, 80.7, 8], [35.5, 76.7, 0], [28.5, 76.7, 8], [20.5, 75.7, 8], [22.5, 60.7, 8], [16.5, 43.7, 8], [24.5, 43.7, 0], [24.5, 44.7, 8], [23.5, 46.7, 0], [23.5, 48.7, 0], [33.5, 58.7, 8], [36.5, 70.7, 0], [36.5, 76.7, 0]]}};
+const ROAM_C={};
+function roamPos(id,ms){ const R=NPC_ROAM[id]; if(!R) return null; let C=ROAM_C[id];
+  if(!C){ const seg=[]; let t=0; R.pts.forEach((a,i)=>{ const b=R.pts[(i+1)%R.pts.length]; if(a[2]){ seg.push({t0:t,t1:t+a[2],ax:a[0],ay:a[1],bx:a[0],by:a[1]}); t+=a[2]; }
+      const d=Math.hypot(b[0]-a[0],b[1]-a[1]); if(d>0){ seg.push({t0:t,t1:t+d/R.speed,ax:a[0],ay:a[1],bx:b[0],by:b[1]}); t+=d/R.speed; } }); C=ROAM_C[id]={seg,total:t}; }
+  const t=(ms/1000)%C.total; let lo=0, hi=C.seg.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(C.seg[m].t1<=t) lo=m+1; else hi=m; }
+  const s=C.seg[lo], k=s.t1>s.t0?(t-s.t0)/(s.t1-s.t0):0, dx=s.bx-s.ax, dy=s.by-s.ay; return {x:s.ax+dx*k,y:s.ay+dy*k,moving:!!(dx||dy),dx,dy}; }
 const NPCS=[
   {id:'phap',pass:true,x:36.4,y:90.8},{id:'khabanh',x:37,y:80.6},{id:'donche',x:28.5,y:89.4},
   {id:'phule',x:25.6,y:40.6},{id:'kenny',x:21.3,y:41.6},{id:'huyphan',x:40,y:36.4},
@@ -795,6 +805,6 @@ function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(
 
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
-  lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
+  lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

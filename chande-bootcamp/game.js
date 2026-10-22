@@ -757,9 +757,11 @@ function updateChicken(dt){ if(G.flags.chicken) return; chick.t+=dt; const H=SD.
   if(d<1){ chick.wait-=dt; if(chick.wait<=0){ chick.tx=(H.x+(Math.random()*2-1)*H.r)*T; chick.ty=(H.y+(Math.random()*2-1)*H.r*.6)*T; chick.wait=.6+Math.random()*1.5; } }
   else { const st=Math.min(d,22*dt); chick.x+=dx/d*st; chick.y+=dy/d*st; chick.face=Math.sign(dx)||chick.face; }
   if(Math.hypot(P.x-chick.x,P.y-chick.y)<22&&G.quests.co==='active'){ chick.tx=chick.x+(chick.x-P.x)*.8; chick.ty=chick.y+(chick.y-P.y)*.5; } }
-function updateNpcs(dt){ for(const n of npcs){ n.t+=dt; if(n.act){ n.actT+=dt; const sh=npcSheet(n), an=sh&&sh.anims[n.act]; const dur=an?an.frames.length/an.fps+(n.act==='hokage'?1.4:n.act==='quay'?1.6:.3):1;
+function updateNpcs(dt){ const now=NET.now(); for(const n of npcs){ n.t+=dt; const R=SD.roamPos(n.id,now);   // Pháp, Khá Bảnh đi dạo theo lộ trình (giờ server)
+  if(R){ n.x=R.x*T; n.y=R.y*T; n.moving=R.moving; if(R.moving){ if(Math.abs(R.dy)>Math.abs(R.dx)) n.view=R.dy>0?'down':'up'; else { n.view='side'; n.face=R.dx>0?1:-1; } } }
+  if(n.act){ n.actT+=dt; const sh=npcSheet(n), an=sh&&sh.anims[n.act]; const dur=an?an.frames.length/an.fps+(n.act==='hokage'?1.4:n.act==='quay'?1.6:.3):1;
     if(n.actT>=dur){ if(n.act==='saiyan') delete PORTRAIT.phap; n.act=null; } }
-  if(!DLG.open) faceToward(n,Math.hypot(n.x-P.x,n.y-P.y)<52); } }
+  if(!DLG.open&&!n.moving) faceToward(n,Math.hypot(n.x-P.x,n.y-P.y)<52); } }
 function faceToward(n,near=true){ if(!near){ n.view='down'; return; } const dx=P.x-n.x, dy=P.y-n.y;
   if(Math.abs(dy)>Math.abs(dx)*1.1) n.view=dy>0?'down':'up'; else { n.view='side'; n.face=dx<0?-1:1; } }
 function npcSheet(n){ return n.id==='phap'&&G.flags.phapForm==='cam'?SHEETS.phap2:SHEETS[n.id]; }
@@ -1036,8 +1038,8 @@ let wmT=-1, wmSpr=null; function windmillFrame(){ const f=Math.floor(clock*4)%18
 function drawNpc(n){ if(n.av){ if(n.lecture&&!n.act){ drawChar(ctx,n.av,n.x,n.y,n.face,'side','idle','noi',n.t,(clock+n.t)%2.4,0); return; }   // giảng viên nói suốt
     const dn=S.kind==='phongbay'&&n.dance&&!n.act; drawChar(ctx,n.av,n.x,n.y,n.face,n.view,n.view!=='side'?'idle_'+n.view:'idle',dn?'quay':n.act||'',n.t,dn?clock+n.t:n.actT,0);   // bot Phòng Bay nhảy suốt
     if(n.act&&(n.actT+=1/60)>2) n.act=null; return; }
-  shadow(n.x,n.y,8); const sh=npcSheet(n); if(!sh) return; const v=!n.act&&n.view&&n.view!=='side'?'idle_'+n.view:null;
-  let an=sh.anims[n.act||v||'idle']||sh.anims.idle, k=Math.floor((n.act?n.actT:n.t)*an.fps);
+  shadow(n.x,n.y,8); const sh=npcSheet(n); if(!sh) return; const base=n.moving&&!n.act?'walk':'idle', v=!n.act&&n.view&&n.view!=='side'?base+'_'+n.view:null;   // đang đi dạo thì dùng động tác đi
+  let an=sh.anims[n.act||v||base]||sh.anims.idle, k=Math.floor((n.act?n.actT:n.t)*an.fps);
   const f=n.act&&!an.loop?an.frames[Math.min(an.frames.length-1,k)]:an.frames[k%an.frames.length]; drawFlip(f,n.x,n.y,16,48,n.face<0&&!v);
   const qs=Object.keys(Q).filter(q=>Q[q].giver===n.id), qid=qs.find(k=>G.quests[k]!=='done'&&(!Q[k].after||G.quests[Q[k].after]==='done'))||qs[qs.length-1], st=G.quests[qid];
   if(n.id==='phap'&&!G.flags.hello) marker(n.x,n.y-44,'!'); else if(!st) marker(n.x,n.y-44,'!'); else if(st==='active'&&canFinish(qid)) marker(n.x,n.y-44,'?'); }
