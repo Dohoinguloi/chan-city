@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23u',title:'23/10 (thần thú)',items:['Vẽ lại 6 thần thú cưỡi đẹp hơn: chân 2 khớp gập gối khi chạy, bờm đuôi bay, cánh 2 lớp lông, hổ vằn mới, rồng gai lưng vảy bụng','Thêm 2 bậc thần thú: bậc 7 Thuỷ Quân (bờm mây tím ánh sao, dải lụa trắng), bậc 8 Tinh Vân Thần Điểu (chim thần cánh lửa xanh ngọc lấp lánh sao). Cường hoá ở Người Thuần Thú']},
   {v:'2026-10-23t',title:'23/10 · Tay trái + Kamen Rider + cân bằng set',items:[
     'Ô Tay trái (Thợ Rèn, 10 triệu mỗi món, đã cân bằng): Khiên Hắc Hoàng Đế · Mặt Nạ Quỷ Kotex (cứ 15 giây khát máu: hút máu 40%) · Búa Của Thor (20% giật sét theo % máu quái) · Đại Đao Của Inuyasha (trừ giáp + chí mạng) · Động Cơ Của Elon Musk (tốc đánh, 10% đánh liền 2 đòn) · Đũa Thần Của Howard Le (phép mạnh, giảm kháng phép + hồi máu quái, cứ 5 chiêu khoá chiêu quái 2 giây)',
     'Set legacy đồng giá 8 triệu, cân bằng lại: mỗi set 1 chỉ số chính mạnh hẳn + 2 chỉ số bổ trợ. Set mới Kamen Rider: khi đánh cứ 5 giây biến form (Build, Ex-Aid, Ghost, Gaim, Fourze, OOO), mỗi form 1 chỉ số mạnh, chiêu Rider Kick',

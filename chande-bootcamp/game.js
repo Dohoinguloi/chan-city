@@ -1043,7 +1043,7 @@ const HORSES=[0,1,2,3].map(c=>[0,1,2,3].map(f=>A.horse(f,c,false))), GALLOP=[0,1
 const SADDLED={}; const saddled=(c,f,run)=>{ const k=c+'_'+f+(run?'r':''); return SADDLED[k]||(SADDLED[k]=A.horse(f,c,run,true)); };
 // người ngồi trên ngựa / xe máy: dựng chung 1 lớp (con vật/xe + thân trên cắt ngang hông + chân + tay) quay phải,
 // rồi lật theo hướng và xoay khi bốc đầu. Màu quần/giày lấy từ chính khung nhân vật.
-const COMP=document.createElement('canvas'); COMP.width=80; COMP.height=72; const CG=COMP.getContext('2d'); CG.imageSmoothingEnabled=false;
+const COMP=document.createElement('canvas'); COMP.width=96; COMP.height=84;   /* khung ghép người + xe / ngựa / thần thú (đủ chỗ cho thần thú to + người ngồi cao) */ const CG=COMP.getContext('2d'); CG.imageSmoothingEnabled=false;
 const RCOL=new WeakMap();
 function riderCols(fr){ let c=RCOL.get(fr); if(c) return c; c={pants:'#3a3a48',shoe:'#2a2a2f',shirt:'#c4382e'};
   try{ const d=fr.getContext('2d').getImageData(0,0,32,48).data, at=(x,y)=>{ const i=(y*32+x)*4; return d[i+3]>0?`rgb(${d[i]},${d[i+1]},${d[i+2]})`:null; };
@@ -1051,7 +1051,7 @@ function riderCols(fr){ let c=RCOL.get(fr); if(c) return c; c={pants:'#3a3a48',s
   RCOL.set(fr,c); return c; }
 function line(g,x0,y0,x1,y1,w,col){ g.fillStyle=col; const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0),1); for(let i=0;i<=n;i++){ const x=Math.round(x0+(x1-x0)*i/n), y=Math.round(y0+(y1-y0)*i/n); g.fillRect(x,y,w,w); } }
 // kind 'horse' | 'bike'; o: {spr, coat, model, mode, bob}
-function drawMounted(av,x,y,face,kind,o){ const AX=40, AY=66, g=CG; g.clearRect(0,0,80,72);
+function drawMounted(av,x,y,face,kind,o){ const AX=48, AY=78, g=CG; g.clearRect(0,0,96,84);
   const spr=o.spr; g.drawImage(spr.c,AX-spr.ax,AY-spr.ay);
   const fr=av&&av.anims&&av.anims.idle&&av.anims.idle.frames[0];
   if(fr&&o.mode!=='fallen'){ const M=kind==='horse'?A.horse:kind==='myth'?o.M:o.model==='xedap'?A.bicycle:A.motorbike, sx=AX+M.seat.dx, sy=AY+M.seat.dy-(o.bob||0), col=riderCols(fr);
@@ -1112,7 +1112,7 @@ function drawChar(c,av,x,y,face,view,anim,act,t,actT,fl){ const anims=av.anims;
   if(act&&anims[act==='gong'?'gong':act]){ an=anims[act==='gong'?'gong':act]; k=Math.max(0,Math.floor(actT*an.fps)); fr=an.loop?an.frames[k%an.frames.length]:an.frames[Math.min(an.frames.length-1,k)]; }
   else { an=anims[anim]||anims[anim&&anim.split('_')[0]]||anims.idle; fr=an.frames[Math.floor(t*an.fps)%an.frames.length]; }
   const flip=face<0&&(!!act||view==='side'||!anims[anim]);
-  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4, mi=Math.floor((fl||0)/SD.FL.mount)&7, mk=mi&&SD.HORSE.myth[mi-1]?SD.HORSE.myth[mi-1].k:'', my=mk&&A.mythMount?A.mythMount(mk,f,moving):null;
+  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4, mi=Math.floor((fl||0)/SD.FL.mount)&15, mk=mi&&SD.HORSE.myth[mi-1]?SD.HORSE.myth[mi-1].k:'', my=mk&&A.mythMount?A.mythMount(mk,f,moving):null;
     if(my){ drawMounted(av,x,y,face,'myth',{spr:my,M:A.mythMount.M[mk],bob:0}); return; }   /* thần thú (cường hoá ngựa) */
     drawMounted(av,x,y,face,'horse',{spr:saddled(Math.floor((fl||0)/SD.FL.coat)&3,f,moving),bob:moving&&f%2?1:0}); return; }   // màu ngựa theo loại người cưỡi chọn
   if(fl&(SD.FL.optimus|SD.FL.otruck)){ const tr=!!(fl&SD.FL.otruck), moving=anim.startsWith('run')||anim.startsWith('walk'), v=view==='side'?'side':view==='up'?'up':'down', f=Math.floor(t*(moving?(tr?12:7):1));

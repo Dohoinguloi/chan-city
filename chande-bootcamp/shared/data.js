@@ -1384,7 +1384,9 @@ HORSE.myth=[{k:'thienma',name:'Thiên Mã',desc:'Ngựa trắng cánh lông vũ,
   {k:'bacho',name:'Bạch Hổ',desc:'Hổ trắng vằn đen, mắt xanh băng',price:3500000,jewels:{ngoc_tam_linh:1},speed:1.15},
   {k:'rongxanh',name:'Rồng Xanh',desc:'Rồng xanh lá bụng vàng chanh, sừng ngà, cánh nhỏ',price:5000000,jewels:{ngoc_tam_linh:2},speed:1.2},
   {k:'phuong',name:'Phượng Hoàng',desc:'Chim lửa cánh rực, đuôi lông vũ dài, bay lơ lửng',price:7000000,jewels:{ngoc_hon_nguyen:1},speed:1.25},
-  {k:'haclong',name:'Hắc Long',desc:'Rồng đen cánh dơi, mắt đỏ, vảy ánh tím',price:10000000,jewels:{ngoc_hon_nguyen:2},speed:1.3}];
+  {k:'haclong',name:'Hắc Long',desc:'Rồng đen cánh dơi, mắt đỏ, vảy ánh tím',price:10000000,jewels:{ngoc_hon_nguyen:2},speed:1.3},
+  {k:'thuyquan',name:'Thuỷ Quân',desc:'Thú thần nước xanh băng, bờm mây tím ánh sao, dải lụa trắng bay',price:14000000,jewels:{ngoc_hon_nguyen:3},speed:1.35},
+  {k:'tinhvan',name:'Tinh Vân Thần Điểu',desc:'Chim thần trắng mào vàng, cánh đuôi lửa xanh ngọc lấp lánh sao',price:20000000,jewels:{ngoc_hon_nguyen:4,ngoc_uoc:2},speed:1.4}];   /* bậc 7, 8 */
 HORSE.myth.forEach((m,i)=>{ m.lv=i+1; m.bonus={hp:.03*(i+1),atk:.02*(i+1)}; });
 const mythOf=k=>HORSE.myth.find(m=>m.k===k)||null;
 // số thứ tự thần thú đang chọn (1…6) nếu ngựa đã mua và đã cường hoá tới bậc đó, không thì 0

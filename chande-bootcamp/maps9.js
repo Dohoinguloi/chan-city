@@ -48,7 +48,7 @@ function drawShots(g,now,cam){ for(let i=SHOTS.length-1;i>=0;i--){ const s=SHOTS
 const lookOf=r=>{ if(r._lk9!==r.look){ r._lk9=r.look; try{ r._g9=JSON.parse(r.look); }catch(e){ r._g9=null; } } return r._g9; };
 function gearPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look; if(me&&!P.incar&&!P.moto&&!P.kayak) out.push({x:P.x,y:P.y,face:P.face,view:P.view,lk:me,mv:P.moving,rd:!!P.riding,mi:P.riding?SD.mythIdx(GAME.G):0,atk:P.act==='attack',k:0});
   for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; const lk=lookOf(r), fl=r.fl||0; if(!lk||!(lk.wep||lk.acc&&lk.acc.feet)||fl&SD.FL.moto||fl&SD.FL.kayak) continue;
-    out.push({x:r.x,y:r.y,face:r.face,view:r.view,lk,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!(fl&SD.FL.ride),mi:Math.floor(fl/SD.FL.mount)&7,atk:(r.anim||'').startsWith('attack'),k:r.id}); }
+    out.push({x:r.x,y:r.y,face:r.face,view:r.view,lk,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!(fl&SD.FL.ride),mi:Math.floor(fl/SD.FL.mount)&15,atk:(r.anim||'').startsWith('attack'),k:r.id}); }
   return out; }
 function drawGear(list,ctx,cam,clock){ for(const o of gearPeople()){ const seat=o.rd?(o.mi&&SD.HORSE.myth[o.mi-1]&&A.mythMount?A.mythMount.M[SD.HORSE.myth[o.mi-1].k].seat:{dx:-4,dy:-15}):null,
     X0=Math.round(o.x-cam.x)+(seat?seat.dx*o.face:0), Y0=Math.round(o.y-cam.y)+(seat?seat.dy+7:0), w=o.lk.wep&&M.weapons[o.lk.wep], feet=o.lk.acc&&o.lk.acc.feet;
