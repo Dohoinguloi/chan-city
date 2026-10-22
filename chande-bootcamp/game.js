@@ -134,20 +134,41 @@ function prep(m,kind){ const W=m.W, H=m.H, solid=new Uint8Array(W*H);
   const objs=m.obj.filter(o=>!o.flat&&!o.over).sort((a,b)=>(a.sort??a.y)-(b.sort??b.y)), CS=CHUNK*T, ob=new Map();
   for(const o of objs){ const k=Math.floor(o.x/CS)+'_'+Math.floor(o.y/CS); if(!ob.has(k)) ob.set(k,[]); ob.get(k).push(o); }   // đồ vật chia theo khối để map to chỉ duyệt khối gần
   return {map:m,W,H,solid,ground:makeGround(m,edge),objs,objB:ob,over:m.obj.filter(o=>o.over)}; }
-// nền map vẽ theo khối 32×32 ô khi khối lọt vào màn hình (giữ tối đa ~40 khối): map to cỡ 340×240 ô không tốn RAM, vào map nhanh
-const CHUNK=32;
+// nền map vẽ theo khối 32×32 ô khi khối lọt vào màn hình (giữ tối đa ~40 khối): map to cỡ 340×240 ô không tốn RAM, vào map nhanh.
+// Mỗi khối có 2 bản theo nhịp sóng nước (fr 0/1); khối không có ô nào đổi theo nhịp sóng (không có nước) chỉ giữ 1 bản.
+// Khối kế bên vẽ trước từ từ, mỗi khung hình vài hàng ô (≤ GROUND_MS ms) nên đi sang khối mới không bị khựng, kể cả máy yếu.
+const CHUNK=32, GROUND_MS=2;
 function makeGround(m,edge){ const W=m.W, H=m.H, CS=CHUNK*T, NI=Math.ceil(W/CHUNK), NJ=Math.ceil(H/CHUNK), cache=new Map(), flats=m.obj.filter(o=>o.flat);
   const nb=(x,y)=>(dx,dy)=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<H&&xx>=0&&xx<W?m.grid[yy][xx]:edge; };
-  const chunk=(i,j,fr)=>{ const key=i+'_'+j+'_'+fr; let c=cache.get(key); if(c){ cache.delete(key); cache.set(key,c); return c; }
-    c=A.cv(CS,CS); const g=c.getContext('2d'); g.translate(-i*CS,-j*CS);
-    for(let y=j*CHUNK;y<Math.min(H,(j+1)*CHUNK);y++) for(let x=i*CHUNK;x<Math.min(W,(i+1)*CHUNK);x++) A.drawTile(g,m.grid[y][x],x,y,nb(x,y),fr);
-    for(const o of flats){ const x0=o.x-o.spr.ax, y0=o.y-o.spr.ay; if(x0>=(i+1)*CS||y0>=(j+1)*CS||x0+o.spr.c.width<=i*CS||y0+o.spr.c.height<=j*CS) continue; g.drawImage(o.spr.c,x0,y0); }
-    cache.set(key,c); while(cache.size>40) cache.delete(cache.keys().next().value); return c; };
+  // ô có đổi theo nhịp sóng không: vẽ thử 2 nhịp lên canvas 1 ô rồi so, nhớ theo loại ô + 4 ô hàng xóm
+  const one=A.cv(T,T), og=one.getContext('2d'), sigAnim=new Map(), chunkAnim=new Map();
+  const tileAnim=(x,y)=>{ const t=m.grid[y][x], n=nb(x,y), sig=t+n(0,-1)+n(1,0)+n(0,1)+n(-1,0); let v=sigAnim.get(sig); if(v!==undefined) return v;
+    const shot=fr=>{ og.setTransform(1,0,0,1,0,0); og.clearRect(0,0,T,T); og.setTransform(1,0,0,1,-x*T,-y*T); A.drawTile(og,t,x,y,n,fr); return new Uint32Array(og.getImageData(0,0,T,T).data.buffer); };
+    const a=shot(0), b=shot(1); v=a.some((p,k)=>p!==b[k]); sigAnim.set(sig,v); return v; };
+  const anim=(i,j)=>{ const ij=i+'_'+j; let v=chunkAnim.get(ij); if(v!==undefined) return v; v=false;
+    for(let y=j*CHUNK;y<Math.min(H,(j+1)*CHUNK)&&!v;y++) for(let x=i*CHUNK;x<Math.min(W,(i+1)*CHUNK);x++) if(tileAnim(x,y)){ v=true; break; }
+    chunkAnim.set(ij,v); return v; };
+  const keyOf=(i,j,fr)=>i+'_'+j+'_'+(anim(i,j)?fr:0);
+  const put=(key,c)=>{ cache.set(key,c); while(cache.size>40) cache.delete(cache.keys().next().value); };
+  let job=null;
+  const begin=(i,j,fr)=>{ if(!anim(i,j)) fr=0; const c=A.cv(CS,CS), g=c.getContext('2d'); g.translate(-i*CS,-j*CS); return {i,j,fr,c,g,y:j*CHUNK,key:i+'_'+j+'_'+fr}; };
+  // vẽ tiếp các hàng ô còn lại của khối; until>0 thì quá giờ là dừng (trả null), khung hình sau vẽ tiếp. Xong thì trả ảnh khối
+  const work=(b,until)=>{ const {i,j,fr,g}=b, y1=Math.min(H,(j+1)*CHUNK), x0=i*CHUNK, x1=Math.min(W,(i+1)*CHUNK);
+    while(b.y<y1){ const y=b.y++; for(let x=x0;x<x1;x++) A.drawTile(g,m.grid[y][x],x,y,nb(x,y),fr); if(until&&b.y<y1&&performance.now()>until) return null; }
+    for(const o of flats){ const ox=o.x-o.spr.ax, oy=o.y-o.spr.ay; if(ox>=(i+1)*CS||oy>=(j+1)*CS||ox+o.spr.c.width<=i*CS||oy+o.spr.c.height<=j*CS) continue; g.drawImage(o.spr.c,ox,oy); }
+    if(job===b) job=null; put(b.key,b.c); return b.c; };
+  const chunk=(i,j,fr)=>{ const key=keyOf(i,j,fr); let c=cache.get(key); if(c){ cache.delete(key); cache.set(key,c); return c; }
+    return work(job&&job.key===key?job:begin(i,j,fr),0); };
   const range=(cx,cy,vw,vh,pad=0)=>[Math.max(0,Math.floor(cx/CS)-pad),Math.min(NI-1,Math.floor((cx+vw)/CS)+pad),Math.max(0,Math.floor(cy/CS)-pad),Math.min(NJ-1,Math.floor((cy+vh)/CS)+pad)];
+  // việc vẽ trước tiếp theo: khối đang thấy thiếu bản nhịp sóng kia trước, rồi tới các khối kế bên
+  const nextJob=(cx,cy,vw,vh,fr)=>{ const [i0,i1,j0,j1]=range(cx,cy,vw,vh), [a0,a1,b0,b1]=range(cx,cy,vw,vh,1);
+    for(let j=j0;j<=j1;j++) for(let i=i0;i<=i1;i++) if(!cache.has(keyOf(i,j,1-fr))) return begin(i,j,1-fr);
+    for(const f of [fr,1-fr]) for(let j=b0;j<=b1;j++) for(let i=a0;i<=a1;i++) if(!cache.has(keyOf(i,j,f))) return begin(i,j,f);
+    return null; };
   return {chunk,range,
     draw(ctx,cx,cy,vw,vh,fr){ const [i0,i1,j0,j1]=range(cx,cy,vw,vh); for(let j=j0;j<=j1;j++) for(let i=i0;i<=i1;i++) ctx.drawImage(chunk(i,j,fr),i*CS-cx,j*CS-cy);
-      // vẽ trước 1 khối kế bên mỗi khung hình cho khỏi giật khi đi sang khối mới
-      const [a0,a1,b0,b1]=range(cx,cy,vw,vh,1); for(let j=b0;j<=b1;j++) for(let i=a0;i<=a1;i++) if(!cache.has(i+'_'+j+'_'+fr)){ chunk(i,j,fr); return; } }}; }
+      const [a0,a1,b0,b1]=range(cx,cy,vw,vh,1); if(job&&(job.i<a0||job.i>a1||job.j<b0||job.j>b1||cache.has(keyOf(job.i,job.j,job.fr)))) job=null;   // đi xa / dịch chuyển: bỏ khối đang vẽ dở
+      const until=performance.now()+GROUND_MS; while(performance.now()<until){ job=job||nextJob(cx,cy,vw,vh,fr); if(!job||!work(job,until)) break; } }}; }
 function sceneData(kind,room){ const key=kind==='stay'?'stay:'+room:kind; return MAPS[key]||(MAPS[key]=prep(buildMap(kind,room),kind)); }
 function officeOpen(){ const t=vn(), wd=!SD.isWeekend(t.day); if(wd&&t.hf>=SD.JOB.hours[0]&&t.hf<SD.JOB.hours[1]) return true;
   const j=G&&G.extra&&G.extra.job; return !!(j&&j.hired&&j.today&&j.today.ot&&!j.today.otDone&&t.hf>=SD.JOB.ot.from&&t.hf<SD.JOB.ot.to); }
@@ -239,6 +260,10 @@ function toast(html,kind=''){ const d=document.createElement('div'); d.className
   while($('#toasts').children.length>6) $('#toasts').firstChild.remove(); }
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function banner(text){ const b=$('#banner'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
+// banner sự kiện (server gửi khi vào game trong ngày sự kiện, kèm quà nếu vừa nhận): tự ẩn sau 12 giây, bấm ✕ để tắt
+NET.listen('evbanner',m=>{ const b=$('#evBanner'); b.querySelector('b').textContent=m.title; b.querySelector('span').textContent=m.sub+(m.gift?` · bạn vừa nhận ${fmt(m.gift)}`:'');
+  b.hidden=false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); clearTimeout(b._t); b._t=setTimeout(()=>{ b.hidden=true; },12000); if(m.gift) sfx('coin',.6); });
+document.addEventListener('click',e=>{ if(e.target.closest('#evBanner button')) $('#evBanner').hidden=true; });
 function bigText(text){ const b=$('#bigtext'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
 // gửi lệnh lên server, báo lỗi nếu có
 async function act(msg,okMsg){ const r=await NET.req(msg); if(r.err){ const learn=/Chưa học /.test(r.err)&&!/HLV/.test(r.err);   // thiếu kỹ năng: kèm nút tự về phòng mở laptop học
@@ -1393,6 +1418,8 @@ function drawOverlay(){ ug.setTransform(DPR,0,0,DPR,0,0); ug.clearRect(0,0,inner
 function wrap(s,n){ const w=String(s).split(' '), out=[]; let cur=''; for(const x of w){ if((cur+' '+x).trim().length>n&&cur){ out.push(cur); cur=x; } else cur=(cur+' '+x).trim(); } if(cur) out.push(cur); return out.slice(0,4); }
 
 /* ---------- HUD ---------- */
+// HUD vẽ lại mỗi giây: chỉ gán innerHTML khi nội dung đổi. Gán lại y nguyên vẫn bắt trình duyệt dựng lại DOM, giải mã lại icon túi đồ (giật ~15ms mỗi giây)
+const hudEl=sel=>{ const el=$(sel); return {set innerHTML(h){ if(el.__h!==h){ el.__h=h; el.innerHTML=h; } }}; };
 function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   $('#hudDay').textContent=d; $('#hudTime').textContent=`${String(t.h).padStart(2,'0')}:${String(t.m).padStart(2,'0')}`;
   if(window.AMB&&AMB.W&&S){ const w=AMB.W, el=$('#hudWx'); if(el.textContent!==w.icon) el.textContent=w.icon; el.title=w.name+(S.map.indoor?' (ngoài trời)':''); }
@@ -1402,12 +1429,12 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   needsCheck(G.needs);
   const n=G.needs; for(const [k,id] of [['energy','#barEnergy'],['clean','#barClean'],['battery','#barBattery']]){ const v=Math.round(n[k]); $(id).style.width=v+'%'; $(id).classList.toggle('low',v<20); $(id+'T').textContent=v; }
   if(TOUCH){ let low=false; for(const [k,id] of [['energy','#mbE'],['clean','#mbC'],['battery','#mbB']]){ const v=Math.round(n[k]); $(id).style.height=Math.max(6,v)+'%'; $(id).classList.toggle('low',v<20); if(v<20) low=true; } $('#mLv').textContent='Cấp '+G.level; $('#mStat').classList.toggle('warn',low); }
-  const ms=SD.mealStatus(G.meals,NET.now()); $('#hudMeals').innerHTML=ms.map(m=>`<span class="meal ${m.st}" title="${m.name} ${m.from}:00–${m.to}:00">${m.name.replace('Bữa ','')}</span>`).join('');
+  const ms=SD.mealStatus(G.meals,NET.now()); hudEl('#hudMeals').innerHTML=ms.map(m=>`<span class="meal ${m.st}" title="${m.name} ${m.from}:00–${m.to}:00">${m.name.replace('Bữa ','')}</span>`).join('');
   const h=SD.hunger(G.meals,NET.now()), bf=[]; if(h) bf.push(`<span class="bad">Đói: -${Math.round((1-SD.RULES.hungrySpeed[h])*100)}% tốc độ, -${Math.round((1-SD.RULES.hungryExp[h])*100)}% EXP</span>`);
   if(n.energy<20) bf.push('<span class="bad">Mệt: chậm hơn</span>'); if(n.clean<20) bf.push('<span class="bad">Bẩn: -15% EXP</span>');
   for(const b of [G.buff,G.rbuff,G.lbuff,G.mbuff,G.sbuff]) if(b&&b.until>NET.now()) bf.push(`<span class="good">+${Math.round((b.mul-1)*100)}% EXP · ${Math.ceil((b.until-NET.now())/60000)}'</span>`);
   if(G.data&&G.data.until>NET.now()) bf.push('<span class="good">📶 4G: pin hao chậm</span>');
-  $('#hudBuffs').innerHTML=bf.join('');
+  hudEl('#hudBuffs').innerHTML=bf.join('');
   // việc cần làm
   const li=[]; const job=G.extra&&G.extra.job;
   if(S&&S.kind==='room'&&!G.flags.called) li.push(`<li><b>Ở nhà</b><span>${ringTimer>0?'Ngủ thêm tí...':'Nghe điện thoại trên bàn'}</span></li>`);
@@ -1436,11 +1463,11 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
     add(a.k+(!t?':h':now<t?':g':':r')+(ke?'k':'d'),t||0,A.name,`<li class="frow ${t&&now>=t?'ready':''}" ${go(ke?'retreat':'dalat',pen.x,pen.y+(ke?3:1),A.name)}><b>${A.name}@@</b>${!t?bar(0,'#ff6a55')+'<span>đói</span>':now<t?bar(1-(t-now)/(A.cycle*1000),'#7fe0ff')+`<span>${mm(t-now)}</span>`:bar(1,'#ffd84a')+'<span>thu</span>'}</li>`); }
   for(const e of grp.values()) fl.push([e.t,e.html.replace('@@',e.n>1?` ×${e.n}`:'')]);
   const farm=fl.length?`<h4 class="fhead"><span>Vườn & chuồng <small>${fl.length}</small></span><button id="fOpen" type="button" aria-label="Mở bảng vườn và chuồng">F</button></h4><ul class="flist">${fl.sort((a,b)=>a[0]-b[0]).slice(0,8).map(x=>x[1]).join('')}</ul>`:'';
-  $('#hudQuests').innerHTML=`<h4><span>Việc cần làm <small>xong ${done}/${Object.keys(Q).length}</small></span><span class="qbtns"><button id="qAuto" class="${window.AUTOQ&&AUTOQ.on?'on':''}" type="button" title="Tự động làm nhiệm vụ">🤖 Auto</button><button id="qToggle" type="button" aria-label="Thu gọn bảng việc">${document.body.classList.contains('qmin')?'▸':'▾'}</button></span></h4><ul>${li.join('')}</ul>${farm}`;
-  const inv=Object.entries(G.items); $('#hudItems').innerHTML=[...Array(8)].map((_,i)=>{ const it=inv[i]; if(!it) return '<div class="slot"></div>';
+  hudEl('#hudQuests').innerHTML=`<h4><span>Việc cần làm <small>xong ${done}/${Object.keys(Q).length}</small></span><span class="qbtns"><button id="qAuto" class="${window.AUTOQ&&AUTOQ.on?'on':''}" type="button" title="Tự động làm nhiệm vụ">🤖 Auto</button><button id="qToggle" type="button" aria-label="Thu gọn bảng việc">${document.body.classList.contains('qmin')?'▸':'▾'}</button></span></h4><ul>${li.join('')}</ul>${farm}`;
+  const inv=Object.entries(G.items); hudEl('#hudItems').innerHTML=[...Array(8)].map((_,i)=>{ const it=inv[i]; if(!it) return '<div class="slot"></div>';
     return `<div class="slot" title="${SD.ITEMS[it[0]]?SD.ITEMS[it[0]].name:it[0]}"><img src="${icon64(it[0])}" alt="">${it[1]>1?`<i>${it[1]}</i>`:''}</div>`; }).join('')+`<button class="slot more" id="btnBag" title="Túi đồ (I)">I<br>túi</button>`;
   const hot=Object.entries(SD.SKILLS).filter(([k,s])=>G.skills[k]&&s.key!=='E'&&s.key!=='-'), learned=Object.entries(SD.SKILLS).filter(([k,s])=>G.skills[k]&&(s.key==='E'||s.key==='-'));
-  $('#hudSkills').innerHTML=hot.map(([k,s])=>`<div class="sk" title="${s.name}: ${s.desc}"><kbd>${s.key}</kbd><span>${s.name}</span></div>`).join('');   // kỹ năng học được (dùng E) xem trong menu Esc / túi đồ
+  hudEl('#hudSkills').innerHTML=hot.map(([k,s])=>`<div class="sk" title="${s.name}: ${s.desc}"><kbd>${s.key}</kbd><span>${s.name}</span></div>`).join('');   // kỹ năng học được (dùng E) xem trong menu Esc / túi đồ
   $('#hudOnline').textContent=REM.size?`${REM.size} người quanh đây`:'';
   $('#btnHome').hidden=!(G.stay&&G.stay.paid===t.day)||(S&&S.kind==='stay'&&S.own); }
 const ICO={}; function icon64(k){ return ICO[k]||(ICO[k]=A.icon(SD.ITEMS[k]?SD.ITEMS[k].icon:k,3).toDataURL()); }

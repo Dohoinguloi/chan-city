@@ -26,7 +26,7 @@ let lootT=0; NET.listen('muloot',m=>{ let el=$('#muLoot'); if(!el){ el=document.
     ${m.cos?row('👘',`Trang phục <b>${esc(SD.CLOTHES[m.cos].name)}</b> (mở Tủ đồ U để mặc)`):''}${m.sec?row('🔍',`Mở nhiệm vụ ẩn <b>${esc(SD.QUESTS[m.sec].title.replace('🔍 ',''))}</b>`):''}</div>`;
   el.hidden=false; GAME.sfx('level_up',.6); clearTimeout(lootT); lootT=setTimeout(()=>{ el.hidden=true; },10000); });
 NET.listen('muduel',m=>{ GAME.sfx('blip',.6); GAME.ask(`⚔ ${esc(m.name)} (${esc(M.cls[m.cls].name)} Lv${m.lv}) thách đấu bạn!`,'mu_guard',['Nhận lời','Từ chối'],async i=>{ if(i!==0) return; const r=await GAME.act({t:'mu',op:'accept',pid:m.from}); if(r&&!r.err) GAME.bigText('THÁCH ĐẤU!'); }); });
-async function skill(i){ if(!here()||!ME||!ME.cls) return; if(!skillsOf()[i]) return; const r=await NET.req({t:'mu',op:'skill',i}); if(r.err){ toast(esc(r.err),'lock'); return; } if(r.me){ ME=r.me; MET=performance.now(); hud(); } }
+async function skill(i){ if(!here()||!ME||!ME.cls) return; if(!skillsOf()[i]) return; const r=await NET.req({t:'mu',op:'skill',i}); if(r.err){ toast(esc(r.err),'lock'); return; } if(r.msg) toast(esc(r.msg),'quest'); if(r.me){ ME=r.me; MET=performance.now(); hud(); } }
 addEventListener('keydown',e=>{ if(!here()) return; const a=document.activeElement; if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')) return; if(UI.isOpen&&UI.isOpen()) return; const i=['1','2','3','4','5'].indexOf(e.key); if(i>=0){ e.preventDefault(); skill(i); } });
 
 /* ======================= hệ hạt + chuỗi hoạt ảnh ======================= */
@@ -419,9 +419,11 @@ UI.onAct('musmithbuy',async d=>{ const r=await GAME.act({t:'mu',op:'smithbuy',k:
 // Người Thuần Thú: cường hoá ngựa đã mua lần lượt 6 bậc thần thú, cưỡi con nào cũng được trong số đã mở
 const mountImg=k=>cached('mimg'+k+(k?'':(G().horseCoat||0)),()=>{ const s=k?A.mythMount(k,0,false):A.horse(0,G().horseCoat||0,false,true), c=A.cv(128,104), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
   g.drawImage(s.c,64-s.ax*2,100-s.ay*2,s.c.width*2,s.c.height*2); return c.toDataURL(); });
-UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Cường hoá ngựa',()=>{ const g=G(), h=g.horse||{}, lv=h.myth||0, cur=(g.look&&g.look.mount)||'', it=g.items||{};
+UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Mua ngựa & cường hoá',()=>{ const g=G(), h=g.horse||{}, lv=h.myth||0, cur=(g.look&&g.look.mount)||'', it=g.items||{}, rent=h.until>NET.now()?Math.ceil((h.until-NET.now())/60000):0;
   return `<p>"Mang ngựa đã mua tới đây, ta cường hoá thành thần thú! Mỗi bậc chạy nhanh hơn, cộng máu + công MU. Đã mở bậc nào thì cưỡi con nào cũng được, ai cũng thấy."</p>
-  ${h.own?`<p class="muted">Ngựa của bạn: <b>bậc ${lv}/${SD.HORSE.myth.length}</b> · bấm H để lên ngựa</p>`:'<p class="bad">Chưa có ngựa riêng: mua ngựa ở trại anh Phong (Đà Lạt) hoặc chú Hải (thị trấn Đà Bắc) trước (ngựa thuê không cường hoá được).</p>'}
+  ${h.own?`<p class="muted">Ngựa của bạn: <b>bậc ${lv}/${SD.HORSE.myth.length}</b> · bấm H để lên ngựa</p>`:`<p class="bad">Chưa có ngựa riêng: mua ngựa ở đây để cưỡi và cường hoá (ngựa thuê chỉ cưỡi được, không cường hoá được).</p>
+    ${g.skills.cuoingua?'':'<p class="bad">Cần học Cưỡi ngựa trước (laptop ở phòng)</p>'}${rent?`<p class="muted">Đang thuê ngựa, còn ${rent} phút · bấm H để lên ngựa</p>`:''}
+    <div class="col">${btn('horse','Mua ngựa · '+SD.fmt(SD.HORSE.buy),{op:'buy'},'pri')}${btn('horse','Thuê 1 giờ · '+SD.fmt(SD.HORSE.rent),{op:'rent'})}</div>`}
   <div class="mulg">${[{k:'',name:'Ngựa thường',desc:'Ngựa mua ở trại',lv:0}].concat(SD.HORSE.myth).map(m=>{ const open=m.lv<=lv, next=m.lv===lv+1, need=Object.entries(m.jewels||{}).map(([k,n])=>`${n} ${SD.ITEMS[k].name} (có ${it[k]||0})`).join(', ');
     return `<div class="mulgc ${m.lv>=5?'wr5':m.lv>=3?'wr4':m.lv?'wr3':''}"><img src="${mountImg(m.k)}" width="128" height="104" alt=""><b>${esc(m.name)}</b>${m.lv?`<small class="star">${'★'.repeat(m.lv)} Bậc ${m.lv}</small>`:''}<small>${esc(m.desc)}</small>
       ${m.lv?`<small class="good">Tốc độ +${Math.round((m.speed-1)*100)}% · Máu +${Math.round(m.bonus.hp*100)}% · Công +${Math.round(m.bonus.atk*100)}%</small>`:''}

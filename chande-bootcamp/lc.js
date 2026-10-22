@@ -69,9 +69,9 @@ const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); const S=GAME.S, P=GAME.P; if
     for(const w of wildNow()){ const x=w.x*T, y=w.y*T; if(!inV(x,y)) continue; const fr=Math.floor(clock*2+w.i)%2, sp=A.linhcat(w.sp,fr,Math.sin(clock*.5+w.i)>0);
       list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }
     if(S.kind==='retreat') L.farm.forEach((f,i)=>{ const [fx,fy]=farmPos(f,i,clock), x=fx*T, y=fy*T; if(!inV(x,y)) return; const sp=A.linhcat(f[2],Math.floor(clock*2+i)%2,Math.cos(clock*.4+i*2)>0); list.push({y,d:()=>{ GAME.shadow(x,y,9); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }); }
-  // con đầu đội đi theo người (không theo khi đang đi xe / chèo kayak)
-  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.riding||P.opt||['phongbay','track','deo'].includes(S.kind)){ FOL=null; return; }   // đang cưỡi / đi xe / đua ngựa / bốc đầu ở đèo thì không đi theo
-  const tx=P.x-(P.face||1)*20, ty=P.y+3; if(!FOL||FOL.sp!==lead.sp||FOL.scene!==S.kind||Math.hypot(FOL.x-tx,FOL.y-ty)>200) FOL={sp:lead.sp,x:tx,y:ty,scene:S.kind,face:1};
+  // con đầu đội đi theo người, cả khi cưỡi ngựa / thần thú (chạy sau đuôi ngựa); không theo khi đi xe / chèo kayak / đua ngựa / bốc đầu ở đèo
+  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.opt||['phongbay','track','deo'].includes(S.kind)){ FOL=null; return; }
+  const tx=P.x-(P.face||1)*(P.riding?34:20), ty=P.y+3; if(!FOL||FOL.sp!==lead.sp||FOL.scene!==S.kind||Math.hypot(FOL.x-tx,FOL.y-ty)>200) FOL={sp:lead.sp,x:tx,y:ty,scene:S.kind,face:1};
   const dx=tx-FOL.x, dy=ty-FOL.y, dd=Math.hypot(dx,dy); if(dd>4){ const k=Math.min(1,dt*5); FOL.x+=dx*k; FOL.y+=dy*k; if(Math.abs(dx)>1) FOL.face=dx>0?1:-1; }
   const moving=dd>6, fr=Math.floor(clock*(moving?6:2))%2, sp=A.linhcat(FOL.sp,fr,FOL.face>0), fx=FOL.x, fy=FOL.y;
   list.push({y:fy,d:()=>{ GAME.shadow(fx,fy,7); ctx.drawImage(sp.c,Math.round(fx-sp.ax-cam.x),Math.round(fy-sp.ay-cam.y-(moving&&fr?1:0))); }}); };

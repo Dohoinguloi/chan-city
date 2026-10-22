@@ -150,12 +150,12 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
 const hasHorse=pl=>{ const h=pl.prof.horse; return h&&(h.own||h.until>now()); };
 const inPasture=pl=>{ const z=S.DALAT.pasture, x=pl.x/T, y=pl.y/T; return pl.scene==='dalat'&&x>=z.x0&&x<=z.x1+1&&y>=z.y0&&y<=z.y1+1; };
 on('horse',(pl,m)=>{ const p=pl.prof, t=now();
-  if(m.op==='rent'||m.op==='buy'){ if(!P.nearNpc(pl,'anhphong')&&!P.nearNpc(pl,'chuongngua')) return {err:'Gặp anh Phong (Đà Lạt) hoặc chú Hải (trại ngựa thị trấn Đà Bắc)'}; if(!p.skills.cuoingua) return {err:'Chưa học Cưỡi ngựa (học online ở phòng)'};
+  if(m.op==='rent'||m.op==='buy'){ if(!P.nearNpc(pl,'anhphong')&&!P.nearNpc(pl,'chuongngua')&&!P.nearNpc(pl,'mu_tamer')) return {err:'Gặp anh Phong (Đà Lạt), chú Hải (trại ngựa thị trấn Đà Bắc) hoặc Người Thuần Thú (MU)'}; if(!p.skills.cuoingua) return {err:'Chưa học Cưỡi ngựa (học online ở phòng)'};
     if(m.op==='buy'){ if(p.horse&&p.horse.own) return {err:'Bạn có ngựa rồi'}; if(!take(pl,S.HORSE.buy)) return {err:`Ngựa giá ${fmt(S.HORSE.buy)}`}; p.horse={own:true,until:0}; }
     else { if(!take(pl,S.HORSE.rent)) return {err:`Thuê ngựa ${fmt(S.HORSE.rent)}/giờ`}; p.horse={own:!!(p.horse&&p.horse.own),until:Math.max(t,p.horse&&p.horse.until||0)+S.HORSE.rentMin*60e3}; }
     markDirty(pl); return {horse:p.horse}; }
   if(m.op==='coat'){ const c=m.c|0; if(c<0||c>=S.HORSE.coats.length) return {err:'?'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại ngựa'}; p.horseCoat=c; markDirty(pl); return {coat:c}; }   // chọn loại ngựa
-  if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat'&&pl.scene!=='mu') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt, MU Online)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong'};
+  if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat'&&pl.scene!=='mu') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt, MU Online)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong, chú Hải hoặc Người Thuần Thú (MU)'};
     if(pl.kayak||pl.fishing) return {err:'Đang bận'}; pl.riding=true; return {}; }
   if(m.op==='dismount'){ pl.riding=false; return {}; }
   // cường hoá ngựa lên bậc thần thú kế tiếp (chỉ ngựa đã mua), chọn con đang cưỡi trong số đã mở ('' = ngựa thường)

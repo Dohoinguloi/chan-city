@@ -160,6 +160,10 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
       if(sk.buff==='def') s.buff.def=t+sk.dur*1000; const tgs=sk.team?inScene().filter(q=>q.mus&&q.mus.dead<=t&&(q===pl||(!pl.muDuel&&dist(q,pl.x/T,pl.y/T)<=sk.team))):[pl];
       for(const q of tgs){ const qs=st(q); if(!qs) continue; const n=Math.round(qs.max*sk.heal); qs.hp=Math.min(qs.max,qs.hp+n); healed.push(q.pid); if(q!==pl) push(q); }
       const lg=lgOf(p); bcast({t:'mufx',k:sk.k,from:pl.pid,heal:healed,lg:lg&&M.legacy[lg].fx}); push(pl); return {me:view(pl)}; }
+    // chiêu Gọi Min (set 16Typh): chưa có boss / boss ngoài tầm vẫn gọi được, Min tự hát đánh boss trong 9 ô quanh chủ
+    const near0=!pl.muDuel&&[...LIVE.values()].find(B=>Math.hypot(pl.x/T-B.x,pl.y/T-B.y)<=sk.range+radius(BS[B.id]));
+    if(sk.summon&&!pl.muDuel&&!near0){ s.mp-=sk.mp; s.cd[sk.k]=t+sk.cd*1000; W.setAct(pl,'attack',.35); pl.muMin={until:t+sk.summon*1000,next:t+700};
+      bcast({t:'mufx',k:'minup',from:pl.pid,until:pl.muMin.until}); push(pl); return {me:view(pl),msg:`Min ra rồi! Min hát đánh boss trong 9 ô quanh bạn (${sk.summon} giây)`}; }
     // chiêu đánh: thách đấu thì đánh đối thủ, không thì đánh boss gần nhất trong tầm
     const opp=pl.muDuel&&players.get(pl.muDuel.other); let tx,ty,tdef,onHit,rad=0;
     if(opp&&inMu(opp)){ const os=st(opp); tx=opp.x/T; ty=opp.y/T; tdef=os.def; onHit=d=>{ os.hp-=d; if(os.hp<=0){ os.hp=0; duelEnd(pl,opp); } else push(opp); return opp.pid; }; }

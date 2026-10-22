@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23b',title:'23/10 · Ngày Mèn Mén Thế Giới 🎉',items:['Chào mừng Ngày Mèn Mén Thế Giới: toàn dân Chan City mỗi người được tặng 2.000.000đ (vào game là nhận, tới hết 30/10)','Set 16Typh: chiêu 5 gọi Min ra được cả khi chưa có boss, Min tự hát đánh boss trong 9 ô','Lính Cát đi theo cả khi cưỡi ngựa / thần thú','MU: mua / thuê ngựa ngay ở Người Thuần Thú','Game mượt hơn: hết giật mỗi giây, đi sang khu mới của map không bị khựng, vào lại game tải nhanh hơn (trình duyệt giữ sẵn file game)']},
   {v:'2026-10-23a',title:'23/10',items:['Sạc ké (🔌 Xin sạc nhờ) mạnh hơn: +80% pin, sạc đầy được 100%, pin dưới 80% là xin được, 6 lần/ngày','Màn tạo nhân vật có nút Quay lại màn đăng nhập. Gõ nhầm tên đăng nhập (vào phải tài khoản mới) thì game báo để quay lại đăng nhập đúng tên']},
   {v:'2026-10-22i',title:'22/10 (sửa lỗi)',items:['Server gửi dữ liệu game dạng nén + dùng lại file đã tải: vào game nhanh hơn nhiều, bớt lỗi "Server không phản hồi" khi mạng chậm','Quà admin: Leno và Ben Jr mỗi người +10.000.000đ']},
   {v:'2026-10-22h',title:'22/10 (bổ sung)',items:['Cường hoá ngựa thành thần thú ở Người Thuần Thú (MU) hoặc trại ngựa: Thiên Mã, Kỳ Lân, Bạch Hổ, Rồng Xanh, Phượng Hoàng, Hắc Long. Mỗi bậc chạy nhanh hơn + tăng máu, công MU','MU: thanh máu boss chuyển xuống góc dưới trái, ngay trên khung chiêu']},

@@ -4,7 +4,7 @@
 const http=require('http'), fs=require('fs'), path=require('path'), zlib=require('zlib');
 const {WebSocketServer}=require('ws');
 const C=require('./core');
-require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu');
+require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu'); require('./event');
 const {verifyGoogle}=require('./auth');
 const {S,db,players,byUid,handlers,hooks,send,now,today,moveTo,markDirty,save,publicProfile}=C;
 const {clean}=require('./world');
@@ -63,22 +63,26 @@ async function api(req,res,url){
   if(url.pathname==='/api/logout'){ if(typeof b.token==='string') db.endSession(b.token); return json(res,200,{}); }
   json(res,404,{err:'?'});
 }
+// đường dẫn URL → file trong 2 thư mục công khai (null nếu ra ngoài); game chạy thẳng ở "/" nên file game tìm trong chande-bootcamp
+function fileFor(p){ if(p.endsWith('/')) p+='index.html'; const top=p.split('/')[1], file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)), rel=path.relative(ROOT,file);
+  return rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])?null:file; }
+const verTag=st=>st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36);
 function serveStatic(req,res,url){
   let p; try{ p=decodeURIComponent(url.pathname); }catch(e){ res.writeHead(400); return res.end(); }
   // link gọn: game chạy thẳng ở "/", link cũ /chande-bootcamp/... chuyển về (giữ query); file game tìm trong chande-bootcamp trước
   if(p==='/chande-bootcamp'||p.startsWith('/chande-bootcamp/')){ res.writeHead(301,{Location:(p.slice(16)||'/')+(url.search||'')}); return res.end(); }
-  if(p.endsWith('/')) p+='index.html';
-  const top=p.split('/')[1]; let file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)); const rel=path.relative(ROOT,file);
-  if(rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])){ res.writeHead(404); return res.end('Không tìm thấy'); }
+  const file=fileFor(p); if(!file){ res.writeHead(404); return res.end('Không tìm thấy'); } const rel=path.relative(ROOT,file);
   fs.stat(file,(e,st)=>{ if(e||!st.isFile()){ res.writeHead(404); return res.end('Không tìm thấy'); }
     const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json','.css'].includes(ext);
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
       const host=String(req.headers['x-forwarded-host']||req.headers.host||'localhost'), proto=String(req.headers['x-forwarded-proto']||(/^(localhost|127\.|\[::1\])/.test(host)?'http':'https')).split(',')[0];
-      const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
+      // script / css gắn mã phiên bản của file (?h=): trình duyệt giữ luôn, không hỏi lại server; file sửa thì mã đổi, tự tải bản mới
+      const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host).replace(/(<script src="|<link rel="stylesheet" href=")([^"?#:]+)(?:\?v=\d+)?"/g,(m0,a,src)=>{
+        const f=fileFor(new URL(src,'http://x/').pathname); let fs0; try{ fs0=f&&fs.statSync(f); }catch(e){ fs0=null; } return fs0?`${a}${src}?h=${verTag(fs0)}"`:m0; }));
       const body=wantGz(req)?zlib.gzipSync(html):html, enc=body===html?{}:{'Content-Encoding':'gzip'};
       res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
-    const tag='"'+st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36)+'"';
-    const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
+    const tag='"'+verTag(st)+'"', pinned=url.searchParams.get('h')===verTag(st);
+    const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':pinned?'public, max-age=31536000, immutable':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
     if(String(req.headers['if-none-match']||'').split(',').some(t=>t.trim().replace(/^W\//,'')===tag)){ res.writeHead(304,head); return res.end(); }
     if(ZIP.has(ext)&&wantGz(req)){ let z; try{ z=gzFile(file,st); }catch(e){ res.writeHead(500); return res.end(); }
       res.writeHead(200,{...head,'Content-Encoding':'gzip','Content-Length':z.length}); return res.end(req.method==='HEAD'?undefined:z); }

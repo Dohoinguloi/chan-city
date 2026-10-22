@@ -250,6 +250,12 @@ body:not(.skills) #hudSkills{display:none}
 #prompt{position:fixed;left:50%;bottom:142px;transform:translateX(-50%);padding:4px 12px;font-size:21px;pointer-events:auto;cursor:pointer} #prompt:hover{border-color:var(--gold)}
 #banner{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);padding:4px 18px;font-size:24px;color:var(--gold);transition:transform .35s;z-index:3}
 #banner.show{animation:ban 3s forwards}
+/* banner sự kiện (Ngày Mèn Mén Thế Giới...): thẻ lớn giữa trên, tự ẩn sau 12 giây */
+#evBanner{position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:40;display:grid;gap:4px;justify-items:center;width:max-content;max-width:calc(100vw - 32px);padding:12px 44px 12px 28px;text-align:center;
+  background:linear-gradient(#4a1d5a,#24122e);border:3px solid var(--gold);box-shadow:0 0 0 3px var(--ink),0 8px 30px rgba(255,216,74,.35)}
+#evBanner b{font-weight:400;font-size:clamp(22px,3vw,34px);line-height:1.05;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #evBanner span{font-size:20px;color:var(--cream)}
+#evBanner button{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--gold);font:inherit;font-size:20px;cursor:pointer}
+#evBanner.in{animation:evb .5s ease-out} @keyframes evb{from{transform:translate(-50%,-30px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 @keyframes ban{0%{transform:translate(-50%,-140%)}12%,80%{transform:translate(-50%,0)}100%{transform:translate(-50%,-140%)}}
 #bigtext{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%) scale(.6);font-size:64px;color:var(--gold);text-shadow:3px 3px 0 var(--ink),-2px -2px 0 var(--ink);opacity:0;pointer-events:none}
 #bigtext.show{animation:big 2.2s forwards}
@@ -460,7 +466,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 .cside2 .btn,.mbar .btn{font-size:26px;padding:10px 22px} .mcard .btn{font-size:24px;padding:6px 22px;background:#b8302a;border-color:#ffd84a;color:#fff}
 @media (max-width:800px){ .chessfs{grid-template-columns:1fr;overflow:auto} .masoifs{grid-template-columns:1fr} .mside{grid-row:auto} .pbar{grid-template-columns:1fr} }
 @media (max-width:700px){ #minimap{display:none!important} #hudSkills{display:none} #hudQuests{width:52vw;font-size:16px} #hudLvlBox,#hudNeeds{width:170px} .chess{grid-template-columns:1fr} }
-@media (prefers-reduced-motion:reduce){ .toast,#banner,#bigtext,#fade{animation:none!important;transition:none!important} }
+@media (prefers-reduced-motion:reduce){ .toast,#banner,#evBanner,#bigtext,#fade{animation:none!important;transition:none!important} }
 </style>
 <link rel="stylesheet" href="/pixel.css">
 </head>
@@ -495,6 +501,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="chatBox" class="hud"><div id="chatLog"></div><div id="wchat" class="panel"><div id="wcLog" aria-live="polite"></div><div id="wcRow"><input id="wcIn" maxlength="120" placeholder="Chat (Enter): cả server cùng thấy, người gần thấy trên đầu" aria-label="Chat kênh tổng"><button id="wcFold" type="button" title="Mở rộng / thu nhỏ">▴</button><button id="wcHide" type="button" title="Ẩn kênh chat tổng">—</button></div></div><button id="wcShow" class="panel muteBtn" type="button" hidden title="Hiện kênh chat tổng">💬 Chat tổng <b id="wcNew"></b></button><input id="chatIn" maxlength="120" placeholder="Nói gì đó... (Enter gửi, Esc huỷ)" hidden aria-label="Chat"></div>
 <div id="prompt" class="panel" hidden><kbd>E</kbd> <span id="promptLabel">Nói chuyện</span></div>
 <div id="banner" class="panel"></div>
+<div id="evBanner" class="panel" hidden role="status"><button type="button" aria-label="Đóng thông báo">✕</button><b></b><span></span></div>
 <div id="bigtext"></div>
 <div id="keyHint" hidden></div>
 <div id="toasts"></div>
