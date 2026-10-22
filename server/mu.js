@@ -4,6 +4,7 @@
 // Hạ Luffy rơi Trái Ác Quỷ (1/10 số người góp sức); boss phụ rơi trang phục, vũ khí, lộ nhiệm vụ ẩn. Máu / mana trong trận không lưu (pl.mus).
 'use strict';
 const C=require('./core'), P=require('./places'), W=require('./world');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,T,on,now,markDirty,send,note,addItem,take,give,reward,players}=C;
 const M=S.MU, fmt=S.fmt, BS=M.bosses, RW=M.reward, F=M.fruits;
 const rec=p=>{ const r=p.mu=p.mu||{cls:'',lv:1,exp:0,w:0,l:0,boss:0}; return r; };
@@ -123,18 +124,18 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     addItem(pl,k,-1); give(pl,price); markDirty(pl); return {msg:`Bán ${S.ITEMS[k].name} được ${fmt(price)}`}; }
   // Premium Store: mua set legacy (giữ mãi, mặc luôn), mặc / cởi (k rỗng = mặc lại giáp class)
   if(op==='buy'||op==='wear'){ if(!P.nearNpc(pl,'mu_shop')) return {err:'Gặp Thương nhân Huyền Thoại ở quảng trường'}; const k=String(m.k||''), L=M.legacy[k];
-    if(op==='buy'){ if(!L) return {err:'?'}; if(p.owned[k]) return {err:'Bạn có set này rồi, bấm Mặc'}; if(!take(pl,L.price)) return {err:`Cần ${fmt(L.price)} để mua ${L.name}`}; p.owned[k]=1; }
+    if(op==='buy'){ if(!L) return {err:'?'}; if(p.owned[k]) return {err:'Bạn có set này rồi, bấm Mặc'}; if(!shopPay(pl,L.price)) return {err:`Cần ${fmt(L.price)} để mua ${L.name}`}; p.owned[k]=1; }
     else if(k&&(!L||!p.owned[k])) return {err:'Chưa có set này'};
     const top=k||(r.cls?M.cls[r.cls].set:''); if(!top) return {err:'Chọn class ở Vệ binh trước'}; if(p.look&&p.look.outfit) p.look.outfit.top=top; if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); push(pl);
     return {msg:op==='buy'?`Đã mua và mặc Set Legacy ${L.name}! Lực chiến tăng, đòn đánh có hiệu ứng riêng`:k?`Đã mặc ${L.name}`:'Đã mặc lại giáp class',look:p.look}; }
   // Thợ Rèn Huyền Thoại: mua vũ khí (vào túi, cầm luôn); đã có thì cầm
   if(op==='smithbuy'){ if(!P.nearNpc(pl,'mu_smith')) return {err:'Gặp Thợ Rèn Huyền Thoại ở quảng trường'}; const k=String(m.k||''), w=M.weapons[k]; if(!w||!w.store) return {err:'?'};
-    if(!C.has(pl,k)){ if(!take(pl,w.price)) return {err:`Cần ${fmt(w.price)} để mua ${w.name}`}; addItem(pl,k,1); }
+    if(!C.has(pl,k)){ if(!shopPay(pl,w.price)) return {err:`Cần ${fmt(w.price)} để mua ${w.name}`}; addItem(pl,k,1); }
     r.wep=k; if(pl.mus) st(pl); markDirty(pl); push(pl); return {msg:`Đã cầm ${w.name}! ${w.desc}`}; }
   // Thợ Kim Hoàn: mua phụ kiện (giữ mãi, đeo luôn), đeo / tháo theo ô
   if(op==='accbuy'||op==='accwear'){ if(!P.nearNpc(pl,'mu_acc')) return {err:'Gặp Thợ Kim Hoàn ở quảng trường'}; const k=String(m.k||''), a=M.acc[k], slot=a?a.slot:String(m.slot||'');
     if(!M.slots[slot]) return {err:'?'}; const own=r.accOwned=r.accOwned||{}, eq=r.acc=r.acc||{};
-    if(op==='accbuy'){ if(!a) return {err:'?'}; if(own[k]) return {err:'Có món này rồi, bấm Đeo'}; if(!take(pl,a.price)) return {err:`Cần ${fmt(a.price)} để mua ${a.name}`}; own[k]=1; }
+    if(op==='accbuy'){ if(!a) return {err:'?'}; if(own[k]) return {err:'Có món này rồi, bấm Đeo'}; if(!shopPay(pl,a.price)) return {err:`Cần ${fmt(a.price)} để mua ${a.name}`}; own[k]=1; }
     else if(k&&(!a||!own[k])) return {err:'Chưa có món này'};
     if(k) eq[slot]=k; else delete eq[slot]; syncAcc(p); if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); push(pl);
     return {msg:op==='accbuy'?`Đã mua và đeo ${a.name}!`:k?`Đã đeo ${a.name}`:`Đã tháo ${M.slots[slot].toLowerCase()}`}; }

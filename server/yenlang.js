@@ -1,11 +1,12 @@
 // 120 Yên Lãng · nhà anh Độ: mua phở chị Thảo (ngõ phố Đà Bắc), lau mô hình Hulkbuster, gọi Ộ i i về ăn cơm, lên sóng cùng anh Độ buổi tối (1 lần/ngày).
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,now,near,markDirty,reward,take,has,addItem}=C;
 const Y=S.YENLANG, fmt=S.fmt;
 on('yl',(pl,m)=>{ const p=pl.prof, q=p.qprog=p.qprog||{};
   if(m.op==='pho'){ if(p.quests.pho!=='active') return {err:'Chị Thảo: "Hôm nay bán hết rồi em ơi!"'}; if(pl.scene!=='retreat'||!near(pl,Y.pho.x,Y.pho.y,40)) return {err:'Tìm đúng quán đã'};
-    if(has(pl,'pho_thao')) return {err:'Mua rồi, mang về cho anh Độ đi'}; if(!take(pl,Y.pho.price)) return {err:`Bát phở ${fmt(Y.pho.price)}, không đủ tiền`};
+    if(has(pl,'pho_thao')) return {err:'Mua rồi, mang về cho anh Độ đi'}; if(!shopPay(pl,Y.pho.price)) return {err:`Bát phở ${fmt(Y.pho.price)}, không đủ tiền`};
     addItem(pl,'pho_thao'); markDirty(pl); return {msg:'Chị Thảo: "Phở nóng đây, mang về cho thằng Độ nhé!"'}; }
   if(m.op==='lau'){ const need=S.QUESTS.hulk.prog; if(pl.scene!=='yenlang'||!near(pl,Y.hulk.x,Y.hulk.y,44)) return {err:'Lại gần mô hình Hulkbuster đã'};
     if(p.quests.hulk!=='active') return {err:'Anh Độ: "Đừng động vào, xước sơn là toang!"'}; if((q.hulk||0)>=need) return {err:'Lau sạch bóng rồi, báo anh Độ đi'};

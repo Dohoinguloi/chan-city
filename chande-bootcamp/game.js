@@ -1434,6 +1434,9 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   if(n.energy<20) bf.push('<span class="bad">Mệt: chậm hơn</span>'); if(n.clean<20) bf.push('<span class="bad">Bẩn: -15% EXP</span>');
   for(const b of [G.buff,G.rbuff,G.lbuff,G.mbuff,G.sbuff]) if(b&&b.until>NET.now()) bf.push(`<span class="good">+${Math.round((b.mul-1)*100)}% EXP · ${Math.ceil((b.until-NET.now())/60000)}'</span>`);
   if(G.data&&G.data.until>NET.now()) bf.push('<span class="good">📶 4G: pin hao chậm</span>');
+  // ưu đãi học viên DAS / nhân viên Bearplus, Lumen, Everfit: mua đồ giảm 20% (server tính, perks.js)
+  { const at=[]; if(G.das&&((G.das.certs||[]).length||Object.keys(G.das.c||{}).length)) at.push('DAS'); if(G.quests.bp_brief==='done') at.push('Bearplus'); if(G.lumen&&G.lumen.hired) at.push('Lumen'); if(G.extra&&G.extra.job&&G.extra.job.hired) at.push('Everfit');
+    if(at.length) bf.push(`<span class="good" title="Ưu đãi ${at.join(', ')}">🎓 -20% mua đồ</span>`); }
   hudEl('#hudBuffs').innerHTML=bf.join('');
   // việc cần làm
   const li=[]; const job=G.extra&&G.extra.job;

@@ -2,6 +2,7 @@
 // hoạt động trong phòng, chụp ảnh sống ảo, câu cá, kayak, việc của cô Ké, học kỹ năng, chợ online.
 'use strict';
 const C=require('./core'), W=require('./world');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take,give,has,addItem,players,byUid,kindOf,sceneOf,refreshInfo,broadcastNear}=C;
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
@@ -94,7 +95,7 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
     meal=slot; }
   const cdMin=f.meal?0:f.buff?f.buff.min:S.RULES.foodCd, t=now(); p.foodCd=p.foodCd||{};
   if(cdMin&&p.foodCd[m.id]>t) return {err:`Vừa ${f.buff?'uống':'ăn'} rồi, ${Math.ceil((p.foodCd[m.id]-t)/60e3)} phút nữa mới mua lại được`};
-  if(!take(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
+  if(!shopPay(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
   if(cdMin){ p.foodCd[m.id]=t+cdMin*60e3; for(const k in p.foodCd) if(p.foodCd[k]<t) delete p.foodCd[k]; }
   if(meal){ const d=today(); if(p.meals.day!==d) p.meals={day:d,eaten:{}}; if(!p.meals.eaten[meal.id]) C.track(pl,'meal'); p.meals.eaten[meal.id]=true; }
   if(f.buff) p.buff={mul:f.buff.mul,until:now()+f.buff.min*60e3};
@@ -107,7 +108,7 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
 
 /* ---------- shop quần áo ---------- */
 on('buy',(pl,m)=>{ const it=S.CLOTHES[m.id], p=pl.prof; if(!it) return {err:'Không có món này'}; if(pl.scene!=='quanao') return {err:'Vào Shop Chande để mua'};
-  if(p.owned[m.id]) return {err:'Đã có rồi'}; if(!take(pl,it.price)) return {err:`${it.name} giá ${fmt(it.price)}, không đủ tiền`};
+  if(p.owned[m.id]) return {err:'Đã có rồi'}; if(!shopPay(pl,it.price)) return {err:`${it.name} giá ${fmt(it.price)}, không đủ tiền`};
   p.owned[m.id]=1; markDirty(pl); return {}; });
 on('equip',(pl,m)=>{ const p=pl.prof, slot=String(m.slot||''); if(!S.SLOTS.some(s=>s[0]===slot)) return {err:'?'};
   if(m.id){ const it=S.CLOTHES[m.id]; if(!it||it.slot!==slot||!p.owned[m.id]) return {err:'Chưa có món này'}; p.look.outfit[slot]=m.id; }
@@ -298,7 +299,7 @@ on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};
   if((c.kind==='cay'||c.kind==='caosu'||c.kind==='cafe')&&!pl.prof.skills.lamvuon) return {err:'Chưa học Làm vườn lâu năm (học online bằng laptop ở phòng)'};
-  if(!take(pl,c.seed*n)) return {err:`${n} × ${fmt(c.seed)} = ${fmt(c.seed*n)}, không đủ tiền`}; addItem(pl,'hat_'+m.crop,n); return {n}; });
+  if(!shopPay(pl,c.seed*n)) return {err:`${n} × ${fmt(c.seed)} = ${fmt(c.seed*n)}, không đủ tiền`}; addItem(pl,'hat_'+m.crop,n); return {n}; });
 
 /* ---------- học kỹ năng online (ở phòng) ---------- */
 on('learn',(pl,m)=>{ const c=S.COURSES[m.skill], p=pl.prof; if(!c) return {err:'?'}; if(!W.inOwnRoom(pl)) return {err:'Học bằng laptop ở phòng của bạn'};

@@ -3,6 +3,7 @@
 // Không ai đỡ kịp là đội kia ăn điểm. Bot tự chạy tới điểm rơi. Thiếu người thì người bấm bắt đầu thuê bot tuyển thủ; rời sân giữa trận thì bot vào thay.
 'use strict';
 const C=require('./core'), P=require('./places'), crypto=require('crypto');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,T,on,hook,send,now,near,take,reward,markDirty,players,sceneOf}=C;
 const K=S.PICKLE, SH=K.shots, fmt=S.fmt;
 const M={st:'idle',seats:[null,null,null,null],pos:[null,null,null,null],score:[0,0],ball:null,nextServe:0,endAt:0,log:'',win:-1,server:0};
@@ -63,7 +64,7 @@ on('pk',(pl,m)=>{ const p=pl.prof; if(pl.scene!=='pickle') return {err:'Tới s�
     begin(); return {hired:empty,cost}; }
   if(m.op==='buyset'||m.op==='wearset'){ const z=S.PK_SETS.find(z=>z.id===m.id); if(!z) return {err:'Không có set này'}; if(!P.nearNpc(pl,'pk_shop')) return {err:'Gặp chị Hà ở quầy đồ pickleball'};
     const ids=Object.values(z.items), have=ids.every(k=>p.owned[k]);
-    if(m.op==='buyset'){ if(have) return {err:'Bạn đã có set này rồi'}; if(!take(pl,z.price)) return {err:`Set ${z.name} giá ${fmt(z.price)}, không đủ tiền`}; for(const k of ids) p.owned[k]=1; }
+    if(m.op==='buyset'){ if(have) return {err:'Bạn đã có set này rồi'}; if(!shopPay(pl,z.price)) return {err:`Set ${z.name} giá ${fmt(z.price)}, không đủ tiền`}; for(const k of ids) p.owned[k]=1; }
     else if(!have) return {err:'Chưa mua set này'};
     if(m.op==='wearset'||m.wear){ p.look.outfit={...p.look.outfit,...z.items}; C.refreshInfo(pl); }
     markDirty(pl); return {msg:m.op==='buyset'?`Đã mua set ${z.name}${m.wear?' và mặc luôn':''}`:`Đã mặc set ${z.name}`,look:p.look}; }

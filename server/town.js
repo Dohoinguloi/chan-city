@@ -2,6 +2,7 @@
 // bảo tàng lịch sử, chùa (thắp hương, công đức, xin quẻ), tiệm net. "Hiểu biết" là chỉ số stats.know.
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,hook,now,today,near,markDirty,reward,take,give,send,players}=C;
 const fmt=S.fmt, T=S.T;
 const at=(pl,k,r=56)=>{ const pc=S.PLACES[k]; return (pc.scene&&pl.scene===pc.scene)||pl.scene==='retreat'&&near(pl,pc.x,pc.y,r); };
@@ -26,7 +27,7 @@ on('moto',(pl,m)=>{ const p=pl.prof, t=now();
     if(p.moto&&p.moto.until>t&&p.moto.model!=='xedap'){ if(pl.moto) return {err:'Xuống xe máy đã'}; garage(p)[p.moto.model]=p.moto.until; } const M=S.MOTO.models.xedap; if(!take(pl,M.price)) return {err:`Thuê xe đạp ${fmt(M.price)}/${S.BIKESHARE.min} phút`};
     const keep=p.moto&&p.moto.model==='xedap'&&p.moto.until>t; p.moto={model:'xedap',until:(keep?p.moto.until:t)+S.BIKESHARE.min*60e3}; markDirty(pl); return {moto:p.moto}; }
   if(m.op==='helmet'){ if(p.helmet) return {err:'Bạn có mũ bảo hiểm rồi'}; if(!P.nearNpc(pl,'thuexe')&&!at(pl,'thuexe')) return {err:'Mua mũ ở tiệm thuê xe'};
-    if(!take(pl,S.MOTO.helmet)) return {err:`Mũ bảo hiểm ${fmt(S.MOTO.helmet)}, không đủ tiền`}; p.helmet=true; markDirty(pl); return {msg:'Đã mua mũ bảo hiểm. Lên xe là tự đội, khỏi lo CSGT phạt lỗi mũ!'}; }
+    if(!shopPay(pl,S.MOTO.helmet)) return {err:`Mũ bảo hiểm ${fmt(S.MOTO.helmet)}, không đủ tiền`}; p.helmet=true; markDirty(pl); return {msg:'Đã mua mũ bảo hiểm. Lên xe là tự đội, khỏi lo CSGT phạt lỗi mũ!'}; }
   if(m.op==='dismount'){ pl.moto=null; pl.speeding=false; return {}; }
   if(m.op==='speed'){ const on_=!!m.on&&!!pl.moto&&pl.moto!=='xedap'; if(on_&&!pl.speeding) pl.speedAt=now(); pl.speeding=on_; return {}; }
   return {err:'?'}; });

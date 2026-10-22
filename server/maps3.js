@@ -3,6 +3,7 @@
 // Miếu ông Trường Con (thắp hương cầu an, xin quẻ, buộc dải lụa ở cây đa, bánh đa cua, quay TikTok).
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,hook,now,today,near,kindOf,markDirty,send,note,reward,take,give,has,addItem}=C;
 const pr=p=>p.qprog=p.qprog||{};
 const active=(p,id)=>p.quests[id]==='active';
@@ -31,7 +32,7 @@ on('bp',(pl,m)=>{ const p=pl.prof, B=S.BEARPLUS, q=pr(p), op=m.op, here=pl.scene
     const sotd=Math.random()<B.sotd; q.bp_aww=1; p.flags.bpAward=sotd?'sotd':'hm'; markDirty(pl);
     if(sotd){ reward(pl,{...B.sotdBonus,item:'cup_sotd'},'Awwwards: SITE OF THE DAY!'); P.stat(pl,'sotd',1); }
     return {sotd,msg:sotd?'Hội đồng chấm 7.8/10: SITE OF THE DAY! Cả team hú hét':'Honorable Mention 7.1/10. Vẫn là thành tích! Báo anh Khoa'}; }
-  if(op==='coffee'){ if(!near(pl,B.coffee.x,B.coffee.y+.9,30)) return {err:'Lại gần quầy cà phê'}; if(!take(pl,B.coffeePrice)) return {err:'Không đủ tiền'}; addItem(pl,'cafe_bp'); C.track(pl,'coffee'); return {msg:`Một ly cà phê sữa đá (${S.fmt(B.coffeePrice)})`}; }
+  if(op==='coffee'){ if(!near(pl,B.coffee.x,B.coffee.y+.9,30)) return {err:'Lại gần quầy cà phê'}; if(!shopPay(pl,B.coffeePrice)) return {err:'Không đủ tiền'}; addItem(pl,'cafe_bp'); C.track(pl,'coffee'); return {msg:`Một ly cà phê sữa đá (${S.fmt(B.coffeePrice)})`}; }
   if(op==='give'){ const who=String(m.who||''); if(!['bp_my','bp_dev','bp_ngan','bp_bear'].includes(who)) return {err:'?'}; if(!P.nearNpc(pl,who)) return {err:'Lại gần hơn'};
     if(!active(p,'bp_coffee')) return {err:'Chưa nhận việc mời cà phê'}; const g=p.flags.bpcafe=p.flags.bpcafe||{}; if(g[who]) return {err:'Người này có cà phê rồi'}; if(!has(pl,'cafe_bp')) return {err:'Mua cà phê ở quầy trước đã'};
     addItem(pl,'cafe_bp',-1); g[who]=1; q.bp_coffee=Object.keys(g).length; markDirty(pl); return {msg:`Đã mời cà phê (${q.bp_coffee}/4)`}; }
@@ -93,11 +94,11 @@ on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDa
     if(!take(pl,M.wishPrice)) return {err:'Không đủ tiền mua dải lụa'}; p.wish={k:m.k,day:today()}; cauan(pl,'wish'); markDirty(pl);
     return {msg:`Đã buộc dải lụa cầu ${w.name}. Mai quay lại game xem điều ước có linh không nhé!`}; }
   if(op==='food'){ const f=m.k==='nem'?M.nem:M.banhda, name=m.k==='nem'?'Nem cua bể':'Bánh đa cua'; if(!near(pl,M.cart.x,M.cart.y+.9,40)) return {err:'Lại gần xe bánh đa cua'};
-    const free=holy==='Lễ cầu an mùng 6'&&m.k!=='nem'&&!d.mieufree; if(!free&&!take(pl,f.price)) return {err:'Không đủ tiền'}; if(free) d.mieufree=1;
+    const free=holy==='Lễ cầu an mùng 6'&&m.k!=='nem'&&!d.mieufree; if(!free&&!shopPay(pl,f.price)) return {err:'Không đủ tiền'}; if(free) d.mieufree=1;
     p.needs.energy=Math.min(100,p.needs.energy+f.energy); const ds=today(); if(p.meals.day!==ds) p.meals={day:ds,eaten:{}}; const slot=S.mealStatus(p.meals,now()).find(s=>s.st==='now');
     if(slot&&!p.meals.eaten[slot.id]){ p.meals.eaten[slot.id]=true; C.track(pl,'meal'); } if(m.k!=='nem'&&!has(pl,'banh_da_cua')) addItem(pl,'banh_da_cua'); markDirty(pl);
     return {msg:`${name} nóng hổi${free?' (lộc cầu an, miễn phí!)':''}: +${f.energy} năng lượng${slot?', tính 1 bữa':''}`}; }
-  if(op==='buy'){ const k=String(m.k||''), price=M.shop[k]; if(!price) return {err:'?'}; if(!near(pl,M.cart.x,M.cart.y+.9,44)) return {err:'Lại gần xe bà Lụa'}; if(!take(pl,price)) return {err:'Không đủ tiền'};
+  if(op==='buy'){ const k=String(m.k||''), price=M.shop[k]; if(!price) return {err:'?'}; if(!near(pl,M.cart.x,M.cart.y+.9,44)) return {err:'Lại gần xe bà Lụa'}; if(!shopPay(pl,price)) return {err:'Không đủ tiền'};
     addItem(pl,k); markDirty(pl); return {msg:`Bà Lụa: "Của cháu đây: ${S.ITEMS[k].name.toLowerCase()}, mới về sáng nay!"`}; }
   if(op==='luoc'){ if(!near(pl,M.stove.x,M.stove.y+.9,44)) return {err:'Lại gần bếp củi'}; const q=pr(p); if(!active(p,'tc_luocga')||q.tc_luocga) return {err:'Bếp củi đang đỏ lửa. Ông Trường Con chưa nhờ luộc gì'};
     const k=has(pl,'ga_thit')?'ga_thit':has(pl,'chicken')?'chicken':''; if(!k) return {err:'Chưa có gà. Mua gà làm sẵn ở xe bà Lụa (45.000đ)'};

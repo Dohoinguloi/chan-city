@@ -1,6 +1,7 @@
 // Trồng trọt (vườn rau Ké + nông trại Đà Lạt), chăn nuôi, ngựa (thuê/mua, cưỡi, chăn ngựa, chở hàng), phụ cô Lan nấu ăn.
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const crypto=require('crypto');
 const {S,T,db,on,hook,send,now,near,markDirty,note,reward,take,give,has,addItem,players,byUid,kindOf,broadcastScene}=C;
 const fmt=S.fmt;
@@ -23,7 +24,7 @@ on('dog',(pl,m)=>{ const p=pl.prof; if(m.op==='view') return {dogs:dogsView()}; 
     const old=p.keLand&&p.keLand.paid===d&&S.KE_LAND.find(x=>x.id===p.keLand.tier), cost=Math.max(0,t.price-(old?old.price:0)); if(cost&&!take(pl,cost)) return {err:`${t.name} ${fmt(t.price)}/ngày, không đủ tiền`};
     p.keLand={tier:t.id,paid:d}; markDirty(pl); return {msg:`Thuê ${t.name}: trồng được ${t.plots} ô ở vườn Ké · ${fmt(t.price)}/ngày`}; }
   if(m.op==='landcancel'){ p.keLand=null; markDirty(pl); return {msg:`Đã trả đất, còn trồng được ${S.FARM.free} ô miễn phí`}; }
-  if(m.op==='buy'){ const D=S.DOGS[m.k]; if(!D) return {err:'?'}; if(p.dog&&p.dog.k===m.k) return {err:'Bạn đang nuôi giống này rồi'}; if(!take(pl,D.price)) return {err:`${D.name} giá ${fmt(D.price)}, không đủ tiền`};
+  if(m.op==='buy'){ const D=S.DOGS[m.k]; if(!D) return {err:'?'}; if(p.dog&&p.dog.k===m.k) return {err:'Bạn đang nuôi giống này rồi'}; if(!shopPay(pl,D.price)) return {err:`${D.name} giá ${fmt(D.price)}, không đủ tiền`};
     const old=p.dog; p.dog={k:m.k,since:now()}; DOGOF.set(pl.uid,{k:m.k,n:p.name}); markDirty(pl); broadcastScene('retreat',{t:'dogs',list:dogsView()});
     return {msg:`Đã mua ${D.name}${old?' (con cũ chú Ba nuôi hộ)':''}. Nó sẽ canh các ô rau của bạn ở Ké và cả chuồng lợn ở trại chú Sáu`}; }
   return {err:'?'}; });
@@ -109,12 +110,12 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
   if(m.op==='buy'){ const a=S.ANIMALS[m.k]; if(!a) return {err:'?'}; const ke=atKeShop(pl); if(ke&&m.k!=='ga') return {err:'Tiệm cô Ké chỉ bán gà giống'}; if(!ke&&!P.nearNpc(pl,'chusau')) return {err:'Mua ở trại chú Sáu (Đà Lạt) hoặc gà ở tiệm cô Ké'};
     if(!p.skills.channuoi) return {err:'Chưa học Chăn nuôi (học online ở phòng)'};
     if(p.animals.filter(x=>x.k===m.k).length>=a.max) return {err:`Tối đa ${a.max} ${a.name.toLowerCase()}`};
-    if(!take(pl,a.price)) return {err:`${a.name} giá ${fmt(a.price)}, không đủ tiền`}; p.animals.push({k:m.k,at:t,fed:0,cyc:0,loc:ke?'ke':'dl'}); markDirty(pl); return {}; }
+    if(!shopPay(pl,a.price)) return {err:`${a.name} giá ${fmt(a.price)}, không đủ tiền`}; p.animals.push({k:m.k,at:t,fed:0,cyc:0,loc:ke?'ke':'dl'}); markDirty(pl); return {}; }
   if(m.op==='release'){ const B=S.ANIMALS.lon, n=Math.max(1,Math.min(10,m.n|0||1)); if(!has(pl,'lon_con')) return {err:'Không có lợn con trong túi'}; if(!penNear(pl,'lon','dl')) return {err:'Ra chuồng lợn trại chú Sáu (Đà Lạt) để thả'};   // thả lợn con vào chuồng
     let k=0; while(k<n&&has(pl,'lon_con')&&p.animals.filter(x=>x.k==='lon').length<B.max){ addItem(pl,'lon_con',-1); p.animals.push({k:'lon',at:t,fed:0,cyc:0,loc:'dl'}); k++; }
     if(!k) return {err:`Chuồng lợn đầy (tối đa ${B.max} con), bán bớt hoặc chờ xuất chuồng`}; markDirty(pl); return {n:k,msg:`Đã thả ${k} lợn con vào chuồng, cho ăn cám để lớn`}; }
   if(m.op==='feedbuy'){ const f=S.FEED[m.k], n=Math.max(1,Math.min(20,m.n|0||1)); if(!f) return {err:'?'}; const ke=atKeShop(pl); if(ke&&m.k!=='thoc') return {err:'Tiệm cô Ké chỉ bán thóc'}; if(!ke&&!P.nearNpc(pl,'chusau')) return {err:'Mua ở trại chú Sáu'};
-    if(!take(pl,f.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.k,n); return {n}; }
+    if(!shopPay(pl,f.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.k,n); return {n}; }
   if(m.op==='guard'){ const G=S.GUARD.plans[m.k]; if(!G) return {err:'?'}; if(!P.nearNpc(pl,'chusau')&&!P.nearNpc(pl,'chuba')) return {err:'Gặp chú Sáu (trại Đà Lạt) hoặc chú Ba (vườn Ké) để thuê'};
     if(!take(pl,G.price)) return {err:`${G.name} giá ${fmt(G.price)}, không đủ tiền`}; const from=p.guard&&p.guard.until>t?p.guard.until:t;
     p.guard={k:m.k,until:from+G.h*3600e3}; markDirty(pl); lastHerds=''; return {msg:`Đã thuê ${G.name}: chó canh hết chuồng lợn, bò, gà, vịt của bạn tới ${S.vnTime(p.guard.until).day.split('-').reverse().join('/')}`}; }
@@ -151,7 +152,7 @@ const hasHorse=pl=>{ const h=pl.prof.horse; return h&&(h.own||h.until>now()); };
 const inPasture=pl=>{ const z=S.DALAT.pasture, x=pl.x/T, y=pl.y/T; return pl.scene==='dalat'&&x>=z.x0&&x<=z.x1+1&&y>=z.y0&&y<=z.y1+1; };
 on('horse',(pl,m)=>{ const p=pl.prof, t=now();
   if(m.op==='rent'||m.op==='buy'){ if(!P.nearNpc(pl,'anhphong')&&!P.nearNpc(pl,'chuongngua')&&!P.nearNpc(pl,'mu_tamer')) return {err:'Gặp anh Phong (Đà Lạt), chú Hải (trại ngựa thị trấn Đà Bắc) hoặc Người Thuần Thú (MU)'}; if(!p.skills.cuoingua) return {err:'Chưa học Cưỡi ngựa (học online ở phòng)'};
-    if(m.op==='buy'){ if(p.horse&&p.horse.own) return {err:'Bạn có ngựa rồi'}; if(!take(pl,S.HORSE.buy)) return {err:`Ngựa giá ${fmt(S.HORSE.buy)}`}; p.horse={own:true,until:0}; }
+    if(m.op==='buy'){ if(p.horse&&p.horse.own) return {err:'Bạn có ngựa rồi'}; if(!shopPay(pl,S.HORSE.buy)) return {err:`Ngựa giá ${fmt(S.HORSE.buy)}`}; p.horse={own:true,until:0}; }
     else { if(!take(pl,S.HORSE.rent)) return {err:`Thuê ngựa ${fmt(S.HORSE.rent)}/giờ`}; p.horse={own:!!(p.horse&&p.horse.own),until:Math.max(t,p.horse&&p.horse.until||0)+S.HORSE.rentMin*60e3}; }
     markDirty(pl); return {horse:p.horse}; }
   if(m.op==='coat'){ const c=m.c|0; if(c<0||c>=S.HORSE.coats.length) return {err:'?'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại ngựa'}; p.horseCoat=c; markDirty(pl); return {coat:c}; }   // chọn loại ngựa
@@ -192,7 +193,7 @@ on('cook',(pl,m)=>{ const p=pl.prof, D=S.DALAT;
     if(p.cookOrder) return {order:p.cookOrder}; if(p.daily.cook>=S.COOK.daily) return {err:'Hôm nay phụ quán đủ rồi'};
     const ks=Object.keys(S.RECIPES); p.cookOrder={r:ks[crypto.randomInt(ks.length)],at:now()}; markDirty(pl); return {order:p.cookOrder}; }
   if(m.op==='buy'){ const g=S.INGREDIENTS[m.ing], n=Math.max(1,Math.min(10,m.n|0||1)); if(!g) return {err:'?'};
-    if(!P.nearNpc(pl,g.shop)) return {err:'Mua ở '+D.shops[g.shop].name}; if(!take(pl,g.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.ing,n); return {n}; }
+    if(!P.nearNpc(pl,g.shop)) return {err:'Mua ở '+D.shops[g.shop].name}; if(!shopPay(pl,g.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.ing,n); return {n}; }
   if(m.op==='cancel'){ p.cookOrder=null; markDirty(pl); return {}; }
   if(m.op==='cook'){ const o=p.cookOrder; if(!o) return {err:'Chưa nhận đơn'}; const r=S.RECIPES[o.r];
     if(pl.scene!=='quan_lan'||!near(pl,D.stove.x,D.stove.y,40)) return {err:'Vào bếp trong quán cô Lan'};

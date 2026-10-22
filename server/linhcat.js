@@ -3,6 +3,7 @@
 // vật nuôi thả rông quanh sân Ké (lấy EXP), thú vườn quốc gia (thú bảo tồn: đấu xong 20% bị công an bắt).
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,now,near,markDirty,take,has,addItem,note}=C;
 const L=S.LINHCAT, SP=S.LC_SPECIES, MV=S.LC_MOVES, fmt=S.fmt;
 const rec=p=>{ const r=p.lc=p.lc||{party:[],box:[],seq:0,dex:{},gone:{}}; if(!r.gone) r.gone={}; return r; };
@@ -23,7 +24,7 @@ on('lc',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op;
   if(op==='heal'){ if(!atSpot(pl,'nurse')) return {err:'Lại quầy y tá'}; if(!r.party.length) return {err:'Bạn chưa có Lính Cát nào'}; for(const x of r.party) x.hp=maxHp(x); markDirty(pl);
     return {msg:'Chị Y tá Cát: "Các bé đã khoẻ re rồi nhé! Hẹn gặp lại!"'}; }
   if(op==='buy'){ const k=String(m.k||''), price=L.shop[k], n=Math.max(1,Math.min(10,m.n|0||1)); if(!price) return {err:'?'}; if(!atSpot(pl,'shop')) return {err:'Lại kệ hàng trong Trung tâm'};
-    if(!take(pl,price*n)) return {err:`Cần ${fmt(price*n)}, không đủ tiền`}; addItem(pl,k,n); markDirty(pl); return {msg:`Mua ${n} ${S.ITEMS[k].name} (-${fmt(price*n)})`}; }
+    if(!shopPay(pl,price*n)) return {err:`Cần ${fmt(price*n)}, không đủ tiền`}; addItem(pl,k,n); markDirty(pl); return {msg:`Mua ${n} ${S.ITEMS[k].name} (-${fmt(price*n)})`}; }
   if(op==='deposit'||op==='withdraw'){ if(!atSpot(pl,'box')) return {err:'Lại máy gửi giữ'}; const from=op==='deposit'?r.party:r.box, to=op==='deposit'?r.box:r.party, i=from.findIndex(x=>x.u===m.u);
     if(i<0) return {err:'?'}; if(op==='deposit'&&r.party.length<=1) return {err:'Phải mang theo ít nhất 1 Lính Cát'}; if(op==='withdraw'&&r.party.length>=L.party) return {err:`Chỉ mang theo được ${L.party} con, gửi bớt 1 con đã`};
     if(op==='deposit'&&r.box.length>=L.box) return {err:'Máy gửi giữ đầy rồi'}; const [x]=from.splice(i,1); if(op==='deposit') x.hp=maxHp(x); to.push(x); markDirty(pl); return {ok:true}; }

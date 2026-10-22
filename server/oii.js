@@ -1,6 +1,7 @@
 // Ộ i i: nhặt khô gà đè tem ở mọi map; hút shisha cùng Ộ i i ở Nhà giải trí, người khác cùng phòng chụp ảnh báo công an được.
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,now,near,kindOf,markDirty,send,note,give,addItem,moveTo,players,broadcastScene}=C;
 const O=S.OII, H=S.SHISHA, R=H.report, fmt=S.fmt;
 on('khoga',(pl,m)=>{ const p=pl.prof, i=m.i|0, s=O.khoga[i]; if(!s||p.quests.khoga!=='active') return {err:'Chưa nhận việc của Ộ i i'};
@@ -16,7 +17,7 @@ on('shisha',(pl,m)=>{ const p=pl.prof, t=now();
     note(v,`🚓 Bị ${p.name} chụp ảnh báo công an! Tạm giữ ${R.jail} giây, nộp ${fmt(R.fine)} để về sớm`,'lock'); give(pl,R.bounty);
     return {msg:`Công an đã tới bắt ${vp.name}. Thưởng tố giác ${fmt(R.bounty)}`}; }
   if(kindOf(pl.scene)!=='club'||!near(pl,H.seat.x,H.seat.y,40)) return {err:'Ngồi vào đệm ở góc shisha đã'};
-  if(pl.task) return {err:'Đang làm việc khác'}; if(!C.take(pl,H.price)) return {err:`Cần ${fmt(H.price)} gọi bình shisha`};
+  if(pl.task) return {err:'Đang làm việc khác'}; if(!shopPay(pl,H.price)) return {err:`Cần ${fmt(H.price)} gọi bình shisha`};
   const others=[...players.values()].filter(o=>o!==pl&&o.scene===pl.scene).length;
   pl.shisha={until:t+(H.dur+2)*1000};
   const r=P.startTask(pl,'shisha',H.dur,()=>{ pl.shisha=null; const q=p.qprog=p.qprog||{}; if(p.quests.shisha==='active') q.shisha=(q.shisha||0)+1; markDirty(pl);
