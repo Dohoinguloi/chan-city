@@ -8,15 +8,22 @@ const at=(pl,k,r=56)=>{ const pc=S.PLACES[k]; return (pc.scene&&pl.scene===pc.sc
 const know=(pl,n)=>P.stat(pl,'know',n);
 
 /* ---------- xe máy thuê ---------- */
+// gara: các xe đã thuê mà chưa dùng {mẫu: hết giờ}; p.moto là xe đang chọn
+const garage=p=>{ const G=p.garage=p.garage||{}, t=now(); for(const k in G) if(!(G[k]>t)) delete G[k]; return G; };
 const motoOk=pl=>{ const m=pl.prof.moto; return m&&m.until>now()&&S.MOTO.models[m.model]; };
 on('moto',(pl,m)=>{ const p=pl.prof, t=now();
   if(m.op==='rent'){ const M=S.MOTO.models[m.model]; if(!M) return {err:'?'}; if(!P.nearNpc(pl,'thuexe')&&!at(pl,'thuexe')) return {err:'Thuê xe ở tiệm cạnh Shop Chande'};
-    if(!take(pl,M.price)) return {err:`Thuê ${fmt(M.price)}/giờ, không đủ tiền`}; const keep=p.moto&&p.moto.model===m.model&&p.moto.until>t;
-    p.moto={model:m.model,until:(keep?p.moto.until:t)+S.MOTO.min*60e3}; markDirty(pl); return {moto:p.moto}; }
+    if(!take(pl,M.price)) return {err:`Thuê ${fmt(M.price)}/giờ, không đủ tiền`}; const G=garage(p);
+    if(p.moto&&p.moto.until>t&&p.moto.model!==m.model) G[p.moto.model]=p.moto.until;                                   // thuê mẫu khác: xe đang thuê cất vào gara, không mất giờ
+    const base=Math.max(t,p.moto&&p.moto.model===m.model?p.moto.until:0,G[m.model]||0); delete G[m.model];
+    p.moto={model:m.model,until:base+S.MOTO.min*60e3}; markDirty(pl); return {moto:p.moto}; }
+  if(m.op==='pick'){ const G=garage(p), u=p.moto&&p.moto.model===m.model?p.moto.until:G[m.model]; if(!S.MOTO.models[m.model]||!(u>t)) return {err:'Chưa thuê xe này hoặc đã hết giờ'};   // chọn xe trong gara để đi
+    if(pl.csgt) return {err:'Đang bị CSGT kiểm tra'}; if(p.moto&&p.moto.model!==m.model){ if(p.moto.until>t) G[p.moto.model]=p.moto.until; p.moto={model:m.model,until:u}; delete G[m.model]; }
+    if(pl.moto) pl.moto=m.model; markDirty(pl); return {moto:p.moto,riding:!!pl.moto}; }
   if(m.op==='mount'){ if(pl.scene!=='retreat'&&pl.scene!=='dalat') return {err:'Chỉ chạy xe ngoài đường (Ké, thị trấn, Đà Lạt)'}; if(!motoOk(pl)) return {err:'Chưa thuê xe hoặc hết giờ thuê. Thuê ở tiệm cạnh Shop Chande'};
     if(pl.kayak||pl.fishing||pl.riding||pl.optimus) return {err:'Đang bận'}; if(pl.csgt) return {err:'Đang bị CSGT kiểm tra'}; pl.moto=p.moto.model; return {model:pl.moto}; }
   if(m.op==='bike'){ const st=S.BIKESHARE.stations.find(s=>s.map===pl.scene&&near(pl,s.x,s.y,56)); if(!st) return {err:'Ra trạm xe đạp công cộng cạnh bến xe buýt'};
-    if(p.moto&&p.moto.until>t&&p.moto.model!=='xedap') return {err:'Đang thuê xe máy rồi'}; const M=S.MOTO.models.xedap; if(!take(pl,M.price)) return {err:`Thuê xe đạp ${fmt(M.price)}/${S.BIKESHARE.min} phút`};
+    if(p.moto&&p.moto.until>t&&p.moto.model!=='xedap'){ if(pl.moto) return {err:'Xuống xe máy đã'}; garage(p)[p.moto.model]=p.moto.until; } const M=S.MOTO.models.xedap; if(!take(pl,M.price)) return {err:`Thuê xe đạp ${fmt(M.price)}/${S.BIKESHARE.min} phút`};
     const keep=p.moto&&p.moto.model==='xedap'&&p.moto.until>t; p.moto={model:'xedap',until:(keep?p.moto.until:t)+S.BIKESHARE.min*60e3}; markDirty(pl); return {moto:p.moto}; }
   if(m.op==='helmet'){ if(p.helmet) return {err:'Bạn có mũ bảo hiểm rồi'}; if(!P.nearNpc(pl,'thuexe')&&!at(pl,'thuexe')) return {err:'Mua mũ ở tiệm thuê xe'};
     if(!take(pl,S.MOTO.helmet)) return {err:`Mũ bảo hiểm ${fmt(S.MOTO.helmet)}, không đủ tiền`}; p.helmet=true; markDirty(pl); return {msg:'Đã mua mũ bảo hiểm. Lên xe là tự đội, khỏi lo CSGT phạt lỗi mũ!'}; }

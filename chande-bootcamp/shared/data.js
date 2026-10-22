@@ -85,6 +85,8 @@ const CLOTHES={
   ao_messi:{name:'Áo sọc xanh trắng số 10',slot:'top',price:0,hidden:true,opts:{floral:true},colors:{top:'4ab8f8',print:'f4f4f4'}},quan_messi:{name:'Quần đùi đen',slot:'bottom',price:0,hidden:true,opts:{bottom:'shorts'},colors:{pants:'1c1c22'}},
   ao_oii:{name:'Áo chàm vùng cao',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'1c1a20'}},quan_oii:{name:'Quần chàm',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'201e26'}},
   mu_oii:{name:'Mũ thêu thổ cẩm',slot:'head',price:0,hidden:true,opts:{hair:'cap',mongCap:true},colors:{cap:'1c1a20'}},vong_oii:{name:'Vòng cổ bạc',slot:'neck',price:0,hidden:true,opts:{chain:true},colors:{gold:'d8dce2'}},
+  ao_diep:{name:'Váy trắng chấm bi trễ vai',slot:'top',price:0,hidden:true,opts:{polka:true},colors:{top:'f6f2ea',print:'1c1516'}},vay_diep:{name:'Chân váy trắng',slot:'bottom',price:0,hidden:true,opts:{bottom:'skirt'},colors:{pants:'f6f2ea'}},
+  ngoc_diep:{name:'Vòng cổ ngọc trai',slot:'neck',price:0,hidden:true,opts:{chain:true},colors:{gold:'f8f4ec'}},ao_annie:{name:'Áo khoác dạ lạc đà + cổ lọ xanh rêu',slot:'top',price:0,hidden:true,opts:{top:'jacket',turtle:true},colors:{top:'c8964e',inner:'1e4a3a'}},quan_annie:{name:'Quần đen ống đứng',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'26242a'}},
   ao_csgt:{name:'Áo cảnh sát giao thông',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'e8c860'}},quan_csgt:{name:'Quần CSGT',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'d8b850'}},mu_csgt:{name:'Mũ kê-pi CSGT',slot:'head',price:0,hidden:true,opts:{hair:'cap'},colors:{cap:'e8c860'}},
   ao_kiemlam:{name:'Áo kiểm lâm',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'4f6e3a'}},ao_nau:{name:'Áo nâu nhà chùa',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'8a5a2a'}},
   blazer_be:{name:'Blazer be (thầy Huy Tạ)',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'b8a070',inner:'1c1c22'}},
@@ -266,6 +268,7 @@ const NPCS=[
   {id:'ccmk',pass:true,scene:'phongbay',x:5.2,y:10.4,place:'dancebot',dance:true},{id:'dancer',pass:true,scene:'phongbay',x:14.8,y:10.4,place:'dancer',dance:true},
   {id:'baove',scene:'everfit',x:6.4,y:17.4,place:'baove',closed:true},
   {id:'minh',scene:'everfit',x:6,y:4.2,place:'cowork'},{id:'ha',scene:'everfit',x:12,y:4.2,place:'cowork'},{id:'quan',scene:'everfit',x:8,y:9.2,place:'cowork'},{id:'thao',scene:'everfit',x:24.5,y:4.4,place:'cowork'},
+  {id:'lumen_le',scene:'lumen',x:7,y:25.6,place:'lumen'},{id:'diep',scene:'diep',x:19.5,y:5.8,place:'diep'},
 ];
 // NPC phụ dựng từ template (không có sheet riêng)
 const NPC_LOOKS={
@@ -290,6 +293,8 @@ const NPC_LOOKS={
   thuexe:{name:'Anh Tùng (thuê xe máy)',look:{gender:'nam',hair:'fade',hairColor:'211c21',skin:'d99a78',outfit:{top:'khoac_jean',bottom:'jean',shoes:'giay_den',eyes:'kinh_ram'}}},
   cr7:{name:'CR7',look:{gender:'nam',hair:'fade',hairColor:'14121a',skin:'eeaa88',outfit:{top:'ao_cr7',bottom:'quan_cr7',shoes:'giay_trang'}}},
   messi:{name:'Messi',look:{gender:'nam',hair:'swept',hairColor:'14121a',skin:'f4bca8',outfit:{top:'ao_messi',bottom:'quan_messi',shoes:'giay_trang'},opts:{beard:'goatee'}}},
+  diep:{name:'Diệp',look:{gender:'nu',hair:'long',hairColor:'1c1418',skin:'f6d2c0',outfit:{top:'ao_diep',bottom:'vay_diep',shoes:'giay_trang',neck:'ngoc_diep'},opts:{mouth:'smile'}}},
+  lumen_le:{name:'Annie (Lumen Studio)',look:{gender:'nu',hair:'long',hairColor:'2a1a18',skin:'f3c8ae',outfit:{top:'ao_annie',bottom:'quan_annie',shoes:'giay_den'},opts:{mouth:'smile'}}},
   oii:{name:'Ộ i i',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e6b08e',outfit:{top:'ao_oii',bottom:'quan_oii',shoes:'giay_den',head:'mu_oii',neck:'vong_oii'}}},
   csgt:{name:'Cảnh sát giao thông',look:{gender:'nam',hair:'buzz',hairColor:'211c21',skin:'e8a882',outfit:{top:'ao_csgt',bottom:'quan_csgt',shoes:'giay_den',head:'mu_csgt'}}},
   kiemlam:{name:'Chú kiểm lâm (vườn quốc gia)',look:{gender:'nam',hair:'buzz',hairColor:'3a2f37',skin:'c98a64',outfit:{top:'ao_kiemlam',bottom:'kaki',shoes:'giay_den',head:'mu_ca'}}},
@@ -494,7 +499,18 @@ const DOGS={shiba:{name:'Shiba Inu',price:250000,desc:'Doạ trộm: 35% kẻ tr
   bulldog:{name:'Bull Pháp',price:500000,desc:'Cắn đau: 50% cắn kẻ trộm, phạt 300.000đ',bite:.5,fine:300000},
   corgi:{name:'Corgi',price:300000,desc:'Chăm vườn: mỗi lần chủ thu hoạch được thêm 1 nông sản',bonus:1}};
 // DAS · Design Anthropology School (TP.HCM): đi học lấy chứng chỉ (Everfit nhận dễ hơn, lương cao hơn) hoặc làm giảng viên kiếm tiền
-const DAS={W:30,H:20,spawn:{x:15,y:17.6},podium:{x:22,y:4.6},seats:[[18.5,7.4],[21.5,7.4],[24.5,7.4],[18.5,10],[21.5,10],[24.5,10]],
+// Lumen Studio (Hà Nội): studio thiết kế làm remote được. Ứng tuyển ở lễ tân cần ≥4 chứng chỉ DAS + cấp 3. Mỗi ngày tối đa 4 việc,
+// làm ở bàn trong studio hoặc remote bằng laptop ở phòng; EXP gấp 4 lần việc thường, trả công từng việc. Có phòng nghỉ trưa + máy cà phê
+// học bổng của Annie: nhận ở lễ tân Lumen, đi học DAS: 2 khoá đầu Lumen trả hết, 2 khoá sau giảm 50%; đủ 4 chứng chỉ quay lại Annie nhận việc + thưởng
+const LUMEN={W:38,H:36,spawn:{x:19,y:33.6},needCerts:4,level:3,expMul:4,daily:4,pay:250000,scholar:{free:2,half:2,reward:{exp:200,vnd:500000}},
+  desks:[[25,14.8],[29,14.8],[33,14.8],[25,19.8],[29,19.8],[33,19.8],[8,8.6],[8,19.4]],nap:{x:29,y:7.8,energy:35},coffee:{x:24,y:27.8,energy:10,buff:{mul:1.1,min:30}},
+  tasks:{brand:{name:'Bộ nhận diện thương hiệu cho khách',dur:14,exp:30},ui:{name:'Vẽ màn hình app (UI)',dur:12,exp:30},motion:{name:'Motion cho video quảng cáo',dur:12,exp:28},
+    research:{name:'Phỏng vấn người dùng (UX research)',dur:12,exp:28},pitch:{name:'Thuyết trình ý tưởng với khách',dur:10,exp:25}}};
+// Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
+// Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
+const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
+  cook:{dur:15,daily:2,expK:30,expMax:400,energy:40},dishes:['ramen Tonkotsu xương heo','ramen Shoyu','ramen Miso bơ ngô','ramen cay kiểu Diệp','ramen gà trứng lòng đào']};   // Diệp nấu ramen
+const DAS={W:30,H:20,level:2,spawn:{x:15,y:17.6},podium:{x:22,y:4.6},seats:[[18.5,7.4],[21.5,7.4],[24.5,7.4],[18.5,10],[21.5,10],[24.5,10]],
   courses:{dt:{name:'Design Thinking',fee:2000000,sessions:2,dur:25,exp:50,boost:.1},ux:{name:'UX Research cơ bản',fee:2500000,sessions:3,dur:30,exp:60,boost:.15},
     ui:{name:'UI Design & Design System',fee:3000000,sessions:3,dur:30,exp:60,boost:.15},motion:{name:'Motion & Prototype',fee:2800000,sessions:3,dur:30,exp:60,boost:.15},
     anth:{name:'Nhân học thiết kế (Design Anthropology)',fee:3500000,sessions:4,dur:35,exp:80,boost:.2}},
@@ -533,7 +549,7 @@ const MEGATRON={hp:110,optHp:100,speed:2.1,melee:10,meleeCd:1300,shot:12,shotCd:
 // thú hoang ngẫu nhiên: khủng long trong rừng (5 loài, chụp ảnh được thưởng, bạo chúa đến gần thì bị đớp), cá sấu dưới hồ đớp người chèo kayak
 // Ộ i i: NPC đi lang thang ở mọi map (tuyến tự sinh phía máy khách), lại gần thì nói; giao 2 việc: gom khô gà đè tem, hút shisha ở Nhà giải trí
 const OII={lines:['Alo Hải à em','Thôi em đừng có chối'],speed:1.5,dwell:5,skip:['room','stay','track','deo','phongbay','doncongan'],
-  khoga:[['retreat',175,165],['retreat',48,191],['retreat',68,232],['retreat',312,226],['retreat',241,123],['dalat',3,45],['dalat',25,27],['dalat',1,7],
+  khoga:[['retreat',110,20],['retreat',175,40],['retreat',95,70],['retreat',194,104],['retreat',297,103],['dalat',3,45],['dalat',25,27],['dalat',1,7],
     ['das',22,11],['das',5,17],['everfit',17,11],['everfit',10,11],['club',16,5],['net',5,9]].map(([scene,x,y])=>({scene,x:x+.5,y:y+.6}))};
 // góc shisha trong Nhà giải trí: ngồi đệm trái hút cùng Ộ i i; người khác cùng phòng chụp ảnh báo công an được trong lúc đang hút
 const SHISHA={x:21.5,y:12.6,seat:{x:19.9,y:13.3},oii:{x:23.1,y:13.3},dur:12,price:80000,report:{chance:.6,fine:500000,jail:90,bounty:50000,cd:20}};
@@ -542,7 +558,7 @@ const FOLLOWERS=[{owner:'dvu',id:'bui',name:'Bụi',kind:'cat',rest:'lie',gap:18
 const WILDLIFE={dino:{every:[360,720],stay:180,photoKnow:2,bite:{r:1.7,cd:3500,energy:10,push:3},
   kinds:{bronto:{name:'Khủng long cổ dài',speed:.7,exp:40},trice:{name:'Khủng long ba sừng',speed:.9,exp:50},ptero:{name:'Thằn lằn bay',speed:2.6,exp:60,fly:true},
     rexpink:{name:'Khủng long bạo chúa hồng',speed:1.1,exp:80,bite:true},rex:{name:'Khủng long bạo chúa',speed:1.3,exp:90,bite:true}},
-  spots:[[100,30],[124,40],[180,30],[60,190],[200,200],[290,215],[40,226],[250,130],[262,30],[230,56]]},
+  spots:[[100,30],[124,40],[180,30],[110,14],[160,20],[262,30],[230,56]]},
   croc:{every:[180,360],stay:150,y:[105,114],x:[6,330],speed:1.4,stalk:12,r:1.6,energy:20,drop:.1,dropMax:200000}};
 const OPTIMUS={owner:'kaixa',park:{x:PCAR.park.x+6.5,y:PCAR.park.y-.3},robot:1.25,truck:2.6};
 // vườn quốc gia: mua vé ở cổng (theo ngày), mỗi trạm quan sát xem thú 1 lần/ngày được EXP + hiểu biết; quyên góp cho vườn
@@ -606,7 +622,7 @@ const RECIPES={
 const COOK={daily:6,steps:3};
 const DL_FISH={ca_ro_phi:{w:55,exp:8,price:15000},ca_chep:{w:30,exp:12,price:40000},ca_tam:{w:15,exp:30,price:150000}};
 // ngựa: thuê theo giờ hoặc mua; cưỡi nhanh hơn, chở được 3 thùng hàng
-const HORSE={rent:150000,rentMin:60,buy:12000000,speed:1.8,carry:3,herd:{dur:20,exp:30,vnd:40000,daily:5}};
+const HORSE={rent:150000,rentMin:60,buy:12000000,speed:1.8,carry:3,coats:['Ngựa hồng (nâu đỏ)','Ngựa ô (đen tuyền)','Ngựa vàng kem','Ngựa nâu sẫm'],herd:{dur:20,exp:30,vnd:40000,daily:5}};
 const CRATES={vnd:25000,exp:8,daily:12};
 // trường đua: thuê ngựa đua, cá cược; đua kiểu Audition (gõ đúng chuỗi mũi tên rồi bấm Space đúng nhịp)
 // every: cứ chừng ấy giây chốt danh sách 1 lần, ghế trống bot vào đủ 6 ngựa cho mọi người cược; botMul: trận có bot thì phí thuê + tiền thưởng ×1,5
@@ -651,7 +667,7 @@ Object.assign(NPC_LOOKS,{
 /* ---------- Đi lại bằng Grab + phòng riêng là trung tâm ----------
    Rời map nào cũng phải gọi Grab trên điện thoại (cần pin ≥ 5%), phí theo quãng đường. Pháp bao chuyến đầu lên Ké.
    Ở phòng riêng: chợ online (mua bán đồ với người chơi khác), học kỹ năng, chat online. */
-const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},
+const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},lumen:{name:'Lumen Studio (Hà Nội)',city:'hn'},diep:{name:'Phòng của Diệp (Hà Nội)',city:'hn'},
   retreat:{name:'Ké Retreat (Đà Bắc, Hoà Bình)',city:'hb'},dalat:{name:'Nông trại bác Trang (Đà Lạt)',city:'dl'},
   das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true}};
 const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
@@ -675,10 +691,10 @@ const MARKET={maxListings:8,fee:.05,maxPrice:50000000};   // phí sàn 5% trên 
 const ACTS=['','noi','quay','gong','hokage','kiss','attack','hurt','fish','sleep','ko','work','phone','shower','cook','herd','wrestle','swim','wheelie','shisha'];
 const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko:3};
 // cờ trong gói vị trí
-const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096};
+const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
-const SCENE_DEST={das:'das',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={das:[30,20],retreat:[340,240],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_DEST={das:'das',lumen:'lumen',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
+const SCENE_SIZE={das:[30,20],lumen:[38,36],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 function vnTime(ms=Date.now()){ const d=new Date(ms+RULES.tzOffsetH*3600e3);
@@ -720,6 +736,6 @@ function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(
 
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
-  lvSpeed,OPTIMUS,MEGATRON,WILDLIFE,FOLLOWERS,OII,SHISHA,PIG_STEAL,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
+  lvSpeed,OPTIMUS,MEGATRON,WILDLIFE,FOLLOWERS,OII,SHISHA,PIG_STEAL,LUMEN,DIEP,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

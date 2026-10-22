@@ -4,7 +4,7 @@
 const http=require('http'), fs=require('fs'), path=require('path');
 const {WebSocketServer}=require('ws');
 const C=require('./core');
-require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii');
+require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); const DIEP=require('./diep');
 const {verifyGoogle}=require('./auth');
 const {S,db,players,byUid,handlers,hooks,send,now,today,moveTo,markDirty,save,publicProfile}=C;
 const {clean}=require('./world');
@@ -82,10 +82,12 @@ const server=http.createServer((req,res)=>{ const url=new URL(req.url,'http://x'
 // đặt người chơi vào cảnh đã lưu lần trước
 function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   const at=(id,sp)=>moveTo(pl,id,pos&&pos.x?pos.x:sp.x,pos&&pos.y?pos.y:sp.y);
-  if(sc==='retreat') return at('retreat',S.SPAWN.retreat);
+  if(sc==='retreat') return pos&&pos.y>S.SCENE_SIZE.retreat[1]-4?moveTo(pl,'retreat',S.SPAWN.retreat.x,S.SPAWN.retreat.y):at('retreat',S.SPAWN.retreat);   // map Ké đã thu gọn: ai đứng ở khu làng cũ thì về chỗ xuất hiện
   if(sc==='everfit') return at('everfit',S.OFFICE.spawn);
   if(sc==='dalat') return at('dalat',S.DALAT.spawn);
   if(sc==='das') return at('das',S.DAS.spawn);
+  if(sc==='lumen') return at('lumen',S.LUMEN.spawn);
+  if(sc==='diep'&&!DIEP.canVisit(p)) return at('diep',S.DIEP.spawn);
   if(sc==='track') return moveTo(pl,'dalat',S.DALAT.track.x,S.DALAT.track.y);
   if(sc==='phongbay'){ const I=S.INTERIORS.club; return moveTo(pl,'club',I.spawn.x,I.spawn.y); }
   if(sc==='deo') return moveTo(pl,'retreat',S.NPCS.find(n=>n.id==='donche').x+1,90.4);

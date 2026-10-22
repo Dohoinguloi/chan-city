@@ -282,5 +282,55 @@ function buildDas(){ const D=SD.DAS, W=D.W, H=D.H, K=kit(), {put,block,act}=K;
   put(A.sofa('#2a2a30',64),21,15.6); block(19,14,22,14); put(A.coffeeTable(false),21,17.4); block(20,16,21,16); put(A.sofa('#ffd400',30),25.6,16.6);
   act(15,18.6,'Ra sân bay (gọi xe / mua vé)',{do:'grab'},26);
   return {name:'DAS · Design Anthropology School · TP.HCM',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:D.spawn.x*T,y:D.spawn.y*T},indoor:true,music:'music_room'}; }
-Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,buildDeo,buildDas,TRACK});
+/* ---------- Lumen Studio (Hà Nội) ----------
+   bố cục theo ảnh mẫu: hành lang dọc giữa; trái: phòng quay (phông xanh, máy quay), thư viện tư liệu, sảnh lễ tân; phải: phòng nghỉ trưa (2 giường),
+   khu bàn làm việc (6 máy), pantry + lounge (máy bán nước, TV, ghế). Lối vào ở dưới giữa */
+function buildLumen(){ const L=SD.LUMEN, W=L.W, H=L.H, K=kit(), {put,block,act}=K, g=shell(W,H,'b','h');
+  const wall=(x0,y0,x1,y1)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) g[y][x]='h'; }, gap=(x,y0,y1)=>{ for(let y=y0;y<=y1;y++) g[y][x]='b'; };
+  wall(16,2,16,23); wall(21,2,21,23); wall(1,10,15,11); wall(22,10,36,11); wall(1,22,15,23); wall(22,22,36,23);
+  gap(16,6,7); gap(16,16,17); gap(21,5,6); gap(21,15,16);                                                  // cửa các phòng ra hành lang; sảnh + lounge (y≥24) mở thông hành lang
+  // phòng quay
+  put(A.glassWall(96),8,2.2,{flat:true}); put(A.glassWall(96),29,2.2,{flat:true});                                     // cửa kính lớn tường trên như ảnh mẫu
+  put(A.greenScreen(),8,4.9,{flat:true}); put(A.cameraRig(),8,7.6); block(8,7,8,7); put(A.gamingChair('#3a6ad0'),3.4,7.4); put(A.gamingChair('#3a6ad0'),12.4,7.4);
+  put(A.wardrobe(),14.2,4.8); block(13,3,14,3); put(A.label('PHONG QUAY','#2b5e4e','#f4f1ea'),8,9.6,{flat:true}); act(8,8.6,'Quay motion / video cho khách (việc Lumen)',{do:'lumendesk'},24);
+  // thư viện tư liệu
+  put(A.shelf2(['#4d6f99','#c4382e','#e8b83a','#4f9a3e','#f4f1ea']),3,14.4); block(2,13,3,13); put(A.shelf2(['#2b5e4e','#f4f1ea','#c8964e','#5f9e84']),6.6,14.4); block(6,13,7,13);
+  put(A.shelf2(['#e8823a','#5aa9d6','#8a5aaa','#f2c43d']),10.4,14.4); block(9,13,11,13); put(A.shelf2(['#c4384a','#f2c43d','#2b5e4e','#bfe2f2']),13.8,14.4); block(13,13,14,13);
+  put(A.workTable(),8,18.4); block(7,17,9,17); put(A.loungeChair('#5f9e84'),5.4,18.8); put(A.loungeChair('#5f9e84'),10.6,18.8); put(A.label('THU VIEN','#2b5e4e','#f4f1ea'),8,21.6,{flat:true});
+  act(8,19.4,'Bàn tư liệu: UX research (việc Lumen)',{do:'lumendesk'},24);
+  // phòng nghỉ trưa
+  put(A.bedSingle('#bfe2f2','#9aa0a8'),25.4,6.6); block(25,4,25,6); put(A.bedSingle('#f2b8c6','#9aa0a8'),33.4,6.6); block(33,4,33,6);
+  put(A.bedside('#ff7a8a'),27.6,5.2); block(27,4,27,4); put(A.bedside('#ffd84a'),31.2,5.2); block(31,4,31,4); put(A.label('PHONG NGHI TRUA','#2b5e4e','#f4f1ea'),29,9.6,{flat:true});
+  act(L.nap.x,L.nap.y,'Ngả lưng ở phòng nghỉ trưa (+năng lượng)',{do:'lumennap'},26);
+  // khu bàn làm việc
+  for(const [x,y] of L.desks.slice(0,6)){ put(A.pcStation((x*7+y)|0),x,y-1.4); block(Math.floor(x)-1,Math.floor(y)-2,Math.floor(x),Math.floor(y)-2); put(A.gamingChair(['#d9263a','#3a6ad0','#4f9a3e'][Math.floor(x/4)%3]),x,y-.2);
+    act(x,y,'Bàn làm việc Lumen',{do:'lumendesk'},22); }
+  put(A.label('STUDIO','#2b5e4e','#f4f1ea'),35,21.6,{flat:true});
+  // sảnh lễ tân
+  put(A.label('LUMEN STUDIO','#2b5e4e','#fff3d6'),11.6,24.4,{flat:true}); put(A.noticeBoard('LUMEN'),3.4,26.2); block(2,25,4,25);
+  put(A.counter(112,'#c89a5a'),8,27.8); block(4,27,11,27); put(A.laptop(),6,26.6); put(A.laptop(),10,26.6);
+  act(7,28.8,'Lễ tân Lumen: ứng tuyển, xem việc hôm nay',{do:'lumennpc'},30);
+  for(const [x,y] of [[1.8,31.4],[14.6,25.2],[14.6,33.4],[17.6,21.4],[35.6,25.2]]){ put(A.pottedFern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
+  // pantry + lounge
+  put(A.drinkFridge('#3f6fb0'),24,26.6); block(23,25,24,25); act(L.coffee.x,L.coffee.y,'Máy pha cà phê lạnh (miễn phí 1 lần/ngày)',{do:'lumencoffee'},24);
+  put(A.wallTV(),30,25.2,{flat:true}); for(const [i,x] of [27,29,31,33].entries()) put(A.loungeChair(i%2?'#3a6ad0':'#c4384a'),x,27.6);
+  put(A.coffeeTable(true),30.2,30.6); block(29,29,30,29); for(const [i,x] of [27,29.4,31.8,34.2].entries()) put(A.loungeChair(i%2?'#c4384a':'#3a6ad0'),x,33.4);
+  put(A.sofa('#3a6ad0',40),35,30.6); block(34,29,35,29);
+  act(18.5,34.6,'Ra đường (gọi Grab)',{do:'grab'},26);
+  return {name:'Lumen Studio · Hà Nội',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:L.spawn.x*T,y:L.spawn.y*T},indoor:true,music:'music_room'}; }
+
+/* ---------- Phòng của Diệp (Hà Nội) ----------
+   theo ảnh mẫu: sàn gỗ, thảm xanh giữa phòng, 2 máy game thùng bên trái, ghế bành tím + bàn trải khăn đỏ có chân nến ở giữa (chỗ ngồi ăn),
+   kệ sách + bàn TV máy game cổ + đèn dung nham dọc tường trên, 2 sofa tím bên phải, góc bếp của Diệp ở góc trên bên phải */
+function buildDiep(){ const D=SD.DIEP, W=D.W, H=D.H, K=kit(), {put,block,act}=K, g=shell(W,H,'O','H');
+  put(A.greenRug(192,132),9.4,9.2,{flat:true}); put(A.greenRug(48,22),11.9,16.4,{flat:true});
+  put(A.bonsaiPot('#e86a2a'),1.8,3.6); block(1,2,1,2); put(A.retroShelf('terra'),4.4,3.6); block(3,2,5,2); put(A.retroShelf('gold'),7.6,3.6); block(6,2,8,2);
+  put(A.consoleTable(),13,3.8); block(11,2,15,2); put(A.bonsaiPot('#3f9a4a'),16.6,3.6); block(16,2,16,2);
+  put(A.counter(60,'#c08552'),19.2,3.6); block(18,2,20,2); put(A.stove(),22,3.5); block(21,2,22,2); put(A.label('BEP CUA DIEP','#5a2a4a','#f2b8c6'),20.2,5.2,{flat:true});
+  put(A.arcade('#d9463a'),2.4,8.8); put(A.arcade('#3a6ad0'),4.2,8.8); block(1,7,4,8); act(3.3,9.8,'Chơi máy game thùng',{do:'arcade'},22);
+  put(A.armchair('#8a5aaa'),9.6,8.4); block(9,7,10,7); put(A.redTable(true),9.6,11); block(8,10,11,10); act(D.seat.x,D.seat.y,'Ngồi vào bàn, nhờ Diệp nấu cho ăn',{do:'diepcook'},24);
+  put(A.sofaSide('#8a5aaa'),21.2,9.6); block(21,7,22,8); put(A.sofaSide('#8a5aaa'),21.2,14); block(21,12,22,13);
+  act(11.5,16.6,'Về thôi (gọi Grab)',{do:'grab'},24);
+  return {name:'Phòng của Diệp · Hà Nội',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:D.spawn.x*T,y:D.spawn.y*T},indoor:true,music:'music_room'}; }
+Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,buildDeo,buildDas,buildLumen,buildDiep,TRACK});
 })();

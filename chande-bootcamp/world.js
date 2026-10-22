@@ -53,11 +53,10 @@ function buildRoom(){
 /* ---------- Map 1: Chande Bootcamp (Ké Retreat) ---------- */
 function buildRetreat(){
   // map mở rộng 340×240 ô: Ké Retreat ở góc Tây Bắc (x<72, y<100), thị trấn + chùa + vườn quốc gia phía Đông, làng Mường bên kia hồ
-  const W=340, H=240, g=Array.from({length:H},()=>Array(W).fill('F'));
+  const W=340, H=124, g=Array.from({length:H},()=>Array(W).fill('F'));
   // nhà dân thị trấn xếp thành dãy: dãy Bắc quay ra phố y=73, dãy Nam quay ra phố y=83 (chừa chỗ ủy ban, trường, chợ, bưu điện, sân bóng, khách sạn)
   const ROOFS=['tile','tile_blue','tile_green','thatch','tile_purple','stone','tile_teal'], WALLS=['ochre','cream','white','pink','mint','yellow','brick'];
   const TOWN_HOUSES=[...[76,82,88,94,100,106,166,172,178,184,190].map((x,i)=>[x,66,ROOFS[i%7],WALLS[(i*3)%7]]),...[76,82,98,104,110,166,172,178,184,190,196].map((x,i)=>[x,78,ROOFS[(i+3)%7],WALLS[(i*2+1)%7]])];
-  const STILTS=[[24,156],[44,160],[70,148],[130,158],[170,146],[196,160],[232,168],[276,156],[300,146],[120,206],[90,216],[150,214]];
   const set=(x,y,t)=>{ if(x>=0&&y>=0&&x<W&&y<H) g[y][x]=t; };
   const get=(x,y)=>x>=0&&y>=0&&x<W&&y<H?g[y][x]:'F';
   const rect=(x0,y0,x1,y1,t,only)=>{ x0=Math.round(x0); x1=Math.round(x1); for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(!only||only.includes(get(x,y))) set(x,y,t); };
@@ -133,29 +132,12 @@ function buildRetreat(){
   for(let x=300;x<=311;x++){ set(x,60,'X'); set(x,69,'X'); } for(let y=60;y<=69;y++){ set(300,y,'X'); set(311,y,'X'); } set(305,69,'X');   // khu hổ có tường
   // cầu gỗ qua hồ sang làng Mường bên kia hồ; ruộng bậc thang + đường làng
   const BRIDGES=[24,110,190,262,322]; for(const x of BRIDGES) rect(x-2,x<68?98:101,x+3,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+1,'Q');   // cầu rộng 6 ô cho dễ đi
-  const prom=[]; for(let x=2;x<=W-3;x+=6) prom.push([x,shore2(x)+3]); line(prom,1,'P',['F','G','p']);                // đường dạo bờ Nam
-  for(const x of BRIDGES) rect(x-2,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+2,x+3,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+4,'P',['F','G','p','D','W']); line([[110,shore2(110)+2],[110,150],[60,152],[20,160]],1,'P',['F','G']); line([[110,150],[180,152],[250,160],[320,150]],1,'P',['F','G']); line([[160,152],[160,210],[100,220]],1,'P',['F','G']);
-  const VR=[[[24,123],[22,140],[20,160],[24,190],[50,230]],[[60,152],[70,185],[100,220]],[[190,123],[186,140],[180,152]],[[262,123],[258,140],[250,160]],[[322,123],[320,150]],
-    [[250,160],[262,185],[290,215],[320,232]],[[160,210],[220,205],[290,215]],[[100,220],[60,232],[20,232]],[[180,152],[200,180],[200,200],[220,205]]];
-  for(const pts of VR) line(pts,1,'P',['F','G','p']);
-  // ngõ từ cửa từng nhà sàn ra đường làng gần nhất
-  const VPTS=[[[110,150],[60,152],[20,160]],[[110,150],[180,152],[250,160],[320,150]],[[160,152],[160,210],[100,220]],...VR,prom].flatMap(pts=>pts.slice(1).flatMap((b,i)=>{ const a=pts[i], n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])); return [...Array(n+1)].map((_,k)=>[a[0]+(b[0]-a[0])*k/n,a[1]+(b[1]-a[1])*k/n]); }));
-  const stub=(dx,dy,pts=VPTS)=>{ let best=null, bd=1e9; for(const q of pts){ const d=Math.hypot(q[0]-dx,q[1]-dy); if(d<bd){ bd=d; best=q; } } if(best) line([[dx,dy],[dx,best[1]],best],1,'P',['F','G','p']); };
-  for(let j=0;j<6;j++) for(let i=0;i<9;i++){ const x0=14+i*34+(j%2)*8, y0=126+j*18+((i*7)%5); if(x0+20<W-4&&y0+10<H-4&&A.hash(i,j,77)<.72) rect(x0,y0,x0+20+(i%3)*3,y0+9+(j%2)*2,'p',['G','F']); }
-  for(const [cx,cy,rx,ry] of [[60,190,26,14],[200,200,30,16],[290,215,24,12],[40,228,20,8],[250,130,14,6]]) ell(cx,cy,rx,ry,'F',['G','p']);
-  for(const [x,y] of STILTS) stub(x+2,y+3);
+  for(const x of BRIDGES) rect(x-2,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+2,x+3,Math.max(...[0,1,2,3,4,5].map(k=>shore2(x-2+k)))+4,'P',['F','G','p','D','W']);
   // ===== lấp đất trống: đường mòn nối nhau (tự bắc cầu khi qua nước), suối + guồng nước ở làng, sân, quảng trường, rừng =====
   const trail=(pts,w=1)=>{ line(pts,w,'P',['F','G','p','C']); line(pts,1,'Q',['W']); };
   const free=(x0,y0,x1,y1,ok=['G','p'])=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) if(!ok.includes(get(x,y))) return false; return true; };
   const EXTRA_INTER=[], EXTRA_ZONES=[];
   const spot=(x,y,label,lines,r=26)=>EXTRA_INTER.push({x:x*T,y:y*T,label,r,say:lines});
-  // suối nhỏ chảy từ núi phía Nam ra hồ: chỗ cắt đường làng thành cầu gỗ
-  const STREAM=[[236,238],[240,215],[232,190],[244,172],[240,150],[234,117]], sx=y=>{ for(let i=0;i<STREAM.length-1;i++){ const [ax,ay]=STREAM[i],[bx,by]=STREAM[i+1]; if(y<=ay&&y>=by) return ax+(bx-ax)*(ay-y)/(ay-by); } return STREAM[0][0]; };
-  for(let i=0;i<STREAM.length-1;i++){ const [ax,ay]=STREAM[i],[bx,by]=STREAM[i+1], n=Math.ceil(Math.hypot(bx-ax,by-ay)*3);
-    for(let k=0;k<=n;k++){ const cx=ax+(bx-ax)*k/n, cy=ay+(by-ay)*k/n; for(let dx=-1;dx<=1;dx++){ const X=Math.round(cx+dx), Y=Math.round(cy), t=get(X,Y); if(t==='P'||t==='Q') set(X,Y,'Q'); else if(t!=='B'&&t!=='o') set(X,Y,'W'); } } }
-  // làng: thêm đường ngang dọc nối các xóm
-  for(const pts of [[[10,176],[60,172],[110,172],[160,176],[205,172],[250,174],[300,178],[334,172]],[[10,206],[48,210],[100,204],[150,200],[200,206],[262,210],[330,204]],
-    [[60,152],[62,172],[56,210],[60,232]],[[130,150],[134,172],[128,204],[132,232]],[[205,172],[210,206],[206,232]],[[290,150],[300,178],[296,206],[300,232]],[[20,232],[334,234]]]) trail(pts,1);
   // Ké ↔ thị trấn (từ cổng Đông vườn rau Ké sang phố)
   line([[67,80.5],[70,81],[72,83]],1,'P',['F','G']);
   // thị trấn: sân trường, chợ, sân bóng, quảng trường đài phun nước, bến xe
@@ -178,15 +160,14 @@ function buildRetreat(){
   ring(0,0,W-1,2); ring(0,H-3,W-1,H-1); ring(0,0,2,H-1); ring(W-3,0,W-1,H-1);
   // 6 trục đường lớn 4 làn chia map thành các ô phố, mỗi đường có tên
   const ROADS=[{name:'Đường Thuỵ Khuê',sign:'DUONG THUY KHUE',r:[0,95,W-1,97]},{name:'Đường Long Biên',sign:'DUONG LONG BIEN',r:[69,3,72,94]},{name:'Đường Red Type',sign:'DUONG RED TYPE',r:[204,3,207,92]},
-    {name:'Đường Hà Phạm',sign:'DUONG HA PHAM',r:[73,56,203,59]},{name:'Đường Pịa',sign:'DUONG PIA',r:[3,174,W-4,177]},{name:'Đường Thắng Cố',sign:'DUONG THANG CO',r:[188,121,191,H-4]}];
+    {name:'Đường Hà Phạm',sign:'DUONG HA PHAM',r:[73,56,203,59]}];
   for(const R of ROADS.slice(1)){ const [x0,y0,x1,y1]=R.r; for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){ const t=get(x,y); if(t==='X'||t==='B') continue; set(x,y,t==='W'||t==='o'?'Q':'R'); } }
   EXTRA_ZONES.unshift(...ROADS.map(R=>({name:R.name,x0:R.r[0],y0:R.r[1],x1:R.r[2],y1:R.r[3]})),{name:'Đường vành đai',x0:0,y0:0,x1:W-1,y1:2},{name:'Đường vành đai',x0:0,y0:H-3,x1:W-1,y1:H-1},{name:'Đường vành đai',x0:0,y0:0,x1:2,y1:H-1},{name:'Đường vành đai',x0:W-3,y0:0,x1:W-1,y1:H-1});
   for(let x=262;x<=264;x++) set(x,Pk.y0,'P'); for(let y=46;y<=48;y++) set(Pk.x1,y,'P');                               // cổng phụ phía Bắc, phía Đông vườn quốc gia
-  for(const pts of [[[51,28],[50,14],[51,3]],[[80,37],[80,3]],[[100,11],[100,3]],[[122,8],[122,3]],[[148,26],[148,3]],[[185,17],[185,3]],[[263,3],[263,7]],[[336,47],[331,47]],
-    [[20,232],[20,237]],[[60,232],[60,237]],[[132,232],[132,237]],[[206,232],[206,237]],[[300,232],[300,237]],[[10,176],[3,176]],[[10,206],[3,206]],[[334,172],[337,172]],[[330,204],[337,204]],[[3,140],[22,140]],[[336,140],[322,140]]]) trail(pts,1);
+  for(const pts of [[[51,28],[50,14],[51,3]],[[80,37],[80,3]],[[100,11],[100,3]],[[122,8],[122,3]],[[148,26],[148,3]],[[185,17],[185,3]],[[263,3],[263,7]],[[336,47],[331,47]]]) trail(pts,1);
   EXTRA_ZONES.push({name:'Thác Đà Bắc',x0:88,y0:10,x1:112,y1:30},{name:'Đồi chè',x0:112,y0:8,x1:132,y1:22},{name:'Chòi canh rừng',x0:179,y0:17,x1:191,y1:27},{name:'Bãi cắm trại rừng',x0:192,y0:35,x1:208,y1:45},
     {name:'Sân bóng thị trấn',x0:118,y0:74,x1:134,y1:82},{name:'Quảng trường Đà Bắc',x0:137,y0:85,x1:145,y1:91},{name:'Bến xe Đà Bắc',x0:178,y0:85,x1:205,y1:91},{name:'Chợ Đà Bắc',x0:151,y0:60,x1:164,y1:71},
-    {name:'Trường tiểu học Đà Bắc',x0:129,y0:60,x1:140,y1:71},{name:'Suối bản Mường',x0:226,y0:122,x1:244,y1:239});
+    {name:'Trường tiểu học Đà Bắc',x0:129,y0:60,x1:140,y1:71});
   // nhà (ô 'B' = chân nhà, không đi qua được)
   const B=[];
   const bld=(name,x0,y0,x1,y1,o)=>{ rect(x0,y0,x1,y1,'B'); B.push({name,x0,y0,x1,y1,o}); };
@@ -216,11 +197,6 @@ function buildRetreat(){
   // nhà dân trong thị trấn
   for(const [x,y,r,w] of TOWN_HOUSES) bld('Nhà dân',x,y,x+4,y+2,{roof:r,wall:w,doors:[30],windows:[8,52]});
   bld('Bảo tàng lịch sử Hoà Bình',124,84,136,91,{shop:true,roof:'stone',wall:'stone',doors:[96],windows:[12,40,150,180],sign:'BAO TANG',awning:'#8a3a2a'});
-  // mỗi nhà sàn mang tên 1 tướng Liên Minh Huyền Thoại, không nhà nào trùng tên
-  const CHAMPS=['Ahri','Yasuo','Garen','Lux','Jinx','Teemo','Zed','Thresh','Lee Sin','Ezreal','Ashe','Darius','Katarina','Riven','Akali','Vayne','Annie','Master Yi','Morgana','Leona','Sona','Nasus','Malphite','Blitzcrank',
-    'Draven','Jhin','Kai\'Sa','Lucian','Yone','Sett','Seraphine','Pyke','Caitlyn','Ekko','Fiora','Irelia','Janna','Kayn','Miss Fortune','Nami','Rengar','Shen','Sylas','Talon','Veigar','Xin Zhao','Yuumi'];
-  let champ=0; const stiltName=()=>'Nhà sàn '+CHAMPS[champ++%CHAMPS.length];
-  for(const [x,y] of STILTS) bld(stiltName(),x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true});
   // công trình thị trấn mới
   bld('UBND xã Đà Bắc',114,60,122,63,{roof:'tile',wall:'yellow',doors:[65],windows:[10,28,100,118],sign:'UBND XA DA BAC',stoneBase:true});
   bld('Trường tiểu học Đà Bắc',129,60,140,63,{roof:'tile_blue',wall:'cream',doors:[89],windows:[10,26,42,58,118,134,150,166],sign:'TRUONG TIEU HOC'});
@@ -228,11 +204,6 @@ function buildRetreat(){
   bld('Trạm y tế xã',196,61,203,64,{roof:'tile',wall:'white',doors:[57],windows:[10,96],sign:'TRAM Y TE',awning:'#2f9a52'});
   bld('Bưu điện Đà Bắc',87,75,95,78,{roof:'tile',wall:'yellow',doors:[65],windows:[12,36,96,116],sign:'BUU DIEN',awning:'#f2c43d'});
   bld('Khách sạn Đà Bắc',152,75,162,80,{roof:'tile_purple',wall:'brick',doors:[81],windows:[10,26,42,58,112,128,144],sign:'KHACH SAN',awning:'#7a52b0',wallH:30});
-  // làng Mường: thêm nhà sàn ở chỗ trống (chỉ xây khi ô còn trống), nhà văn hoá bản, chợ phiên
-  const STILTS2=[[86,166],[140,182],[184,180],[214,186],[268,180],[312,182],[324,212],[62,214],[196,222],[256,222],[300,224],[150,222],[20,186],[106,186],[176,196],[276,196]], built=[];
-  for(const [x,y] of STILTS2) if(free(x-1,y-1,x+5,y+3)){ rect(x-1,y-1,x+5,y+3,'G'); bld(stiltName(),x,y,x+4,y+2,{roof:'thatch',wall:'wood',doors:[30],windows:[8],stilt:true}); stub(x+2,y+3); built.push([x,y]); }
-  if(free(99,160,109,170)){ rect(99,160,109,170,'G'); bld('Nhà văn hoá bản Mường',100,161,108,164,{roof:'thatch',wall:'wood',stilt:true,doors:[64],windows:[12,32,100,120],sign:'NHA VAN HOA'}); rect(99,165,109,169,'C'); stub(104,169); EXTRA_ZONES.push({name:'Nhà văn hoá bản Mường',x0:99,y0:160,x1:109,y1:170}); }
-  const CHO2=[[190,184],[170,226],[110,226],[312,160],[40,196],[260,232]].find(([x,y])=>free(x,y,x+16,y+10,['G','p','P'])); if(CHO2){ const [cx,cy]=CHO2; rect(cx,cy,cx+16,cy+10,'C'); stub(cx+8,cy+10); EXTRA_ZONES.push({name:'Chợ phiên Mường',x0:cx,y0:cy,x1:cx+16,y1:cy+10}); }
   const tents=[{name:'Lều 1',x0:30,y0:72,x1:32,y1:74},{name:'Lều 2',x0:24,y0:71,x1:26,y1:73}];
   for(const t of tents) rect(t.x0,t.y0,t.x1,t.y1,'B');
 
@@ -316,15 +287,6 @@ function buildRetreat(){
   put(A.lookout(),185,22.4); solid.push([184,21,186,21]); spot(185,24,'Lên chòi canh',['Đứng trên chòi canh nhìn thấy cả hồ Hoà Bình lấp lánh, thị trấn bé xíu và vườn quốc gia xanh mướt phía Đông.']);
   put(A.tent({w:44,flag:'#f2c43d'}),197,40.4); put(A.tent({w:44,flag:'#2f9a52'}),203.6,41.2); put(A.bonfire(true),200.2,43.6); solid.push([196,39,198,39],[202,40,205,40]);
   spot(200.2,44.6,'Sưởi lửa trại',['Nhóm phượt thủ mời bạn ngồi sưởi: "Đêm qua nghe tiếng khỉ kêu bên vườn quốc gia đó!"']);
-  // ---- làng Mường: sân nhà, rơm, giếng, trâu, guồng nước, chợ phiên
-  built.concat(STILTS).forEach(([x,y],i)=>{ if(i%2===0) put(A.haystack(),x+6.4,y+2.6); if(i%3===1) put(A.well(),x-1.4,y+3.2); if(i%3===0) put(A.clothesline(),x+2.5,y-.6); });
-  for(const [x,y] of [[40,140],[150,190],[270,140],[90,230],[310,196],[214,160]]) put(A.buffalo(),x,y);
-  for(const y of [180,160,202]){ const x=sx(y)+2.2; put(A.waterWheel(),x,y); solid.push([Math.floor(x)-1,y-1,Math.floor(x)+1,y-1]); }
-  spot(sx(180)+2.2,181,'Ngắm guồng nước',['Guồng nước tre quay kẽo kẹt, múc nước suối đổ lên ruộng bậc thang. Người Mường làm cái này từ thời ông bà.']);
-  put(A.noticeBoard('NHA VAN HOA'),109.6,169.6); put(A.well(),98.8,168.6); spot(104,170,'Nhà văn hoá bản',['Tối nay có hát đối đáp và múa sạp ở nhà văn hoá. Cả bản kéo nhau đi xem.']);
-  if(CHO2){ const [cx,cy]=CHO2; for(const [dx,c] of [[2.5,'#c4382e'],[6.5,'#5a8d64'],[10.5,'#f2c43d'],[14.5,'#8a5a36']]){ put(A.stall(c,['#f4ead8','#5fae46','#c4382e']),cx+dx,cy+4.6); solid.push([Math.floor(cx+dx)-1,cy+3,Math.floor(cx+dx)+1,cy+3]); }
-    for(const dx of [4,12]) put(A.stall('#a8322a',['#e8d8b4','#d9b04a','#3f8a3a']),cx+dx,cy+8.6);
-    spot(cx+8,cy+7,'Đi chợ phiên',['Chợ phiên họp mỗi sáng chủ nhật: măng rừng, mật ong, thổ cẩm, rượu cần bày la liệt.']); }
   for(const [x,y] of [[76,88],[84,87.4],[98,87.4],[106,87.6],[118,88],[122,84],[138,84]]) put(A.potPlant(x|0),x,y);
   // dây đèn vàng như ảnh thực địa (vẽ lúc render)
   const lights=[[[36.5,78.5],[41.3,92.5]],[[36.5,73],[36.5,78.5]],[[29,41.8],[36.7,41]],[[36.7,41],[40.5,41.3]],[[33.6,36],[29,41.8]]];
@@ -367,9 +329,9 @@ function buildRetreat(){
     {name:'Đường bộ lên đồi',x0:18,y0:46,x1:36,y1:70},{name:'Nhà ăn khu trên',x0:20,y0:33,x1:27,y1:39},{name:'Deck ngắm cảnh',x0:20,y0:40,x1:27,y1:43},
     {name:'Sân đá khu trên',x0:27,y0:36,x1:33,y1:41},{name:'Nhà Ngủ 1·2·3',x0:31,y0:31,x1:38,y1:36},{name:'Nhà Chiềng',x0:40,y0:31,x1:47,y1:36},
     {name:'Nhà Mái Đá',x0:40,y0:37,x1:47,y1:41},{name:'Nền khu cắm trại',x0:45,y0:24,x1:56,y1:31},{name:'Đường vòng lên đồi',x0:20,y0:42,x1:58,y1:46},
-    {name:'Thị trấn Đà Bắc',x0:72,y0:60,x1:206,y1:94},{name:'Chùa Đà Bắc',x0:136,y0:26,x1:162,y1:58},{name:'Vườn quốc gia Đà Bắc',x0:212,y0:2,x1:337,y1:93},{name:'Cầu sang làng Mường',x0:108,y0:98,x1:113,y1:121},{name:'Làng Mường bên kia hồ',x0:0,y0:122,x1:339,y1:239},{name:'Hồ Hoà Bình',x0:72,y0:98,x1:339,y1:121}];
+    {name:'Thị trấn Đà Bắc',x0:72,y0:60,x1:206,y1:94},{name:'Chùa Đà Bắc',x0:136,y0:26,x1:162,y1:58},{name:'Vườn quốc gia Đà Bắc',x0:212,y0:2,x1:337,y1:93},{name:'Cầu qua hồ Hoà Bình',x0:108,y0:98,x1:113,y1:121},{name:'Hồ Hoà Bình',x0:72,y0:98,x1:339,y1:121}];
   const districts=[{name:'Khu nghỉ dưỡng Ké',x:34,y:66},{name:'Phố Đà Bắc',x:140,y:80},{name:'Khu tâm linh',x:149,y:34},{name:'Rừng phía Bắc',x:110,y:30},{name:'Vườn quốc gia',x:272,y:50},
-    {name:'Hồ Hoà Bình',x:170,y:110},{name:'Làng Mường',x:118,y:137},{name:'Đồng lúa bậc thang',x:270,y:150},{name:'Xóm chợ phiên',x:180,y:216},{name:'Ruộng phía Tây',x:46,y:206}];
+    {name:'Hồ Hoà Bình',x:170,y:110}];
   const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),{name:'Lều 1',x:31.5,y:72},{name:'Lều 2',x:25.5,y:71},{name:'Cổng',x:39.5,y:94},
     {name:'Bể bơi',x:22,y:76},{name:'Deck ngắm cảnh',x:23.5,y:42},{name:'Vườn rau phía Đông',x:62.5,y:51},{name:'Vườn rau phía Tây',x:8.5,y:62},{name:'Vườn rau Ké',x:58,y:76.5},{name:'Sân gà',x:63.5,y:43},{name:'Nền khu cắm trại',x:50,y:25},
     {name:'Đường bộ (~10 phút)',x:26,y:60},{name:'Bến hồ',x:43,y:104},{name:'Hồ Hoà Bình',x:20,y:106},

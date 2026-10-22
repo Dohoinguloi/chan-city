@@ -61,6 +61,7 @@ UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g
   return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được':''}</p>`+money()+
   `<div class="list">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
+    if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
     const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}</div>`; }).join('')}</div>
   <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; });
 ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to}); if(!r.err) UI.closeAll(); };
@@ -179,7 +180,7 @@ function hubHtml(){ const g=G(), tabs=[['market','Chợ online'],['learn','Học
   if(hubTab==='chat') body=`<div class="ochlog" id="ochLog">${ochLog.map(m=>`<div class="${m.dm?'dm':''}"><b>${esc(m.from)}${m.toName?' → '+esc(m.toName):''}:</b> ${esc(m.m)}</div>`).join('')||'<p class="muted">Kênh chung: ai đang online đều đọc được</p>'}</div>
     <div class="form"><select id="ochTo"><option value="">Kênh chung</option>${who.filter(w=>w.id!==NET.pid).map(w=>`<option value="${w.id}">Nhắn riêng: ${esc(w.n)}</option>`).join('')}</select><input id="ochIn" maxlength="120" placeholder="Gõ tin nhắn..." aria-label="Tin nhắn">${btn('och','Gửi','', 'pri')}</div>
     <h5>Đang online (${who.length})</h5><p class="muted">${who.map(w=>`${esc(w.n)} (cấp ${w.lv}) · ${esc(w.where)}`).join('<br>')}</p>`;
-  if(hubTab==='work') body=workHtml(true);
+  if(hubTab==='work') body=workHtml(true)+'<h5>Lumen Studio (remote)</h5>'+lumenHtml(true);
   return `<div class="tabs">${tabs.map(([k,n])=>`<button class="tab ${k===hubTab?'on':''}" data-a="tab" data-k="${k}">${n}</button>`).join('')}</div>${body}`; }
 ACT.tab=d=>{ hubTab=d.k; if(d.k!=='work') loadMarket(); draw(); };
 ACT.mkbuy=async d=>{ const r=await GAME.act({t:'mk',op:'buy',id:+d.id}); if(!r.err) GAME.toast('Đã mua','item'); loadMarket(); };
@@ -448,6 +449,38 @@ UI.raceOverlay=(g)=>{ const v=GAME.RACE; if(!v||v.st!=='run'||v.me<0) return; co
   if(judge&&performance.now()-judge.t<900){ g.fillStyle={PERFECT:'#ffd84a',GREAT:'#7de07a',COOL:'#7fe0ff',BAD:'#ff9f2e',MISS:'#ff6a55'}[judge.j]; g.font='40px VT323, monospace'; g.fillText(judge.j+(judge.combo>1?' x'+judge.combo:''),W/2,Y-62); }
   g.font='18px VT323, monospace'; g.fillStyle='#c9b9a6'; g.fillText(raceInput&&raceInput.sent?'Đã bấm':'Gõ mũi tên rồi SPACE ở mốc vàng',W/2,Y+40); };
 
+/* ---------- Lumen Studio: lễ tân (ứng tuyển), bàn làm việc trong studio, làm remote bằng laptop ở phòng ---------- */
+function lumenHtml(remote){ const L=SD.LUMEN, g=G(), r=g.lumen&&g.lumen.day===SD.vnTime(NET.now()).day?g.lumen:{...(g.lumen||{}),done:[]}, certs=((g.das||{}).certs||[]).length;
+  if(!r.hired) return `<p class="muted">Lumen Studio cần ít nhất <b>${L.needCerts} chứng chỉ DAS</b> (bạn có ${certs}) và cấp ${L.level}. Ứng tuyển ở quầy lễ tân Lumen (Grab tới Lumen Studio, Hà Nội). Làm ở đây được EXP ×${L.expMul}.</p>`;
+  const left=L.daily-r.done.length;
+  return `<p>Hôm nay còn <b>${left}/${L.daily}</b> việc · mỗi việc ${fmt(L.pay)} + EXP ×${L.expMul} · ${remote?'đang làm remote ở phòng':'đang ở studio'}</p><div class="list">${Object.entries(L.tasks).map(([k,t])=>{ const done=r.done.includes(k);
+    return `<div class="row"><span>${esc(t.name)} <small class="muted">${t.dur} giây · +${t.exp*L.expMul} EXP</small></span><span>${done?'xong':''}</span>${done||left<=0?'':btn('lumendo','Làm',{k},'pri')}</div>`; }).join('')}</div>`; }
+UI.lumen=()=>open('Lumen Studio · bàn làm việc',()=>lumenHtml(false));
+PLACE.lumen=()=>open('Lumen Studio · Annie',()=>{ const L=SD.LUMEN, g=G(), lm=g.lumen||{}, sc=lm.scholar, certs=((g.das||{}).certs||[]).length, ready=certs>=L.needCerts&&g.level>=L.level;
+  const intro=`<p>Annie: "Chào bạn! Lumen là studio thiết kế, làm remote thoải mái. Bên mình nhận người có từ <b>${L.needCerts} chứng chỉ DAS</b> và cấp ${L.level} trở lên, bù lại kinh nghiệm ở đây <b>gấp ${L.expMul} lần</b>."</p>`,
+    perks='<p class="muted">Phòng nghỉ trưa (+năng lượng) và máy cà phê ở pantry dùng được 1 lần/ngày.</p>';
+  if(lm.hired) return intro+lumenHtml(false)+btn('lumenquit','Nghỉ làm ở Lumen')+perks;
+  const schol=!sc?`<h5>Học bổng Lumen</h5><p>Annie: "Chưa đủ chứng chỉ thì để Lumen tài trợ: bay vào DAS (TP.HCM) học đủ ${L.needCerts} chứng chỉ, <b>${L.scholar.free} khoá đầu miễn phí</b>, <b>${L.scholar.half} khoá sau giảm 50%</b>. Học xong quay lại đây nhận việc, có thưởng ${L.scholar.reward.exp} EXP + ${fmt(L.scholar.reward.vnd)}."</p>${btn('lumenscholar','Nhận học bổng, đi học ở DAS',{},'pri')}`
+    :`<h5>Học bổng Lumen</h5><p>Đã có <b>${certs}/${L.needCerts}</b> chứng chỉ DAS · còn ${sc.free} suất miễn phí, ${sc.half} suất giảm 50% khi đăng ký khoá ở DAS.</p>`;
+  return intro+`<p class="muted">Bạn: cấp ${g.level} · ${certs}/${L.needCerts} chứng chỉ DAS</p>`+(ready?btn('lumenapply',sc?'Báo cáo đủ chứng chỉ, nhận việc':'Ứng tuyển vào Lumen',{},'pri'):'')+(ready&&!sc?'':schol)+perks; });
+ACT.lumenscholar=async()=>{ const r=await req({t:'lumen',op:'scholar'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
+ACT.lumenapply=async()=>{ const r=await req({t:'lumen',op:'apply'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
+ACT.lumenquit=async()=>{ const r=await req({t:'lumen',op:'quit'}); if(!r.err) GAME.toast(esc(r.msg),'item'); };
+ACT.lumendo=async d=>{ const r=await GAME.act({t:'lumen',op:'do',task:d.k}); if(!r.err) UI.closeAll(); };
+/* ---------- Chọn xe / ngựa để đi (phím H khi có nhiều hơn 1 lựa chọn) ---------- */
+UI.rides=()=>open('Chọn xe để đi',()=>{ const now=NET.now(), L=GAME.rideChoices(), coat=G().horseCoat||0, rows=[], mins=u=>Math.max(0,Math.ceil((u-now)/60000));
+  for(const o of L){ if(o.kind==='moto') rows.push(`<div class="row"><span><b>${esc(GAME.MOTO_NAME[o.model]||o.model)}</b>${o.cur?' · đang chọn':' · trong gara'}<br><small class="muted">${o.model==='xedap'?'xe đạp công cộng, không cần mũ':`×${SD.MOTO.models[o.model].speed} tốc độ`} · còn ${mins(o.until)} phút thuê</small></span>${btn('ridego','Đi xe này',{k:'moto',m:o.model},'pri')}</div>`);
+    else SD.HORSE.coats.forEach((n,i)=>rows.push(`<div class="row"><span><b>${esc(n)}</b>${i===coat?' · đang chọn':''}<br><small class="muted">${o.own?'ngựa của bạn':`ngựa thuê · còn ${mins(o.until)} phút`} · ×${SD.HORSE.speed} tốc độ, chở ${SD.HORSE.carry} thùng hàng</small></span>${btn('ridego','Cưỡi',{k:'horse',c:i},i===coat?'pri':'')}</div>`)); }
+  return rows.length?`<div class="list">${rows.join('')}</div><p class="muted">Thuê thêm mẫu xe khác ở tiệm thuê xe cạnh Shop Chande: xe cũ được cất vào gara, không mất giờ thuê. Bấm H lần nữa để xuống xe.</p>`
+    :'<p class="muted">Chưa có xe nào. Thuê xe máy ở tiệm cạnh Shop Chande, xe đạp công cộng ở trạm cạnh bến xe buýt, ngựa ở trại ngựa thị trấn Đà Bắc hoặc Đà Lạt.</p>'; });
+ACT.ridego=d=>GAME.rideGo(d.k==='horse'?{kind:'horse',coat:+d.c}:{kind:'moto',model:d.m});
+
+/* ---------- Phòng của Diệp ---------- */
+PLACE.diep=()=>open('Diệp',()=>{ const D=SD.DIEP, g=G(), d=SD.vnTime(NET.now()).day, n=g.diep&&g.diep.day===d?g.diep.n:0, exp=Math.min(D.cook.expMax,Math.round(D.cook.expK*Math.sqrt(Math.max(0,g.money)/1e6)));
+  return `<p>"Sang chơi hả? Ngồi vào bàn đi, mình nấu ramen cho ăn. Mà nói trước nha, ít tiền quá (dưới ${fmt(D.kick)}) là mình đuổi về đó!"</p>
+    <p>Hôm nay Diệp đã nấu <b>${n}/${D.cook.daily}</b> bữa cho bạn. Ăn đồ Diệp nấu lúc này được khoảng <b>+${exp} EXP</b> (càng nhiều tiền trong người càng nhiều EXP, tối đa ${D.cook.expMax}), +${D.cook.energy} năng lượng, tính là 1 bữa.</p>
+    <p class="muted">Ngồi vào bàn trải khăn đỏ giữa phòng rồi bấm E để nhờ Diệp nấu.</p>`; });
+
 /* ---------- ai đang online (bấm nút ở góc trên) ---------- */
 let onlineList=null;
 UI.online=()=>{ onlineList=null; NET.req({t:'who'}).then(r=>{ onlineList=r.list||[]; UI.refresh(); });
@@ -627,11 +660,13 @@ ACT.keland=d=>req({t:'dog',op:'land',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(
 ACT.kelandcancel=()=>{ if(confirm('Trả đất vườn Ké?')) req({t:'dog',op:'landcancel'}); };
 ACT.buydog=async d=>{ if(G().dog&&!confirm('Đổi chó? Con cũ chú Ba nuôi hộ, không hoàn tiền.')) return; const r=await req({t:'dog',op:'buy',k:d.k}); if(!r.err){ GAME.sfx('dog_bark',.6); GAME.toast(esc(r.msg),'quest'); } };
 // DAS: thầy Huy Tạ đăng ký khoá học, xem chứng chỉ, đứng lớp làm giảng viên
-PLACE.das=()=>open('DAS · thầy Huy Tạ',()=>{ const g=G(), r=g.das||{c:{},certs:[]}, D=SD.DAS, d=SD.vnTime(NET.now()).day, boost=Math.min(D.maxBoost,(r.certs||[]).reduce((a,k)=>a+(D.courses[k]?D.courses[k].boost:0),0)), T=D.teach;
+PLACE.das=()=>open('DAS · thầy Huy Tạ',()=>{ const g=G(), r=g.das||{c:{},certs:[]}, D=SD.DAS, d=SD.vnTime(NET.now()).day, sc=g.lumen&&g.lumen.scholar&&!g.lumen.scholar.done?g.lumen.scholar:null,
+    fee=c=>sc&&sc.free>0?'<b class="good">Miễn phí (học bổng Lumen)</b>':sc&&sc.half>0?`<s>${fmt(c.fee)}</s> <b class="good">${fmt(Math.round(c.fee/2))}</b> (Lumen −50%)`:fmt(c.fee), boost=Math.min(D.maxBoost,(r.certs||[]).reduce((a,k)=>a+(D.courses[k]?D.courses[k].boost:0),0)), T=D.teach;
   return money()+`<p>"Chào em! Học ở DAS xong có chứng chỉ, xin việc Everfit dễ hơn (đủ ${D.skipInterview} chứng chỉ là nhận thẳng) và lương cao hơn."</p>
+    ${g.level<D.level?`<p class="bad">DAS nhận học viên từ cấp ${D.level}</p>`:''}${sc?`<p class="good">Học bổng Lumen: còn ${sc.free} khoá miễn phí, ${sc.half} khoá giảm 50%</p>`:''}
     <p>Chứng chỉ: <b>${(r.certs||[]).length}</b>${r.certs&&r.certs.length?' ('+r.certs.map(k=>esc(D.courses[k].name)).join(', ')+')':''} · lương Everfit <b class="good">+${Math.round(boost*100)}%</b></p>
     <h5>Khoá học (mỗi ngày học 1 buổi, ngồi ghế trong lớp)</h5><div class="list">${Object.entries(D.courses).map(([k,c])=>{ const e=r.c&&r.c[k], has=(r.certs||[]).includes(k);
-      return `<div class="row"><span><b>${esc(c.name)}</b><br><small class="muted">${c.sessions} buổi × ${c.dur}s · lương Everfit +${Math.round(c.boost*100)}% · +${c.exp} EXP/buổi</small></span><span>${has?'đã có chứng chỉ':e?`đang học ${e.n}/${c.sessions}${e.last===d?' · mai học tiếp':''}`:fmt(c.fee)}</span>${has||e?'':btn('dasenroll','Đăng ký',{k},'pri')}</div>`; }).join('')}</div>
+      return `<div class="row"><span><b>${esc(c.name)}</b><br><small class="muted">${c.sessions} buổi × ${c.dur}s · lương Everfit +${Math.round(c.boost*100)}% · +${c.exp} EXP/buổi</small></span><span>${has?'đã có chứng chỉ':e?`đang học ${e.n}/${c.sessions}${e.last===d?' · mai học tiếp':''}`:fee(c)}</span>${has||e?'':btn('dasenroll','Đăng ký',{k},'pri')}</div>`; }).join('')}</div>
     <h5>Làm giảng viên</h5><p class="muted">Cần ${T.needCerts} chứng chỉ + cấp ${T.level}. Lên bục giảng trong lớp đứng lớp ${T.dur}s: ${fmt(T.pay)}/buổi, tối đa ${T.daily} buổi/ngày.</p>`; },{wide:true});
 ACT.dasenroll=async d=>{ const r=await req({t:'das',op:'enroll',k:d.k}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
 UI.dasStudy=()=>{ const r=G().das||{c:{}}, ks=Object.keys(r.c||{}); if(!ks.length){ GAME.toast('Chưa đăng ký khoá nào. Gặp thầy Huy Tạ ở quầy','lock'); return; }

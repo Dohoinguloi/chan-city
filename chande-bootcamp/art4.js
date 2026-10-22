@@ -454,3 +454,60 @@ const rug=()=>S(72,36,36,18,(g,P)=>{ P.rect(2,2,68,32,'#6a1a1a'); P.rect(4,4,64,
 const pouf=()=>S(18,11,9,10,(g,P)=>{ P.rect(1,3,16,7,'#6a3a8a'); P.rect(2,2,14,1,'#8a5aaa'); P.rect(1,9,16,1,'#4a2a6a'); for(let x=3;x<16;x+=4) P.rect(x,3,1,6,'#e8b83a'); P.rect(6,2,6,1,'#a87ac8'); });
 Object.assign(A,{shisha,rug,pouf});
 })();
+
+/* Lumen Studio (camera + đèn vòng, phông xanh, TV treo tường, ghế lounge, tab đầu giường) và Phòng của Diệp
+   (máy game thùng, ghế bành tím, bàn trải khăn đỏ + chân nến, sofa nhìn ngang, kệ sách, bàn TV máy game cổ + đèn dung nham, chậu bonsai, thảm xanh) */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol), OUT='#1c1516';
+const cameraRig=()=>S(24,42,12,40,(g,P)=>{ for(const [x0,x1] of [[11,3],[12,12],[13,21]]){ const n=14; for(let i=0;i<=n;i++) P.px(Math.round(x0+(x1-x0)*i/n),26+i,'#3a3a40'); }   // chân máy
+    P.rect(11,14,2,13,'#4a4a52'); P.rect(6,9,12,7,'#26262c'); P.rect(15,10,4,5,'#3a3a44'); P.disc(17,12,2,'#5aa9d6'); P.px(8,10,'#d9263a');   // thân máy quay
+    P.disc(12,6,6,'#f4f4f1'); P.disc(12,6,4,'#ffffff'); P.disc(12,6,2,'#c8ccd2'); });                                          // đèn vòng
+const greenScreen=()=>S(80,34,40,32,(g,P)=>{ P.rect(2,1,76,2,'#3a3a40'); P.rect(4,3,72,26,'#38b04a'); P.rect(4,3,72,3,'#4ac85c'); for(let x=8;x<76;x+=12) P.rect(x,6,1,22,'#30a040');
+    P.rect(2,3,2,30,'#3a3a40'); P.rect(76,3,2,30,'#3a3a40'); },false);
+const wallTV=()=>S(44,26,22,25,(g,P)=>{ P.rect(1,1,42,22,'#18181c'); P.rect(3,3,38,18,'#2a4a7a'); P.rect(5,5,16,6,'#5aa9d6'); P.rect(23,5,16,3,'#ffd84a'); P.rect(23,10,12,2,'#f4f4f1'); P.rect(5,14,30,2,'#7fe0ff'); P.rect(20,23,4,2,'#3a3a40'); });
+const loungeChair=(col='#c4384a')=>S(16,18,8,16,(g,P)=>{ P.rect(2,1,12,8,col); P.rect(3,2,10,2,'rgba(255,255,255,.25)'); P.rect(1,8,14,5,col); P.rect(1,12,14,1,'rgba(0,0,0,.25)'); P.rect(2,13,2,4,'#3a3a40'); P.rect(12,13,2,4,'#3a3a40'); });
+const bedside=(flower='#ff7a8a')=>S(18,30,9,28,(g,P)=>{ P.rect(1,14,16,14,'#e8ecef'); P.rect(1,14,16,2,'#ffffff'); P.rect(3,19,12,1,'#b8bec6'); P.rect(8,21,2,1,'#8a9098');
+    P.rect(6,8,6,6,'#e0a070'); P.rect(5,8,8,1,'#c8885a'); P.rect(8,3,2,5,'#4f9a3e'); P.disc(6,4,2,flower); P.disc(12,4,2,flower); P.disc(9,2,2,'#ffd84a'); });
+// ---- phòng Diệp
+const arcade=(col='#d9463a')=>S(26,44,13,42,(g,P)=>{ P.rect(2,1,22,40,'#3a3a44'); P.rect(2,1,22,8,col); P.rect(4,3,18,4,'#5a5a66'); P.rect(7,4,12,2,'#c8ccd2');   // biển hiệu
+    P.rect(3,10,20,13,'#18181c'); P.rect(4,11,18,11,'#2a3a2a'); P.rect(10,12,6,5,'#f4f4f1'); P.px(11,14,OUT); P.px(14,14,OUT); P.rect(11,16,4,1,OUT);   // màn hình: con ma cười
+    for(const x of [5,8,17,20]) P.rect(x,19,2,1,'#5fe06a'); P.rect(2,23,22,6,col); P.rect(5,24,2,3,OUT); P.disc(6,24,1,'#ffd84a'); P.disc(15,26,1,'#f4f4f1'); P.disc(19,26,1,'#ff4fa3');   // bảng điều khiển
+    P.rect(3,30,20,10,'#4a4a56'); P.rect(9,33,8,4,'#2a2a30'); P.rect(10,34,2,1,'#d9263a'); P.rect(14,34,2,1,'#d9263a'); });
+const armchair=(col='#8a5aaa')=>S(34,34,17,32,(g,P)=>{ const hi='#a87ac8', lo='#6a3a8a'; P.rect(5,1,24,17,col); P.rect(7,2,20,3,hi); P.rect(9,6,16,10,lo);
+    P.rect(1,10,7,18,col); P.rect(26,10,7,18,col); P.rect(2,11,5,2,hi); P.rect(27,11,5,2,hi); P.rect(6,16,22,10,col); P.rect(7,17,20,2,hi); P.rect(1,27,32,3,lo); P.rect(3,30,3,3,'#3a2a40'); P.rect(28,30,3,3,'#3a2a40'); });
+const redTable=(candle=true)=>S(48,34,24,30,(g,P)=>{ P.rect(2,14,44,10,'#8a5d3b'); P.rect(2,14,44,2,'#a7744c'); P.rect(4,24,3,8,'#5a3a22'); P.rect(41,24,3,8,'#5a3a22');
+    P.rect(13,13,22,15,'#c4382e'); P.rect(13,13,22,2,'#e05a4a'); P.rect(13,26,22,2,'#e8b83a'); P.rect(19,15,10,8,'#f2c43d'); P.rect(21,13,6,4,'#e8a838');   // khăn đỏ viền vàng + đĩa đồ ăn
+    P.disc(7,12,2,'#e8b83a'); P.disc(10,13,2,'#f2c43d');                                                                       // đĩa quả
+    if(candle){ P.rect(39,6,2,8,'#c8ccd2'); P.rect(35,7,10,1,'#c8ccd2'); for(const x of [35,39,44]){ P.rect(x,3,1,4,'#f4f1ea'); P.px(x,2,'#ffb84a'); } P.rect(37,13,6,1,'#a8aeb6'); } });
+const sofaSide=(col='#8a5aaa')=>S(22,40,11,38,(g,P)=>{ P.rect(10,1,11,37,'#6a3a8a'); P.rect(1,4,10,31,col); P.rect(2,5,8,2,'#a87ac8'); P.rect(1,1,20,5,col); P.rect(1,33,20,5,col); P.rect(2,2,18,1,'#a87ac8'); P.rect(1,36,20,2,'#4a2a60'); });
+const retroShelf=(top='terra')=>S(34,40,17,38,(g,P)=>{ P.rect(1,14,32,24,'#7a4a2a'); P.rect(1,14,32,2,'#9a6a3a'); for(const y of [18,27]){ P.rect(3,y,28,7,'#5a3a22');
+      for(let x=4,i=0;x<30;i++){ const w=2+(i*7)%3, c=['#c4382e','#3f7a8a','#e8b83a','#5aa9d6','#4f9a3e','#e8823a'][(i+y)%6]; P.rect(x,y+2,w,5,c); x+=w+1; } }
+    P.rect(4,35,26,1,'#3a6ad0'); for(let x=5;x<30;x+=4) P.px(x,36,'#e8b83a');
+    if(top==='terra'){ P.rect(8,4,18,10,'rgba(200,230,240,.55)'); P.rect(8,4,18,1,'#ffffff'); P.rect(9,10,16,3,'#6e472c'); P.rect(15,6,2,4,'#5a3a22'); P.disc(16,6,3,'#3f7a31'); }
+    else { P.rect(6,10,22,4,'#e8b83a'); for(let x=7;x<27;x+=3){ P.rect(x,6,2,4,'#f2c43d'); P.px(x,5,'#c48a1a'); } } });
+const consoleTable=()=>S(86,40,43,38,(g,P)=>{ P.rect(2,22,82,6,'#8a5d3b'); P.rect(2,22,82,2,'#a7744c'); P.rect(4,28,3,10,'#5a3a22'); P.rect(79,28,3,10,'#5a3a22'); P.rect(8,30,70,2,'#6e472c');
+    P.rect(30,3,26,19,'#a8aeb6'); P.rect(32,5,22,12,'#18181c'); P.rect(33,6,20,10,'#5aa9d6'); P.rect(33,13,20,3,'#4f9a3e'); P.rect(36,10,3,3,'#e8823a'); P.rect(45,8,2,2,'#f4f4f1');   // màn hình game cổ
+    P.rect(34,18,18,3,'#8a9098'); P.rect(44,19,4,1,'#d9263a'); P.rect(22,24,8,3,'#c8ccd2'); P.rect(56,24,8,3,'#c8ccd2');
+    for(const [x,c] of [[10,'#ff7a2a'],[70,'#ffb84a']]){ P.rect(x,18,8,4,'#c8ccd2'); P.rect(x+1,7,6,11,'rgba(255,255,255,.5)'); P.disc(x+4,11,2,c); P.disc(x+3,15,1,c); P.rect(x+1,4,6,3,'#c8ccd2'); } });   // đèn dung nham
+const bonsaiPot=(leaf='#e86a2a')=>S(22,34,11,32,(g,P)=>{ P.rect(4,22,14,10,'#c8ccd2'); P.rect(3,22,16,2,'#e8ecef'); P.rect(10,13,3,9,'#6e472c'); P.rect(7,15,3,2,'#6e472c');
+    for(const [x,y,r] of [[11,8,5],[6,12,4],[16,12,4],[11,4,3]]) P.disc(x,y,r,leaf); P.disc(9,6,2,'rgba(255,255,255,.25)'); });
+const greenRug=(w=200,h=132)=>S(w,h,w/2,h/2,(g,P)=>{ P.rect(0,0,w,h,'#4a6a4a'); P.rect(3,3,w-6,h-6,'#c8b896'); P.rect(5,5,w-10,h-10,'#5a7a5a'); P.rect(9,9,w-18,h-18,'#c8b896'); P.rect(10,10,w-20,h-20,'#557555');
+    for(const [x,y] of [[12,12],[w-16,12],[12,h-16],[w-16,h-16]]){ P.rect(x,y,4,4,'#c8b896'); P.px(x+1,y+1,'#557555'); } },false);
+Object.assign(A,{cameraRig,greenScreen,wallTV,loungeChair,bedside,arcade,armchair,redTable,sofaSide,retroShelf,consoleTable,bonsaiPot,greenRug});
+})();
+
+/* Lumen Studio có bộ nhận diện riêng (khác DAS): sàn gạch xám xanh 'b', tường kem chân xanh bạc hà 'h', chậu cây tròn, bàn tư liệu gỗ, cửa kính */
+(function(){
+const A=ART, T=A.T, TE=A.TILE_EXT, hash=A.hash, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+A.WALKABLE.add('b');
+TE.b=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#dfe6ea'); P.rect(X,Y,T,1,'#c3ccd2'); P.rect(X,Y,1,T,'#c3ccd2'); P.rect(X+8,Y,1,T,'#ccd5da'); P.rect(X,Y+8,T,1,'#ccd5da'); if(hash(tx,ty,81)<.12) P.px(X+4,Y+5,'#f6f9fb'); };
+TE.h=(g,X,Y,tx,ty,nb,fr,P)=>{ const below=nb(0,1);
+  if(below&&below!=='h'&&A.WALKABLE.has(below)){ P.rect(X,Y,T,T,'#efe6cf'); P.rect(X,Y,T,2,'#fbf6ea'); P.rect(X,Y+7,T,7,'#5f9e84'); P.rect(X,Y+7,T,1,'#7fbfa2'); P.rect(X,Y+14,T,2,'#3f6e5c'); for(let x=3;x<T;x+=8) P.rect(X+x,Y+8,1,5,'#548f76'); }   // mặt tường: kem trên, ốp xanh dưới
+  else { P.rect(X,Y,T,T,'#4a5560'); P.rect(X,Y,T,1,'#66737e'); P.rect(X,Y+T-1,T,1,'#3a434c'); } };                                                    // đỉnh tường
+const pottedFern=()=>S(22,30,11,28,(g,P)=>{ P.rect(5,20,12,8,'#a0643a'); P.rect(4,20,14,2,'#c07a48'); P.rect(6,27,10,1,'#6e472c');
+  for(const [x,y,r] of [[11,12,6],[6,15,4],[16,15,4],[11,7,4]]) P.disc(x,y,r,'#3f8a4a'); for(const [x,y] of [[8,9],[13,11],[10,15],[15,13]]) P.px(x,y,'#6fc07a'); });
+const workTable=()=>S(48,26,24,24,(g,P)=>{ P.rect(2,8,44,10,'#b88a5a'); P.rect(2,8,44,2,'#d4a878'); P.rect(4,18,3,7,'#7a5434'); P.rect(41,18,3,7,'#7a5434');
+  P.rect(7,4,12,6,'#2a2a30'); P.rect(8,5,10,4,'#7fe0ff'); P.rect(6,10,14,1,'#5a5a66'); P.rect(25,9,8,6,'#f4f4f1'); P.rect(27,11,5,1,'#b8bec6'); P.rect(35,8,6,7,'#fff3a8'); P.rect(36,10,4,1,'#c8b860'); });
+const glassWall=(w=96)=>S(w,22,w/2,21,(g,P)=>{ P.rect(0,0,w,22,'#7a8a94'); P.rect(2,2,w-4,18,'#bfe2f2'); for(let x=2;x<w-2;x+=24) P.rect(x,2,2,18,'#7a8a94'); P.rect(2,2,w-4,3,'#e8f8ff'); for(let x=8;x<w;x+=24) P.rect(x,6,6,1,'#ffffff'); },false);
+Object.assign(A,{pottedFern,workTable,glassWall});
+})();

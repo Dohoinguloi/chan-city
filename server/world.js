@@ -35,7 +35,7 @@ function treasureRoll(pl,d){ const TR=S.TREASURE, p=pl.prof; pl.paddled=(pl.padd
   if(n>=TR.daily) C.note(pl,`Hôm nay mò đủ ${TR.daily} món đồ cổ rồi, mai chèo tiếp nhé`,'quest'); }
 
 /* ---------- gói vị trí ---------- */
-function flags(pl){ const n=pl.prof.needs; return (pl.kayak?S.FL.kayak:0)|(pl.fishing?S.FL.fish:0)|(n.clean<20?S.FL.dirty:0)|(n.energy<20?S.FL.tired:0)|(pl.riding?S.FL.ride:0)|(pl.moto?S.FL.moto:0)|(pl.moto&&pl.prof.helmet?S.FL.helmet:0)|(pl.moto==='xedap'?S.FL.bike:0)|(pl.optimus==='robot'?S.FL.optimus:0)|(pl.optimus==='truck'?S.FL.otruck:0)|(pl.pcar?S.FL.car:0)|(pl.incar?S.FL.incar:0)|(pl.prof.drunk>Date.now()?S.FL.drunk:0); }
+function flags(pl){ const n=pl.prof.needs; return (pl.riding?((pl.prof.horseCoat||0)&3)*S.FL.coat:0)|(pl.kayak?S.FL.kayak:0)|(pl.fishing?S.FL.fish:0)|(n.clean<20?S.FL.dirty:0)|(n.energy<20?S.FL.tired:0)|(pl.riding?S.FL.ride:0)|(pl.moto?S.FL.moto:0)|(pl.moto&&pl.prof.helmet?S.FL.helmet:0)|(pl.moto==='xedap'?S.FL.bike:0)|(pl.optimus==='robot'?S.FL.optimus:0)|(pl.optimus==='truck'?S.FL.otruck:0)|(pl.pcar?S.FL.car:0)|(pl.incar?S.FL.incar:0)|(pl.prof.drunk>Date.now()?S.FL.drunk:0); }
 let tickNo=0;
 function snapshot(){ const t=now(), odd=++tickNo%2;
   for(const pl of players.values()){ if(!pl.scene) continue; if(pl.actUntil&&t>pl.actUntil){ pl.act=0; pl.actUntil=0; } pl._e=[pl.pid,Math.round(pl.x),Math.round(pl.y),pl.face,pl.view,pl.anim,pl.act,flags(pl)]; pl._k=pl._e.join(','); }
@@ -130,9 +130,11 @@ hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.v
 
 /* ---------- Grab ---------- */
 function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.spawn];
-  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; return ['retreat',S.SPAWN.retreat]; }
+  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; if(to==='lumen') return ['lumen',S.LUMEN.spawn]; if(to==='diep') return ['diep',S.DIEP.spawn]; return ['retreat',S.SPAWN.retreat]; }
 on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene)], p=pl.prof;
   if(!S.DEST[to]) return {err:'Không có điểm đến này'}; if(destSpawn(pl,to)[0]===pl.scene) return {err:'Bạn đang ở đây rồi'};
+  if(to==='diep'){ const why=require('./diep').canVisit(p); if(why) return {err:why}; }
+  if(to==='das'&&p.level<S.DAS.level) return {err:`DAS nhận học viên từ cấp ${S.DAS.level}, lên cấp rồi hãy bay vào`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
   if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
   if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Về phòng sạc đã.'};

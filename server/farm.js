@@ -140,6 +140,7 @@ on('horse',(pl,m)=>{ const p=pl.prof, t=now();
     if(m.op==='buy'){ if(p.horse&&p.horse.own) return {err:'Bạn có ngựa rồi'}; if(!take(pl,S.HORSE.buy)) return {err:`Ngựa giá ${fmt(S.HORSE.buy)}`}; p.horse={own:true,until:0}; }
     else { if(!take(pl,S.HORSE.rent)) return {err:`Thuê ngựa ${fmt(S.HORSE.rent)}/giờ`}; p.horse={own:!!(p.horse&&p.horse.own),until:Math.max(t,p.horse&&p.horse.until||0)+S.HORSE.rentMin*60e3}; }
     markDirty(pl); return {horse:p.horse}; }
+  if(m.op==='coat'){ const c=m.c|0; if(c<0||c>=S.HORSE.coats.length) return {err:'?'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại ngựa'}; p.horseCoat=c; markDirty(pl); return {coat:c}; }   // chọn loại ngựa
   if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong'};
     if(pl.kayak||pl.fishing) return {err:'Đang bận'}; pl.riding=true; return {}; }
   if(m.op==='dismount'){ pl.riding=false; return {}; } });
