@@ -408,7 +408,7 @@ function pickAt(wx,wy){ let best=null, bd=1e9; const c=(d,o)=>{ if(d<bd){ bd=d; 
     for(const r of Object.values(SD.ROOMS)) for(const [x,y] of r.doors||[]){ const d=Math.hypot(x*T-wx,(y-1)*T-wy); if(d<20) c(d+2,{kind:'spot',x:x*T,y:y*T,label:r.name}); } }
   return best; }
 const mouseOk=()=>started&&S&&!travelling&&!(UI.blocking&&UI.blocking())&&$('#mapView').hidden&&!(S.kind==='deo'&&STUNT);
-cvs.addEventListener('mousemove',e=>{ if(!mouseOk()){ HOVER=null; cvs.style.cursor=''; return; } const [x,y]=worldAt(e); HOVER=pickAt(x,y); cvs.style.cursor=HOVER?'pointer':''; });
+cvs.addEventListener('mousemove',e=>{ if(!mouseOk()){ HOVER=null; cvs.style.cursor=''; return; } const [x,y]=worldAt(e); HOVER=pickAt(x,y); cvs.style.cursor=HOVER?'var(--cur-hand)':''; });
 cvs.addEventListener('mouseleave',()=>{ HOVER=null; });
 cvs.addEventListener('click',e=>{ if(!mouseOk()) return; const [x,y]=worldAt(e), h=pickAt(x,y); if(!h){ clickOut(x,y); return; } DEST={x:h.x,y:h.y,t:performance.now()};
   if(h.kind==='npc') return walkToNpc(h.n.id);

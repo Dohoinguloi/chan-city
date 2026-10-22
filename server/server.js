@@ -66,7 +66,7 @@ function serveStatic(req,res,url){
   const top=p.split('/')[1]; let file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)); const rel=path.relative(ROOT,file);
   if(rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])){ res.writeHead(404); return res.end('Không tìm thấy'); }
   fs.stat(file,(e,st)=>{ if(e||!st.isFile()){ res.writeHead(404); return res.end('Không tìm thấy'); }
-    const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json'].includes(ext);
+    const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json','.css'].includes(ext);
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
       const host=String(req.headers['x-forwarded-host']||req.headers.host||'localhost'), proto=String(req.headers['x-forwarded-proto']||(/^(localhost|127\.|\[::1\])/.test(host)?'http':'https')).split(',')[0];
       const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
