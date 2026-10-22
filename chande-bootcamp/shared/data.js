@@ -572,7 +572,7 @@ for(const z of PK_SETS){ const tag=z.premium?' (premium)':'';
   CLOTHES[z.items.shoes]={name:`Giày ${z.name}${tag}`,slot:'shoes',price:0,hidden:true,pk:z.id,colors:{shoes:z.shoes||'f4f1ea'}};
   if(z.cap) CLOTHES[z.items.head]={name:`Mũ lưỡi trai ${z.name}${tag}`,slot:'head',price:0,hidden:true,pk:z.id,opts:{hair:'cap'},colors:{cap:z.cap}}; }
 PICKLE.bots.forEach((b,i)=>{ CLOTHES['ao_pk'+i]={name:'Áo thi đấu '+b[0],slot:'top',price:0,hidden:true,colors:{top:b[3]}}; });   // áo thi đấu của từng bot
-const YENLANG={W:26,H:18,flatter:{buff:{mul:1.08,min:20},energy:10,lines:['Đẹp trai thế này mà chưa nổi tiếng thì phí quá!','Gu ăn mặc này phải lên bìa tạp chí!','Anh em mà chơi game là auto thắng!','Nhìn thần thái là biết dân chơi hệ sang!']},spawn:{x:12.5,y:16.2},hulk:{x:22.5,y:7.8},guest:{x:7.6,y:6.8},oii:{x:17.4,y:13.6},home:{from:19,to:23},
+const YENLANG={W:38,H:18,flatter:{buff:{mul:1.08,min:20},energy:10,lines:['Đẹp trai thế này mà chưa nổi tiếng thì phí quá!','Gu ăn mặc này phải lên bìa tạp chí!','Anh em mà chơi game là auto thắng!','Nhìn thần thái là biết dân chơi hệ sang!']},spawn:{x:12.5,y:16.2},hulk:{x:22.5,y:7.8},guest:{x:7.6,y:6.8},oii:{x:17.4,y:13.6},home:{from:19,to:23},
   pho:{x:106.6,y:90.6,price:50000},lau:{dur:15},stream:{from:20,to:2,dur:20,exp:100,vnd:150000}};
 const LUMEN={W:38,H:36,spawn:{x:19,y:33.6},needCerts:4,level:3,expMul:4,daily:4,pay:250000,scholar:{free:2,half:2,reward:{exp:200,vnd:500000}},
   desks:[[25,14.8],[29,14.8],[33,14.8],[25,19.8],[29,19.8],[33,19.8],[8,8.6],[8,19.4]],nap:{x:29,y:7.8,energy:35},coffee:{x:24,y:27.8,energy:10,buff:{mul:1.1,min:30}},
@@ -587,6 +587,64 @@ LUMEN.annieAsk={who:['n:leno'],pay:[200000,500000],exp:40,jobs:{
   slide:{name:'Làm slide pitching gấp',ask:'làm gấp bộ slide pitching cho buổi họp 3 giờ chiều nay!',at:'desk',where:'1 bàn làm việc Lumen',dur:12},
   icon:{name:'Export bộ icon app 48 cỡ',ask:'export bộ icon app đủ 48 cỡ cho dev, đặt tên file cho chuẩn vào!',at:'desk',where:'1 bàn làm việc Lumen',dur:12}},
   lines:['Cầm lấy mà tiêu, nhưng tiết kiệm thôi nha!','Đây, lần sau chăm làm việc Lumen thì khỏi phải xin chị nhé.','Chị cho đấy, đi ăn bát phở cho có sức rồi về làm tiếp.','Làm tốt lắm! Tiền đây, đừng nạp game hết đấy.']};
+// 120 Yên Lãng mở rộng (x 26–36): dàn máy PUBG của Refund Gaming, bếp Haky Food, góc DJ. Nhiệm vụ làm ở "chỗ" (at) trong nhà; nhiệm vụ ẩn (secret) không nhận ở NPC,
+// phải tự lục ra: nhìn kỹ 1 chỗ (look), mở nhiều lần (n), chỉ hiện ban đêm giờ game (night), hoặc nói chuyện với 1 người đủ 3 lần trong ngày (talk). Lời thoại của mọi người gợi ý chỗ có nhiệm vụ ẩn.
+const RF={desks:[[28,9.4],[31.4,9.4],[34.8,9.4]],spots:{stove:{x:31.6,y:5,label:'Bếp nấu của Haky Food'},fridge:{x:29.4,y:4.7,label:'Tủ lạnh nhà Độ'},cup:{x:27.2,y:4.8,label:'Tủ cúp PUBG'},
+    booth:{x:33.6,y:16,label:'Bàn DJ'},cam:{x:9.6,y:7,label:'Máy quay stream'},mic:{x:2.6,y:5.4,label:'Micro bàn stream'},cable:{x:8.4,y:4.4,label:'Ổ điện sau bàn stream'},
+    sofa:{x:16.4,y:11.4,label:'Khe ghế sofa'},plant:{x:23.4,y:15.8,label:'Chậu cây góc nhà'},hulk:{x:24.6,y:6.4,label:'Sau lưng Hulkbuster'}},
+  night:[22,4],deskDaily:6,
+  tasks:{rf_drop:{at:'desk',dur:12,label:'Nhảy dù Pochinki tìm gà',chance:.35},rf_duo:{at:'desk',dur:10,label:'Leo rank duo cùng Pino'},rf_cam:{at:'cam',dur:10,label:'Chỉnh góc máy quay'},
+    rf_mic:{at:'mic',dur:8,label:'Test mic, cân âm thanh'},rf_bgm:{at:'booth',dur:10,label:'Chọn nhạc nền buổi stream'},
+    hk_trung:{at:'stove',dur:10,label:'Rán trứng',use:{trung:2}},hk_mi:{at:'stove',dur:8,label:'Nấu mì tôm trứng'},hk_lau:{at:'stove',dur:20,label:'Nấu nồi lẩu gà lá é',use:{ga_thit:1,rau_song:1}},
+    hk_video:{at:'cam',dur:15,label:'Quay clip nấu ăn Haky Food'},sq_cup:{at:'cup',dur:10,label:'Lau bóng cúp PUBG'},sq_lan:{at:'cable',dur:12,label:'Bấm lại đầu dây mạng'},
+    sq_hulk:{at:'hulk',dur:20,label:'Ngồi canh Hulkbuster',night:true},sq_mix:{at:'booth',dur:15,label:'Chơi bản mix bí mật',night:true}},
+  secrets:{sofa:{q:'sq_tainghe',how:'look',item:'tai_nghe_rf'},fridge:{q:'sq_banhbao',how:'n',n:3},cup:{q:'sq_cup',how:'look'},cable:{q:'sq_lan',how:'look'},
+    hulk:{q:'sq_hulk',how:'night'},plant:{q:'sq_khoa',how:'look',item:'chia_khoa_rf'}},
+  talkSecret:{rf_djchip:'sq_mix'},
+  look:{stove:'Bếp ga 2 lò, chảo gang đen bóng. Haky Food bảo chảo này "có hồn"',fridge:'Tủ lạnh toàn nước ngọt với trứng. Hình như ai đó vừa lục ở ngăn dưới',cup:'Tủ cúp PUBG của team, bụi bám mờ cả chữ',
+    booth:'Bàn DJ 2 mâm đĩa, đèn led nháy theo nhạc',cam:'Máy quay full HD, chân máy hơi lệch',mic:'Micro thu âm có màng lọc, dính tí vụn bánh',cable:'Dây điện, dây mạng chằng chịt sau bàn stream',
+    sofa:'Ghế sofa da nâu, khe ghế sâu hun hút',plant:'Chậu cây xanh tốt, đất hơi xới lên',hulk:'Sau lưng Hulkbuster có 1 nút đỏ nhỏ, ban ngày bấm không ăn thua'},
+  lines:{rf_rambo:['Cầm Kar98 là phải one tap, không thì về sảnh!','Tủ cúp của team bám bụi lâu lắm rồi, chẳng ai lau...','Ăn gà xong mới được ăn cơm!'],
+    rf_pino:['Duo với mình không? Mình giữ máu, bạn đi lên!','Hôm qua nghe Hulkbuster kêu rè rè lúc nửa đêm, sợ vãi','Đói quá, Haky nấu gì chưa?'],
+    rf_nhism:['Mạng lag là do dây sau bàn stream đấy, không phải tại mình!','Góc cam lệch thì người xem kêu ngay','Ping 999, cứu!'],
+    rf_funky:['Ai thấy tai nghe của mình đâu không? Lúc ngồi sofa còn đeo mà','Mic phải cân lại, tiếng hơi rè','Hôm nay stream tới sáng nhé anh em'],
+    rf_djchip:['Nhạc nền stream phải có vibe!','Nghe mình kể chuyện tiếp đi, sắp tới đoạn hay rồi...','Mình có 1 bản mix bí mật, chỉ chơi lúc nửa đêm thôi. Nói nhiều với mình đi rồi mình kể'],
+    rf_snake:['Nửa đêm đừng có lại gần Hulkbuster, nghe đồn nó... thức dậy','Jikey hay giấu đồ dưới chậu cây lắm','Tủ lạnh nhà này mở mấy lần là biết ai ăn vụng'],
+    rf_jikey:['Bánh bao gì? Mình không biết gì hết nha!','Mất chìa khoá phòng rồi, mà hình như mình giấu ở đâu đó...','Ăn no rồi chơi game mới ngon'],
+    haky:['Nấu ăn là nghệ thuật! Nhưng nấu cho team RF thì là... chiến trường','Lửa to, tay nhanh, nêm vừa!','Ăn ngon thì nhớ follow kênh Haky Food nhé']}};
+Object.assign(QUESTS,{
+  rf_drop:{giver:'rf_rambo',title:'Ăn gà ở Pochinki',desc:'Ngồi 1 máy PUBG trong góc Refund Gaming, nhảy dù Pochinki tới khi ăn được gà (mỗi lượt 12 giây, không phải lượt nào cũng ăn gà).',prog:1,reward:{exp:220,vnd:300000}},
+  rf_duo:{giver:'rf_pino',title:'Leo rank duo cùng Pino',desc:'Ngồi máy PUBG chơi duo với Pino 2 trận.',prog:2,reward:{exp:200,vnd:250000}},
+  rf_cam:{giver:'rf_nhism',title:'Chỉnh góc máy quay',desc:'Ra máy quay cạnh bàn stream của anh Độ chỉnh lại góc cho chuẩn.',prog:1,reward:{exp:160,vnd:200000}},
+  rf_mic:{giver:'rf_funky',title:'Test mic cho buổi stream',desc:'Ra micro bàn stream test tiếng, cân âm thanh 2 lần.',prog:2,reward:{exp:180,vnd:220000}},
+  rf_bgm:{giver:'rf_djchip',title:'Chọn nhạc nền buổi stream',desc:'Ra bàn DJ chọn nhạc nền cho buổi stream tối nay.',prog:1,reward:{exp:160,vnd:200000}},
+  hk_trung:{giver:'haky',title:'Trứng rán Haky',desc:'Mang 2 quả trứng gà (tiệm thịt Đà Lạt hoặc nhặt trong rừng Ké) tới bếp, rán 2 quả trứng ốp la cho team.',prog:1,reward:{exp:200,vnd:250000}},
+  hk_mi:{giver:'haky',after:'hk_trung',title:'Mì tôm trứng đêm khuya',desc:'Nấu 3 nồi mì tôm trứng ở bếp cho anh em đang stream (mỗi nồi 8 giây).',prog:3,reward:{exp:240,vnd:300000}},
+  hk_lau:{giver:'haky',after:'hk_mi',title:'Nồi lẩu gà lá é cả nhà',desc:'Kiếm 1 gà làm sẵn và 1 rau sống (xe bà Lụa ở Miếu Hải Phòng, hoặc chợ Đà Lạt), mang về bếp nấu lẩu 20 giây.',prog:1,reward:{exp:380,vnd:500000}},
+  hk_video:{giver:'haky',after:'hk_lau',title:'Quay clip Haky Food',desc:'Ra máy quay stream quay clip nồi lẩu cho kênh Haky Food (15 giây).',prog:1,reward:{exp:300,vnd:400000}},
+  sq_tainghe:{giver:'rf_funky',secret:true,title:'🔍 Tai nghe thất lạc',desc:'Tìm thấy tai nghe RF trong khe ghế sofa. Mang trả FunkyM.',need:{tai_nghe_rf:1},reward:{exp:220,vnd:300000}},
+  sq_banhbao:{giver:'haky',secret:true,title:'🔍 Ai ăn vụng bánh bao?',desc:'Tủ lạnh mất 3 cái bánh bao của Haky. Đi hỏi Jikey xem sao, rồi báo Haky.',prog:1,reward:{exp:240,vnd:300000}},
+  sq_cup:{giver:'rf_rambo',secret:true,title:'🔍 Cúp PUBG mờ bụi',desc:'Lau bóng tủ cúp PUBG (10 giây) rồi báo Rambo.',prog:1,reward:{exp:220,vnd:280000}},
+  sq_lan:{giver:'rf_nhism',secret:true,title:'🔍 Thủ phạm gây lag',desc:'Đầu dây mạng sau bàn stream lỏng lẻo. Bấm lại (12 giây) rồi báo Nhism.',prog:1,reward:{exp:240,vnd:300000}},
+  sq_hulk:{giver:'rf_snake',secret:true,title:'🔍 Hulkbuster thức giấc',desc:'Nửa đêm, nút đỏ sau lưng Hulkbuster sáng lên! Ngồi canh nó 20 giây (chỉ ban đêm) rồi kể Snake nghe.',prog:1,reward:{exp:320,vnd:400000}},
+  sq_khoa:{giver:'rf_jikey',secret:true,title:'🔍 Chìa khoá dưới chậu cây',desc:'Dưới chậu cây góc nhà có 1 chìa khoá. Mang trả Jikey.',need:{chia_khoa_rf:1},reward:{exp:200,vnd:250000}},
+  sq_mix:{giver:'rf_djchip',secret:true,title:'🔍 Bản mix bí mật',desc:'DjChip tiết lộ bản mix chỉ chơi lúc nửa đêm. Ban đêm ra bàn DJ chơi 15 giây rồi báo DjChip.',prog:1,reward:{exp:300,vnd:350000}}});
+NPCS.push({id:'rf_rambo',scene:'yenlang',x:26.8,y:11.2,place:'rf'},{id:'rf_pino',scene:'yenlang',x:30.2,y:11.6,place:'rf'},{id:'rf_nhism',scene:'yenlang',x:33.6,y:11.6,place:'rf'},
+  {id:'rf_funky',scene:'yenlang',x:2.4,y:8.8,place:'rf'},{id:'rf_djchip',scene:'yenlang',x:35.6,y:15.4,place:'rf'},{id:'rf_snake',scene:'yenlang',x:27.6,y:15.2,place:'rf'},
+  {id:'rf_jikey',scene:'yenlang',x:30.4,y:15.4,place:'rf'},{id:'haky',scene:'yenlang',x:34.8,y:6,place:'haky'});
+Object.assign(CLOTHES,{ao_rf:{name:'Áo đấu Refund Gaming (đen)',slot:'top',price:0,hidden:true,opts:{top:'tee',print:true},colors:{top:'1c1a20',print:'e8b83a',line:'e05a5a'}},
+  ao_rf_trang:{name:'Áo đấu Refund Gaming (trắng)',slot:'top',price:0,hidden:true,opts:{top:'tee',print:true},colors:{top:'f2f0ea',print:'d23a2e',line:'1c1a20'}},
+  hoodie_rf:{name:'Hoodie Refund Gaming',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'4a4e5a',inner:'1c1a20'}},
+  ao_bep_haky:{name:'Áo bếp Haky Food',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'f4f2ec'}}});
+Object.assign(NPC_LOOKS,{rf_rambo:{name:'Rambo (Refund Gaming)',look:{gender:'nam',hair:'undercut',hairColor:'1c1820',skin:'e8b48a',outfit:{top:'ao_rf',bottom:'jean',shoes:'giay_den'},opts:{mouth:'line'}}},
+  rf_pino:{name:'Pino (Refund Gaming)',look:{gender:'nam',hair:'fringe',hairColor:'3a2a22',skin:'f0c4a0',outfit:{top:'hoodie_rf',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  rf_nhism:{name:'Nhism (Refund Gaming)',look:{gender:'nam',hair:'messy',hairColor:'5a3a2a',skin:'f3c4a4',outfit:{top:'ao_rf_trang',bottom:'jean',shoes:'giay_trang'},opts:{mouth:'smile'}}},
+  rf_funky:{name:'FunkyM (Refund Gaming)',look:{gender:'nam',hair:'fade',hairColor:'1c1820',skin:'e8b08e',outfit:{top:'ao_rf',bottom:'quan_da',shoes:'giay_trang'},opts:{earring:true,mouth:'smile'}}},
+  rf_djchip:{name:'DjChip (Refund Gaming)',look:{gender:'nam',hair:'shag',hairColor:'c8a060',skin:'f0c4a0',outfit:{top:'hoodie_rf',bottom:'jean',shoes:'giay_den',eyes:'kinh_ram'},opts:{mouth:'smile'}}},
+  rf_snake:{name:'Snake (Refund Gaming)',look:{gender:'nam',hair:'buzz',hairColor:'2a2026',skin:'e0a888',outfit:{top:'ao_rf',bottom:'kaki',shoes:'giay_den'},opts:{tattoo:true,mouth:'line'}}},
+  rf_jikey:{name:'Jikey (Refund Gaming)',look:{gender:'nam',hair:'swept',hairColor:'2a2240',skin:'f3c4a4',outfit:{top:'ao_rf_trang',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}},
+  haky:{name:'Haky Food',look:{gender:'nam',hair:'swept',hairColor:'2a1c16',skin:'f0c0a0',outfit:{top:'ao_bep_haky',bottom:'quan_da',shoes:'giay_den'},opts:{mouth:'smile'}}}});
+ITEMS.tai_nghe_rf={name:'Tai nghe Refund Gaming',icon:'headset'}; ITEMS.chia_khoa_rf={name:'Chìa khoá phòng Jikey',icon:'key'};
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -784,7 +842,7 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
 const SCENE_DEST={nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_SIZE={nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
@@ -1018,5 +1076,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

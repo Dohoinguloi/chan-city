@@ -344,6 +344,14 @@ function buildYenLang(){ const Y=SD.YENLANG, W=Y.W, H=Y.H, K=kit(), {put,block,a
   put(A.sofa('#7a4428',72),16.4,10.4); block(14,9,18,9); put(A.sofaSide('#7a4428'),24.2,12.2); block(24,10,24,11); put(A.ottoman(),16.4,12.6); block(15,12,17,12);
   for(const [x,y] of [[1.8,15.6],[24.2,15.6]]){ put(A.pottedFern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   put(A.label('120 YEN LANG','#1e282d','#7fe0ff'),12.5,15.4,{flat:true}); act(12.5,16.6,'Ra ngõ (gọi Grab)',{do:'grab'},24);
+  // khu mở rộng bên phải: góc Refund Gaming (3 máy PUBG, tủ cúp, băng rôn), bếp Haky Food, bàn DJ, ghế lười
+  const R=SD.RF, sp=R.spots;
+  put(A.rfBanner(),27.6,1.5,{flat:true}); put(A.trophyCase(),27.2,4); block(26,2,28,3);
+  put(A.drinkFridge('#3f6fb0'),29.4,3.9); block(28,2,30,3); put(A.kitchenRow(0),33.4,4.2,{anim:'rfstove'}); block(30,2,36,3);
+  R.desks.forEach(([x,y],i)=>{ put(A.pubgDesk(i),x,y,{anim:'rfdesk'+i}); block(Math.floor(x)-1,Math.floor(y)-1,Math.floor(x)+1,Math.floor(y)-1); put(A.gamingChair(i%2?'#26262c':'#d9263a'),x,y+1.3); act(x,y+.8,'Máy PUBG của Refund Gaming',{do:'rf:desk',i},18); });
+  put(A.djBooth(0),sp.booth.x,sp.booth.y-.6,{anim:'rfbooth'}); block(Math.floor(sp.booth.x)-1,Math.floor(sp.booth.y)-2,Math.floor(sp.booth.x)+1,Math.floor(sp.booth.y)-2);
+  put(A.beanbag('#d9263a'),27.6,16.2); put(A.beanbag('#e8b83a'),30.4,16.4); put(A.pottedFern(),36.2,7.6); block(36,6,36,6);
+  for(const [k,o] of Object.entries(sp)) act(o.x,o.y,o.label,{do:'rf:spot',k},k==='booth'||k==='stove'?26:20);
   return {name:'120 Yên Lãng · nhà anh Độ',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:Y.spawn.x*T,y:Y.spawn.y*T},indoor:true,music:'music_room'}; }
 /* ---------- Sân pickleball Cầu Giấy (Hà Nội, trong nhà) ----------
    sân giữa phòng (đội A nửa dưới, đội B nửa trên, lưới ở giữa), ghế + giá vợt + bình nước 2 bên, HLV Tuấn đứng góc dưới trái, bảng điểm trên tường */

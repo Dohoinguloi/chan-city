@@ -620,6 +620,15 @@ PLACE.trong=()=>open('☯ Giáo chủ Trọng Motion',()=>{ const g=G(), N=SD.NM
   ${qRow('nm_ball')}${qRow('nm_easing')}${qRow('nm_logo')}${qRow('nm_reel')}
   <p class="muted">Ngồi bàn làm motion cho khách: ${dk}/3 clip hôm nay (mỗi clip +60.000đ). Phòng xông hơi chung (góc dưới phải): +${N.saunaEnergy} năng lượng, có từ ${N.crowd.n} người trong phòng thì cả hội được +${Math.round((N.crowd.mul-1)*100)}% EXP ${N.crowd.min} phút.</p>`; });
 ACT.trsay=()=>{ trSay=(trSay+1)%TR_SAY.length; GAME.sayLine(TR_SAY[trSay],.7,'vi'); UI.refresh(); };
+// 120 Yên Lãng · Refund Gaming + Haky Food: nói chuyện (gợi ý nhiệm vụ ẩn), việc thường, nhiệm vụ ẩn đã lộ
+const RF_Q=id=>Object.keys(SD.QUESTS).filter(k=>SD.QUESTS[k].giver===id), rfLine={};
+function rfRows(id){ const g=G(); return RF_Q(id).filter(k=>!SD.QUESTS[k].secret||g.quests[k]).map(qRow).join(''); }
+PLACE.rf=n=>open(SD.NPC_LOOKS[n.id].name,()=>{ const L=SD.RF.lines[n.id]||[], line=rfLine[n.id]||L[0]||'Chào bạn!', hid=RF_Q(n.id).filter(k=>SD.QUESTS[k].secret&&!G().quests[k]).length;
+  return `<p>"${esc(line)}"</p>${btn('rftalk','💬 Nói chuyện tiếp',{who:n.id})}${rfRows(n.id)}${hid?'<p class="muted">🔍 Có vẻ người này còn giấu chuyện gì đó... thử lục lọi quanh nhà hoặc nói chuyện thêm.</p>':''}`; });
+PLACE.haky=n=>open('Haky Food · bếp nhà anh Độ',()=>{ const L=SD.RF.lines.haky, line=rfLine.haky||L[0];
+  return `<p>"${esc(line)}"</p>${btn('rftalk','💬 Nói chuyện tiếp',{who:'haky'})}${rfRows('haky')}<p class="muted">Bếp ở góc trên bên phải. Trứng gà mua ở tiệm thịt Đà Lạt hoặc nhặt trong rừng Ké; gà làm sẵn, rau sống có ở xe bà Lụa (Miếu Hải Phòng).</p>`; });
+ACT.rftalk=async d=>{ const r=await GAME.act({t:'rf',op:'talk',who:d.who}); if(!r||r.err) return; if(r.secret){ GAME.sfx('level_up',.5); GAME.bigText('NHIỆM VỤ ẨN!'); GAME.toast(esc(r.msg),'quest'); }
+  else rfLine[d.who]=r.msg.replace(/^Jikey: "|"$/g,''); UI.refresh(); };
 PLACE.nm_tuck=()=>open(SD.PLACES.nm_tuck.name,()=>menuHtml({...SD.PLACES.nm_tuck,key:'nm_tuck'})+'<p class="muted">Render đêm thì Sting giữ tỉnh, mì gói trứng xúc xích tính là 1 bữa no. Ấm siêu tốc lúc nào cũng có nước sôi.</p>');
 PLACE.nmmem=()=>open('Thành viên Nghiện Motion',()=>`<p>"Chào mừng tới group! Ở đây ai cũng nghiện: nghiện motion, nghiện lắp Gunpla, nghiện game đối kháng. Tối nào cũng có người ngồi render tới khuya."</p>
   <div class="list"><div class="row"><span><b>Bàn làm motion</b><br><small class="muted">Việc của Giáo chủ làm ở đây, ngoài ra mỗi ngày nhận 3 clip cho khách.</small></span></div>
