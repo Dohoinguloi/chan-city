@@ -665,7 +665,10 @@ const DL_FARM={maxPlots:10};
 // vật nuôi: mua con giống ở trại, cho ăn để bắt đầu 1 lứa, xong lứa thì thu sản phẩm
 // trộm lợn chuồng người khác (đang online) ở trại chú Sáu: 40% trót lọt, hỏng thì đền chủ; nhà có chó thì chó canh trước (block/bite của giống chó, không có thì dogGuard)
 // bị chủ bắt quả tang: vào đồn tạm giữ `jail` giây (nộp `fine` để về sớm) và bồi thường `comp` cho chủ lợn
-const PIG_STEAL={kinds:['lon','nai'],chance:.4,comp:300000,jail:90,fine:500000,cd:90,dogGuard:.3};
+const PIG_STEAL={kinds:['lon','nai','bo','ga','vit'],chance:.4,comp:300000,jail:90,fine:500000,cd:90,dogGuard:.3,loot:{lon:'lon_thit',nai:'lon_thit',bo:'sua',ga:'ga_thit',vit:'trung_vit'}};
+// dịch vụ chó canh chuồng trại (chú Sáu ở Đà Lạt, chú Ba ở Ké): canh mọi vật nuôi của bạn (lợn, bò, gà, vịt) khỏi kẻ trộm, kể cả khi bạn offline
+const GUARD={plans:{ngay:{name:'Chó canh 1 ngày',price:60000,h:24,block:.6,dog:'shiba'},tuan:{name:'Chó canh 7 ngày',price:350000,h:168,block:.6,dog:'shiba'},
+  k9:{name:'Đội Béc-giê K9 · 1 ngày',price:180000,h:24,block:.9,bite:200000,dog:'becgie'}}};
 const ANIMALS={
   bo:{name:'Bò sữa (bê cái)',price:3000000,max:2,feed:'co_kho',cycle:3600,product:'sua',yield:4,exp:14,keep:true},
   ga:{name:'Gà ta',price:50000,max:6,feed:'thoc',cycle:1800,product:'trung',yield:2,exp:4,keep:true},
@@ -970,5 +973,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

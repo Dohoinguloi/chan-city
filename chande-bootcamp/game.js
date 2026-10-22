@@ -917,6 +917,14 @@ function drawPumpkins(list){ if(!G||!S) return;
     const hop=d>4?Math.abs(Math.sin(L.t*2.4))*4:Math.sin(L.t)*1, X=L.x, Y=L.y; list.push({y:Y,d:()=>{ shadow(X,Y,5); const sp=jackSpr(Math.floor(clock*6)%3); ctx.drawImage(sp.c,Math.round(X-sp.ax-cam.x),Math.round(Y-sp.ay-cam.y-hop)); warmGlow(X,Y-8-hop,18,.22); }}); }
   for(const id of LANT.keys()) if(!owners.some(o=>o[0]===id)) LANT.delete(id); }
 const LANT=new Map();
+// chó canh chuồng thuê (dịch vụ chú Sáu / chú Ba): ngồi canh ở góc chuồng có vật nuôi của chủ thuê, thỉnh thoảng vẫy đuôi
+const GUARD_PEN={bo:[52.1,42.4],ga:[64.1,39.4],lon:[71.1,40.4],nai:[71.1,40.4],vit:[56.1,64]};   // cạnh cửa chuồng (điểm cho ăn) ở trại chú Sáu
+function drawGuards(list){ if(!S||(S.kind!=='dalat'&&S.kind!=='retreat')) return; const own=[], now=NET.now();
+  if(G.guard&&G.guard.until>now) own.push([G.guard.k,G.animals||[]]); for(const h of HERDS) if(h.pid!==NET.pid&&h.gd) own.push([h.gd,h.a]);
+  const spots=new Map(); for(const [k,an] of own){ const plan=SD.GUARD.plans[k]; if(!plan) continue; for(const a of an){ const ke=a.loc==='ke';
+      if(S.kind==='retreat'&&ke){ const Y=SD.KE_YARD; spots.set('ke',[Y.x0-.6,Y.y1+.8,plan.dog]); } else if(S.kind==='dalat'&&!ke&&GUARD_PEN[a.k]){ const [x,y]=GUARD_PEN[a.k]; spots.set(a.k==='nai'?'lon':a.k,[x,y,plan.dog]); } } }
+  let i=0; for(const [x,y,dk] of spots.values()){ const X=x*T, Y=y*T, f=Math.floor(clock*2+i)%2, sp=dogSpr(dk,f); i++;
+    list.push({y:Y,d:()=>{ shadow(X,Y,7); drawFlip(sp.c,X,Y,sp.ax,sp.ay,false); }}); ANITAGS.push({x:X,y:Y-sp.ay-2,pet:'Chó canh chuồng'}); } }
 function khogaHere(){ if(!G||G.quests.khoga!=='active') return []; const got=G.flags.khoga||{}; return OI.khoga.map((s,i)=>({...s,i})).filter(s=>s.scene===S.kind&&!got[s.i]); }
 function drawKhoga(list){ for(const s of khogaHere()){ const x=s.x*T, y=s.y*T; list.push({y,d:()=>{ shadow(x,y,6); ctx.drawImage(pick('khoga'),Math.round(x-7-cam.x),Math.round(y-15-cam.y+Math.sin(clock*3+s.i)*1.5)); }});
   if(Math.random()<.02) fx.push({kind:'glint',x:x+(Math.random()-.5)*10,y:y-10,t:0,life:.7}); } }
@@ -1085,7 +1093,7 @@ function draw(){
   if(k==='track') drawRace(list);
   for(const n of npcs) list.push({y:n.y,d:()=>drawNpc(n)});
   const dancing=k==='phongbay'&&DANCE&&DANCE.st==='play', dn=dancing?new Set(DANCE.dancers.map(d=>d.name)):null;
-  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPumpkins(list); drawPickle(list); if(window.MAPX) MAPX.draw(list,ctx);
+  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPumpkins(list); drawGuards(list); drawPickle(list); if(window.MAPX) MAPX.draw(list,ctx);
   const pkSeated=k==='pickle'&&PK&&PK.st==='play'?new Set(PK.seats.filter(s=>s&&!s.bot).map(s=>s.pid)):null;   // người đang đấu pickleball vẽ ở drawPickle (chạy theo bóng)
   for(const r of REM.values()){ interp(r); if(!r.av||!inView(r.x,r.y)||(pkSeated&&pkSeated.has(r.id))) continue; const ac=dancing&&dn.has(r.name)?'quay':r.act; list.push({y:r.y,d:()=>drawChar(ctx,r.av,r.x,r.y,r.face,r.view,r.anim,ac,r.t,ac==='quay'?r.t:r.actT,r.fl)}); }
   if(k==='deo'&&STUNT){ const mode=STUNT.fallT>0?'fallen':STUNT.wheelieT>0?'wheelie':''; const dx=P.x+26+Math.sin(clock*.7)*18, dc=SHEETS.donche;

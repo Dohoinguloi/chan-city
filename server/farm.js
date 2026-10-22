@@ -97,7 +97,8 @@ hook('login',landRoll); hook('slow',()=>{ for(const pl of players.values()) land
 
 /* ---------- chăn nuôi ---------- */
 // vật nuôi của mọi người đang online (để vẽ trong chuồng kèm tên chủ); gửi lại khi có thay đổi
-const herdsView=()=>[...players.values()].filter(q=>q.prof.look&&q.prof.animals&&q.prof.animals.length).map(q=>({n:q.prof.name,pid:q.pid,a:q.prof.animals.map(a=>({k:a.k,loc:a.loc||'dl',r:a.cyc&&now()>=a.cyc?1:a.cyc?0:2}))}));
+const guardOf=p=>p.guard&&p.guard.until>now()&&S.GUARD.plans[p.guard.k]?p.guard.k:'';   // gói chó canh chuồng đang còn hạn
+const herdsView=()=>[...players.values()].filter(q=>q.prof.look&&q.prof.animals&&q.prof.animals.length).map(q=>({n:q.prof.name,pid:q.pid,gd:guardOf(q.prof),a:q.prof.animals.map(a=>({k:a.k,loc:a.loc||'dl',r:a.cyc&&now()>=a.cyc?1:a.cyc?0:2}))}));
 let lastHerds=''; hook('slow',()=>{ const v=herdsView(), s=JSON.stringify(v); if(s===lastHerds) return; lastHerds=s; broadcastScene('dalat',{t:'herds',list:v}); broadcastScene('retreat',{t:'herds',list:v}); });
 hook('enter',(pl,id)=>{ if(id==='dalat'||id==='retreat') send(pl,{t:'herds',list:herdsView()}); });
 const penNear=(pl,k,loc)=>loc==='ke'?pl.scene==='retreat'&&near(pl,S.KE_YARD.x,S.KE_YARD.y,64):pl.scene==='dalat'&&(near(pl,S.DALAT.pens[k].x,S.DALAT.pens[k].y,56)||(k==='vit'&&near(pl,S.DALAT.pens.vit.x+4,S.DALAT.pens.vit.y+.8,72)));   // vịt: đứng dọc mép hồ là cho ăn được
@@ -112,23 +113,28 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     if(!k) return {err:`Chuồng lợn đầy (tối đa ${B.max} con), bán bớt hoặc chờ xuất chuồng`}; markDirty(pl); return {n:k,msg:`Đã thả ${k} lợn con vào chuồng, cho ăn cám để lớn`}; }
   if(m.op==='feedbuy'){ const f=S.FEED[m.k], n=Math.max(1,Math.min(20,m.n|0||1)); if(!f) return {err:'?'}; const ke=atKeShop(pl); if(ke&&m.k!=='thoc') return {err:'Tiệm cô Ké chỉ bán thóc'}; if(!ke&&!P.nearNpc(pl,'chusau')) return {err:'Mua ở trại chú Sáu'};
     if(!take(pl,f.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.k,n); return {n}; }
+  if(m.op==='guard'){ const G=S.GUARD.plans[m.k]; if(!G) return {err:'?'}; if(!P.nearNpc(pl,'chusau')&&!P.nearNpc(pl,'chuba')) return {err:'Gặp chú Sáu (trại Đà Lạt) hoặc chú Ba (vườn Ké) để thuê'};
+    if(!take(pl,G.price)) return {err:`${G.name} giá ${fmt(G.price)}, không đủ tiền`}; const from=p.guard&&p.guard.until>t?p.guard.until:t;
+    p.guard={k:m.k,until:from+G.h*3600e3}; markDirty(pl); lastHerds=''; return {msg:`Đã thuê ${G.name}: chó canh hết chuồng lợn, bò, gà, vịt của bạn tới ${S.vnTime(p.guard.until).day.split('-').reverse().join('/')}`}; }
   if(m.op==='steal'){ const R=S.PIG_STEAL, o=players.get(m.pid|0); if(!o||o===pl) return {err:'Chủ chuồng này không còn online'};
-    const j=m.i|0, an=o.prof.animals[j]; if(!an||!R.kinds.includes(an.k)||an.loc==='ke') return {err:'Không có con lợn này'};
-    if(!penNear(pl,an.k,an.loc)) return {err:'Ra chuồng lợn trại chú Sáu (Đà Lạt) đã'};
+    const j=m.i|0, an=o.prof.animals[j]; if(!an||!R.kinds.includes(an.k)) return {err:'Không có con này'};
+    if(!penNear(pl,an.k,an.loc)) return {err:an.loc==='ke'?'Ra sân gà Ké đã':'Ra chuồng ở trại chú Sáu (Đà Lạt) đã'};
     if(pl.pigAt&&t-pl.pigAt<R.cd*1000) return {err:`Vừa ra tay xong, đợi ${Math.ceil((R.cd*1000-(t-pl.pigAt))/1000)} giây cho đỡ lộ`};
-    pl.pigAt=t; const A=S.ANIMALS[an.k], dd=DOGOF.get(o.uid), D=dd&&S.DOGS[dd.k], oname=o.prof.name, me=p.name;
-    if(D&&Math.random()<(D.block||D.bite||R.dogGuard)){ let msg=`${D.name} nhà ${oname} sủa ầm lên, bạn bỏ chạy không kịp dắt lợn!`;   // chó canh cả chuồng lợn
-      if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm lợn! Nhận ${fmt(v)} tiền đền`,'vnd'); }
-      else note(o,`${D.name} của bạn vừa đuổi ${me} đang định trộm lợn!`,'quest');
+    pl.pigAt=t; const A=S.ANIMALS[an.k], an1=A.name.toLowerCase(), dd=DOGOF.get(o.uid), D0=dd&&S.DOGS[dd.k], gk=guardOf(o.prof), GP=gk&&S.GUARD.plans[gk], oname=o.prof.name, me=p.name;
+    // chó nhà canh hoặc đội chó thuê canh: lấy bên canh chắc hơn
+    const cD=D0?(D0.block||D0.bite||R.dogGuard):0, cG=GP?GP.block:0, D=cG>cD?{name:gk==='k9'?'Đội Béc-giê K9':'Chó canh thuê',bite:GP.bite?1:0,fine:GP.bite||0}:D0;
+    if(D&&Math.random()<Math.max(cD,cG)){ let msg=`${D.name} nhà ${oname} sủa ầm lên, bạn bỏ chạy không kịp dắt ${an1}!`;   // chó canh cả chuồng lợn, bò, gà, vịt
+      if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm ${an1}! Nhận ${fmt(v)} tiền đền`,'vnd'); }
+      else note(o,`${D.name} của bạn vừa đuổi ${me} đang định trộm ${an1}!`,'quest');
       if(D.drain) p.needs.energy=Math.max(0,p.needs.energy-D.drain); markDirty(pl); return {msg}; }
     if(Math.random()>=R.chance){ const v=Math.min(p.money,R.comp); take(pl,v); give(o,v);                                   // bị bắt quả tang: bồi thường cho chủ + vào đồn
-      p.jail={until:t+R.jail*1000,fine:R.fine,why:`Trộm lợn của ${oname} bị bắt quả tang`}; P.stat(pl,'jail',1); markDirty(pl);
-      note(o,`Bắt quả tang ${me} trộm lợn! Đã giải lên đồn, ${me} bồi thường bạn ${fmt(v)}`,'vnd'); broadcastScene(pl.scene,{t:'ev',k:'pigBust',id:pl.pid,name:me,by:oname});
+      p.jail={until:t+R.jail*1000,fine:R.fine,why:`Trộm ${an1} của ${oname} bị bắt quả tang`}; P.stat(pl,'jail',1); markDirty(pl);
+      note(o,`Bắt quả tang ${me} trộm ${an1}! Đã giải lên đồn, ${me} bồi thường bạn ${fmt(v)}`,'vnd'); broadcastScene(pl.scene,{t:'ev',k:'pigBust',id:pl.pid,name:me,by:oname});
       C.moveTo(pl,'doncongan',7,6); return {msg:`Bị ${oname} bắt quả tang! Bồi thường ${fmt(v)}, tạm giữ ${R.jail} giây (nộp ${fmt(R.fine)} để về sớm)`}; }
     o.prof.animals.splice(j,1); markDirty(o); const room=p.animals.filter(x=>x.k===an.k).length<A.max;
-    if(room) p.animals.push({...an,loc:'dl'}); else addItem(pl,'lon_thit',1);
+    if(room) p.animals.push({...an}); else addItem(pl,R.loot[an.k]||'lon_thit',1);
     note(o,`😱 ${me} vừa trộm 1 ${A.name.toLowerCase()} trong chuồng của bạn!`,'lock'); markDirty(pl);
-    return {ok:true,msg:room?`Trót lọt! Dắt 1 ${A.name.toLowerCase()} của ${oname} về chuồng bạn`:`Trót lọt nhưng chuồng bạn đầy, được 1 lợn xuất chuồng`}; }
+    return {ok:true,msg:room?`Trót lọt! Dắt 1 ${an1} của ${oname} về chuồng bạn`:`Trót lọt nhưng chuồng bạn đầy, được 1 ${S.ITEMS[R.loot[an.k]]?S.ITEMS[R.loot[an.k]].name.toLowerCase():'phần thịt'}`}; }
   const i=m.i|0, an=p.animals[i]; if(!an) return {err:'Không có con này'}; const a=S.ANIMALS[an.k]; if(!penNear(pl,an.k,an.loc)) return {err:an.loc==='ke'?'Ra sân gà Ké (sườn đồi phía Tây)':'Ra chuồng '+a.name.toLowerCase()};
   if(m.op==='feed'){ if(an.cyc) return {err:t<an.cyc?'Đang lớn, chưa cần cho ăn':'Thu hoạch trước đã'}; if(!has(pl,a.feed)) return {err:'Hết '+S.FEED[a.feed].name.toLowerCase()+'. Mua ở trại chú Sáu'};
     addItem(pl,a.feed,-1); an.cyc=t+a.cycle*1000; markDirty(pl); return {cyc:an.cyc}; }
