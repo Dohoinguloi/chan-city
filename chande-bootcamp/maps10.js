@@ -22,7 +22,7 @@ const a0=X.anim; X.anim=(o,clock)=>{ if(o.anim==='memeportal'){ const f=Math.flo
 let TICKET=null;
 UI.memeBooth=async()=>{ UI.open('Quầy vé Làng Meme',()=>{ const t=TICKET, me=window.MU8&&window.MU8.me&&window.MU8.me(), pepe=((window.MU8&&window.MU8.boss().list)||[]).find(b=>b.id==='pepe'), R=M.reward.pepe;
     return `<p>"Vào làng là gặp <b>Pepe</b> chú hề: máu gấp 50 lần boss thường. Cứ 5 giây <b>toả đạn vòng tròn</b>, 15 giây <b>nhảy đè làm choáng</b>, 30 giây <b>gọi 10 Pepe Con</b> chạy rất nhanh, 40 giây gọi <b>mưa thiên thạch</b>. Đông người vào cùng thì dễ hơn đấy!"</p>
-      <p>Vé: <b>${SD.fmt(ME.ticket)}</b> / lần vào · mỗi ngày tối đa <b>${ME.perDay} vé</b>${t?` · hôm nay còn <b>${t.left}</b> vé`:''}. Mỗi người hạ mỗi boss tối đa ${M.bossPerDay} lần / ngày.</p>
+      <p>Vé: <b>${SD.fmt(ME.ticket)}</b> / lần vào · mỗi ngày tối đa <b>${ME.perDay} vé</b>${t?` · hôm nay còn <b>${t.left}</b> vé`:''}.${M.bossPerDay?` Mỗi người hạ mỗi boss tối đa ${M.bossPerDay} lần / ngày.`:' Hạ boss không giới hạn số lần.'}</p>
       <p>${pepe?`Pepe đang ở trong làng: còn <b>${SD.fmt(Math.max(0,pepe.hp)).replace('đ','')}</b> / ${SD.fmt(pepe.max).replace('đ','')} máu`:'Pepe đang hồi sức, lát nữa quay lại.'}</p>
       <p class="muted">Hạ Pepe: +${R.exp} EXP, ${SD.fmt(R.vnd)}, ${R.mu} EXP MU, ${R.gems} Ngọc Cường Hoá, ngọc quý, +1 cấp nội tại ngẫu nhiên. Top 3 sát thương chắc chắn được 🏅 <b>Huy Hiệu Pepe</b>
         (người khác ${Math.round(R.badgeChance*100)}%): mang tới Trung tâm Lính Cát đổi 1 trong 3 thần thú siêu huyền thoại, chỉ số ×15.</p>

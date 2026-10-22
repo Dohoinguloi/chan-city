@@ -70,7 +70,7 @@ MU.EXTRA.push({kind:'mob',nearest:pl=>{ const px=pl.x/T, py=pl.y/T; if(pl.scene!
   // các con quái khác quanh 1 điểm (giật lan): n con gần nhất trong r ô, trừ con đang nhắm
   byId:(id,pl)=>{ const o=MOBS.get(id); return o&&!o.dead&&pl.scene==='mu'?asTarget(o,Math.hypot(pl.x/T-o.x,pl.y/T-o.y)):null; },
   around:(x,y,r,n,skip,sc)=>sc&&sc!=='mu'?[]:[...MOBS.values()].filter(o=>!o.dead&&o.id!==skip&&Math.hypot(o.x-x,o.y-y)<=r).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,n).map(o=>asTarget(o,0))});
-function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; },stun:sec=>{ o.stun=now()+sec*1000; o.wind=0; },weak:(mul,sec)=>{ o.weak={until:now()+sec*1000,mul}; }}; }
+function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,max:o.max,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; },stun:sec=>{ o.stun=now()+sec*1000; o.wind=0; },weak:(mul,sec)=>{ o.weak={until:now()+sec*1000,mul}; }}; }
 // thu mua chiến lợi phẩm rừng (Phù Thuỷ Cường Hoá): bán 1 loại hoặc tất cả
 on('mobsell',(pl,m)=>{ if(pl.scene!=='mu'||!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const it=pl.prof.items, ks=m.k?[String(m.k)]:Object.keys(S.MU.matPrice);
   let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=S.MU.matPrice[k]; if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }

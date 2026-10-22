@@ -66,8 +66,8 @@ setInterval(()=>{ try{ const t=now(); for(const M of MATCH.values()){ if(M.st===
 
 // mục tiêu cho đánh thường / chiêu MU trong trận: quái đội kia, nhà chính đội kia, người đội kia
 function asT(M,pl,f,d){ const team=pl.dday.team;
-  if(f.k==='c'){ const c=f.o; return {id:c.id,x:c.x,y:c.y,d,def:D.wave.def,rad:.5,hit:dmg=>{ if(c.hp>0){ c.hp-=dmg; if(c.hp<=0) MU.gainMu(pl,6); } return 'dd:'+c.id; },slow:sec=>{ c.slow=now()+sec*1000; },stun:sec=>{ c.stun=now()+sec*1000; },weak:(mul,sec)=>{ c.weak={until:now()+sec*1000,mul}; }}; }
-  if(f.k==='b'){ const k=1-team; return {id:BASE_ID+k,x:D.bases[k].x,y:D.bases[k].y,d,def:D.base.def,rad:D.base.r,hit:dmg=>{ if(M.st==='play') hurtBase(M,k,dmg); return 'dd:'+(BASE_ID+k); },slow:()=>{}}; }
+  if(f.k==='c'){ const c=f.o; return {id:c.id,x:c.x,y:c.y,d,max:c.max,def:D.wave.def,rad:.5,hit:dmg=>{ if(c.hp>0){ c.hp-=dmg; if(c.hp<=0) MU.gainMu(pl,6); } return 'dd:'+c.id; },slow:sec=>{ c.slow=now()+sec*1000; },stun:sec=>{ c.stun=now()+sec*1000; },weak:(mul,sec)=>{ c.weak={until:now()+sec*1000,mul}; }}; }
+  if(f.k==='b'){ const k=1-team; return {id:BASE_ID+k,x:D.bases[k].x,y:D.bases[k].y,d,max:M.max,def:D.base.def,rad:D.base.r,hit:dmg=>{ if(M.st==='play') hurtBase(M,k,dmg); return 'dd:'+(BASE_ID+k); },slow:()=>{}}; }
   const q=f.o; return {id:PL_ID+q.pid,x:q.x/T,y:q.y/T,d,def:(q.mus&&q.mus.def)||5,rad:.4,hit:dmg=>{ const was=q.mus&&q.mus.dead>now(); MU.hurtP(q,dmg,`Bị ${pl.prof.name} (${D.bases[team].name}) hạ gục`,{ak:'pvp'});
     if(!was&&q.mus&&q.mus.dead>now()){ M.kills[team]++; MU.gainMu(pl,25); note(pl,`⚔ Hạ gục ${q.prof.name}!`,'quest'); } return 'dd:'+(PL_ID+q.pid); },
     pvp:1,slow:sec=>{ MU.applyFx&&MU.applyFx(q,{slow:.6,dur:sec},now()); },stun:sec=>{ MU.applyFx&&MU.applyFx(q,{stun:sec},now()); },wound:mul=>{ if(q.mus){ const F=q.mus.fx||(q.mus.fx={}); F.gw={until:now()+3000,mul}; } }}; }

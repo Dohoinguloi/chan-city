@@ -159,7 +159,8 @@ const C={
     if(v==='front'){ U.rect(6,17,13,18,':'); U.rect(8,19,11,19,':'); U.rect(9,20,10,20,':'); } if(s){ U.rect(9,17,16,18,':'); U.rect(13,19,15,19,':'); }
     U.rows(19,25,(x,y,c)=>{ if(BODY_T.includes(c)&&(x%4===0||y%4===0)) U.put(x,y,';'); }); U.rows(33,33,(x,y,c)=>{ if('Ff'.includes(c)&&(x===4||x===15||(s&&x===6))) U.put(x,y,'$'); }); }};
 /* ---------- set legacy (Premium Store MU): phủ kín đầu thành mũ giáp / mặt nạ, tô lại thân + chân, vũ khí cầm tay phải (cột 20 nhìn thẳng, 18 nhìn nghiêng) ---------- */
-const LGPAL={'0':[76,124,234],'9':[40,70,180],'[':[176,206,255],']':[24,26,40],'{':[255,240,150],'}':[196,136,28],'(':[156,96,56],')':[100,60,34],'-':[255,64,64],'`':[124,226,110],'"':[255,255,255],"'":[150,96,210],'a':[255,166,46]};
+const LGPAL={'0':[76,124,234],'9':[40,70,180],'[':[176,206,255],']':[24,26,40],'{':[255,240,150],'}':[196,136,28],'(':[156,96,56],')':[100,60,34],'-':[255,64,64],'`':[124,226,110],'"':[255,255,255],"'":[150,96,210],'a':[255,166,46],
+  '1':[232,48,160],'2':[168,230,48],'3':[255,140,30],'4':[36,180,90],'5':[62,62,72],'6':[34,54,130],'7':[248,208,40],'8':[214,36,48]};   /* màu Kamen Rider: hồng cánh sen, xanh chanh, cam, xanh lá, xám đậm, navy, vàng, đỏ thẫm */
 for(const [k,v] of Object.entries(LGPAL)){ PAL[k]=v; KEYS.add(k); }
 const LG={
   // đầu: tô mọi pixel đầu (tóc + mặt) theo 3 tông sáng / vừa / tối, sáng ở góc trên trái
@@ -176,7 +177,38 @@ const LG={
     if(v==='side'){ for(let y=17;y<=33;y++){ const w=y<20?1:Math.min(5,1+((y-17)>>1)); for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,x===2-w?c[1]:c[0]); } if(fur) U.rect(2,18,6,19,fur); return; }
     for(let y=18;y<=33;y++){ U.put(-1,y,c[0]); U.put(20,y,c[0]); U.put(-2,y,y>24?c[1]:'.'); U.put(21,y,y>24?c[1]:'.'); } if(fur){ U.rect(-1,18,3,19,fur); U.rect(16,18,20,19,fur); } },
   wx:v=>v==='side'?18:20 };
+// Kamen Rider: mũ giáp kín mặt, mắt kính to, đai Driver bạc ở eo; 6 form khác màu / mũ (lg_kr0…5, đổi mỗi 5 giây khi đánh)
+const KRF=(U,v,o)=>{ const s=v==='side', f=v==='front';
+  LG.head(U,o.h); LG.torso(U,o.t); LG.legs(U,o.l,o.b); LG.hands(U,o.hand||']'); LG.belt(U,'%'); if(f){ U.rect(8,26,11,26,o.core||'-'); U.put(9,26,'"'); }
+  if(o.eye&&v!=='back') o.eye(U,s); if(o.x) o.x(U,v,s,f); };
 Object.assign(C,{
+  lg_kr0(U,v){ KRF(U,v,{h:['8','8',';'],t:['8','8',';'],l:['8',';'],b:['0','9'],core:'-',x:(U,v,s,f)=>{ const half=x=>(s?x<12:x<10);   /* Build RabbitTank: nửa đỏ thỏ, nửa xanh xe tăng */
+      U.rows(1,18,(x,y,ch)=>{ if(ch!=='O'&&!half(x)) U.put(x,y,y<4?'[':'0'); }); U.rows(19,33,(x,y,ch)=>{ if(ch!=='O'&&!half(x)&&!'%"-'.includes(ch)) U.put(x,y,y>30?'8':'0'); });
+      if(f){ U.rect(4,9,8,12,'-'); U.rect(5,8,7,8,'-'); U.rect(11,9,15,12,'['); U.rect(11,9,15,9,'"'); U.rect(5,-2,6,3,'8'); U.put(4,-3,'8'); U.rect(13,-1,15,2,'0'); U.rect(9,1,10,18,']'); U.rect(9,19,10,25,']'); }
+      if(s){ U.rect(12,9,16,12,'['); U.rect(13,-1,15,2,'0'); } } }); },
+  lg_kr1(U,v){ KRF(U,v,{h:['!','1','1'],t:['!','1','1'],l:['1','2'],b:['1','2'],core:'2',x:(U,v,s,f)=>{   /* Ex-Aid: tóc dựng hồng, mặt đen mắt cam to kiểu game, viền xanh chanh */
+      for(let x=s?5:3;x<=(s?16:16);x+=2){ U.rect(x,-4+(x%4),x+1,1,'1'); U.put(x,-4+(x%4),'!'); }
+      if(f){ U.rect(3,7,16,15,']'); U.rect(4,8,8,13,'3'); U.rect(11,8,15,13,'3'); U.rect(5,9,6,11,']'); U.rect(13,9,14,11,']'); U.rect(3,7,16,7,'"'); U.rect(6,21,13,24,'_'); U.rect(7,22,8,23,'0'); U.rect(11,22,12,23,'-'); }
+      if(s){ U.rect(9,7,17,15,']'); U.rect(12,8,16,13,'3'); U.rect(13,9,14,11,']'); }
+      U.rows(27,33,(x,y,ch)=>{ if('PpUj'.includes(ch)&&y%2) U.put(x,y,'2'); }); } }); },
+  lg_kr2(U,v){ KRF(U,v,{h:[']',']','5'],t:[']',']','5'],l:[']','5'],b:['5',']'],core:'3',hand:'5',x:(U,v,s,f)=>{   /* Ghost: mũ trùm đen, mặt cam, sừng bạc giữa trán, sọc cam trên áo */
+      if(f){ U.rect(4,6,15,15,'3'); U.rect(4,6,15,6,'a'); U.rect(7,9,12,13,']'); U.rect(9,-3,10,8,'%'); U.put(9,-4,'"'); U.rect(4,19,6,25,'3'); U.rect(13,19,15,25,'3'); }
+      if(s){ U.rect(10,6,17,15,'3'); U.rect(12,9,15,13,']'); U.rect(13,-3,14,8,'%'); U.rect(9,19,11,25,'3'); }
+      if(v==='back'){ U.rows(19,33,(x,y)=>{ if(x>=4&&x<=15) U.put(x,y,y%4?']':'3'); }); } } }); },
+  lg_kr3(U,v){ KRF(U,v,{h:['0','6','6'],t:['0','6','6'],l:['6','9'],b:['7','}'],core:'3',hand:'6',x:(U,v,s,f)=>{   /* Gaim: mũ navy samurai sừng vàng, mặt cam lát cam, viền vàng */
+      LG.pair(U,v,[[3,3],[2,2],[1,1],[0,0],[-1,-1],[4,4]],'$'); U.rect(s?13:9,-2,s?14:10,2,'$');
+      if(f){ U.rect(5,7,14,15,'3'); U.rect(5,7,14,7,'a'); for(const x of [7,9,11]) U.rect(x,8,x,15,'a'); U.rect(9,7,10,7,'-'); U.rect(-1,18,4,21,'$'); U.rect(15,18,20,21,'$'); U.rect(6,20,13,23,'3'); }
+      if(s){ U.rect(11,7,17,15,'3'); U.rect(8,18,15,21,'$'); }
+      U.rows(19,33,(x,y,ch)=>{ if((y===19||y===27)&&ch!=='O') U.put(x,y,'$'); }); } }); },
+  lg_kr4(U,v){ KRF(U,v,{h:['"','"','_'],t:['"','"','_'],l:['"','_'],b:['0','7'],core:'7',hand:'_',x:(U,v,s,f)=>{   /* Fourze: mũ tên lửa trắng chóp nhọn, kính cam to, đai 4 công tắc màu */
+      for(let y=-4;y<=0;y++){ const w=2+(y+4); U.rect((s?11:9)-w+1,y,(s?11:10)+w-1,y,'"'); }
+      if(f){ U.rect(4,8,15,14,'3'); U.rect(4,8,15,8,'a'); U.rect(6,10,8,12,'['); U.rect(11,10,13,12,'['); U.rect(4,26,5,26,'-'); U.rect(6,26,7,26,'0'); U.rect(12,26,13,26,'7'); U.rect(14,26,15,26,'"'); U.rect(7,20,12,23,'_'); }
+      if(s){ U.rect(10,8,17,14,'3'); U.rect(13,10,15,12,'['); } } }); },
+  lg_kr5(U,v){ KRF(U,v,{h:['-','8','8'],t:['-','8','8'],l:['4','4'],b:['4','5'],core:'7',hand:']',x:(U,v,s,f)=>{   /* OOO: mũ đại bàng đỏ mào nhọn, mắt xanh lá to; ngực đỏ, giữa vàng hổ, dưới xanh châu chấu */
+      for(let i=0;i<6;i++){ const x=(s?6:3)+i*(s?2:3); U.rect(x,-3+(i%2),x+1,1,'8'); U.put(x,-3+(i%2),'-'); }
+      if(f){ U.rect(4,8,15,14,'4'); U.rect(4,8,15,8,'`'); U.rect(9,9,10,14,']'); U.rect(-1,19,4,24,'7'); U.rect(15,19,20,24,'7'); }
+      if(s){ U.rect(10,8,17,14,'4'); U.rect(9,19,14,24,'7'); }
+      U.rows(19,26,(x,y,ch)=>{ if(ch==='O'||'%"-'.includes(ch)) return; if(y>=22&&y<=23) U.put(x,y,'7'); else if(y>=24) U.put(x,y,'4'); }); if(f) U.rect(8,20,11,21,'7'); } }); },
   // Shovel Knight: mũ giáp xanh sừng ngà cong, khe chữ T, vai tròn, đai vàng, xẻng cán nâu lưỡi bạc
   lg_shovel(U,v){ const s=v==='side'; LG.head(U,['[','0','9']); LG.torso(U,['[','0','9']); LG.legs(U,['0','9'],['9',']']); LG.hands(U,'9'); LG.belt(U,'$');
     LG.pair(U,v,[[2,5],[1,4],[0,3],[-1,2],[-2,1],[-2,0],[-2,-1],[-1,-2],[1,5],[0,4],[-1,3]],'/'); LG.pair(U,v,[[-2,-2],[-1,-3],[0,-3]],'{');

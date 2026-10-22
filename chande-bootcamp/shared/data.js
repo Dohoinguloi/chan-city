@@ -919,7 +919,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
       desc:'Tướng tank: giáp voi chiến bạc, mũ đầu voi ngà trắng, khiên tháp + chuỳ. Máu gấp 10, giáp gấp 5 Chiến Binh, đánh chậm 3 lần. Đập choáng, bật giáp phản đòn, tự hồi máu.'}},   /* tank: máu / thủ / giáp so với Chiến Binh (300 → 3000, 18 → 90, 12% → 60%), trần giáp 85% */
   skills:{dk:[{k:'chem',name:'Chém',mp:0,cd:.8,mul:1,range:4.4},{k:'xoay',name:'Chém Xoáy',mp:12,cd:5,mul:2.1,range:4.8},{k:'gong',name:'Gồng Giáp',mp:20,cd:18,buff:'def',dur:8,heal:.15}],
     elf:[{k:'dam',name:'Kiếm Khí Tiên',mp:0,cd:.8,mul:.95,range:8.8},{k:'tamlien',name:'Tam Liên Trảm',mp:10,cd:4,mul:1.9,range:9.2},{k:'phunlua',name:'Phun Lửa',mp:25,cd:12,mul:2.4,range:9.2,aoe:2.5,gw:.5,weak:.35,wdur:5}],   /* phun lửa: lan 2,5 ô quanh mục tiêu, giảm hồi máu 50% + giảm sát thương quái 35% trong 5 giây */
-    dw:[{k:'hoachuong',name:'Hoả Chưởng',mp:4,cd:1.2,mul:1.25,range:2.4},{k:'loichuong',name:'Lôi Chưởng',mp:14,cd:5,mul:2.4,range:2.6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:3}],
+    dw:[{k:'hoachuong',name:'Hoả Chưởng',mp:4,cd:1.2,mul:1.25,range:7.4},{k:'loichuong',name:'Lôi Chưởng',mp:14,cd:5,mul:2.4,range:7.6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:8}],   /* tầm chiêu Phù Thuỷ +5 ô */
     dt:[{k:'dapchoang',name:'Đập Choáng',mp:10,cd:6,mul:1.3,range:4.6,stun:1.8},{k:'batgiap',name:'Bật Giáp',mp:20,cd:16,buff:'giap',dur:6,reflect:.4},{k:'hoimau',name:'Hồi Máu',mp:25,cd:14,heal:.4,cleanse:1}]},   /* bật giáp: thủ ×2, giáp +20%, phản 40% sát thương gốc; hồi máu: 40% máu + giải độc / chậm */
   // boss tổng Luffy Gear 5 + boss phụ Naruto Cửu Vĩ (rừng Làng Lá phía Đông). Đòn của boss: single (đánh 1 người), circle (vùng tròn ở chỗ 1 người), multi (n vùng cùng lúc),
   // cone (hình nón trước mặt, nhiều nhát), jump (nhảy tới chỗ 1 người, đáp xuống gây sát thương), ring (sóng quanh boss), chase (vùng tròn bám theo 1 người tới lock giây
@@ -979,7 +979,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
   // độ khó chung mọi boss MU: máu ×hp, đòn ×dmg, thời gian cảnh báo ×warn (ngắn hơn), vùng đánh ×r (to hơn), hồi chiêu ×cd (ra đòn dày hơn)
   bossHard:{hp:40,dmg:15,warn:.75,r:1.15,cd:.8},   /* máu ×40 (trước ×15), đòn ×15 */
   // mỗi người hạ mỗi boss tối đa bossPerDay lần / ngày (tính lúc boss chết, ai góp sát thương đều tính 1 lần); hạ đủ thì không gây sát thương, không có thưởng nữa: chống đánh hộ
-  bossPerDay:5,
+  bossPerDay:0,   /* 0 = không giới hạn (đã bỏ giới hạn 5 lần / ngày) */
   // thưởng hạ boss ×bossRewardX: EXP, tiền, EXP MU, số Ngọc Cường Hoá / ngọc quý (đồ độc nhất như trang phục, vũ khí, Huy Hiệu, Trái Ác Quỷ giữ nguyên)
   bossRewardX:20,bossGemX:5,bossVndX:20/3,   /* riêng Ngọc Cường Hoá ×5 (giảm 4 lần so với ×20), tiền ×6,7 (giảm 3 lần) */
   // phần thưởng boss phụ: ai góp sức đều có EXP + tiền, có tỉ lệ rơi trang phục / vũ khí riêng của boss, lần đầu hạ được thì lộ nhiệm vụ ẩn
@@ -1026,6 +1026,18 @@ MU.legacy={lg_shovel:{name:'Shovel Knight',tier:1,price:1200000,bonus:{def:.14,h
 const LG_SKILL={shovel:['Xẻng Bổ Đất',3,{}],pow:['Liên Hoàn Quyền',3.2,{}],egg:['Mưa Trứng Yoshi',2.8,{heal:.1}],air:['Lốc Xoáy Khí Thần',2.6,{slow:2}],chainsaw:['Cưa Xé Toạc',3.4,{}],
   lion:['Sư Tử Gầm Vang',3,{}],sand:['Bão Cát Sa Mạc',3,{drain:.2}],oni:['Nhất Đao Quỷ Trảm',3.6,{}],beam:['Makankosappo',3.6,{range:4}],buster:['X-Buster Tích Lực',3.4,{range:4}],
   zsaber:['Z-Saber Liên Trảm',3.8,{}],note:['Gọi Min',2,{summon:12}],snake:['Rắn Độc Quấn',3.4,{drain:.15}],selfie:['Selfie Chói Loá',3.2,{slow:2.5}],king:['Vương Quyền Hoàng Kim',3,{heal:.15}],force:['Thần Lực Bóp Nghẹt',4,{slow:2}],zeus:['Thiên Lôi Zeus',4.2,{}]};
+// cân bằng set legacy: đồng giá 8 triệu, cùng bậc 4 (chiêu phím 5 tốn mana / hồi chiêu như nhau); mỗi set 1 chỉ số chính mạnh hẳn + 2 chỉ số bổ trợ nhỏ
+{ const LB={lg_shovel:{def:.4,hp:.08,armor:.05},lg_boxer:{aspd:.45,atk:.08,crit:.04},lg_yoshi:{hp:.35,regen:.3,drain:.03},lg_aang:{cdr:.3,mp:.12,slowp:.1},lg_chainsaw:{drain:.3,atk:.1,gw:.15},
+    lg_sparta:{armor:.3,def:.08,aura:.02},lg_anubis:{gw:.5,hp:.1,tdmg:.04},lg_samurai:{crit:.4,atk:.1,aspd:.05},lg_piccolo:{regen:1.5,hp:.1,spell:.08},lg_megax:{spell:.5,def:.08,chainp:.08},
+    lg_zero:{shred:.45,atk:.1,aspd:.06},lg_king:{aura:.2,hp:.1,def:.06},lg_vader:{atk:.4,def:.08,drain:.04},lg_16typh:{mp:.6,spell:.1,cdr:.05},lg_ranbien:{tdmg:.4,slowp:.1,gw:.1},
+    lg_kth:{slowp:.6,mp:.1,crit:.04},lg_zeus:{chainp:.5,atk:.1,spell:.08}};
+  for(const [k,L] of Object.entries(MU.legacy)) if(LB[k]){ L.price=8000000; L.tier=4; L.bonus=LB[k]; L.main=Object.keys(LB[k])[0]; } }
+// Kamen Rider: 1 set bán ở Premium Store (lg_kr0); khi đánh cứ 5 giây tự biến sang form kế (6 form, mỗi form 1 chỉ số chính mạnh). Form 2–6 ẩn khỏi cửa hàng, dùng chung lượt mua + cường hoá của lg_kr0
+{ const KR=[['Build','RabbitTank nửa đỏ nửa xanh',{atk:.3,aspd:.1,crit:.05}],['Ex-Aid','game thủ hồng tóc dựng',{aspd:.4,atk:.08,crit:.05}],['Ghost','áo choàng ma cam đen sừng bạc',{drain:.3,hp:.1,gw:.1}],
+    ['Gaim','võ sĩ cam mũ navy sừng vàng',{crit:.35,atk:.1,shred:.1}],['Fourze','phi hành gia tên lửa trắng',{armor:.3,hp:.15,def:.1}],['OOO','đại bàng đỏ, hổ vàng, châu chấu xanh',{chainp:.4,spell:.15,atk:.08}]];
+  LG_SKILL.kamen=['Rider Kick',3.4,{}];
+  KR.forEach(([nm,ds,b],i)=>{ MU.legacy['lg_kr'+i]={name:i?'Kamen Rider '+nm:'Kamen Rider (6 form)',form:nm,kr:i,base:'lg_kr0',hidden:i>0,tier:4,price:8000000,bonus:b,main:Object.keys(b)[0],fx:'kamen',
+    desc:i?`Form ${nm}: ${ds}`:'Biến hình liên tục: khi đánh cứ 5 giây đổi form Build → Ex-Aid → Ghost → Gaim → Fourze → OOO, mỗi form 1 chỉ số mạnh (công, tốc đánh, hút máu, chí mạng, giáp, giật sét). Chiêu phím 5: Rider Kick'}; }); }
 for(const L of Object.values(MU.legacy)){ const [name,mul,o]=LG_SKILL[L.fx]; L.skill={k:'lgs_'+L.fx,name,mp:16+L.tier*3,cd:o.summon?22:9+L.tier,mul,range:3,...o}; }
 // Min: nhân vật được set 16Typh gọi ra đánh cùng (không bán, chỉ để vẽ)
 CLOTHES.mu_min={name:'Đồ của Min',slot:'top',price:0,hidden:true,set:'mu_min',opts:{top:'long'},colors:{top:'e8d0a8',pants:'d8a040',shoes:'8a5a32'}};
@@ -1033,7 +1045,7 @@ for(const [k,L] of Object.entries(MU.legacy)) CLOTHES[k]={name:'Set Legacy · '+
 // Thợ Kim Hoàn (shop phụ kiện MU): ngoài bộ trang phục chính còn 4 ô phụ kiện tăng lực chiến: cánh (sau lưng), dây chuyền, vật hộ thân (bay lơ lửng cạnh người),
 // aura (vòng phép dưới chân kiểu Warcraft, mỗi aura tăng 1 thuộc tính). Mua 1 lần giữ mãi, mỗi ô đeo 1 món, ai cũng thấy phụ kiện của nhau. (đã giảm giá còn 1/3)
 // bonus: hp / mp / atk / def (+%), regen (hồi máu mana nhanh thêm), crit (tỉ lệ chí mạng), drain (hút % sát thương thành máu)
-MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura',feet:'Giày',shield:'Khiên'};   /* khiên: tay trái, bán ở Thợ Rèn Huyền Thoại */
+MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura',feet:'Giày',shield:'Tay trái'};   /* tay trái (khiên, mặt nạ, búa, đao, động cơ, đũa): bán ở Thợ Rèn Huyền Thoại */
 MU.acc={w_angel:{slot:'wing',name:'Cánh Thiên Thần',price:1330000,bonus:{hp:.06,def:.04}},w_pinkbat:{slot:'wing',name:'Cánh Dơi Hồng',price:1330000,bonus:{mp:.08,atk:.02}},
   w_bat:{slot:'wing',name:'Cánh Dơi Huyết',price:1500000,bonus:{atk:.06,hp:.02}},w_fairy:{slot:'wing',name:'Cánh Tiên Hồng',price:1670000,bonus:{mp:.06,def:.04}},
   w_monarch:{slot:'wing',name:'Cánh Bướm Chúa',price:2000000,bonus:{atk:.05,mp:.05}},w_sky:{slot:'wing',name:'Cánh Thiên Thanh',price:2670000,bonus:{hp:.08,def:.06}},
@@ -1182,7 +1194,15 @@ Object.assign(MU.acc,{
   sh_rollor:{slot:'feet',name:'Giày Patin Cam',price:1800000,spd:.22,bonus:{atk:.06},desc:'Patin cam bánh hồng, lướt vèo vèo'},
   sh_rollbl:{slot:'feet',name:'Giày Patin Xanh',price:1900000,spd:.22,bonus:{def:.06,mp:.05},desc:'Patin xanh băng bánh ngọc, êm như trượt băng'},
   sh_skate:{slot:'feet',name:'Ván Trượt Vàng',price:3500000,spd:.32,bonus:{atk:.08,hp:.06,crit:.04},desc:'Đồ mạnh nhất tiệm: ván trượt vàng bánh tím, lướt nhanh nhất game'},
-  kh_hachoang:{slot:'shield',name:'Khiên của Hắc Hoàng Đế',price:9800000,spd:.15,bonus:{hp:.2,regen:.8,armor:.15},desc:'Khiên đen tuyền viền vàng, mặt quỷ đế vương sừng vàng mắt đỏ. Máu trâu, hồi máu nhanh, giáp dày, chạy nhanh hơn'}});
+  /* 6 món tay trái đã cân bằng: đồng giá 10 triệu, lực chiến từ chỉ số nền gần bằng nhau (~+200 ở cấp 50), mỗi món 1 hiệu ứng riêng */
+  kh_hachoang:{slot:'shield',name:'Khiên của Hắc Hoàng Đế',price:10000000,spd:.1,bonus:{hp:.05,regen:.4,armor:.05},desc:'Khiên đen tuyền viền vàng, mặt quỷ đế vương sừng vàng mắt đỏ. Chạy nhanh +10%, máu + hồi máu + giáp'},
+  /* 5 món tay trái có hiệu ứng riêng (server mu.js): rage = cứ every giây nổi cơn dur giây (hút máu lên drain, công / chí mạng cộng thêm); thor = tỉ lệ giật sét trừ pct máu tối đa của quái;
+     dbl = tỉ lệ đánh thường liền 2 đòn; pierce = giảm kháng phép của quái; silence = cứ every lần dùng chiêu thì khoá chiêu quái dur giây */
+  kh_kotex:{slot:'shield',name:'Mặt Nạ Quỷ Kotex',price:10000000,bonus:{atk:.14,drain:.06,crit:.04},rage:{every:15,dur:5,drain:.4,atk:.2,crit:.1},desc:'Mặt nạ quỷ đỏ nanh trắng. Cứ 15 giây nổi cơn khát máu 5 giây: hút máu lên 40%, công +20%, chí mạng +10%'},
+  kh_thor:{slot:'shield',name:'Búa Của Thor',price:10000000,bonus:{atk:.14,crit:.07},thor:{chance:.2,pct:.0025,cap:6},desc:'Búa Mjölnir tay cầm da, toé sét xanh. Đòn đánh 20% giật sét vào quái, trừ thêm 0,25% máu tối đa của quái (tối đa 6 lần công)'},
+  kh_inuyasha:{slot:'shield',name:'Đại Đao Của Inuyasha',price:10000000,bonus:{shred:.3,crit:.15,atk:.04},desc:'Tessaiga lưỡi to bản, chuôi lông trắng. Trừ 30% giáp của quái, chí mạng +15%'},
+  kh_musk:{slot:'shield',name:'Động Cơ Của Elon Musk',price:10000000,bonus:{aspd:.32,atk:.05},dbl:.1,desc:'Động cơ tên lửa bạc phụt lửa xanh. Tốc đánh +32%, 10% đánh liền 2 đòn'},
+  kh_howard:{slot:'shield',name:'Đũa Thần Của Howard Le',price:10000000,bonus:{spell:.3,gw:.3,atk:.1},pierce:.2,silence:{every:5,dur:2},desc:'Đũa phép đầu sao tím lấp lánh. Sức mạnh phép +30%, giảm 20% kháng phép + 30% hồi máu của quái, cứ 5 lần dùng chiêu khoá chiêu quái 2 giây'}});
 // hệ số tốc độ đi bộ / chạy của giày + khiên đang đeo (p.mu.acc.feet / .shield)
 const shoeSpeed=p=>{ const E=(p&&p.mu&&p.mu.acc)||{}; let s=1; for(const k of [E.feet,E.shield]){ const a=k&&MU.acc[k]; if(a&&a.spd) s+=a.spd; } return s; };
 NPCS.push({id:'mu_shoes',scene:'mu',x:7.5,y:10.4,place:'mushoes'});
@@ -1692,7 +1712,7 @@ MU.statVI={hp:'Máu',mp:'Mana',atk:'Công',def:'Thủ',armor:'Giáp',crit:'Chí 
   const LG={lg_shovel:{shred:.06,slowp:.06,armor:.08},lg_boxer:{aspd:.1,crit:.03},lg_yoshi:{drain:.04,regen:.2},lg_aang:{cdr:.08,slowp:.1},lg_chainsaw:{tdmg:.06,drain:.04,gw:.2},lg_sparta:{shred:.08,aura:.02,armor:.06},
     lg_anubis:{drain:.06,tdmg:.04,regen:.15,gw:.15},lg_samurai:{crit:.06,aspd:.08},lg_piccolo:{spell:.12,regen:.3},lg_megax:{spell:.1,chainp:.08},lg_zero:{aspd:.12,crit:.05,shred:.05},
     lg_king:{aura:.05,cdr:.06,regen:.2,armor:.08},lg_vader:{spell:.15,shred:.1,drain:.05,armor:.05},lg_16typh:{spell:.12,aura:.03,cdr:.05},lg_ranbien:{tdmg:.05,slowp:.1,drain:.03,gw:.25},lg_kth:{crit:.05,spell:.1,aspd:.05},lg_zeus:{chainp:.14,spell:.12,crit:.04}};
-  for(const [k,L] of Object.entries(MU.legacy)) add(L.bonus=L.bonus||{},LG[k]||{crit:.01*(L.tier||1),spell:.03*(L.tier||1)});
+  for(const [k,L] of Object.entries(MU.legacy)) if(!L.main) add(L.bonus=L.bonus||{},LG[k]||{crit:.01*(L.tier||1),spell:.03*(L.tier||1)});   /* set đã cân bằng (có L.main) giữ nguyên chỉ số */
   for(const m of HORSE.myth){ const l=m.lv||1; add(m.bonus=m.bonus||{},{aspd:.025*l,regen:.08*l,drain:.005*l,armor:.01*l}); } }
 /* ---------- MU mở rộng sang trái MU.OX ô: vùng boss mới ở x 0 → OX-1, phần MU cũ (quảng trường, Làng Lá, phía Đông, rừng quái) dời sang phải ----------
    MU.local giữ toạ độ cũ để world7 dựng phần cũ như trước rồi dời cả khối. Vị trí MU đã lưu kiểu cũ: server dời khi vào game (p.muOX). */

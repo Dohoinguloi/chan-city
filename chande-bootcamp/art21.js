@@ -127,6 +127,23 @@ const SHIELD={}; A.muShield=(k,big)=>SHIELD[k+!!big]||(SHIELD[k+!!big]=(()=>{ co
   V.poly([[7,10],[4,3],[10,8]],Gd,{g:'hornL'}); V.poly([[19,10],[22,3],[16,8]],Gd,{g:'hornR'}); V.rect(7,12,4,2,'#ff2a2a').rect(15,12,4,2,'#ff2a2a'); V.px(8,12,'#ffe8a0').px(16,12,'#ffe8a0');
   V.line(7,11,11,12,'#0c0810').line(15,12,19,11,'#0c0810'); V.ell(13,9,1.8,1.8,R('#e8302a'),{g:'gem',lift:.5}); for(const x of [9,12,15]) V.rect(x,18,2,3,'#f4f0e8'); V.rect(8,17,10,1,'#0c0810');
   const c=V.done(false,{glow:'rgba(255,60,60,.3)',gr:1}); if(big) return {c,ax:13,ay:28}; const sm=A.cv(13,15), g=sm.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(c,0,0,13,15); return {c:sm,ax:6,ay:14}; })());
+// 5 món tay trái khác (Thợ Rèn): vẽ 26×30 như khiên, bản nhỏ 13×15 đeo trên tay
+const OFFD={
+  kh_kotex:V=>{ const Rd=R('#c8202a'); V.ell(13,14,10,11,Rd,{g:'mask'}); V.poly([[5,6],[2,0],[8,4]],R('#f4f0e8'),{g:'hornL'}); V.poly([[21,6],[24,0],[18,4]],R('#f4f0e8'),{g:'hornR'});   /* mặt nạ quỷ đỏ sừng trắng, mắt vàng, nanh */
+    V.poly([[6,11],[11,13],[10,15],[6,14]],R('#1c1516'),{g:'eL'}); V.poly([[20,11],[15,13],[16,15],[20,14]],R('#1c1516'),{g:'eR'}); V.rect(8,13,2,1,'#ffd84a').rect(16,13,2,1,'#ffd84a');
+    V.rect(8,19,10,4,'#3a0808'); for(const x of [8,11,14,17]) V.rect(x,19,1,2,'#ffffff'); V.rect(9,22,1,2,'#ffffff').rect(16,22,1,2,'#ffffff'); V.line(7,8,11,10,'#7a1010').line(19,8,15,10,'#7a1010'); },
+  kh_thor:V=>{ V.tube([[13,28],[13,14]],[1.6,1.6],R('#7a4a2a'),{g:'handle'}); for(let y=17;y<27;y+=3) V.line(11,y,15,y+1,'#5a3420'); V.ell(13,28,2,1.4,R('#c8ccd8'),{g:'pom'});   /* búa Mjölnir: đầu thép khối, cán quấn da, sét xanh */
+    V.poly([[3,4],[23,4],[23,14],[3,14]],R('#a8acb8'),{n:[-.2,-.3,.93],g:'head'}); V.rect(3,8,20,2,'#7a7e8a'); V.line(4,5,22,5,'#e8ecf4');
+    V.line(1,2,4,6,'#7fd8ff').line(4,6,2,9,'#7fd8ff').line(24,10,22,13,'#7fd8ff').line(22,13,25,16,'#bff0ff'); },
+  kh_inuyasha:V=>{ V.poly([[10,2],[20,4],[16,22],[11,22]],R('#e8ecf4'),{n:[-.3,-.2,.93],g:'blade'}); V.line(12,3,12,21,'#a8acb8'); V.line(19,5,15,21,'#ffffff');   /* Tessaiga: lưỡi to bản, chuôi đỏ, lông trắng */
+    V.rect(9,22,9,2,'#c8a23a'); V.tube([[13,24],[13,29]],1.4,R('#c8302a'),{g:'hilt'}); V.ell(17,25,3,2.4,R('#f4f2ec'),{g:'fur',lift:.2}); V.ell(19,27,2,1.6,R('#f4f2ec'),{g:'fur2',lift:.2}); },
+  kh_musk:V=>{ V.tube([[13,4],[13,18]],[5,6],R('#c8ccd8'),{g:'body'}); V.poly([[7,18],[19,18],[22,24],[4,24]],R('#8a8e9a'),{n:[0,-.3,.95],g:'nozzle'}); V.rect(9,8,8,2,'#1c1516'); V.rect(10,12,6,1,'#e8302a');   /* động cơ tên lửa bạc, lửa xanh phụt dưới */
+    V.ell(13,26,6,3,[[230,250,255,255],[120,210,255,255],[50,140,255,255],[20,70,200,255]],{g:'flame',lift:.4}); V.px(11,28,'#ffffff').px(15,28,'#bff0ff'); V.ell(13,4,3,2,R('#e8ecf4'),{g:'tip'}); },
+  kh_howard:V=>{ V.tube([[8,28],[17,9]],[1.3,1.1],R('#3a2a4a'),{g:'stick'}); V.rect(12,18,3,2,'#c8a23a');   /* đũa phép: thân tím đậm, đầu sao tím vàng, lấp lánh */
+    V.poly([[18,1],[20,6],[25,6],[21,9],[23,14],[18,11],[13,14],[15,9],[11,6],[16,6]],R('#b070ff'),{n:[0,-.2,.98],g:'star'}); V.px(18,7,'#ffffff').px(17,6,'#ffe066');
+    for(const [x,y] of [[6,4],[24,18],[4,14]]) { V.px(x,y,'#ffffff'); V.px(x-1,y,'#e8d0ff'); V.px(x+1,y,'#e8d0ff'); } } };
+A.muOff=(k,big)=>{ if(k==='kh_hachoang'||!OFFD[k]) return A.muShield(k,big); return SHIELD[k+!!big]||(SHIELD[k+!!big]=(()=>{ const V=vol(26,30); OFFD[k](V); const c=V.done(false,{glow:k==='kh_howard'?'rgba(180,120,255,.35)':k==='kh_thor'?'rgba(120,200,255,.3)':undefined,gr:1});
+  if(big) return {c,ax:13,ay:28}; const sm=A.cv(13,15), g=sm.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(c,0,0,13,15); return {c:sm,ax:6,ay:14}; })()); };
 
 const C21={}, old=A.muBossSprite, oldAnim=A.bossAnim;
 A.bossAnim=sp=>B21[sp]?B21[sp].anim:oldAnim?oldAnim(sp):null;
