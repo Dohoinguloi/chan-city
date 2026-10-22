@@ -69,6 +69,12 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #minimap{position:fixed;right:12px;bottom:12px;padding:4px;cursor:pointer;display:grid;gap:2px}
 #hudNav{position:fixed;right:12px;bottom:160px;z-index:2;flex-direction:column;align-items:stretch} #hudNav .muteBtn{justify-content:space-between} body.nomini #hudNav{bottom:12px}   /* nút Xếp hạng / Về phòng / Vườn & chuồng ngay trên minimap */
 #miniCv{display:block;width:160px;height:112px;image-rendering:pixelated;border:1px solid var(--ink)}
+#keyHint{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:6;display:flex;gap:14px;align-items:center;padding:6px 14px;background:rgba(28,21,22,.86);border:2px solid var(--gold);color:#fff3d6;font-size:19px;pointer-events:none;white-space:nowrap}
+#keyHint b{color:var(--gold);font-weight:normal;margin-right:4px} #keyHint kbd{margin-right:5px;font-size:18px} #keyHint .hot kbd{animation:keyPulse .5s steps(2) infinite}
+@keyframes keyPulse{50%{filter:brightness(1.35);transform:translateY(-2px)}}
+#miniZoom{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:2px}
+#miniZoom button{width:20px;height:20px;padding:0;font:18px/1 VT323,monospace;color:var(--gold);background:rgba(28,21,22,.82);border:1px solid var(--ink);cursor:var(--cur-hand),pointer}
+#miniZoom button:hover:not(:disabled){background:#3a2e30;color:#fff3d6} #miniZoom button:disabled{opacity:.35;cursor:default}
 #miniZone{font-size:17px;color:var(--gold);text-align:center;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #chatBox{position:fixed;left:12px;bottom:12px;width:min(360px,40vw);display:grid;gap:4px;pointer-events:none}
 #chatLog div{font-size:18px;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink);transition:opacity 1s} #chatLog div.old{opacity:0} #chatLog b{font-weight:400;color:var(--gold)}
@@ -296,11 +302,12 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
   <div id="hudOnline"></div>
 </div>
 <div id="hudBottom"><div id="hudItems" class="panel"></div><div id="hudSkills"></div></div>
-<div id="minimap" class="panel" hidden title="Bấm để mở bản đồ (M)"><canvas id="miniCv" width="160" height="112"></canvas><div id="miniZone"></div></div>
+<div id="minimap" class="panel" hidden title="Bấm để mở bản đồ (M) · lăn chuột để zoom"><canvas id="miniCv" width="160" height="112"></canvas><div id="miniZoom"><button id="miniIn" title="Phóng to minimap" aria-label="Phóng to minimap">+</button><button id="miniOut" title="Thu nhỏ minimap" aria-label="Thu nhỏ minimap">−</button></div><div id="miniZone"></div></div>
 <div id="chatBox" class="hud"><div id="chatLog"></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><input id="chatIn" maxlength="120" placeholder="Nói gì đó... (Enter gửi, Esc huỷ)" hidden aria-label="Chat"><div id="chatHint"><kbd>Enter</kbd> chat · <kbd>G</kbd> Grab · <kbd>Esc</kbd> menu</div></div>
 <div id="prompt" class="panel" hidden><kbd>E</kbd> <span id="promptLabel">Nói chuyện</span></div>
 <div id="banner" class="panel"></div>
 <div id="bigtext"></div>
+<div id="keyHint" hidden></div>
 <div id="toasts"></div>
 <div id="dialog" class="panel" hidden>
   <canvas id="dlgPortrait" width="84" height="84"></canvas>
@@ -360,6 +367,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world2.js?v=7"></script>
 <script src="avatar.js?v=7"></script>
 <script src="net.js?v=7"></script>
+<script src="music.js"></script>
 <script src="game.js?v=7"></script>
 <script src="games.js?v=7"></script>
 <script src="ui.js?v=7"></script>

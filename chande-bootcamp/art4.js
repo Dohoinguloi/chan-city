@@ -395,3 +395,62 @@ function croc(fr=0,open=false){ const f=fr%2, G='#7aa844', D='#5a8a30', L='#b8cc
     P.rect(20,12,10,2,L); for(const [x,k] of [[14,0],[24,1]]) { P.rect(x+(f^k),14,3,2,G); P.rect(x+(f^k),16,3,1,Y); } }); }
 Object.assign(A,{dino,trice,ptero,rexPink,rexGreen,croc});
 })();
+
+/* Bụi (mèo đen trắng, đứng lâu thì nằm) và Bặm (mèo Ba Tư lông xù kem đốm cam, đứng lâu thì ngồi): 2 bé mèo của Dvu, vẽ theo ảnh, quay phải.
+   pose 'walk' (fr = bước chân), 'lie' / 'sit' (fr 1 = nhắm mắt) */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn)=>A.sprite(w,h,ax,ay,fn,true);
+const CAT={bui:{B:'#2b2832',b:'#46414f',d:'#1a181f',W:'#f4f1ea',w:'#cfcac2',E:'#c8e05a',N:'#e89aa0',L:'#5a5662'},
+  bam:{B:'#f4e8d4',b:'#fffaf0',d:'#d8c4a6',W:'#fffaf0',w:'#e4d4bc',O:'#e8973e',o:'#c4742a',E:'#c06a1e',N:'#e0828c',L:'#c8b496'}};
+function cat(k,pose='walk',fr=0){ const C=CAT[k]||CAT.bui, xu=k==='bam';
+  return S(20,13,10,12,(g,P)=>{ const r=(x,y,w,h,c)=>P.rect(x,y,w,h,c), px=(x,y,c)=>P.px(x,y,c);
+    if(pose==='lie'){                                                                                        // nằm dài, chân trước duỗi
+      r(0,10,4,2,C.B); r(3,8,11,4,C.B); r(4,8,9,1,C.b); r(4,12,9,1,C.d);
+      r(12,4,6,5,C.B); r(12,3,2,1,C.B); r(16,3,2,1,C.B); px(12,2,C.B); px(17,2,C.B);
+      r(14,7,4,2,C.W); r(12,9,3,2,C.W); r(14,11,5,1,C.W); px(17,7,C.N);
+      for(const x of [14,16]) px(x,6,fr?C.L:C.E); return; }
+    if(pose==='sit'){                                                                                        // ngồi, đuôi xù quấn trước chân
+      r(3,6,9,5,C.B); r(4,5,6,1,C.B); r(2,8,1,3,C.B); r(4,7,3,2,C.O); r(5,9,2,1,C.o);
+      r(2,11,12,2,C.B); r(2,11,3,2,C.O); r(10,6,4,5,C.W);
+      r(10,9,1,3,C.w); r(12,9,1,3,C.w);
+      r(9,1,7,5,C.B); px(9,0,C.B); px(10,0,C.O); px(14,0,C.O); px(15,0,C.B); r(10,1,5,1,C.O); r(9,2,2,2,C.O); r(11,5,3,1,C.W);
+      for(const x of [11,13]) px(x,3,fr?C.L:C.E); px(12,4,C.N); return; }
+    const a=fr?1:-1;                                                                                         // đi: chân xa tối hơn, bước so le
+    if(xu){ r(0,1,3,5,C.B); r(1,0,2,1,C.B); r(0,1,2,2,C.O); }                                               // đuôi xù, chóp cam
+    else { r(2,5,1,2,C.B); r(1,2,2,3,C.B); px(2,1,C.B); }
+    r(5+a,10,2,3,C.d); r(12-a,10,2,3,C.d); r(4-a,10,2,3,C.B); r(13+a,10,2,3,C.B);
+    if(xu){ r(3,4,12,6,C.B); r(4,3,10,1,C.B); r(4,4,10,1,C.b); r(6,4,4,2,C.O); r(7,6,2,1,C.o); for(const x of [4,7,10,13]) px(x,10,C.w);
+      r(13,1,6,5,C.B); px(13,0,C.B); px(14,0,C.O); px(17,0,C.O); px(18,0,C.B); r(13,1,4,2,C.O); r(12,2,1,4,C.B); r(14,4,5,2,C.W);
+      px(16,3,C.E); px(18,3,C.E); px(17,4,C.N); }                                                            // mặt bẹt, má trắng, mắt nâu đồng
+    else { r(3,6,11,4,C.B); r(4,6,9,1,C.b); r(8,9,5,1,C.W); for(const x of [4-a,13+a]) r(x,12,2,1,C.W);   // Bụi đi tất trắng
+      r(13,2,6,5,C.B); px(13,1,C.B); px(14,1,C.B); px(17,1,C.B); px(18,1,C.B); r(15,5,4,2,C.W); r(13,6,3,4,C.W);
+      px(15,3,C.E); px(17,3,C.E); px(18,5,C.N); } }); }
+Object.assign(A,{cat});
+})();
+
+/* Ộ i i: gói khô gà đè tem (icon + vật rơi trên đất), bình shisha, thảm Ba Tư và đệm ngồi ở góc shisha Nhà giải trí */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+const khoga=P=>{ P.rect(2,1,10,12,'#f4ecd8'); P.rect(2,1,10,2,'#d23a2e'); P.rect(3,1,8,1,'#f05a4a');                               // túi zip, mép đỏ
+  for(const [x,y,c] of [[4,4,'#c46a2a'],[5,5,'#a04a1a'],[7,4,'#e08a3a'],[9,5,'#c46a2a'],[4,7,'#e08a3a'],[6,6,'#c46a2a'],[8,7,'#a04a1a'],[10,8,'#e08a3a'],[5,9,'#a04a1a'],[3,10,'#c46a2a'],[6,10,'#e08a3a']]){ P.rect(x,y,2,1,c); }   // khô gà xé sợi
+  P.px(9,4,'#d23a2e'); P.px(4,6,'#d23a2e');                                                                                     // lá chanh, ớt
+  P.rect(7,8,4,4,'#c8d0e8'); P.px(8,9,'#8a9ad8'); P.px(9,10,'#e89ac8'); P.px(9,9,'#ffffff'); P.px(8,10,'#a8e0c8'); };           // tem chống giả lấp lánh
+const oldIcon=A.icon; A.icon=function(name,scale=1){ if(name!=='khoga') return oldIcon(name,scale); const c=A.cv(14,14); khoga(A.painter(c.getContext('2d'))); A.outline(c);
+  if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
+// bình shisha: bầu thuỷ tinh tím, thân đồng, nõ đất nung + than hồng (fr đổi ánh than), dây hút xanh
+const shisha=(fr=0)=>S(18,32,8,31,(g,P)=>{ P.rect(4,29,9,2,'#2a1a40'); P.rect(3,20,11,9,'#5a3a9a'); P.rect(4,19,9,1,'#5a3a9a'); P.rect(5,18,7,1,'#6a4aaa');
+    P.rect(4,24,9,4,'#4a8ac8'); P.rect(4,24,9,1,'#7ab8e0'); P.rect(5,20,2,6,'#8a6ad0'); P.px(5,21,'#c8b8f0');                        // nước trong bầu, ánh sáng
+    P.rect(7,7,3,11,'#c8a24a'); P.rect(6,10,5,1,'#e8c86a'); P.rect(6,14,5,1,'#e8c86a'); P.rect(8,7,1,11,'#e8c86a');                  // thân đồng
+    P.rect(4,7,9,1,'#a8aeb6'); P.rect(5,6,7,1,'#c8ccd2');                                                                       // đĩa hứng tro
+    P.rect(6,2,5,4,'#b8543a'); P.rect(6,2,5,1,'#d8dce2'); P.px(7,1,fr?'#ffb84a':'#ff7a2a'); P.px(9,1,fr?'#ff7a2a':'#ffb84a'); P.px(8,1,'#3a2a2a');   // nõ + than
+    for(const [x,y] of [[11,15],[12,16],[13,17],[14,18],[15,20],[15,22],[15,24],[14,26],[15,27],[16,28]]) P.rect(x,y,1,2,'#3a7a4a');  // dây hút
+    P.rect(16,28,2,2,'#c8a24a'); });
+// thảm Ba Tư: viền đỏ sẫm, ruột đỏ, hoa văn trám vàng, tua trắng 2 đầu (nằm phẳng dưới đất)
+const rug=()=>S(72,36,36,18,(g,P)=>{ P.rect(2,2,68,32,'#6a1a1a'); P.rect(4,4,64,28,'#b8342e'); P.rect(7,7,58,22,'#8c231f'); P.rect(9,9,54,18,'#c4382e');
+    for(let x=12;x<62;x+=10){ const c='#e8b83a'; P.px(x+2,13,c); P.rect(x+1,14,3,1,c); P.rect(x,15,5,1,c); P.rect(x+1,16,3,1,c); P.px(x+2,17,c); P.px(x+2,15,'#2a4a8a'); }
+    P.rect(30,19,12,4,'#2a4a8a'); P.rect(32,20,8,2,'#e8b83a');
+    for(let y=3;y<34;y+=2){ P.px(0,y,'#f4f1ea'); P.px(1,y,'#d8d2c6'); P.px(71,y,'#f4f1ea'); P.px(70,y,'#d8d2c6'); } },false);
+// đệm ngồi bệt (pouf) tím sọc vàng
+const pouf=()=>S(18,11,9,10,(g,P)=>{ P.rect(1,3,16,7,'#6a3a8a'); P.rect(2,2,14,1,'#8a5aaa'); P.rect(1,9,16,1,'#4a2a6a'); for(let x=3;x<16;x+=4) P.rect(x,3,1,6,'#e8b83a'); P.rect(6,2,6,1,'#a87ac8'); });
+Object.assign(A,{shisha,rug,pouf});
+})();

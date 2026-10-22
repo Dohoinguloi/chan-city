@@ -25,7 +25,7 @@ on('dog',(pl,m)=>{ const p=pl.prof; if(m.op==='view') return {dogs:dogsView()}; 
   if(m.op==='landcancel'){ p.keLand=null; markDirty(pl); return {msg:`Đã trả đất, còn trồng được ${S.FARM.free} ô miễn phí`}; }
   if(m.op==='buy'){ const D=S.DOGS[m.k]; if(!D) return {err:'?'}; if(p.dog&&p.dog.k===m.k) return {err:'Bạn đang nuôi giống này rồi'}; if(!take(pl,D.price)) return {err:`${D.name} giá ${fmt(D.price)}, không đủ tiền`};
     const old=p.dog; p.dog={k:m.k,since:now()}; DOGOF.set(pl.uid,{k:m.k,n:p.name}); markDirty(pl); broadcastScene('retreat',{t:'dogs',list:dogsView()});
-    return {msg:`Đã mua ${D.name}${old?' (con cũ chú Ba nuôi hộ)':''}. Nó sẽ ngồi canh các ô rau của bạn ở Ké`}; }
+    return {msg:`Đã mua ${D.name}${old?' (con cũ chú Ba nuôi hộ)':''}. Nó sẽ canh các ô rau của bạn ở Ké và cả chuồng lợn ở trại chú Sáu`}; }
   return {err:'?'}; });
 const mine=(uid,map)=>Object.entries(PLOTS).filter(([id,p])=>p.o===uid&&mapOf(id)===map).length;
 const state=(id,p,t)=>{ const s=S.plotState(p,t); return id[0]==='d'&&s==='open'?'ripe':s; };    // ở Đà Lạt bác Trang trông vườn, không ai cướp được
@@ -108,6 +108,20 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     if(!take(pl,a.price)) return {err:`${a.name} giá ${fmt(a.price)}, không đủ tiền`}; p.animals.push({k:m.k,at:t,fed:0,cyc:0,loc:ke?'ke':'dl'}); markDirty(pl); return {}; }
   if(m.op==='feedbuy'){ const f=S.FEED[m.k], n=Math.max(1,Math.min(20,m.n|0||1)); if(!f) return {err:'?'}; const ke=atKeShop(pl); if(ke&&m.k!=='thoc') return {err:'Tiệm cô Ké chỉ bán thóc'}; if(!ke&&!P.nearNpc(pl,'chusau')) return {err:'Mua ở trại chú Sáu'};
     if(!take(pl,f.price*n)) return {err:'Không đủ tiền'}; addItem(pl,m.k,n); return {n}; }
+  if(m.op==='steal'){ const R=S.PIG_STEAL, o=players.get(m.pid|0); if(!o||o===pl) return {err:'Chủ chuồng này không còn online'};
+    const j=m.i|0, an=o.prof.animals[j]; if(!an||!R.kinds.includes(an.k)||an.loc==='ke') return {err:'Không có con lợn này'};
+    if(!penNear(pl,an.k,an.loc)) return {err:'Ra chuồng lợn trại chú Sáu (Đà Lạt) đã'};
+    if(pl.pigAt&&t-pl.pigAt<R.cd*1000) return {err:`Vừa ra tay xong, đợi ${Math.ceil((R.cd*1000-(t-pl.pigAt))/1000)} giây cho đỡ lộ`};
+    pl.pigAt=t; const A=S.ANIMALS[an.k], dd=DOGOF.get(o.uid), D=dd&&S.DOGS[dd.k], oname=o.prof.name, me=p.name;
+    if(D&&Math.random()<(D.block||D.bite||R.dogGuard)){ let msg=`${D.name} nhà ${oname} sủa ầm lên, bạn bỏ chạy không kịp dắt lợn!`;   // chó canh cả chuồng lợn
+      if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm lợn! Nhận ${fmt(v)} tiền đền`,'vnd'); }
+      else note(o,`${D.name} của bạn vừa đuổi ${me} đang định trộm lợn!`,'quest');
+      if(D.drain) p.needs.energy=Math.max(0,p.needs.energy-D.drain); markDirty(pl); return {msg}; }
+    if(Math.random()>=R.chance){ const v=Math.min(p.money,R.fine); take(pl,v); give(o,v); note(o,`Bắt quả tang ${me} trộm lợn! ${me} đền bạn ${fmt(v)}`,'vnd'); markDirty(pl); return {msg:`Bị ${oname} bắt quả tang, đền ${fmt(v)}`}; }
+    o.prof.animals.splice(j,1); markDirty(o); const room=p.animals.filter(x=>x.k===an.k).length<A.max;
+    if(room) p.animals.push({...an,loc:'dl'}); else addItem(pl,'lon_thit',1);
+    note(o,`😱 ${me} vừa trộm 1 ${A.name.toLowerCase()} trong chuồng của bạn!`,'lock'); markDirty(pl);
+    return {ok:true,msg:room?`Trót lọt! Dắt 1 ${A.name.toLowerCase()} của ${oname} về chuồng bạn`:`Trót lọt nhưng chuồng bạn đầy, được 1 lợn xuất chuồng`}; }
   const i=m.i|0, an=p.animals[i]; if(!an) return {err:'Không có con này'}; const a=S.ANIMALS[an.k]; if(!penNear(pl,an.k,an.loc)) return {err:an.loc==='ke'?'Ra sân gà Ké (sườn đồi phía Tây)':'Ra chuồng '+a.name.toLowerCase()};
   if(m.op==='feed'){ if(an.cyc) return {err:t<an.cyc?'Đang lớn, chưa cần cho ăn':'Thu hoạch trước đã'}; if(!has(pl,a.feed)) return {err:'Hết '+S.FEED[a.feed].name.toLowerCase()+'. Mua ở trại chú Sáu'};
     addItem(pl,a.feed,-1); an.cyc=t+a.cycle*1000; markDirty(pl); return {cyc:an.cyc}; }
@@ -137,7 +151,7 @@ on('herd',(pl,m)=>{ const p=pl.prof, H=S.HORSE.herd;
   const h=pl.herd; if(!h) return {err:'Chưa nhận đàn ngựa'};
   if(m.op==='graze'){ if(h.phase!=='go'||!inPasture(pl)) return {err:'Dắt đàn vào đồng cỏ đã'};
     return P.startTask(pl,'herd',H.dur,()=>{ if(!inPasture(pl)){ pl.herd={phase:'go'}; return {msg:'Ngựa chưa ăn xong đã bị dắt đi'}; } pl.herd={phase:'back'}; return {msg:'Ngựa no cỏ rồi, dắt về chuồng'}; },{walk:true,anim:'herd',name:'Cho ngựa ăn cỏ'}); }
-  if(m.op==='return'){ if(h.phase!=='back') return {err:'Ngựa chưa ăn cỏ'}; if(!P.nearNpc(pl,'anhphong')) return {err:'Dắt về chuồng anh Phong'};
+  if(m.op==='return'){ if(h.phase!=='back') return {err:'Ngựa chưa ăn cỏ: dắt đàn ra đồng cỏ phía Đông Bắc (theo mũi tên vàng), đứng trong khung vàng '+H.dur+' giây'}; if(!P.nearNpc(pl,'anhphong')) return {err:'Dắt về chuồng anh Phong'};
     pl.herd=null; p.daily.herd++; reward(pl,{exp:H.exp,vnd:H.vnd},'Chăn ngựa xong'); return {}; } });
 // chở thùng hàng từ kho ra chợ: đi bộ 1 thùng, cưỡi ngựa 3 thùng
 on('crate',(pl,m)=>{ const p=pl.prof, D=S.DALAT; if(pl.scene!=='dalat') return {err:'?'};

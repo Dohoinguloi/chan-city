@@ -300,7 +300,13 @@ UI.pen=(k,loc)=>open(loc==='ke'?'Sân gà Ké':SD.ANIMALS[k].name,()=>{ const g=
   return `<div class="list">${list.map(([a,i],n)=>{ const ready=a.cyc&&now>=a.cyc; const A=SD.ANIMALS[a.k]; return `<div class="row"><span>${esc(A.name)} #${n+1}${A.feeds?` · ${a.fed}/${A.feeds} ${A.birth?'lứa mang thai':'lứa'}`:''}</span><span>${!a.cyc?'đói':ready?'xong lứa':Math.ceil((a.cyc-now)/1000)+' giây'}</span>${!a.cyc?btn('feed','Cho ăn',{i},'pri'):ready?btn('collect',A.feeds&&a.fed+1<A.feeds?'Xong lứa':'Thu',{i},'pri'):''}</div>`; }).join('')||(loc==='ke'?'<p class="muted">Chưa có gà ở sân Ké. Mua gà giống ở tiệm cô Ké.</p>':'<p class="muted">Bạn chưa có con nào. Mua ở trại chú Sáu.</p>'+goBtn('chusau','trại chú Sáu'))}</div>
     ${(()=>{ const hungry=list.filter(([a])=>!a.cyc).map(([,i])=>i), done=list.filter(([a])=>a.cyc&&now>=a.cyc).map(([,i])=>i);   // cho ăn / thu cả đàn 1 lần bấm
       return hungry.length>1||done.length>1?`<div class="col">${hungry.length>1?btn('feedall',`Cho tất cả ăn (${hungry.length} con)`,{is:hungry.join(',')},'pri'):''}${done.length>1?btn('collectall',`Thu tất cả (${done.length})`,{is:done.join(',')},'pri'):''}</div>`:''; })()}
-    <p class="muted">Cần ${SD.FEED[A.feed].name.toLowerCase()} (có ${g.items[A.feed]||0}).</p>`; });
+    <p class="muted">Cần ${SD.FEED[A.feed].name.toLowerCase()} (có ${g.items[A.feed]||0}).</p>${k==='lon'&&loc!=='ke'?pigSteal():''}`; });
+// lợn nhà người khác đang online: trộm 1 con (40%), nhà có chó canh thì chó ra tay trước
+function pigSteal(){ const R=SD.PIG_STEAL, rows=[]; for(const h of GAME.herds||[]) if(h.pid!==NET.pid) h.a.forEach((a,i)=>{ if(R.kinds.includes(a.k)&&a.loc!=='ke'){ const dog=(GAME.dogs||[]).find(d=>d.n===h.n);
+      rows.push(`<div class="row"><span>${esc(SD.ANIMALS[a.k].name)} của <b>${esc(h.n)}</b>${dog?` · 🐕 ${esc(SD.DOGS[dog.k].name)} canh`:''}</span>${btn('pigsteal','Trộm',{pid:h.pid,i})}</div>`); } });
+  return `<h5>Lợn nhà người khác</h5><p class="muted">Trộm 1 con: ${Math.round(R.chance*100)}% trót lọt (dắt về chuồng bạn), hỏng thì bị chủ bắt đền ${fmt(R.fine)}. Nhà có chó canh thì chó sủa đuổi, giống dữ còn cắn đền tiền.</p>`+
+    (rows.length?`<div class="list">${rows.join('')}</div>`:'<p class="muted">Chưa có lợn của ai khác đang online.</p>'); }
+ACT.pigsteal=d=>req({t:'animal',op:'steal',pid:+d.pid,i:+d.i}).then(r=>{ if(!r.err&&r.msg) GAME.toast(esc(r.msg),r.ok?'vnd':'lock'); });
 ACT.feed=d=>req({t:'animal',op:'feed',i:+d.i});
 ACT.feedall=async d=>{ let n=0, err=''; for(const i of String(d.is).split(',')){ const r=await GAME.act({t:'animal',op:'feed',i:+i}); if(r.err){ err=r.err; break; } n++; }
   GAME.toast(n?`Đã cho <b>${n}</b> con ăn`+(err?' · '+esc(err):''):esc(err||'Không con nào đói'),n?'item':'lock'); };
@@ -313,7 +319,7 @@ PLACE.stable=n=>open(n&&n.id==='chuongngua'?'Trại ngựa Đà Bắc · Chú H�
     ${GAME.HERD?(GAME.HERD.phase==='back'?btn('herd','Giao đàn ngựa',{op:'return'},'pri'):'<em>Đang dắt đàn ra đồng cỏ</em>'):btn('herd','Nhận đàn ngựa',{op:'start'},'pri')}
     <h5>Chở hàng</h5><p class="muted">Lấy thùng ở kho cạnh nhà bác Trang, chở ra điểm nhận hàng ở chợ: ${fmt(SD.CRATES.vnd)} + ${SD.CRATES.exp} EXP/thùng (${g.daily.crates}/${SD.CRATES.daily} hôm nay).</p>`)()}`; },{wide:true});
 ACT.horse=d=>req({t:'horse',op:d.op});
-ACT.herd=async d=>{ const r=await GAME.act({t:'herd',op:d.op}); if(r.err) return; if(d.op==='start'){ GAME.HERD={phase:'go'}; GAME.toast('Dắt đàn ngựa ra đồng cỏ phía Đông','quest'); } if(d.op==='return') GAME.HERD=null; UI.closeAll(); };
+ACT.herd=async d=>{ const r=await GAME.act({t:'herd',op:d.op}); if(r.err) return; if(d.op==='start'){ GAME.HERD={phase:'go'}; GAME.toast('Ngựa chưa ăn cỏ: theo mũi tên vàng dắt đàn ra đồng cỏ phía Đông Bắc, đứng trong khung vàng '+SD.HORSE.herd.dur+' giây cho ngựa ăn','quest'); } if(d.op==='return') GAME.HERD=null; UI.closeAll(); };
 for(const k of Object.keys(SD.DALAT.shops)) PLACE[k]=()=>open(SD.DALAT.shops[k].name,()=>{ const o=G().cookOrder, need=o?SD.RECIPES[o.r].need:{};
   return money()+`<div class="list">${Object.entries(SD.INGREDIENTS).filter(([i,g])=>g.shop===k).map(([i,g])=>`<div class="row ${need[i]?'on':''}">${ico(i)}<span>${esc(g.name)} <small class="muted">có ${G().items[i]||0}${need[i]?' · đơn cần '+need[i]:''}</small></span><span>${fmt(g.price)}</span>${btn('ing','Mua',{i,n:1})}</div>`).join('')}</div>`; });
 ACT.ing=d=>req({t:'cook',op:'buy',ing:d.i,n:+d.n});
@@ -441,6 +447,13 @@ UI.raceOverlay=(g)=>{ const v=GAME.RACE; if(!v||v.st!=='run'||v.me<0) return; co
   g.fillStyle='#3a2f40'; g.fillRect(W/2-200,Y,400,14); g.fillStyle='#ffd84a'; g.fillRect(W/2-200+mk*400-4,Y-4,8,22); g.fillStyle='#7fe0ff'; g.fillRect(W/2-200+k*400-2,Y-2,4,18);
   if(judge&&performance.now()-judge.t<900){ g.fillStyle={PERFECT:'#ffd84a',GREAT:'#7de07a',COOL:'#7fe0ff',BAD:'#ff9f2e',MISS:'#ff6a55'}[judge.j]; g.font='40px VT323, monospace'; g.fillText(judge.j+(judge.combo>1?' x'+judge.combo:''),W/2,Y-62); }
   g.font='18px VT323, monospace'; g.fillStyle='#c9b9a6'; g.fillText(raceInput&&raceInput.sent?'Đã bấm':'Gõ mũi tên rồi SPACE ở mốc vàng',W/2,Y+40); };
+
+/* ---------- Ộ i i: khô gà đè tem + shisha ở Nhà giải trí ---------- */
+UI.oii=()=>open('Ộ i i',()=>{ const g=G(), row=id=>{ const q=SD.QUESTS[id], st=g.quests[id], kg=Math.min(g.items.khoga||0,10), sh=(g.qprog||{}).shisha||0;
+    const ok=id==='khoga'?kg>=10:sh>=1, prog=id==='khoga'?`Đã gom ${kg}/10 gói.`:'Chưa hút shisha cùng Ộ i i.';
+    const r=!st?btn('qstart','Nhận việc: '+q.title,{id},'pri'):st==='active'?(ok?btn('qfinish','Báo cáo: '+q.title,{id},'pri'):`<p>${prog}</p><button class="btn sm qgo" data-go="${id}">➜ Chỉ đường</button>`):'<p class="muted">Đã xong việc này.</p>';
+    return `<h5>${q.title}</h5><p class="muted">${q.desc} Thưởng ${q.reward.exp} EXP + ${fmt(q.reward.vnd)}.</p>${r}`; };
+  return `<p><i>"Alo Hải à em... Thôi em đừng có chối."</i></p>${row('khoga')}${row('shisha')}`; });
 
 /* ---------- Đôn Chề: bánh mì Dân Tổ + đua xe bốc đầu ---------- */
 UI.donche=n=>open('Đôn Chề',()=>{ const g=G(), q=SD.QUESTS.banhmi, st=g.quests.banhmi, prog=(g.qprog||{}).banhmi||0, W=SD.WHEELIE;

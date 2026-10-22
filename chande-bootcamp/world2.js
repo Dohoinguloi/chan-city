@@ -45,6 +45,9 @@ function buildInterior(kind){ const I=SD.INTERIORS[kind], W=I.W, H=I.H, K=kit(),
     put(A.label('PHONG BAY','#a259ff','#fff3d6'),2.2,7.6,{flat:true}); act(SD.DANCE.door.x,SD.DANCE.door.y,'Vào Phòng Bay (nhảy kiểu Audition)',{do:'bay'},30);
     for(const [x,y] of [[1.6,3],[24.4,3],[1.6,15.4],[24.4,15.4]]) put(A.palm(),x,y);
     put(A.label('NHA GIAI TRI','#8c231f','#fff3d6'),13,1.6,{flat:true});
+    const H=SD.SHISHA; put(A.rug(),H.x,H.y+.7,{flat:true}); put(A.pouf(),H.seat.x,H.seat.y+.2); put(A.pouf(),H.oii.x,H.oii.y+.2); put(A.shisha(),H.x,H.y+.2);   // góc shisha của Ộ i i
+    block(Math.floor(H.x),Math.floor(H.y),Math.floor(H.x),Math.floor(H.y)); put(A.label('SHISHA','#5a3a9a','#ffd84a'),H.x,H.y-2.4,{flat:true});
+    act(H.seat.x,H.seat.y,'Hút shisha cùng Ộ i i',{do:'shisha'},30);
   }
   if(kind==='phongbay'){
     for(let y=4;y<=11;y++) for(let x=3;x<=16;x++) g[y][x]='n';
@@ -96,13 +99,19 @@ function buildInterior(kind){ const I=SD.INTERIORS[kind], W=I.W, H=I.H, K=kit(),
 
 /* ---------- phòng thuê ở Ké (nội thất theo từng loại) ---------- */
 function buildStay(type){ const R=SD.ROOMS[type], [W,H]=R.size, K=kit(), {put,block,act}=K;
-  const floor={leu:'K',rech:'J',maida:'U'}[type]||'O', g=shell(W,H,floor,type==='leu'?'N':'H');
+  const tent=type==='leu'||type==='leubeboi', floor={leu:'K',leubeboi:'K',rech:'J',maida:'U'}[type]||'O', g=shell(W,H,floor,tent?'N':'H');
   const ra=(x,y,a,label,r=20,bed)=>act(x,y,label,{do:'ra',act:a,bed},r);
   const bathroom=(x0,y0,x1,y1)=>{ for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++) g[y][x]='I'; };
   if(type==='leu'){
     put(A.sleepBag(),3,5.6); block(2,4,3,5); ra(3.6,5.6,'nghi','Chui túi ngủ',20,{x:3,y:3.6});
     put(A.lantern(),6,3.4); put(A.charger(true),7.4,3.6,{flat:true}); ra(7.4,3.8,'sac','Sạc dự phòng',18);
     act(6,5.4,'Điện thoại',{do:'phone'},22);
+  }
+  if(type==='leubeboi'){                                                                                  // lều cạnh bể bơi: đủ ngủ, tắm, sạc như phòng thường
+    bathroom(8,2,9,3); put(A.shower(),9,4.1); block(8,2,9,3); ra(8.6,4.4,'tam','Tắm vòi sen dã ngoại');
+    put(A.sleepBag(),3,5.6); block(2,4,3,5); ra(3.6,5.6,'nghi','Ngủ trong túi ngủ',20,{x:3,y:3.6});
+    put(A.lantern(),5.4,3.4); put(A.charger(false),6.4,2.6,{flat:true}); ra(6.4,3.4,'sac','Sạc điện thoại',18);
+    put(A.towel(),7,5.8,{flat:true}); act(5.6,5.8,'Điện thoại',{do:'phone'},22);
   }
   if(type==='nhangu'){
     bathroom(8,2,9,3); put(A.shower(),9,4.1); block(8,2,9,3); ra(8.6,4.4,'tam','Tắm');

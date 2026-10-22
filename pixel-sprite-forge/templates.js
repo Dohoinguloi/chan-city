@@ -390,7 +390,7 @@ const DEFAULT={ // màu gốc lấy từ ref
   W:'eef1f2',w:'b3c3ca',R:'8e2b2c',r:'5e1a1e',
   U:'8a8178',P:'3a3c50',p:'26283a',F:'4a2c22',f:'2e1b16',
   K:'c3c6cb',k:'8f949b',Y:'e8b83a',y:'a8761e',V:'d4d8dc',g:'fbfaf6',A:'d4d8dc','1':'ffd84a','2':'ff9f2e','3':'fff7d6',z:'3b2b27',e:'c8352c',x:'8c231f',o:'d6d9df',
-  B:'e5b53a',b:'a87a1c',D:'2f2b38',M:'3f7f6f',N:'c4563c',j:'6a6d82',v:'2f6b3a',Z:'b8342e',Q:'f2efe8',u:'a3a3aa',l:'ecebe6','4':'bfe2f2','5':'e8f8ff'};
+  B:'e5b53a',b:'a87a1c',D:'2f2b38',M:'3f7f6f',N:'c4563c',j:'6a6d82',v:'2f6b3a',Z:'b8342e',Q:'f2efe8',u:'a3a3aa',l:'ecebe6','4':'bfe2f2','5':'e8f8ff','6':'f2c43d','7':'d23a2e','8':'3f9a4a'};
 
 function validate(){
   const bad=[]; const chk=(name,rows)=>rows.forEach((r,i)=>{ if(r.length!==W) bad.push(`${name}[${i}] dài ${r.length}`); });
@@ -401,6 +401,11 @@ function validate(){
   return bad;
 }
 
+// mũ thổ cẩm vùng cao (Ộ i i): chỏm theo màu mũ, dải thêu đỏ - vàng - xanh quanh trán, bỏ vành lưỡi trai
+function mongCap(R,side,back){ for(let y=3;y<=6;y++) for(let x=0;x<W;x++){ const c=R[y][x]; if(c!=='C'&&c!=='c') continue;
+    R[y][x]=y===3||y===6?'7':y===4?((x+y)%3?'6':'7'):(x%2?'8':'6'); }
+  if(side){ R[5][18]='O'; R[5][19]='.'; }
+  if(back) for(let y=7;y<=12;y++) for(let x=0;x<W;x++) if('Ssd'.includes(R[y][x])) R[y][x]=x>=13?'h':'H'; }   // sau gáy: tóc đen dưới mũ
 // ghép các phần thành lưới ký tự 20×35
 function compose(o){
   const rows=[...(HAIR[o.hair]||HAIR.swept), ...FACE, ...(TOP_PARTS[o.top]||TOP_PARTS.tee), ...(BOTTOM[o.bottom]||BOTTOM.pants)].map(r=>r.split(''));
@@ -422,6 +427,7 @@ function compose(o){
   if(o.tie&&(o.top==='tee'||o.top==='long')) overlay(rows,'tieTee');
   if(o.capPattern&&o.hair==='cap') for(let y=1;y<=5;y++) for(let x=0;x<W;x++) if(rows[y][x]==='C'&&(x*2+y)%4===0) rows[y][x]='c';
   if(o.capWeb&&o.hair==='cap') overlay(rows,'capWeb');
+  if(o.mongCap&&o.hair==='cap') mongCap(rows,true);
   if(o.print&&!open) overlay(rows,'print');
   if(o.tattoo&&o.top==='tee') overlay(rows,'tattoo');
   if(o.chain&&o.top!=='suit') overlay(rows,open||o.turtle?'chainIn':'chain');
@@ -839,6 +845,7 @@ function composeView(o,view){
   if(o.plaid) plaid(R); if(o.floral) floral(R);
   const put=(pts,ch)=>{ for(const [x,y] of pts) if(R[y]) R[y][x]=ch; };
   if(o.hair==='cap'&&o.capPattern) for(let y=0;y<=5;y++) for(let x=0;x<W;x++) if(R[y][x]==='C'&&(x*2+y)%4===0) R[y][x]='c';
+  if(o.hair==='cap'&&o.mongCap) mongCap(R,false,!front);
   if(front){
     if(o.hair==='cap'&&o.capWeb) put([[4,2],[4,3]],'v'),put([[5,2],[5,3]],'Z'),put([[6,2],[6,3]],'v');
     if(o.brows!==false) put([[5,10],[6,10],[7,10],[12,10],[13,10],[14,10]],'X');

@@ -31,7 +31,8 @@ function setAct(pl,a,sec){ pl.act=S.ACTS.indexOf(a); pl.actUntil=sec?now()+sec*1
 function treasureRoll(pl,d){ const TR=S.TREASURE, p=pl.prof; pl.paddled=(pl.paddled||0)+d; if(pl.paddled<TR.every) return; pl.paddled=0;
   if((p.daily.treasure||0)>=TR.daily||Math.random()>TR.chance) return;
   const tot=Object.values(TR.items).reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, k=null; for(const [id,x] of Object.entries(TR.items)){ r-=x.w; if(r<=0){ k=id; break; } } k=k||'dong_xu_co';
-  p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được báu vật: ${TR.items[k].name}!`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y}); }
+  const n=p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được đồ cổ: ${TR.items[k].name}! (${n}/${TR.daily} hôm nay · bán cho cô Ké ${S.fmt(TR.items[k].price)})`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y});
+  if(n>=TR.daily) C.note(pl,`Hôm nay mò đủ ${TR.daily} món đồ cổ rồi, mai chèo tiếp nhé`,'quest'); }
 
 /* ---------- gói vị trí ---------- */
 function flags(pl){ const n=pl.prof.needs; return (pl.kayak?S.FL.kayak:0)|(pl.fishing?S.FL.fish:0)|(n.clean<20?S.FL.dirty:0)|(n.energy<20?S.FL.tired:0)|(pl.riding?S.FL.ride:0)|(pl.moto?S.FL.moto:0)|(pl.moto&&pl.prof.helmet?S.FL.helmet:0)|(pl.moto==='xedap'?S.FL.bike:0)|(pl.optimus==='robot'?S.FL.optimus:0)|(pl.optimus==='truck'?S.FL.otruck:0)|(pl.pcar?S.FL.car:0)|(pl.incar?S.FL.incar:0)|(pl.prof.drunk>Date.now()?S.FL.drunk:0); }
