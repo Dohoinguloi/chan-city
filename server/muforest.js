@@ -16,7 +16,7 @@ const ST={idle:0,walk:1,wind:2,back:3};
 const dOf=(o,q)=>Math.hypot(q.x/T-o.x,q.y/T-o.y);
 // hiệu ứng quái chỉ gửi cho người ở gần (trong khung nhìn rộng)
 const nearB=(x,y,obj)=>{ for(const q of MU.inScene()) if(Math.abs(q.x/T-x)<26&&Math.abs(q.y/T-y)<20) send(q,obj); };
-function step(o,tx,ty,v,dt){ const dx=tx-o.x, dy=ty-o.y, d=Math.hypot(dx,dy); if(d<.05) return true; const s=Math.min(d,v*dt); o.x+=dx/d*s; o.y+=dy/d*s; if(Math.abs(dx)>.05) o.face=dx>0?1:-1; return s>=d; }
+function step(o,tx,ty,v,dt){ if(o.slow>now()) v*=.45; const dx=tx-o.x,   /* bị làm chậm (Băng Phong của Lính Cát huyền thoại): đi chậm hơn hẳn */  dy=ty-o.y, d=Math.hypot(dx,dy); if(d<.05) return true; const s=Math.min(d,v*dt); o.x+=dx/d*s; o.y+=dy/d*s; if(Math.abs(dx)>.05) o.face=dx>0?1:-1; return s>=d; }
 let lastT=now();
 function tick(){ const t=now(), dt=Math.min(.5,(t-lastT)/1000); lastT=t; if(!MU.inScene().length) return; const live=MU.alive();
   for(const o of MOBS.values()){ const m=F.mobs[o.k];
@@ -62,9 +62,13 @@ function die(o){ const m=F.mobs[o.k], t=now(); o.dead=t+F.respawn*1000; o.hp=0; 
     if(items.ngoc_ch||items.ngoc_ch_ht) C.note(pl,`💎 ${m.name} rơi ${items.ngoc_ch_ht?'Ngọc Cường Hoá Huyền Thoại':'Ngọc Cường Hoá'}!`,'item');
     send(pl,{t:'mobloot',id:o.id,x:o.x,y:o.y,exp:g.exp||0,vnd,mu,items}); MU.push(pl); }); }
 // cho mu.js: con quái gần người nhất (để chiêu / Min / Lính Cát nhắm vào)
-MU.EXTRA.push({nearest:pl=>{ const px=pl.x/T, py=pl.y/T; if(py<S.MU.town-4) return null; let best=null, bd=1e9;
+MU.EXTRA.push({kind:'mob',nearest:pl=>{ const px=pl.x/T, py=pl.y/T; if(pl.scene!=='mu'||py<S.MU.town-4) return null; let best=null, bd=1e9;
   for(const o of MOBS.values()){ if(o.dead) continue; const d=Math.hypot(o.x-px,o.y-py); if(d<bd){ bd=d; best=o; } }
-  if(!best||bd>14) return null; const m=F.mobs[best.k], o=best; return {x:o.x,y:o.y,d:bd,def:m.def,rad:m.big?.9:.5,hit:(d,p)=>hit(o,d,p)}; }});
+  if(!best||bd>14) return null; return asTarget(best,bd); },
+  // các con quái khác quanh 1 điểm (giật lan): n con gần nhất trong r ô, trừ con đang nhắm
+  byId:(id,pl)=>{ const o=MOBS.get(id); return o&&!o.dead&&pl.scene==='mu'?asTarget(o,Math.hypot(pl.x/T-o.x,pl.y/T-o.y)):null; },
+  around:(x,y,r,n,skip,sc)=>sc&&sc!=='mu'?[]:[...MOBS.values()].filter(o=>!o.dead&&o.id!==skip&&Math.hypot(o.x-x,o.y-y)<=r).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,n).map(o=>asTarget(o,0))});
+function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; }}; }
 // thu mua chiến lợi phẩm rừng (Phù Thuỷ Cường Hoá): bán 1 loại hoặc tất cả
 on('mobsell',(pl,m)=>{ if(pl.scene!=='mu'||!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const it=pl.prof.items, ks=m.k?[String(m.k)]:Object.keys(S.MU.matPrice);
   let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=S.MU.matPrice[k]; if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }

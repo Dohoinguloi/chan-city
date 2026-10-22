@@ -242,7 +242,7 @@ function buildRetreat(){
   { const Q=SHARED.YENLANG.pho; put(A.stall('#c4382e',['#f4ead8','#e8b860','#5fae46']),Q.x-1,Q.y-.8); solid.push([Math.floor(Q.x)-2,Math.floor(Q.y)-2,Math.floor(Q.x),Math.floor(Q.y)-2]); put(A.label('PHO CHI THAO','#8c231f','#fff3d6'),Q.x-1,Q.y-3.2,{flat:true}); }   // quán phở chị Thảo trong ngõ
   put(A.parkingLines(3,2,72,46),54.4,98.2,{flat:true}); put(A.parkSign(),67.4,98.6); solid.push([67,97,67,97]);
   const carLow=put(A.car(),SHARED.CARS.car_low.x,SHARED.CARS.car_low.y-.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
-  rect(48,40,51,41,'G',['F']); solid.push([45,96,47,96],[48,41,50,41]);
+  rect(48,40,51,41,'G',['F']); solid.push([48,41,50,41]);   /* xe dưới đã dời sang bãi đỗ (CARS.car_low): bỏ ô chặn cũ giữa đường ven hồ */
   // vườn rau Ké: hàng rào gỗ, chừa lối vào ở giữa phía Nam
   // cửa vào vườn: giữa cạnh dưới (x 54), cạnh trên (x 57–58), cạnh trái (y 83–84), cạnh phải (y 80–81)
   for(let x=48;x<=67;x++){ if(x!==57&&x!==58){ put(A.fence(false),x+.5,76.2); solid.push([x,76,x,76]); } if(x!==54){ put(A.fence(false),x+.5,86.2); solid.push([x,86,x,86]); } }
@@ -312,6 +312,8 @@ function buildRetreat(){
     flw=[['#ff9fb2',1],['#ffe066',2],['#f4f1ea',3],['#a882ff',4],['#ff6a55',5]].map(([c,s])=>A.flowers(s,c)), tufts=[0,1].map(i=>A.tuft(i)), stumpS=A.stump(), logS=A.logs(), mushS=A.mush(0), wrocks=[0,1].map(i=>A.wrock(i));
   const treeOf=(x,y)=>{ const k=A.hash(x,y,5); if(y<60&&x>72) return k<.45?pines[Math.floor(k*8)%4]:trees[Math.floor(k*trees.length)];   // đồi phía Bắc nhiều thông
     if(k<.06) return blos[Math.floor(k*60)%4]; return trees[Math.floor(k*trees.length)]; };
+  // cây ven hồ: chừa trống hàng sát mép đường (y 98) và quanh bến kayak, 2 cây cạnh nhau cách ít nhất 2 ô để cưỡi ngựa vẫn lọt qua
+  const lakeTree=(x,y)=>g[y][x]==='G'&&y>=99&&y<=104&&A.hash(x,y,99)<.12&&!nearDoor(x,y)&&Math.hypot(x+.5-SHARED.PCAR.park.x,y+.5-SHARED.PCAR.park.y)>4;
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const t=g[y][x], h=A.hash(x,y,99), h2=A.hash(x,y,123);
     if(t==='W'&&(nearType(g,x,y,'D')||nearType(g,x,y,'G'))&&h2<.18){ put(reedS[Math.floor(h2*30)%3],x+.5,y+.9); continue; }      // lau sậy ven bờ
     if((t==='W'||t==='o')&&h2>.985){ put(lilyS[Math.floor(h2*400)%2],x+.5,y+.6,{flat:true}); continue; }                       // lá sen
@@ -320,7 +322,7 @@ function buildRetreat(){
     if(t==='F'&&h2<.012&&!nearType(g,x,y,'P')){ put([stumpS,logS,mushS][Math.floor(h2*250)%3],x+.5,y+.9); continue; }
     if(t==='F'&&h<.5&&!nearNpc(x,y)&&!nearType(g,x,y,'B')&&!nearType(g,x,y,'P')&&!nearType(g,x,y,'X')) put(treeOf(x,y),x+.5+(A.hash(x,y,6)-.5)*.6,y+1+(A.hash(x,y,7)-.5)*.4,{tree:true});
     else if(t==='F'&&h<.62&&!nearNpc(x,y)) put(bushes[Math.floor(h*40)%4],x+.5,y+.9);
-    else if(t==='G'&&y>=98&&y<=104&&h<.12&&Math.hypot(x+.5-SHARED.PCAR.park.x,y+.5-SHARED.PCAR.park.y)>4) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
+    else if(lakeTree(x,y)&&!lakeTree(x-1,y)&&!lakeTree(x-2,y)) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
     else if(t==='G'&&h<.025&&nearType(g,x,y,'F')&&!nearDoor(x,y)) { put(bam[Math.floor(h*120)%3],x+.5,y+1); solid.push([x,y,x,y]); }
     else if(t==='G'&&h>.985&&!nearType(g,x,y,'P')&&!nearDoor(x,y)) { put(A.rock(x),x+.5,y+.8); solid.push([x,y,x,y]); } }
 

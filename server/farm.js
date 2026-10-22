@@ -20,6 +20,13 @@ const DOGOF=new Map(); for(const p of db.allProfiles()) if(p.dog&&S.DOGS[p.dog.k
 const dogsView=()=>[...DOGOF.entries()].map(([uid,d])=>({o:pubOf(uid),n:d.n,k:d.k}));
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'dogs',list:dogsView()}); });
 on('dog',(pl,m)=>{ const p=pl.prof; if(m.op==='view') return {dogs:dogsView()}; if(!P.nearNpc(pl,'chuba')) return {err:'Gặp chú Ba cạnh vườn rau Ké'};
+  // đất vườn Ké mua đứt: không trừ tiền hằng ngày, bán lại cho chú Ba 70% giá mua
+  if(m.op==='landbuy'){ const t=S.KE_LAND.find(x=>x.id===m.tier); if(!t) return {err:'?'}; if(p.keLand&&p.keLand.own) return {err:'Bạn đã có đất riêng ở vườn Ké, bán mảnh cũ cho chú Ba trước'};
+    if(!take(pl,t.buy)) return {err:`Mua đứt ${t.name} giá ${fmt(t.buy)}, không đủ tiền`}; p.keLand={tier:t.id,paid:C.today(),own:true}; markDirty(pl); return {msg:`Đã mua đứt ${t.name} (${t.plots} ô) ở vườn Ké: không phải trả tiền thuê nữa. Bán lại cho chú Ba được ${fmt(t.sellBack)}`}; }
+  if(m.op==='landsell'){ const K=p.keLand, t=K&&K.own&&S.KE_LAND.find(x=>x.id===K.tier); if(!t) return {err:'Bạn chưa có đất mua đứt ở vườn Ké'}; p.keLand=null; C.give(pl,t.sellBack); markDirty(pl);
+    return {msg:`Chú Ba mua lại ${t.name}: +${fmt(t.sellBack)}. Cây đang trồng vẫn thu hoạch được`}; }
+  if(m.op==='land'&&p.keLand&&p.keLand.own) return {err:'Bạn đã mua đứt đất ở vườn Ké rồi'};
+  if(m.op==='landcancel'&&p.keLand&&p.keLand.own) return {err:'Đất mua đứt thì bán lại cho chú Ba'};
   if(m.op==='land'){ const t=S.KE_LAND.find(x=>x.id===m.tier), d=C.today(); if(!t) return {err:'?'}; if(p.keLand&&p.keLand.tier===t.id&&p.keLand.paid===d) return {err:'Đang thuê mảnh này rồi'};
     const old=p.keLand&&p.keLand.paid===d&&S.KE_LAND.find(x=>x.id===p.keLand.tier), cost=Math.max(0,t.price-(old?old.price:0)); if(cost&&!take(pl,cost)) return {err:`${t.name} ${fmt(t.price)}/ngày, không đủ tiền`};
     p.keLand={tier:t.id,paid:d}; markDirty(pl); return {msg:`Thuê ${t.name}: trồng được ${t.plots} ô ở vườn Ké · ${fmt(t.price)}/ngày`}; }
@@ -81,18 +88,25 @@ hook('enter',(pl,id)=>{ if(id==='dalat') send(pl,{t:'lands',list:landsView()}); 
 function freeIn(field,uid,n){ const out=[]; S.DALAT.plots.forEach((d,i)=>{ const id='d'+i, o=ownerOf(id), pt=PLOTS[id]; if(out.length<n&&d.kind===field&&(!o||o.uid===uid)&&(!pt||pt.o===uid)) out.push(id); }); return out; }
 function dropLand(pl){ const p=pl.prof; p.land=null; LANDS.delete(pl.uid); markDirty(pl); pushLands(); }
 on('land',(pl,m)=>{ const p=pl.prof; if(m.op==='view') return {lands:landsView()}; if(!P.nearNpc(pl,'bactrang')) return {err:'Gặp bác Trang ở nhà phía Bắc nông trại'};
-  if(m.op==='cancel'){ dropLand(pl); return {msg:'Đã trả đất. Cây đang trồng vẫn thu hoạch được'}; }
+  if(m.op==='cancel'){ if(p.land&&p.land.own) return {err:'Đất mua đứt thì bán lại cho bác Trang'}; dropLand(pl); return {msg:'Đã trả đất. Cây đang trồng vẫn thu hoạch được'}; }
+  // đất Đà Lạt mua đứt: không trừ tiền hằng ngày; bán lại cho bác Trang 70% giá mua
+  if(m.op==='sell'){ const L=p.land, t=L&&L.own&&S.DL_LAND.find(x=>x.id===L.tier); if(!t) return {err:'Bạn chưa có đất mua đứt ở nông trại'}; dropLand(pl); C.give(pl,t.sellBack);
+    return {msg:`Bác Trang mua lại ${t.name}: +${fmt(t.sellBack)}. Cây đang trồng vẫn thu hoạch được`}; }
+  if(p.land&&p.land.own) return {err:'Bạn đang có đất mua đứt, bán lại cho bác Trang rồi mới thuê / mua mảnh khác'};
+  const buy=m.op==='buy';
   const t=S.DL_LAND.find(x=>x.id===m.tier), field=String(m.field||'rau'); if(!t||!S.DALAT.plots.some(d=>d.kind===field)) return {err:'?'}; const d=C.today();
   if(p.land&&p.land.tier===t.id&&p.land.field===field&&p.land.paid===d) return {err:'Bạn đang thuê mảnh này rồi'};
   LANDS.delete(pl.uid); const ids=freeIn(field,pl.uid,t.plots); if(ids.length<t.plots){ if(p.land&&p.land.plots) LANDS.set(pl.uid,{n:p.name,field:p.land.field,plots:p.land.plots}); return {err:`Khu này chỉ còn ${ids.length} ô trống, chọn khu khác hoặc mảnh nhỏ hơn`}; }
-  const paidToday=p.land&&p.land.paid===d, old=paidToday&&S.DL_LAND.find(x=>x.id===p.land.tier), cost=Math.max(0,t.price-(old?old.price:0));   // đổi mảnh trong ngày: chỉ bù phần chênh
-  if(cost&&!take(pl,cost)){ if(p.land&&p.land.plots) LANDS.set(pl.uid,{n:p.name,field:p.land.field,plots:p.land.plots}); return {err:`${t.name} (${t.plots} ô) giá ${fmt(t.price)}/ngày, không đủ tiền`}; }
-  p.land={tier:t.id,paid:d,field,plots:ids}; LANDS.set(pl.uid,{n:p.name,field,plots:ids}); markDirty(pl); pushLands();
+  const paidToday=p.land&&p.land.paid===d, old=paidToday&&S.DL_LAND.find(x=>x.id===p.land.tier), cost=buy?t.buy:Math.max(0,t.price-(old?old.price:0));   // đổi mảnh trong ngày: chỉ bù phần chênh
+  if(cost&&!take(pl,cost)){ if(p.land&&p.land.plots) LANDS.set(pl.uid,{n:p.name,field:p.land.field,plots:p.land.plots}); return {err:buy?`Mua đứt ${t.name} giá ${fmt(t.buy)}, không đủ tiền`:`${t.name} (${t.plots} ô) giá ${fmt(t.price)}/ngày, không đủ tiền`}; }
+  p.land={tier:t.id,paid:d,field,plots:ids,own:buy||undefined};
+  if(buy){ LANDS.set(pl.uid,{n:p.name,field,plots:ids}); markDirty(pl); pushLands(); return {msg:`Đã mua đứt ${t.name} · ${t.plots} ô: không phải trả tiền thuê nữa. Bán lại cho bác Trang được ${fmt(t.sellBack)}`}; } LANDS.set(pl.uid,{n:p.name,field,plots:ids}); markDirty(pl); pushLands();
   return {msg:`Đã thuê ${t.name} · ${t.plots} ô ở khu ${S.DALAT.fields?S.DALAT.fields[field]:field} · ${fmt(t.price)}/ngày. Bác Trang đã cắm biển tên bạn`}; });
 function landRoll(pl){ const p=pl.prof, L=p.land, d=C.today();
-  { const K=p.keLand; if(K&&K.paid!==d&&p.look){ const t=S.KE_LAND.find(x=>x.id===K.tier); if(t&&take(pl,t.price)){ K.paid=d; note(pl,`Đã trừ tiền thuê đất vườn Ké: ${fmt(t.price)}`,'vnd'); } else { p.keLand=null; note(pl,'Không đủ tiền thuê đất vườn Ké, chú Ba lấy lại đất','lock'); } markDirty(pl); } }
+  { const K=p.keLand; if(K&&K.own){ if(K.paid!==d){ K.paid=d; markDirty(pl); } } else if(K&&K.paid!==d&&p.look){   /* đất mua đứt: không trừ tiền */ const t=S.KE_LAND.find(x=>x.id===K.tier); if(t&&take(pl,t.price)){ K.paid=d; note(pl,`Đã trừ tiền thuê đất vườn Ké: ${fmt(t.price)}`,'vnd'); } else { p.keLand=null; note(pl,'Không đủ tiền thuê đất vườn Ké, chú Ba lấy lại đất','lock'); } markDirty(pl); } }
   // hồ sơ cũ (thuê trước khi có mảnh thật): giao 1 mảnh ở khu rau
   if(L&&!L.plots&&p.look){ const t2=S.DL_LAND.find(x=>x.id===L.tier), ids=freeIn('rau',pl.uid,t2?t2.plots:2); L.field='rau'; L.plots=ids; LANDS.set(pl.uid,{n:p.name,field:'rau',plots:ids}); markDirty(pl); pushLands(); }
+  if(L&&L.own){ if(L.paid!==d){ L.paid=d; markDirty(pl); } return; }   /* đất mua đứt: không trừ tiền */
   if(!L||L.paid===d||!p.look) return; const t=S.DL_LAND.find(x=>x.id===L.tier);
   if(t&&take(pl,t.price)){ L.paid=d; note(pl,`Đã trừ tiền thuê đất ${t.name}: ${fmt(t.price)}`,'vnd'); } else { dropLand(pl); note(pl,'Không đủ tiền thuê đất, bác Trang đã lấy lại mảnh đất','lock'); } markDirty(pl);
  }
@@ -156,7 +170,7 @@ on('horse',(pl,m)=>{ const p=pl.prof, t=now();
     else { if(!take(pl,S.HORSE.rent)) return {err:`Thuê ngựa ${fmt(S.HORSE.rent)}/giờ`}; p.horse={own:!!(p.horse&&p.horse.own),until:Math.max(t,p.horse&&p.horse.until||0)+S.HORSE.rentMin*60e3}; }
     markDirty(pl); return {horse:p.horse}; }
   if(m.op==='coat'){ const c=m.c|0; if(c<0||c>=S.HORSE.coats.length) return {err:'?'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại ngựa'}; p.horseCoat=c; markDirty(pl); return {coat:c}; }   // chọn loại ngựa
-  if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat'&&pl.scene!=='mu') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt, MU Online)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong, chú Hải hoặc Người Thuần Thú (MU)'};
+  if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat'&&pl.scene!=='mu'&&pl.scene!=='muw') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt, MU Online)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong, chú Hải hoặc Người Thuần Thú (MU)'};
     if(pl.kayak||pl.fishing) return {err:'Đang bận'}; pl.riding=true; return {}; }
   if(m.op==='dismount'){ pl.riding=false; return {}; }
   // cường hoá ngựa lên bậc thần thú kế tiếp (chỉ ngựa đã mua), chọn con đang cưỡi trong số đã mở ('' = ngựa thường)

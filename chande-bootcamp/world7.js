@@ -9,7 +9,9 @@ function kit(){ const obj=[], solid=[], inter=[];
   const block=(x0,y0,x1,y1)=>solid.push([x0,y0,x1,y1]);
   const act=(x,y,label,o,r=20)=>inter.push({x:x*T,y:y*T,label,r,...o});
   return {obj,solid,inter,put,block,act}; }
-function buildMU(){ const M=SD.MU, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=kit(), {put,block,act}=K;
+// phần MU cũ dựng bằng toạ độ cũ (SD.MU.local, 96 ô ngang) rồi world8 (WORLD.muWest) dời sang phải MU.OX ô và ghép vùng boss phía Tây
+function buildMU(){ return WORLD.muWest(buildOld()); }
+function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=kit(), {put,block,act}=K;
   const g=Array.from({length:H},(_,y)=>Array.from({length:W},(_,x)=>{
     if(y<=1||x<=1||x>=W-2||y===H-1) return '0';
     if(y>=H0) return forestTile(x,y);
@@ -30,9 +32,12 @@ function buildMU(){ const M=SD.MU, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=kit(), 
   put(A.mythStable(),34.5,23); block(33,21,36,22);   // chuồng thần thú (Người Thuần Thú cường hoá ngựa)   // quầy Thợ Rèn Huyền Thoại (50 vũ khí)
   put(A.muJewelStall(),35.5,11.6); block(34,9,37,10);
   put(A.enchantStall(0),7.5,23.6,{anim:'muenchant'}); block(6,21,9,22);   // quầy Phù Thuỷ Cường Hoá (khắc lỗ cường hoá, bán ngọc, thu mua chiến lợi phẩm rừng)
-  put(A.shoeStall(),7.5,8.6); block(6,6,9,7);   // Tiệm Giày Lướt Gió (ô Giày: đi nhanh hơn + chỉ số MU)   // quầy Thợ Kim Hoàn (phụ kiện: cánh, dây chuyền, hộ thân, aura)   // quầy Premium Store (Thương nhân Huyền Thoại đứng trước)
+  put(A.shoeStall(),7.5,8.6); block(6,6,9,7);
+  put(A.lcCenterStall(),37.5,16.6); block(36,14,38,15);   // Trung tâm Lính Cát MU (y tá hồi máu, kệ hàng, máy gửi giữ)
+  put(A.lcTemple(0),29,25.8,{anim:'lctemple'}); block(27,24,31,25);   // Đền Lính Cát Huyền Thoại (đập 3 ngọc quý → dạng huyền thoại)   // Tiệm Giày Lướt Gió (ô Giày: đi nhanh hơn + chỉ số MU)   // quầy Thợ Kim Hoàn (phụ kiện: cánh, dây chuyền, hộ thân, aura)   // quầy Premium Store (Thương nhân Huyền Thoại đứng trước)
   const tree=(x,y)=>{ put(A.tree((x*7+y)|0,.9),x,y,{tree:true}); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); };
   for(const [x,y] of [[3,6],[3,12],[3,18],[40,6],[40,18],[3,24]]) tree(x,y);
+  put(A.label('← VUNG BOSS · LANG MEME','#2a2026','#ffd84a'),7,18.4,{flat:true});   // lối mở trên tường Tây (y 19–22) sang vùng boss phía Tây
   put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,26.4,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26);
   put(A.label('→ LANG LA · DAM RONG','#2a2026','#ff9a3a'),37,13.2,{flat:true});
   /* --- rừng Làng Lá phía Bắc: cổng torii, cọc tập, quán ramen, bia đá --- */
@@ -60,13 +65,13 @@ function buildMU(){ const M=SD.MU, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=kit(), 
   return {name:'MU Online · Lục Địa Cát',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,zones,districts,spawn:{x:M.spawn.x*T,y:M.spawn.y*T}}; }
 /* ---------- rừng quái (y 30–70) ---------- */
 const hsh=(x,y,s)=>A.hash(x,y,s);
-const mobAt=(x,y)=>Object.values(SD.MU.forest.mobs).find(m=>x>=m.zone.x0&&x<=m.zone.x1&&y>=m.zone.y0&&y<=m.zone.y1);
+const mobAt=(x,y)=>Object.values(SD.MU.local.forest.mobs).find(m=>x>=m.zone.x0&&x<=m.zone.x1&&y>=m.zone.y0&&y<=m.zone.y1);
 // đường mòn: 3 trục dọc từ 3 lối xuống + 2 trục ngang giữa các hàng khu
 const onPath=(x,y)=>{ const w=hsh(x>>2,y>>2,61)<.5?0:1; return x>=20+w&&x<=22+w||x>=55&&x<=57||x>=82&&x<=84||y===43||y===44||y===56||y===57; };
 // chừa trống: quanh ổ quái (bán kính 4.5), điểm Lính Cát hoang, sát lối xuống
-const clear=(x,y)=>{ for(const m of Object.values(SD.MU.forest.mobs)) for(const [px,py] of m.packs) if(Math.hypot(x+.5-px,y+.5-py)<4.5) return false;
-  for(const [lx,ly] of SD.LINHCAT.maps.mu.spots) if(Math.hypot(x+.5-lx,y+.5-ly)<2.5) return false; return y>31; };
-function forestTile(x,y){ const m=mobAt(x,Math.min(y,SD.MU.H-3)), base=m?m.zone.tile:'G';   /* hàng sát tường đáy lấy nền của khu ngay trên */
+const clear=(x,y)=>{ for(const m of Object.values(SD.MU.local.forest.mobs)) for(const [px,py] of m.packs) if(Math.hypot(x+.5-px,y+.5-py)<4.5) return false;
+  for(const [lx,ly] of SD.MU.local.lcSpots) if(Math.hypot(x+.5-lx,y+.5-ly)<2.5) return false; return y>31; };
+function forestTile(x,y){ const m=mobAt(x,Math.min(y,SD.MU.local.H-3)), base=m?m.zone.tile:'G';   /* hàng sát tường đáy lấy nền của khu ngay trên */
   if(onPath(x,y)) return base==='%'||base==='4'?'9':'P';
   if(m&&m.k==='wraith'){ for(const [cx,cy,rx,ry] of [[40,49,3.5,2],[52,53,4,1.8],[60,47,2.5,1.5]]) if(((x-cx)/rx)**2+((y-cy)/ry)**2<=1) return 'W'; }   // ao đầm sương
   if(m&&m.k==='cerberus'&&hsh(x>>1,y>>1,77)<.06&&clear(x,y)) return 'z';   // vũng nham thạch
@@ -81,7 +86,7 @@ const DECOR={slime:[[s=>A.tree(s,.95),.05,1],[s=>A.pumpkin(s%3),.04,0],[()=>A.ha
   golem:[[s=>A.rock(s),.06,1],[()=>A.crystal('#7fd8ff'),.03,1],[()=>A.crystal('#c8ffd0'),.012,1],[s=>A.pine(s,.9),.015,1]],
   wendigo:[[s=>A.pine(s,1.1),.07,1],[()=>A.skullTotem(),.012,1],[()=>A.boneHeap(),.015,0],[()=>A.muDeadTree(),.015,1]],
   cerberus:[[()=>A.muTorch(0),.012,1,'mutorch'],[()=>A.skullTotem(),.012,1],[()=>A.boneHeap(),.025,0],[s=>A.rock(s),.025,1]]};
-function forestDecor(g,K){ const M=SD.MU, {put,block}=K, cache={};
+function forestDecor(g,K){ const M=SD.MU.local, {put,block}=K, cache={};
   for(let y=M.town+1;y<M.H-1;y++) for(let x=2;x<M.W-2;x++){ const m=mobAt(x,y); if(!m||!clear(x,y)||onPath(x,y)||g[y][x]==='W'||g[y][x]==='z') continue; if(onPath(x-1,y)||onPath(x+1,y)||onPath(x,y-1)) continue;
     const L=DECOR[m.k], r=hsh(x,y,91); let acc=0;
     for(let i=0;i<L.length;i++){ const [fn,dens,solid,anim]=L[i]; acc+=dens; if(r>=acc) continue; const seed=(x*7+y*13)%9, key=m.k+i+':'+seed, spr=cache[key]||(cache[key]=fn(seed)), tall=spr.c.height>30;

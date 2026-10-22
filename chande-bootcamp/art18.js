@@ -140,6 +140,8 @@ A.hellGate=f=>CR['hg'+f]||(CR['hg'+f]=(()=>{ const V=vol(110,92), St=R('#3a2a2e'
   for(const x of [16,94]){ V.tube([[x,90],[x,22]],[9,8],St,{g:'p'+x}); V.poly([[x-10,26],[x+10,26],[x+8,18],[x-8,18]],SD,{g:'cap'+x}); V.tube([[x,18],[x+(x<55?-6:6),8],[x+(x<55?-4:4),1]],[3,2,.6],Hn,{g:'hn'+x}); }
   V.tube([[16,22],[35,8],[55,4],[75,8],[94,22]],[6,6,6,6,6],St,{g:'arch'}); V.ell(55,8,7,6,R('#e8dcc0'),{g:'skull'}); V.rect(51,7,3,2,'#ff2a2a').rect(56,7,3,2,'#ff2a2a');
   return {c:V.done(false,{glow:'rgba(255,120,40,.35)',gr:3}),ax:55,ay:90}; })());
+// biển tên quầy: nền tối rộng theo chữ, canh giữa ở cx
+const tag=(g,s,cx,y,col)=>{ const w=A.textW(s), x=Math.round(cx-w/2); g.fillStyle=K; g.fillRect(x-2,y,w+4,6); A.drawText(g,s,x,y,col); };
 // quầy Phù Thuỷ Cường Hoá: lều vải tím sao vàng, bàn đá có cầu pha lê xanh và ngọc
 A.enchantStall=f=>CR['es'+f]||(CR['es'+f]=(()=>{ const V=vol(60,52), Cl=R('#6a3ab8'), CD=R('#3a1a7a'), St=R('#5a5466'), Cr=R(f?'#9af0ff':'#6ad0ff');
   V.poly([[4,22],[56,22],[48,4],[12,4]],Cl,{n:[-.25,-.35,.9]}); for(let i=0;i<5;i++) V.poly([[6+i*10,22],[16+i*10,22],[11+i*10,27]],i%2?CD:Cl,{g:'fr'+i});
@@ -148,7 +150,7 @@ A.enchantStall=f=>CR['es'+f]||(CR['es'+f]=(()=>{ const V=vol(60,52), Cl=R('#6a3a
   V.ell(30,30,6,6,Cr,{g:'orb',lift:.15}); V.ell(30,36,5,1.6,R('#a88a3a'),{g:'stand'}); V.px(28,27,'#ffffff').px(29,26,'#ffffff');
   for(const [x,c] of [[20,'#7fe8ff'],[40,'#ffd84a']]){ V.poly([[x-2,35],[x+2,35],[x+3,32],[x,29],[x-3,32]],R(c),{g:'gem'+x}); }
   for(const [x,y] of [[18,10],[30,8],[42,12],[24,16],[38,17]]) V.px(x,y,'#ffd84a');
-  const s=V.done(false,{glow:f?'rgba(140,220,255,.45)':'rgba(140,220,255,.25)',gr:2}), g=s.getContext('2d'); g.fillStyle=K; g.fillRect(17,0,26,6); A.drawText(g,'CUONG HOA',19,0,'#c8a0ff'); return {c:s,ax:30,ay:48}; })());
+  const s=V.done(false,{glow:f?'rgba(140,220,255,.45)':'rgba(140,220,255,.25)',gr:2}), g=s.getContext('2d'); tag(g,'CUONG HOA',30,0,'#c8a0ff'); return {c:s,ax:30,ay:48}; })());
 
 /* ======================= giày MU (Tiệm Giày Lướt Gió) ======================= */
 // giày thể thao nhìn nghiêng quay phải: đế, thân, mũi, mảng phối màu, dây, cổ giày (hi = cổ cao)
@@ -186,7 +188,27 @@ A.shoeStall=()=>CR.ss||(CR.ss=(()=>{ const V=vol(60,50); for(let i=0;i<8;i++) V.
   for(let i=0;i<8;i++) V.ell(5.5+i*7,18,3.5,2,R(i%2?'#f4f4f8':'#2a8ad8'),{g:'sc'+i});
   V.tube([[5,19],[5,48]],[1.5,1.5],R('#6a4a2a'),{g:'p1'}); V.tube([[55,19],[55,48]],[1.5,1.5],R('#6a4a2a'),{g:'p2'}); V.poly([[8,30],[52,30],[52,46],[8,46]],R('#8a6a4a'),{g:'shelf'}); V.line(8,38,52,38,'#5a3a22');
   const c=V.done(false), g=c.getContext('2d'); g.imageSmoothingEnabled=false; for(const [k,x,y] of [['sh_skate',10,21],['sh_jordan',28,22],['sh_rollbl',12,32],['sh_fire',30,32]]){ const sh=A.muShoe(k); g.drawImage(sh,x,y,20,15); }
-  g.fillStyle=K; g.fillRect(16,0,28,6); A.drawText(g,'TIEM GIAY',18,0,'#7fd8ff'); return {c,ax:30,ay:48}; })());
+  tag(g,'TIEM GIAY',30,0,'#7fd8ff'); return {c,ax:30,ay:48}; })());
+
+/* ======================= Lính Cát ở MU: Trung tâm + Đền Lính Cát Huyền Thoại ======================= */
+// quầy Trung tâm Lính Cát: mái đỏ trắng, biển bóng cát, máy hồi máu trên quầy
+A.lcCenterStall=()=>CR.lcc||(CR.lcc=(()=>{ const V=vol(60,50); for(let i=0;i<8;i++) V.poly([[2+i*7,18],[9+i*7,18],[9+i*7,6],[2+i*7,6]],R(i%2?'#f4f4f8':'#e8402a'),{n:[-.2,-.4,.9],g:'aw'+i});
+  for(let i=0;i<8;i++) V.ell(5.5+i*7,18,3.5,2,R(i%2?'#f4f4f8':'#e8402a'),{g:'sc'+i}); V.tube([[5,19],[5,48]],[1.5,1.5],R('#6a4a2a'),{g:'p1'}); V.tube([[55,19],[55,48]],[1.5,1.5],R('#6a4a2a'),{g:'p2'});
+  V.poly([[8,32],[52,32],[52,46],[8,46]],R('#f0ece4'),{g:'desk'}); V.rect(8,32,44,2,'#c8302a'); V.poly([[30,24],[44,24],[44,32],[30,32]],R('#8ac8e8'),{g:'heal'});
+  for(let i=0;i<3;i++) V.ell(33+i*4.5,27.5,1.8,1.8,R(['#ff6a8a','#ffd84a','#7fe8ff'][i]),{g:'b'+i}); V.ell(17,26,6,6,R('#f4f4f8'),{g:'ball'}); V.poly([[11,26],[23,26],[23,20],[11,20]],R('#e8402a'),{g:'ballt'}); V.rect(11,25,12,2,K); V.ell(17,26,2,2,R('#ffffff'),{g:'btn'});
+  const c=V.done(false), g=c.getContext('2d'); tag(g,'LINH CAT',30,0,'#ff8ab8'); return {c,ax:30,ay:48}; })());
+// Đền Lính Cát Huyền Thoại: nền đá trắng 3 bậc, mái cong vàng, 3 bệ đặt 3 ngọc quý (Ước Nguyện xanh, Tâm Linh vàng, Hỗn Nguyên hồng) toả sáng theo nhịp
+A.lcTemple=f=>CR['lt'+f]||(CR['lt'+f]=(()=>{ const V=vol(80,70), St=R('#e8e4dc'), SD=R('#b8b0a0'), Go=R('#f0c040'), Rd=R('#c8302a');
+  for(let i=0;i<3;i++) V.poly([[6+i*4,68-i*4],[74-i*4,68-i*4],[74-i*4,64-i*4],[6+i*4,64-i*4]],i%2?SD:St,{g:'step'+i,n:[0,-.6,.8]});
+  for(const x of [18,62]) V.tube([[x,56],[x,26]],[3,3],Rd,{g:'col'+x}); V.poly([[14,56],[66,56],[66,30],[14,30]],R('#5a2a3a'),{g:'wall'});
+  V.poly([[4,28],[76,28],[68,16],[12,16]],Go,{n:[-.3,-.4,.86],g:'roof'}); V.poly([[0,30],[8,24],[10,29]],Go,{g:'eave1'}); V.poly([[80,30],[72,24],[70,29]],Go,{g:'eave2'}); V.poly([[30,16],[50,16],[40,6]],Go,{g:'top'});
+  V.ell(40,5,3,3,R('#fff3b0'),{g:'pearl',lift:.2});
+  for(const [x,c] of [[26,'#9ad8ff'],[40,'#ffd84a'],[54,'#ff6ab8']]){ V.poly([[x-4,56],[x+4,56],[x+3,48],[x-3,48]],SD,{g:'ped'+x}); V.ell(x,44-(f&&x===40?1:0),3.2,4,R(c),{g:'gem'+x,lift:.15}); V.px(x-1,42,'#ffffff'); }
+  const c=V.done(false,{glow:f?'rgba(255,216,74,.55)':'rgba(255,216,74,.3)',gr:3}), g=c.getContext('2d'); tag(g,'DEN HUYEN THOAI',40,58,'#ffd84a'); return {c,ax:40,ay:68}; })());
+// icon sách: bìa màu theo loại + ký hiệu (sách nội tại MU: màu nội tại; sách kinh nghiệm Lính Cát: xanh / tím)
+const BOOK_COL={cuongluc:'#e8402a',thietbi:'#8a96a4',sinhluc:'#5fe06a',linhluc:'#4a8ae8',hoiphuc:'#7fe8ff',chimang:'#ffb03a',hutmau:'#b02a4a',kn:'#3a9ad8',kn5:'#8a5ad8'};
+function bookIcon(col,big){ const V=vol(14,14), C=R(col); V.poly([[2,3],[11,1],[12,11],[3,13]],C,{n:[-.3,-.35,.88],g:'cov'}); V.poly([[3,13],[12,11],[12,12],[3,14]],R('#f4f0e0'),{g:'pg'}); V.line(4,4,4,12,'#1c1516');
+  V.ell(7.5,7,2.2,2.2,R(big?'#ffd84a':'#fff3d0'),{g:'em'}); if(big) V.px(7,4,'#ffffff').px(9,9,'#ffffff'); return V.done(false); }
 
 /* ======================= icon: ngọc cường hoá + chiến lợi phẩm ======================= */
 const ICO={};
@@ -205,6 +227,7 @@ const MAT={mob_slime:V=>{ const O=R('#ff8a24'); V.ell(7,8,6,4.5,O); V.ell(7,8,2,
   mob_wendigo:V=>{ V.tube([[3,13],[5,7],[3,2]],[1.4,1.1,.5],R('#e8dcc0')); V.tube([[5,7],[10,4],[12,1]],[1.1,.9,.4],R('#e8dcc0'),{g:'b'}); V.tube([[8,5],[9,9]],[.8,.3],R('#e8dcc0'),{g:'c'}); },
   mob_cerberus:V=>{ for(let i=0;i<3;i++) V.tube([[3+i*3,13],[5+i*3,6],[4+i*3,1]],[1.4,1,.4],R(['#ff7a2a','#ffb03a','#e8402a'][i]),{g:'f'+i}); }};
 const oldIcon=A.icon;
-A.icon=function(name,scale=1){ let c=ICO[name]; if(!c){ if(name==='gem_enh'||name==='gem_enh_ht') c=gemIcon(name==='gem_enh_ht'); else if(MAT[name]){ const V=vol(14,14); MAT[name](V); c=V.done(false); } if(c) ICO[name]=c; }
+A.icon=function(name,scale=1){ let c=ICO[name]; if(!c){ if(name==='gem_enh'||name==='gem_enh_ht') c=gemIcon(name==='gem_enh_ht'); else if(MAT[name]){ const V=vol(14,14); MAT[name](V); c=V.done(false); }
+    else if(name.startsWith('pasbook_')||name.startsWith('book_')){ const k=name.slice(name.indexOf('_')+1); c=bookIcon(BOOK_COL[k]||'#3a9ad8',k==='kn5'); } if(c) ICO[name]=c; }
   if(!c) return oldIcon(name,scale); if(scale===1) return c; const s=A.cv(14*scale,14*scale), g=s.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(c,0,0,s.width,s.height); return s; };
 })();

@@ -404,7 +404,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 .cpl{width:100%;max-width:calc(100vh - 140px);box-sizing:border-box;display:flex;gap:10px;align-items:center;background:#8c3a2a;border:3px solid var(--ink);padding:4px 10px;box-shadow:inset 0 -4px 0 #6a2a1e} .cpl.act{background:#b8562e}
 .cpl b{display:block;font-weight:400;font-size:24px;color:var(--cream)} .cpl small{color:#f0c8a8;font-size:17px} .cclock{margin-left:auto;font-size:34px;background:#1c1516;color:#8a8496;padding:0 12px} .cclock.on{color:var(--gold);background:#000}
 .cbanner{text-align:center;font-size:clamp(28px,3vw,44px);color:#5aa9ff;text-shadow:3px 3px 0 var(--ink),-2px -2px 0 #1c2a50;letter-spacing:2px} .cbanner.mine{color:var(--gold)}
-#board{image-rendering:pixelated;cursor:pointer}
+#board{image-rendering:auto;cursor:pointer;touch-action:none;display:block;margin:0 auto;border-radius:3px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
 .cside2{background:#2a1e22;border:3px solid var(--ink);padding:10px;display:grid;grid-template-rows:auto auto 1fr auto auto auto;gap:8px;min-height:0}
 .cmoves{overflow:auto;display:grid;gap:4px;align-content:start} .cmv{font-size:22px;padding:4px 10px;border:2px solid var(--ink);color:#fff} .cmv.w{background:#3a7ad8} .cmv.b{background:#e05050} .cmv span{color:var(--gold);margin-right:8px}
 /* poker */
@@ -486,6 +486,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 @media (max-width:800px){ .chessfs{grid-template-columns:1fr;overflow:auto} .masoifs{grid-template-columns:1fr} .mside{grid-row:auto} .pbar{grid-template-columns:1fr} }
 @media (max-width:700px){ #minimap{display:none!important} #hudSkills{display:none} #hudQuests{width:52vw;font-size:16px} #hudLvlBox,#hudNeeds{width:170px} .chess{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .toast,#banner,#evBanner,#enhRes,#bigtext,#fade{animation:none!important;transition:none!important} }
+#muMe .musub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 8px;margin:3px 0 2px;font-size:12px;line-height:1.2;color:#d8d0e8}#muMe .musub b{color:#ffd84a}#muMe .musub .z{opacity:.45}
 </style>
 <link rel="stylesheet" href="/pixel.css">
 </head>
@@ -507,7 +508,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
-  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
+  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><button id="btnShop" class="panel muteBtn" type="button" title="Xem và mua đồ mọi người đang đăng bán">🛒 Cửa hàng online <kbd>C</kbd></button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
 <div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
@@ -594,6 +595,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art16.js"></script>
 <script src="art17.js"></script>
 <script src="art18.js"></script>
+<script src="art19.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
@@ -601,6 +603,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world5.js"></script>
 <script src="world6.js"></script>
 <script src="world7.js"></script>
+<script src="world8.js"></script>
 <script src="avatar.js?v=8"></script>
 <script src="hw.js"></script>
 <script src="net.js?v=7"></script>
@@ -618,6 +621,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="maps7.js"></script>
 <script src="maps8.js"></script>
 <script src="maps9.js"></script>
+<script src="maps10.js"></script>
 <script src="auto.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>

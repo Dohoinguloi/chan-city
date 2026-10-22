@@ -4,6 +4,18 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23l',title:'23/10 (boss)',items:['Máu mọi boss tăng lên gấp 40 so với gốc (trước gấp 15), đòn vẫn gấp 15: Luffy ~140.000 máu / 1 người, Pepe 7.000.000 máu, MCK, Megatron cũng trâu hơn. Rủ thêm người đánh cùng nhé!']},
+  {v:'2026-10-23k',title:'23/10 · Vùng boss phía Tây MU + Pepe + chỉ số mới',items:[
+    'MU mở rộng sang trái (đi lối mở tường Tây quảng trường): Làng Meme của Pepe ở trên cùng, 4 khu boss có tường thành: Bãi đất trống Phố Nobita (Doraemon + Nobita, ngồi được trên ống cống), Phố Beika (Conan), Tường Maria (Eren hoá Titan Tiến Công), Rừng Tiếng Hét (Nữ Yêu Tiếng Hét)',
+    'Boss Pepe: máu gấp 50 boss thường, 5 giây toả đạn vòng tròn, 15 giây nhảy đè choáng, 30 giây gọi 10 Pepe Con, 40 giây mưa thiên thạch. Vé vào làng 1.000.000đ, mỗi ngày 3 vé. Hạ Pepe rơi Huy Hiệu Pepe: đổi 1 trong 3 thần thú siêu huyền thoại Raikou / Suicune / Entei (chỉ số ×15, kỹ năng siêu huyền thoại)',
+    'Mọi boss máu gấp 40, đòn gấp 15, nhiều kiểu đòn mới (vùng đuổi theo, tia thẳng, chữ thập, chuỗi nổ, vành khuyên), ngắm đón đầu, đi áp sát; thanh máu trên đầu boss, tên đòn hiện trước khi ra. Mỗi người đánh mỗi boss tối đa 3 lần / ngày',
+    'Đánh thường tự động khi đứng gần quái / boss theo chỉ số Tốc đánh; rê chuột vào quái sáng viền, bấm để khoá mục tiêu; tay / kiếm vung khi đánh',
+    'Vũ khí, phụ kiện, giày, set legacy, thần thú có thêm chỉ số: tốc đánh, hút máu, chí mạng, giáp (giảm % sát thương quái), độc, làm chậm, giật sét, trừ giáp, giảm hồi chiêu, sức mạnh phép, hào quang hút máu. Bảng nhân vật MU hiện đủ chỉ số',
+    'Chiến Binh, Tiên Nữ: máu gấp 3 Phù Thuỷ, có giáp sẵn, hồi máu nhanh, tầm đánh xa thêm 2 ô. Cấp tối đa 1000 (nhân vật và MU). Điểm nội tại: 3 cấp được 1 điểm (điểm cũ đã hoàn lại để cộng lại). Sách nội tại giá ×4, mua là đọc luôn, tính vào lực chiến',
+    'Lính Cát: cấp 25 tiến hoá dạng 3 (thêm Chuột Vương, Mãng Xà Vương, Dạ Dơi Vương, Hải Long Vương); Trung tâm Lính Cát ở MU (hồi máu có phí, Sách Kinh Nghiệm, cho ăn Ngọc Cường Hoá), Đền Lính Cát Huyền Thoại; bảng 🐾 hiện cả con trong máy gửi giữ',
+    'Tỉ lệ cường hoá (đập đồ) giảm một nửa · Pháp sư Cát bán sách nội tại, có nút Bán hết · Thách đấu: 1 người hết máu là kết thúc, cả 2 hồi đầy máu',
+    'Nút 🛒 Cửa hàng online (phím C): xem và mua đồ mọi người đăng bán ở bất cứ đâu · Đất ở Ké / Đà Lạt mua đứt được, cần tiền bán lại cho chú Ba / bác Trang',
+    'Chuột phải đi chính xác hơn, giữ chuột phải để đi theo con trỏ · Bàn cờ vua mới kiểu chess.com (nét ở mọi mức zoom, chấm gợi ý nước đi, quân trượt mượt) · Gục ở MU có hiệu ứng hồn ma + đếm ngược · Thông đường xuống bến kayak Ké']},
   {v:'2026-10-23j',title:'23/10 (bổ sung)',items:['Bảng Phù Thuỷ Cường Hoá và Người Thuần Thú có mục "Tìm ngọc ở đâu?": mỗi loại ngọc rơi ở đâu, tỉ lệ bao nhiêu, giờ boss Luffy ra, bấm ➜ Tới để tự đi tới chỗ đó','Báo "không đủ ngọc" khi khắc lỗ cũng hiện to giữa màn hình']},
   {v:'2026-10-23i',title:'23/10 (cường hoá)',items:['Cường hoá mạnh gấp 3: mỗi cấp vũ khí +7,5% công, giáp / set +6% máu và thủ, phụ kiện, giày cũng ×3 (tỉ lệ thành công giữ nguyên)','Ngọc Cường Hoá 1.000.000đ/viên, mua gói 5 viên chỉ 4.700.000đ','Báo kết quả cường hoá to giữa màn hình: thành công / thất bại nhìn thấy ngay']},
   {v:'2026-10-23h',title:'23/10 (quà + sửa lỗi)',items:['Quà toàn dân: mỗi người được tặng 1 Ngọc Ước Nguyện (vào game là nhận, xem trong túi đồ)','Sửa lỗi bảng Phù Thuỷ Cường Hoá trống trơn khi trong túi có vũ khí rơi từ boss','Sửa lỗi màn hình game có lúc bị trắng xoá (chỉ còn giao diện)']},

@@ -314,7 +314,7 @@ let LIST=db.market();
 const listView=()=>LIST.slice(0,80).map(l=>({id:l.id,s:l.sname,item:l.item,n:l.n,price:l.price,mine:false,seller:l.seller}));
 on('mk',(pl,m)=>{ const p=pl.prof;
   if(m.op==='list') return {list:listView().map(l=>({...l,mine:l.seller===pl.uid,seller:undefined}))};
-  if(!W.inOwnRoom(pl)) return {err:'Mở chợ online bằng laptop ở phòng của bạn'};
+  if(m.op!=='buy'&&!W.inOwnRoom(pl)) return {err:'Đăng bán / gỡ món: mở laptop ở phòng của bạn'};   /* mua thì ở đâu cũng được (nút Cửa hàng online) */
   if(m.op==='sell'){ const item=String(m.item||''), n=Math.max(1,m.n|0), price=Math.round(+m.price||0);
     if(!S.ITEMS[item]||!has(pl,item,n)) return {err:'Không đủ đồ'}; if(price<1000||price>S.MARKET.maxPrice) return {err:'Giá từ 1.000đ'};
     if(LIST.filter(l=>l.seller===pl.uid).length>=S.MARKET.maxListings) return {err:`Tối đa ${S.MARKET.maxListings} món đang bán`};

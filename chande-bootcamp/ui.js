@@ -227,6 +227,20 @@ ACT.tab=d=>{ hubTab=d.k; if(d.k!=='work') loadMarket(); draw(); };
 ACT.mkbuy=async d=>{ const r=await GAME.act({t:'mk',op:'buy',id:+d.id}); if(!r.err) GAME.toast('Đã mua','item'); loadMarket(); };
 ACT.mkcancel=async d=>{ await GAME.act({t:'mk',op:'cancel',id:+d.id}); loadMarket(); };
 ACT.mksell=async()=>{ const r=await GAME.act({t:'mk',op:'sell',item:$('#mkItem').value,n:+$('#mkN').value,price:+$('#mkP').value}); if(!r.err) GAME.toast('Đã đăng bán','item'); loadMarket(); };
+/* ---------- cửa hàng online (nút bên phải, phím C): xem + mua đồ mọi người đang đăng bán ở bất cứ đâu; đăng bán / gỡ món vẫn ở laptop trong phòng ---------- */
+let shopQ='', shopSort='new';
+UI.shop=()=>{ open('Cửa hàng online',()=>shopHtml(),{wide:true}); loadMarket(); };
+function shopHtml(){ const q=shopQ.trim().toLowerCase(), nm=l=>SD.ITEMS[l.item]?SD.ITEMS[l.item].name:l.item, mine=market.filter(l=>l.mine);
+  const L=market.filter(l=>!l.mine&&(!q||nm(l).toLowerCase().includes(q)||String(l.s).toLowerCase().includes(q)));
+  if(shopSort==='cheap') L.sort((a,b)=>a.price-b.price); else if(shopSort==='dear') L.sort((a,b)=>b.price-a.price);
+  const sorts=[['new','Mới đăng'],['cheap','Rẻ nhất'],['dear','Đắt nhất']], each=l=>l.n>1?`<small class="muted">· ${fmt(Math.round(l.price/l.n))}/cái</small>`:'';
+  return money()+`<div class="form"><input id="shopQ" maxlength="30" value="${esc(shopQ)}" placeholder="Tìm tên món hoặc người bán..." aria-label="Tìm">${btn('shopq','Tìm','','pri')}${shopQ?btn('shopq','Xoá tìm',{clear:1}):''}</div>
+    <div class="tabs">${sorts.map(([k,n])=>`<button class="tab ${k===shopSort?'on':''}" data-a="shopsort" data-k="${k}">${n}</button>`).join('')}</div>
+    <h5>Đang bán (${L.length})</h5><div class="list">${L.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n} <small class="muted">của ${esc(l.s)}</small></span><span>${fmt(l.price)} ${each(l)}</span>${btn('mkbuy','Mua',{id:l.id},G().money>=l.price?'pri':'')}</div>`).join('')||`<p class="muted">${q?'Không thấy món nào khớp':'Chưa ai bán gì'}</p>`}</div>
+    ${mine.length?`<h5>Bạn đang bán (${mine.length}/${SD.MARKET.maxListings})</h5><div class="list">${mine.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n}</span><span>${fmt(l.price)}</span></div>`).join('')}</div>`:''}
+    <p class="muted">Mua ở đâu cũng được, đồ vào túi ngay. Muốn đăng bán / gỡ món thì mở laptop trong phòng thuê (phí sàn ${SD.MARKET.fee*100}%).</p>`; }
+ACT.shopq=d=>{ shopQ=d.clear?'':(($('#shopQ')||{}).value||''); draw(); };
+ACT.shopsort=d=>{ shopSort=d.k; draw(); };
 ACT.learn=async d=>{ const r=await GAME.act({t:'learn',skill:d.k}); if(!r.err){ UI.closeAll(); } };
 ACT.och=async()=>{ const m=$('#ochIn').value.trim(); if(!m) return; const to=$('#ochTo').value; const r=await GAME.act({t:'och',m,to:to?+to:0}); if(!r.err) $('#ochIn').value=''; };
 inner.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'&&e.target.id==='ochIn') ACT.och(); if(e.key==='Escape'){ e.target.blur(); } });
@@ -326,11 +340,15 @@ ACT.clear=async d=>{ await GAME.act({t:'clearPlot',id:d.id}); UI.closeAll(); };
 // thuê đất: chọn khu (rau, hoa, nhà kính, cà phê, cây ăn quả, cao su) rồi chọn cỡ mảnh; bác Trang cắm biển tên người thuê
 let landField='rau';
 const landHtml=()=>{ const L=G().land, d=SD.vnTime(NET.now()).day, F=SD.DALAT.fields, lands=GAME.lands||[], taken=k=>lands.filter(l=>l.field===k&&l.n!==G().name).reduce((a,l)=>a+l.plots.length,0), tot=k=>SD.DALAT.plots.filter(p=>p.kind===k).length;
-  return `<h5>Thuê đất (trả theo ngày)</h5><p class="muted">${L&&L.paid===d?`Đang thuê <b>${SD.DL_LAND.find(x=>x.id===L.tier).name}</b> ở khu <b>${esc(F[L.field]||L.field||'?')}</b>, đã trả hôm nay. Biển tên bạn cắm ở góc mảnh.`:'Chưa thuê đất: chưa trồng được ở nông trại.'}</p>
+  if(L&&L.own){ const t=SD.DL_LAND.find(x=>x.id===L.tier); return `<h5>Đất của bạn</h5><p>Đã mua đứt <b>${esc(t.name)}</b> (${t.plots} ô) ở khu <b>${esc(F[L.field]||L.field)}</b>: không phải trả tiền thuê.</p>${btn('landsell',`Bán lại cho bác Trang · +${fmt(t.sellBack)}`)}`; }
+  return `<h5>Thuê đất (trả theo ngày) hoặc mua đứt</h5><p class="muted">${L&&L.paid===d?`Đang thuê <b>${SD.DL_LAND.find(x=>x.id===L.tier).name}</b> ở khu <b>${esc(F[L.field]||L.field||'?')}</b>, đã trả hôm nay. Biển tên bạn cắm ở góc mảnh.`:'Chưa thuê đất: chưa trồng được ở nông trại.'}</p>
   <div class="tabs">${Object.entries(F).map(([k,n])=>btn('landfield',`${n} · còn ${tot(k)-taken(k)}/${tot(k)} ô`,{k},landField===k?'pri':'')).join('')}</div>
-  <div class="list">${SD.DL_LAND.map(t=>`<div class="row"><span><b>${t.name}</b> · ${t.plots} ô ở khu ${esc(F[landField])}</span><span>${fmt(t.price)}/ngày</span>${L&&L.tier===t.id&&L.field===landField&&L.paid===d?'<em>đang thuê</em>':btn('land','Thuê',{t:t.id},'pri')}</div>`).join('')}</div>${L?btn('landcancel','Trả đất'):''}`; };
+  <div class="list">${SD.DL_LAND.map(t=>`<div class="row"><span><b>${t.name}</b> · ${t.plots} ô ở khu ${esc(F[landField])}</span><span>${fmt(t.price)}/ngày</span>${L&&L.tier===t.id&&L.field===landField&&L.paid===d?'<em>đang thuê</em>':btn('land','Thuê',{t:t.id},'pri')}${btn('landbuy',`Mua đứt ${fmt(t.buy)}`,{t:t.id})}</div>`).join('')}</div>${L?btn('landcancel','Trả đất'):''}
+  <p class="muted">Mua đứt = 30 ngày tiền thuê, không bị trừ tiền hằng ngày; cần tiền thì bán lại cho bác Trang 70% giá mua.</p>`; };
 ACT.landfield=d=>{ landField=d.k; draw(); };
 ACT.land=d=>req({t:'land',op:'rent',tier:d.t,field:landField}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); });
+ACT.landbuy=d=>{ const t=SD.DL_LAND.find(x=>x.id===d.t); if(confirm(`Mua đứt ${t.name} ở khu ${SD.DALAT.fields[landField]||landField} giá ${fmt(t.buy)}?`)) req({t:'land',op:'buy',tier:d.t,field:landField}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); };
+ACT.landsell=()=>{ if(confirm('Bán lại mảnh đất cho bác Trang (70% giá mua)? Cây đang trồng vẫn thu hoạch được.')) req({t:'land',op:'sell'}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'vnd'); }); };
 ACT.landcancel=()=>{ if(confirm('Trả lại mảnh đất? Cây đang trồng vẫn thu hoạch được.')) req({t:'land',op:'cancel'}); };
 PLACE.bactrang=()=>open('Bác Trang · chủ nông trại',()=>money()+landHtml()+`<p class="muted">Ô rau, hoa, dâu tây trồng 1 lần thu 1 lần. Cà phê, bơ, hồng, cao su (cần học Làm vườn lâu năm) thu được nhiều lần.</p>
   <h5>Hạt giống, cây giống</h5>${seedHtml('dalat')}`+sellHtml(Object.keys(SD.SELL),'Bác Trang thu mua mọi nông sản'),{wide:true});
@@ -428,6 +446,7 @@ const PIECE={k:['..XX..','.XXXX.','..XX..','.XXXX.','..XX..','.XXXX.','XXXXXX'],
   b:['..XX..','.XX.X.','.XXXX.','..XX..','.XXXX.','..XX..','XXXXXX'],n:['.XXX..','XXXXX.','XX.XX.','...XX.','..XXX.','.XXXX.','XXXXXX'],p:['......','..XX..','.XXXX.','..XX..','.XXXX.','.XXXX.','XXXXXX']};
 function drawBoard(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null;
   GAMES.drawBoard(c,v,sel,st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[],cdrag); }
+addEventListener('resize',()=>{ if(GAME.TABLE&&GAME.TABLE.game==='chess') drawBoard(); });   // bàn cờ co lại vừa khung khi đổi cỡ / zoom
 function drawBoardOld(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const g=c.getContext('2d'), flip=v.me===1, S=40;
   const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null, legal=st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[];
   for(let i=0;i<64;i++){ const r=i>>3, f=i&7, X=(flip?7-f:f)*S, Y=(flip?7-r:r)*S; g.fillStyle=(r+f)%2?'#8a5d3b':'#e8d8b4'; g.fillRect(X,Y,S,S);
@@ -929,11 +948,14 @@ PLACE.dancer=n=>GAME.ask(`Bo Bot Dancer ${fmt(SD.DANCE.tip)} để được hôn
 // chú Ba: bán 9 giống chó giữ vườn Ké, mỗi con 1 năng lực
 const dogIco=k=>{ const s=ART.dog(k,0), c=document.createElement('canvas'); c.width=54; c.height=42; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(s.c,0,0,54,42); return c.toDataURL(); };
 PLACE.kennel=()=>open('Chú Ba · thuê đất vườn Ké, chó giữ vườn',()=>{ const g=G(), d=g.dog&&SD.DOGS[g.dog.k], K=g.keLand, day=SD.vnTime(NET.now()).day, cur=K&&K.paid===day&&SD.KE_LAND.find(x=>x.id===K.tier);
-  return money()+`<h5>Thuê đất vườn Ké (trả theo ngày)</h5><p class="muted">${cur?`Đang thuê <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô.`:`Chưa thuê: trồng được ${SD.FARM.free} ô miễn phí.`} Rau chín phải thu trong ${SD.FARM.grace} giây, quá giờ người khác cướp được.</p>
-    <div class="list">${SD.KE_LAND.map(t=>`<div class="row ${cur&&cur.id===t.id?'on':''}"><span><b>${esc(t.name)}</b> · ${t.plots} ô</span><span>${fmt(t.price)}/ngày</span>${cur&&cur.id===t.id?'<em>đang thuê</em>':btn('keland','Thuê',{t:t.id},'pri')}</div>`).join('')}</div>${cur?btn('kelandcancel','Trả đất'):''}
+  return money()+`<h5>Đất vườn Ké: thuê theo ngày hoặc mua đứt</h5><p class="muted">${K&&K.own&&cur?`Đã mua đứt <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô, không phải trả tiền thuê.`:cur?`Đang thuê <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô.`:`Chưa thuê: trồng được ${SD.FARM.free} ô miễn phí.`} Rau chín phải thu trong ${SD.FARM.grace} giây, quá giờ người khác cướp được.</p>
+    <div class="list">${SD.KE_LAND.map(t=>`<div class="row ${cur&&cur.id===t.id?'on':''}"><span><b>${esc(t.name)}</b> · ${t.plots} ô</span><span>${fmt(t.price)}/ngày</span>${cur&&cur.id===t.id?`<em>${K&&K.own?'của bạn':'đang thuê'}</em>`:K&&K.own?'':btn('keland','Thuê',{t:t.id},'pri')}${K&&K.own?'':btn('kelandbuy',`Mua đứt ${fmt(t.buy)}`,{t:t.id})}</div>`).join('')}</div>${K&&K.own&&cur?btn('kelandsell',`Bán lại cho chú Ba · +${fmt(cur.sellBack)}`):cur?btn('kelandcancel','Trả đất'):''}
+    <p class="muted">Mua đứt = 30 ngày tiền thuê, không bị trừ tiền hằng ngày; cần tiền thì bán lại cho chú Ba 70% giá mua.</p>
     <h5>Chó giữ vườn</h5>`+`<p>${d?`Bạn đang nuôi <b>${esc(d.name)}</b>: ${esc(d.desc)}.`:'Chưa có chó. Trộm cướp rau mà gặp chó là bị cắn, phải đền tiền cho chủ vườn!'} Chó ngồi canh cạnh các ô rau của bạn ở Ké.</p>
     <div class="list">${Object.entries(SD.DOGS).map(([k,D])=>`<div class="row ${g.dog&&g.dog.k===k?'on':''}"><img class="ico dogi" src="${dogIco(k)}" alt=""><span><b>${esc(D.name)}</b><br><small class="muted">${esc(D.desc)}</small></span><span>${fmt(D.price)}</span>${g.dog&&g.dog.k===k?'<em>đang nuôi</em>':btn('buydog','Mua',{k},'pri')}</div>`).join('')}</div>${guardHtml()}`; },{wide:true});
 ACT.keland=d=>req({t:'dog',op:'land',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); });
+ACT.kelandbuy=d=>{ const t=SD.KE_LAND.find(x=>x.id===d.t); if(confirm(`Mua đứt ${t.name} ở vườn Ké giá ${fmt(t.buy)}?`)) req({t:'dog',op:'landbuy',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); };
+ACT.kelandsell=()=>{ if(confirm('Bán lại đất vườn Ké cho chú Ba (70% giá mua)?')) req({t:'dog',op:'landsell'}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'vnd'); }); };
 ACT.kelandcancel=()=>{ if(confirm('Trả đất vườn Ké?')) req({t:'dog',op:'landcancel'}); };
 ACT.buydog=async d=>{ if(G().dog&&!confirm('Đổi chó? Con cũ chú Ba nuôi hộ, không hoàn tiền.')) return; const r=await req({t:'dog',op:'buy',k:d.k}); if(!r.err){ GAME.sfx('dog_bark',.6); GAME.toast(esc(r.msg),'quest'); } };
 // DAS: thầy Huy Tạ đăng ký khoá học, xem chứng chỉ, đứng lớp làm giảng viên
