@@ -74,7 +74,7 @@ function music(k){ if(AUD.cur===k) return; AUD.cur=k; const old=AUD.music;
 // nhạc nền theo khu: bài thu sẵn cho Ké + phòng, còn lại chiptune tự sinh (music.js); đêm ngoài trời đổi sang bài đêm, có Megatron thì nhạc đánh nhau
 const BGM_ZONE=[[/Vườn quốc gia|Bãi voi|Rừng khỉ|Vườn công|Tán rừng|Bờ suối|Vách đá|Trạm cứu hộ|Khu hổ|Rừng lợn|Đồi hươu/,'park'],[/Chùa|Khu tâm linh/,'temple'],[/Làng Mường|Nhà văn hoá|Chợ phiên|Suối bản|Cầu sang|Nhà sàn/,'village'],
   [/Hồ Hoà Bình|Bến hồ/,'lake'],[/Thác|Đồi chè|Chòi canh|cắm trại rừng|Rừng/,'forest'],[/Thị trấn|Phố Đà Bắc|Đường|Sân bóng|Quảng trường|Bến xe|Chợ Đà Bắc|Trường tiểu học/,'town']];
-const BGM_SCENE={everfit:'office',lumen:'office',diep:'cafe',yenlang:'club',pickle:'race',dalat:'dalat',track:'race',das:'hcm',club:'club',phongbay:'club',cafe2:'cafe',quan_lan:'cafe',sieuthi:'mall',net:'club',nongsan:'cafe',quanao:'mall',doncongan:'tense',deo:'race',stay:'room'};
+const BGM_SCENE={bearplus:'studio',vnpt:'vnpt',mieu:'mieu',everfit:'office',lumen:'office',diep:'cafe',yenlang:'club',pickle:'race',dalat:'dalat',track:'race',das:'hcm',club:'club',phongbay:'club',cafe2:'cafe',quan_lan:'cafe',sieuthi:'mall',net:'club',nongsan:'cafe',quanao:'mall',doncongan:'tense',deo:'race',stay:'room'};
 let bgmKey='', bgmToastAt=0;
 function pickBgm(){ if(!S||!window.MUSIC||danceAudio) return; let k;
   if((MEGA||(MCKB&&inMck()))&&S.kind==='retreat') k='battle';
@@ -120,6 +120,7 @@ const vn=()=>SD.vnTime(NET.now());
 
 /* ---------- cảnh ---------- */
 function buildMap(kind,room){ if(kind==='room') return Wd.buildRoom(); if(kind==='retreat') return Wd.buildRetreat(); if(kind==='stay') return Wd.buildStay(room);
+  if(kind==='bearplus') return Wd.buildBearplus(); if(kind==='vnpt') return Wd.buildVnpt(); if(kind==='mieu') return Wd.buildMieu();
   if(kind==='das') return Wd.buildDas(); if(kind==='lumen') return Wd.buildLumen(); if(kind==='yenlang') return Wd.buildYenLang(); if(kind==='pickle') return Wd.buildPickle(); if(kind==='diep') return Wd.buildDiep();
   if(kind==='everfit') return Wd.buildOffice(); if(kind==='dalat') return Wd.buildDalat(); if(kind==='track') return Wd.buildTrack(); if(kind==='deo') return Wd.buildDeo(); return Wd.buildInterior(kind); }
 function prep(m,kind){ const W=m.W, H=m.H, solid=new Uint8Array(W*H);
@@ -147,7 +148,7 @@ function sceneData(kind,room){ const key=kind==='stay'?'stay:'+room:kind; return
 function officeOpen(){ const t=vn(), wd=!SD.isWeekend(t.day); if(wd&&t.hf>=SD.JOB.hours[0]&&t.hf<SD.JOB.hours[1]) return true;
   const j=G&&G.extra&&G.extra.job; return !!(j&&j.hired&&j.today&&j.today.ot&&!j.today.otDone&&t.hf>=SD.JOB.ot.from&&t.hf<SD.JOB.ot.to); }
 function sceneNpcs(kind){ const open=kind==='everfit'?officeOpen():true; if(S) S.closed=!open;
-  return SD.NPCS.filter(n=>(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)&&(!n.season||SD.seasonOn(n.season,NET.now()))).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
+  return SD.NPCS.filter(n=>!n.obj&&(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)&&(!n.season||SD.seasonOn(n.season,NET.now()))).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
 let CSGT_POST=null, CSGT_STOP=null, IMPOUNDS=[], CRASHES=[], OPT_ON=0, MEGA=null, ramAt=0, WDINO=null, WCROC=null;
 const DINOSPR={}, dinoSpr=(k,f,o)=>DINOSPR[k+f+(o?'o':'')]||(DINOSPR[k+f+(o?'o':'')]=k==='croc'?A.croc(f,o):({bronto:A.dino,trice:A.trice,ptero:A.ptero,rexpink:A.rexPink,rex:A.rexGreen}[k]||A.dino)(f));
 // CR7 + Messi đi dạo ngoài phố (vị trí tính theo giờ nên ai cũng thấy giống nhau), lại gần thì ăn mừng / khoe
@@ -284,6 +285,7 @@ function nearest(){
     const tx=Math.floor(P.x/T), ty=Math.floor(P.y/T); for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]]){ const g=S.map.grid[ty+dy]; if(g&&g[tx+dx]==='D') return {type:'unkayak',label:'Lên bờ'}; } return best; }
   for(const n of npcs){ const d=dist(n.x,n.y); if(d<(STORY[n.id]?28:46)) consider(d*.5,{type:'npc',n,label:STORY[n.id]?'Nói chuyện':speakerName(n.id).split(' (')[0]}); }
   for(const r of REM.values()){ const d=dist(r.x,r.y); if(d<24&&r.name) consider(d*.6,{type:'player',r,label:'Tương tác với '+r.name}); }
+  if(window.MAPX) MAPX.consider(consider,dist);
   if(OIS.on){ const d=dist(OIS.x,OIS.y); if(d<28) consider(d*.5,{type:'oii',label:G.quests.goioii==='active'&&S.kind!=='yenlang'&&!(G.qprog||{}).goioii?'Nói: "Anh Độ gọi về ăn cơm"':'Nói chuyện với Ộ i i'}); }
   for(const [id,q] of Object.entries(Q)) if(q.job&&q.job.where===k&&G.quests[id]==='active'&&!(G.qprog||{})[id]){ const j=q.job, pts=j.npc?npcs.filter(n=>n.id===j.npc).map(n=>[n.x,n.y]):(j.at==='desk'?SD.LUMEN.desks:SD.DAS.seats).map(([x,y])=>[x*T,y*T]);   // việc thiết kế của Huy Phan
     for(const [x,y] of pts){ const d=dist(x,y); if(d<(j.npc?40:24)) consider(d*.35,{type:'design',id,label:'Việc Huy Phan: '+j.label}); } }
@@ -330,6 +332,7 @@ function plotLabel(id){ const p=PLOTS[id]; if(!p){ if(id[0]==='d'){ const L=LAND
 function plotState(id,p){ const s=SD.plotState(p,NET.now()); return id[0]==='d'&&s==='open'?'ripe':s; }
 async function interact(x){
   if(x.type==='npc') return talk(x.n);
+  if(x.type==='mapx') return MAPX.pick(x);
   if(x.type==='player') return UI.social(x.r);
   if(x.type==='follow') return followSay(x.c);
   if(x.type==='oii'){ OIS.face=P.x>OIS.x?1:-1; oiiSay(); if(G.quests.goioii==='active'&&S.kind!=='yenlang'&&!(G.qprog||{}).goioii){ const r=await act({t:'yl',op:'goioii'}); if(!r.err) toast(esc(r.msg),'quest'); } return UI.oii(); }
@@ -377,6 +380,7 @@ async function interact(x){
   if(it.id==='car_low'||it.id==='car_top'){ const up=it.id==='car_low', c=SD.CARS[it.id];
     ask(up?'Đi xe 4 bánh lên khu trên? (lên dốc miễn phí)':`Đi xe 4 bánh xuống Cổng? (${fmt(c.price)})`,'me',['Đi','Thôi đi bộ'],async i=>{ if(i!==0) return; const r=await act({t:'car',id:it.id}); if(!r.err){ sfx('car_4wd',.6); fadeOnly(up?'Xe 4 bánh bò lên dốc...':'Xe 4 bánh đổ đèo xuống...'); } }); return; }
   const d=it.do;
+  if(d&&d.indexOf(':')>0&&window.MAPX){ const [ns,op]=d.split(':'); if(MAPX[ns]) return MAPX[ns](op,it); }   // 3 map mới: bp:… vn:… mieu:… xử lý ở maps3.js
   if(d==='exit') return act({t:'exit'});
   if(d==='place') return UI.place(it.place,{id:it.place});
   if(d==='grab') return UI.grab();
@@ -429,7 +433,7 @@ function runRoute(){ if(!ROUTE||!ROUTE.length){ ROUTE=null; return; } const st=R
   if(st.npc){ walkToNpc(st.npc); return; } walkTo(st.x,st.y,st.label,st.then); }
 // nút ➜ ở bảng Việc cần làm: tự đi tới chỗ làm tiếp nhiệm vụ (hoặc về gặp người giao khi đã xong)
 function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') return scholarGo(); const q=Q[id]; if(!q) return; UI.closeAll&&UI.closeAll();
-  if(q.giver==='oii') return oiiGo(id); if(q.giver==='do') return doGo(id); if(q.job) return hpGo(id);
+  if(window.MAPX&&MAPX.go(id)) return; if(q.giver==='oii') return oiiGo(id); if(q.giver==='do') return doGo(id); if(q.job) return hpGo(id);
   if(S.kind!=='retreat'&&!(q.dance&&S.kind==='club')){ toast('Nhiệm vụ ở Ké Retreat: bấm G gọi Grab về Ké trước','lock'); return; }
   const near=list=>list.sort((a,b)=>Math.hypot(a.x*T-P.x,a.y*T-P.y)-Math.hypot(b.x*T-P.x,b.y*T-P.y))[0];
   if(canFinish(id)){ if(q.giver==='phap'||npcs.some(n=>n.id===q.giver)) return walkToNpc(q.giver); toast('Quay lại gặp '+speakerName(q.giver),'quest'); return; }
@@ -1042,7 +1046,7 @@ function draw(){
   for(const o of near){ if(!inView(o.x,o.y)) continue; if(o.tree) TREES.push(o); list.push({y:o.sort??o.y,d:()=>{ let spr=o.spr;
     if(o.id==='bonfire') spr=A.bonfire(G.flags.fire,Math.floor(clock*6));
     if(o.id==='phone'&&!G.flags.called&&ringTimer<=0) spr=A.phone(true,Math.floor(clock*8));
-    if(o.id==='windmill') spr=windmillFrame();
+    if(o.id==='windmill') spr=windmillFrame(); if(o.anim&&window.MAPX) spr=MAPX.anim(o,clock)||spr;
     // cây đứng che nhân vật thì mờ đi để vẫn thấy người phía sau
     const X=Math.round(o.x-spr.ax-cx), Y=Math.round(o.y-spr.ay-cy), hide=o.tree&&P.y<o.y&&P.x>o.x-spr.ax&&P.x<o.x-spr.ax+spr.c.width&&P.y>o.y-spr.ay;
     if(hide) ctx.globalAlpha=.45; ctx.drawImage(spr.c,X,Y); if(hide) ctx.globalAlpha=1; }}); }
@@ -1070,7 +1074,7 @@ function draw(){
   if(k==='track') drawRace(list);
   for(const n of npcs) list.push({y:n.y,d:()=>drawNpc(n)});
   const dancing=k==='phongbay'&&DANCE&&DANCE.st==='play', dn=dancing?new Set(DANCE.dancers.map(d=>d.name)):null;
-  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPumpkins(list); drawPickle(list);
+  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPumpkins(list); drawPickle(list); if(window.MAPX) MAPX.draw(list,ctx);
   const pkSeated=k==='pickle'&&PK&&PK.st==='play'?new Set(PK.seats.filter(s=>s&&!s.bot).map(s=>s.pid)):null;   // người đang đấu pickleball vẽ ở drawPickle (chạy theo bóng)
   for(const r of REM.values()){ interp(r); if(!r.av||!inView(r.x,r.y)||(pkSeated&&pkSeated.has(r.id))) continue; const ac=dancing&&dn.has(r.name)?'quay':r.act; list.push({y:r.y,d:()=>drawChar(ctx,r.av,r.x,r.y,r.face,r.view,r.anim,ac,r.t,ac==='quay'?r.t:r.actT,r.fl)}); }
   if(k==='deo'&&STUNT){ const mode=STUNT.fallT>0?'fallen':STUNT.wheelieT>0?'wheelie':''; const dx=P.x+26+Math.sin(clock*.7)*18, dc=SHEETS.donche;
@@ -1137,7 +1141,7 @@ function drawWild(list,inView){ SD.PARK.spots.forEach((sp,i)=>{ const n=sp.k==='
 const PTRUCK={}; const ptruck=(cargo,l,dmg=0)=>{ const k=cargo+l+'d'+dmg; return PTRUCK[k]||(PTRUCK[k]=A.policeTruck(cargo,dmg>=5?0:l,dmg)); }; const CONE=()=>PTRUCK.cone||(PTRUCK.cone=A.cone());
 function csgtAv(){ return CSGT_AV.a||(CSGT_AV.a=AVATAR.build(SD.NPC_LOOKS.csgt.look)); }
 // ảnh thumbnail điểm đến Grab: chụp 1 góc map thật (ô đất + đồ vật) quanh chỗ đặc trưng, dựng dần từng map rồi lưu lại
-const THUMB={}, THUMB_AT={home:['room'],everfit:['everfit'],retreat:['retreat',39.5,91],dalat:['dalat',24,56],das:['das',16,8],lumen:['lumen',19,26],yenlang:['yenlang',13,9],pickle:['pickle',15,11],diep:['diep',11,9]}; let thumbBusy=false;
+const THUMB={}, THUMB_AT={bearplus:['bearplus',17,10],vnpt:['vnpt',13,10],mieu:['mieu',20,13],home:['room'],everfit:['everfit'],retreat:['retreat',39.5,91],dalat:['dalat',24,56],das:['das',16,8],lumen:['lumen',19,26],yenlang:['yenlang',13,9],pickle:['pickle',15,11],diep:['diep',11,9]}; let thumbBusy=false;
 function snapMap(m,cx,cy){ const VW=12, VH=7, c=A.cv(VW*T,VH*T), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
   const x0=Math.max(0,Math.min(m.W-VW,Math.round(cx-VW/2))), y0=Math.max(0,Math.min(m.H-VH,Math.round(cy-VH/2))), nb=(x,y)=>(dx,dy)=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<m.H&&xx>=0&&xx<m.W?m.grid[yy][xx]:'F'; };
   g.translate(-x0*T,-y0*T); for(let y=y0;y<y0+VH;y++) for(let x=x0;x<x0+VW;x++) A.drawTile(g,m.grid[y][x],x,y,nb(x,y),0);
@@ -1283,7 +1287,8 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   const ms=SD.mealStatus(G.meals,NET.now()); $('#hudMeals').innerHTML=ms.map(m=>`<span class="meal ${m.st}" title="${m.name} ${m.from}:00–${m.to}:00">${m.name.replace('Bữa ','')}</span>`).join('');
   const h=SD.hunger(G.meals,NET.now()), bf=[]; if(h) bf.push(`<span class="bad">Đói: -${Math.round((1-SD.RULES.hungrySpeed[h])*100)}% tốc độ, -${Math.round((1-SD.RULES.hungryExp[h])*100)}% EXP</span>`);
   if(n.energy<20) bf.push('<span class="bad">Mệt: chậm hơn</span>'); if(n.clean<20) bf.push('<span class="bad">Bẩn: -15% EXP</span>');
-  for(const b of [G.buff,G.rbuff]) if(b&&b.until>NET.now()) bf.push(`<span class="good">+${Math.round((b.mul-1)*100)}% EXP · ${Math.ceil((b.until-NET.now())/60000)}'</span>`);
+  for(const b of [G.buff,G.rbuff,G.lbuff,G.mbuff]) if(b&&b.until>NET.now()) bf.push(`<span class="good">+${Math.round((b.mul-1)*100)}% EXP · ${Math.ceil((b.until-NET.now())/60000)}'</span>`);
+  if(G.data&&G.data.until>NET.now()) bf.push('<span class="good">📶 4G: pin hao chậm</span>');
   $('#hudBuffs').innerHTML=bf.join('');
   // việc cần làm
   const li=[]; const job=G.extra&&G.extra.job;
@@ -1313,7 +1318,7 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
     add(a.k+(!t?':h':now<t?':g':':r')+(ke?'k':'d'),t||0,A.name,`<li class="frow ${t&&now>=t?'ready':''}" ${go(ke?'retreat':'dalat',pen.x,pen.y+(ke?3:1),A.name)}><b>${A.name}@@</b>${!t?bar(0,'#ff6a55')+'<span>đói</span>':now<t?bar(1-(t-now)/(A.cycle*1000),'#7fe0ff')+`<span>${mm(t-now)}</span>`:bar(1,'#ffd84a')+'<span>thu</span>'}</li>`); }
   for(const e of grp.values()) fl.push([e.t,e.html.replace('@@',e.n>1?` ×${e.n}`:'')]);
   const farm=fl.length?`<h4 class="fhead"><span>Vườn & chuồng <small>${fl.length}</small></span><button id="fOpen" type="button" aria-label="Mở bảng vườn và chuồng">F</button></h4><ul class="flist">${fl.sort((a,b)=>a[0]-b[0]).slice(0,8).map(x=>x[1]).join('')}</ul>`:'';
-  $('#hudQuests').innerHTML=`<h4><span>Việc cần làm <small>Ké ${done}/${Object.keys(Q).length}</small></span><button id="qToggle" type="button" aria-label="Thu gọn bảng việc">${document.body.classList.contains('qmin')?'▸':'▾'}</button></h4><ul>${li.join('')}</ul>${farm}`;
+  $('#hudQuests').innerHTML=`<h4><span>Việc cần làm <small>xong ${done}/${Object.keys(Q).length}</small></span><button id="qToggle" type="button" aria-label="Thu gọn bảng việc">${document.body.classList.contains('qmin')?'▸':'▾'}</button></h4><ul>${li.join('')}</ul>${farm}`;
   const inv=Object.entries(G.items); $('#hudItems').innerHTML=[...Array(8)].map((_,i)=>{ const it=inv[i]; if(!it) return '<div class="slot"></div>';
     return `<div class="slot" title="${SD.ITEMS[it[0]]?SD.ITEMS[it[0]].name:it[0]}"><img src="${icon64(it[0])}" alt="">${it[1]>1?`<i>${it[1]}</i>`:''}</div>`; }).join('')+`<button class="slot more" id="btnBag" title="Túi đồ (I)">I<br>túi</button>`;
   const hot=Object.entries(SD.SKILLS).filter(([k,s])=>G.skills[k]&&s.key!=='E'&&s.key!=='-'), learned=Object.entries(SD.SKILLS).filter(([k,s])=>G.skills[k]&&(s.key==='E'||s.key==='-'));
@@ -1521,7 +1526,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};

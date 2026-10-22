@@ -174,7 +174,7 @@ on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, 
       p.daily.slept=true; markDirty(pl); return {msg}; },{anim:'sleep',name:'Nghỉ ngơi'});
   if(act==='sac') return startTask(pl,'sac',def.dur,()=>{ n.battery=Math.min(100,n.battery+r.charge); markDirty(pl); return {msg:`Pin ${Math.round(n.battery)}%`}; },{name:r.charge<100?'Sạc bằng sạc dự phòng':'Sạc điện thoại'});
   if(act==='tiktok'){ if(n.battery<def.battery) return {err:'Hết pin rồi, sạc đã'}; if(p.daily.tiktok>=def.daily) return {err:'Lướt đủ hôm nay rồi, mỏi mắt'};
-    return startTask(pl,'tiktok',def.dur,()=>{ if(from){ pl.x=from.x; pl.y=from.y; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } n.battery-=def.battery; p.daily.tiktok++; const g=C.gainExp(pl,def.exp*r.wifi); markDirty(pl);
+    return startTask(pl,'tiktok',def.dur,()=>{ if(from){ pl.x=from.x; pl.y=from.y; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } n.battery-=def.battery; p.daily.tiktok++; const g=C.gainExp(pl,def.exp*r.wifi*(r.home&&p.flags.fiber?S.VNPT.fiber.mul:1)*(!r.home&&p.flags.wifiKe?S.VNPT.keWifi:1)); markDirty(pl);
       return {msg:`Lướt TikTok${r.wifi<1?' (wifi yếu)':''}: +${g.exp} EXP`,exp:g.exp}; },{anim:'phone',name:'Lướt TikTok'}); }
   if(act==='songao'){ if(n.battery<def.battery) return {err:'Hết pin rồi, sạc đã'}; if(p.daily.posts>=def.daily) return {err:'Hôm nay đăng 3 ảnh rồi, đăng nữa bị chê spam'};
     const i=m.photo|0, ph=p.photos[i]; if(!ph) return {err:'Chưa có ảnh nào. Ra mấy chỗ đẹp bấm P để chụp'};

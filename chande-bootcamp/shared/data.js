@@ -738,8 +738,9 @@ Object.assign(NPC_LOOKS,{
    Ở phòng riêng: chợ online (mua bán đồ với người chơi khác), học kỹ năng, chat online. */
 const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},lumen:{name:'Lumen Studio (Hà Nội)',city:'hn'},yenlang:{name:'120 Yên Lãng · nhà anh Độ (Hà Nội)',city:'hn'},pickle:{name:'Sân pickleball Cầu Giấy (Hà Nội)',city:'hn'},diep:{name:'Phòng của Diệp (Hà Nội)',city:'hn'},
   retreat:{name:'Ké Retreat (Đà Bắc, Hoà Bình)',city:'hb'},dalat:{name:'Nông trại bác Trang (Đà Lạt)',city:'dl'},
-  das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true}};
-const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
+  das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true},bearplus:{name:'Bearplus Studio (Khánh Hội, TP.HCM)',city:'hcm',plane:true},
+  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
+const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,hn_hp:7000,hb_hp:9000,dl_hp:22000,hcm_hp:52000,hp_hp:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
 function grabFare(from,to){ return GRAB[[DEST[from].city,DEST[to].city].sort().join('_')]??0; }
 // khoá học online ở phòng: mất tiền + thời gian, cần đủ cấp
 const COURSES={
@@ -762,8 +763,8 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 // cờ trong gói vị trí
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
-const SCENE_DEST={das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_DEST={bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
+const SCENE_SIZE={bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[26,18],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 function vnTime(ms=Date.now()){ const d=new Date(ms+RULES.tzOffsetH*3600e3);
@@ -803,6 +804,108 @@ function dailyTasks(uid,day,remote){ let h=2166136261; for(const ch of uid+day){
 function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(const ch of 'ot'+uid+day){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h>>>=0;
   if(h%100>=JOB.ot.chance) return null; const pool=Object.keys(WORK_TASKS).filter(k=>WORK_TASKS[k].where==='desk'); return pool[(h>>8)%pool.length]; }
 
+/* ---------- 3 map mới: Bearplus Studio (TP.HCM) · VNPT điểm giao dịch (Hà Nội) · Miếu ông Trường Con (Hải Phòng) ---------- */
+// Bearplus: studio thiết kế nhỏ ở Khánh Hội, Q.4 ("small team, sharp work, no filler"): web, thương hiệu, 3D & motion, UI/UX; nhân vật trong game là hư cấu
+const BEARPLUS={W:34,H:22,level:4,spawn:{x:17,y:20},
+  desks:[[4,6.4],[7.4,6.4],[10.8,6.4],[4,10.4],[7.4,10.4],[10.8,10.4]],motion:{x:22.5,y:6.4},render:{x:27,y:6.4},cups:{x:31.2,y:5.2},mood:{x:14.6,y:1.9},
+  meet:{x:27,y:15.4},coffee:{x:5,y:15.4},bear:{x:16,y:15.6},head:{scene:'das',x:23.6,y:17.2},
+  coffeePrice:25000,gig:{dur:25,vnd:150000,exp:90,max:3},night:{from:22,to:4},sotd:.55,sotdBonus:{vnd:1000000,exp:300}};
+const VNPT={W:36,H:24,spawn:{x:18,y:22},kiosk:{x:3.4,y:18.6},counters:[[6,6.6],[11,6.6],[16,6.6],[21,6.6]],board:{x:13.5,y:3.1},sim:{x:26.4,y:6.4},pack:{x:30.4,y:6.6},
+  racks:[27,29,31,33],server:{x:30,y:15.2},desks:[[27.5,18.6],[31.5,18.6]],step:6000,
+  sims:[{num:'0886.68.68.68',cat:'Lộc phát',price:25000000},{num:'0915.888.999',cat:'Tam hoa kép',price:30000000},{num:'0919.39.79.79',cat:'Thần tài',price:18000000},
+    {num:'0943.456.789',cat:'Sảnh tiến',price:12000000},{num:'0812.345.678',cat:'Sảnh 7',price:8000000},{num:'0818.181.818',cat:'Lặp kép',price:6500000},
+    {num:'0889.22.11.22',cat:'Gánh đảo',price:2500000},{num:'0911.11.02.97',cat:'Năm sinh',price:900000},{num:'random',cat:'Sim thường',price:50000}],
+  packs:{ngay:{name:'Gói ngày D1',price:10000,h:24},tuan:{name:'Gói tuần D7',price:50000,h:168},thang:{name:'Gói tháng D30',price:150000,h:720}},packMul:.6,
+  fiber:{price:300000,mul:1.6},keWifi:1.3,
+  fiberPts:[{x:49.6,y:86.8,name:'Hộp cáp cạnh lễ tân Ké'},{x:61.5,y:69.6,name:'Cột điện trước Nhà giải trí'},{x:36.5,y:80.6,name:'Hộp cáp cạnh Lều bể bơi'}],
+  shift:5,callPay:{vnd:40000,exp:25},shifts:2,
+  calls:[['Alo tổng đài ơi, mạng nhà chị chậm quá, xem phim cứ quay vòng vòng!','Chị tắt modem 30 giây rồi bật lại giúp em, em kiểm tra đường truyền ngay ạ','Chị chịu khó xem ít phim thôi ạ','Tại phim dở đấy chị'],
+    ['Sao tháng này cước điện thoại của tôi cao thế hả em?','Em kiểm tra chi tiết cước và gửi tin nhắn cho anh ngay ạ','Tại anh gọi người yêu nhiều quá ạ','Do trời mưa anh ạ'],
+    ['Cho chị hỏi mật khẩu wifi nhà hàng xóm là gì thế em?','Dạ em không hỗ trợ được ạ, chị đăng ký gói riêng em lắp trong ngày nhé','12345678, chị thử xem','Hàng xóm nhà chị là ai ạ?'],
+    ['Điện thoại tôi rơi xuống hồ ở Ké, làm lại SIM được không?','Được ạ, anh mang căn cước ra điểm giao dịch làm lại SIM, giữ nguyên số','Anh lặn xuống hồ tìm thử xem','Anh mua điện thoại chống nước nhé'],
+    ['Sim số đẹp 6868 có mang lại may mắn không em?','Dạ số đẹp dễ nhớ, còn may mắn là do mình chăm chỉ anh ạ','Có ạ, trúng xổ số luôn','Không, xui lắm anh'],
+    ['Wifi nhà bác cứ tối là yếu, sáng lại khoẻ là sao cháu?','Tối nhiều người dùng, bác đặt modem chỗ thoáng hoặc nâng gói ạ','Wifi cũng cần đi ngủ bác ạ','Chắc nhà bác có ma'],
+    ['Chị muốn chặn mấy số gọi quảng cáo làm phiền.','Em đăng ký chặn giúp chị ngay ạ, chị đọc giúp em số đó','Chị đổi số khác đi','Chị nghe máy nói chuyện cho vui'],
+    ['Mạng ở Ké Retreat trên núi có sóng không em?','Có ạ, anh kỹ thuật vừa kéo cáp quang lên tận Ké rồi','Trên núi làm gì có sóng','Em chịu ạ'],
+    ['Alo... (im lặng, chỉ nghe tiếng thở)','Dạ tổng đài xin nghe, quý khách cần hỗ trợ gì ạ?','Cúp máy luôn','Ai đấy?!'],
+    ['Ông Trường Con đây, mạng ở Hải Phòng có nhanh không cháu?','Dạ nhanh lắm ông ạ, cáp quang về tận miếu rồi','Ông hỏi làm gì ạ','Không biết đâu ông'],
+    ['Chị nạp nhầm thẻ cho số người khác, lấy lại được không?','Em ghi nhận và hướng dẫn chị liên hệ người nhận ngay ạ','Mất rồi chị ơi','Chị nạp thêm thẻ nữa nhé'],
+    ['Em ơi đăng ký 4G thế nào?','Anh ra quầy hoặc soạn tin theo cú pháp gói, em hướng dẫn từng bước ạ','Anh ra quán net cho nhanh','4G là gì ạ?']]};
+// Miếu ông Trường Con (Hải Phòng): sân gạch đỏ, cây đa, ao sen; lễ cầu an mùng 6 âm lịch hằng tháng
+const MIEU={W:40,H:32,spawn:{x:20,y:29.6},shrine:{x:20,y:9.8},altar:{x:20,y:10.8},burner:{x:20,y:14.6},offer:{x:15.4,y:12.8},fortune:{x:24.6,y:12.6},stele:{x:27.6,y:16.2},
+  banyan:{x:7.4,y:17},wish:{x:9.8,y:17.6},gate:{x:20,y:24.6},cart:{x:31.5,y:28.2},tiktok:{x:11.5,y:27.6},
+  incense:{price:10000,dur:5,mul:1.1,min:120,holy:{mul:1.2,min:180}},wishPrice:20000,banhda:{price:35000,energy:25},nem:{price:60000,energy:35},clip:{dur:8,exp:60},
+  que:[['Thượng cát','Trời quang mây tạnh đường xa / Gieo hạt hôm nay mai được mùa','good'],['Thượng cát','Thuyền về bến cũ gió êm / Lộc vào cửa trước bình yên cửa sau','good'],
+    ['Trung bình','Việc nhỏ làm kỹ thành to / Đừng ham nhanh vội mà lo nhỡ thì','mid'],['Trung bình','Nước chảy đá mòn từ từ / Chăm làm mỗi bữa ắt dư mỗi ngày','mid'],['Trung bình','Có bạn đồng hành vững tâm / Việc khó chia đôi nhẹ phần đôi vai','mid'],
+    ['Hạ','Mây che một chút rồi tan / Nghỉ ngơi dăm bữa lại sang đường dài','low'],['Hạ','Đi đâu nhớ mũ, nhớ phanh / Chậm mà chắc chắn còn nhanh hơn liều','low']],
+  wishes:{binhan:{name:'Bình an',gift:{energy:30}},tailoc:{name:'Tài lộc',gift:{vnd:60000}},hochanh:{name:'Học hành',gift:{exp:80}},tinhduyen:{name:'Tình duyên',gift:{item:'hoa'}}},
+  jokes:['Đi chùa thì phải mặc lịch sự, chứ mặc quần đùi lên đây ông cũng phải cười. Mới Trường Con là như vậy!','Cháu hỏi sao ông nói giọng già? Tại ông tập giọng từ hồi còn bé đấy. Mới Trường Con là như vậy!',
+    'Ăn bánh đa cua Hải Phòng mà không húp nước thì coi như chưa về Hải Phòng nhé!','Thắp hương xong thì cất bật lửa vào túi, đừng để quên trên lư hương như ông hôm qua.','Cầu tài lộc thì cũng phải đi làm nữa cháu ạ, ông cầu mãi mà ví vẫn mỏng!',
+    'Quay video với ông thì cháu cứ tự nhiên, cười to lên, view nó mới về. Mới Trường Con là như vậy!']};
+// lịch âm Việt Nam (thuật toán Hồ Ngọc Đức, múi giờ +7): mùng 1, rằm, mùng 6 là ngày lễ ở miếu
+function jdFromDate(dd,mm,yy){ const a=Math.floor((14-mm)/12), y=yy+4800-a, m=mm+12*a-3; let jd=dd+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)-Math.floor(y/100)+Math.floor(y/400)-32045; if(jd<2299161) jd=dd+Math.floor((153*m+2)/5)+365*y+Math.floor(y/4)-32083; return jd; }
+function newMoonJd(k){ const T=k/1236.85, T2=T*T, T3=T2*T, dr=Math.PI/180; let Jd1=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3; Jd1+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+  const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3, Mpr=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3, F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+  let C1=(0.1734-0.000393*T)*Math.sin(M*dr)+0.0021*Math.sin(2*dr*M); C1=C1-0.4068*Math.sin(Mpr*dr)+0.0161*Math.sin(dr*2*Mpr); C1=C1-0.0004*Math.sin(dr*3*Mpr); C1=C1+0.0104*Math.sin(dr*2*F)-0.0051*Math.sin(dr*(M+Mpr));
+  C1=C1-0.0074*Math.sin(dr*(M-Mpr))+0.0004*Math.sin(dr*(2*F+M)); C1=C1-0.0004*Math.sin(dr*(2*F-M))-0.0006*Math.sin(dr*(2*F+Mpr)); C1=C1+0.0010*Math.sin(dr*(2*F-Mpr))+0.0005*Math.sin(dr*(2*Mpr+M));
+  const dt=T<-11?0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3:-0.000278+0.000265*T+0.000262*T2; return Jd1+C1-dt; }
+const nmDay=(k,tz)=>Math.floor(newMoonJd(k)+0.5+tz/24);
+function sunLong(jdn,tz){ const T=(jdn-2451545.5-tz/24)/36525, T2=T*T, dr=Math.PI/180, M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2, L0=280.46645+36000.76983*T+0.0003032*T2;
+  let DL=(1.914600-0.004817*T-0.000014*T2)*Math.sin(dr*M); DL=DL+(0.019993-0.000101*T)*Math.sin(dr*2*M)+0.000290*Math.sin(dr*3*M); let L=(L0+DL)*dr; L=L-Math.PI*2*Math.floor(L/(Math.PI*2)); return Math.floor(L/Math.PI*6); }
+function month11(yy,tz){ const off=jdFromDate(31,12,yy)-2415021, k=Math.floor(off/29.530588853); let nm=nmDay(k,tz); if(sunLong(nm,tz)>=9) nm=nmDay(k-1,tz); return nm; }
+function leapOff(a11,tz){ const k=Math.floor((a11-2415021.076998695)/29.530588853+0.5); let last=0, i=1, arc=sunLong(nmDay(k+i,tz),tz); do{ last=arc; i++; arc=sunLong(nmDay(k+i,tz),tz); }while(arc!==last&&i<14); return i-1; }
+function lunarDate(ms=Date.now()){ const d=new Date(ms+7*3600e3), dd=d.getUTCDate(), mm=d.getUTCMonth()+1, yy=d.getUTCFullYear(), tz=7, day=jdFromDate(dd,mm,yy), k=Math.floor((day-2415021.076998695)/29.530588853);
+  let start=nmDay(k+1,tz); if(start>day) start=nmDay(k,tz); let a11=month11(yy,tz), b11=a11, ly; if(a11>=start){ ly=yy; a11=month11(yy-1,tz); } else { ly=yy+1; b11=month11(yy+1,tz); }
+  const ld=day-start+1, diff=Math.floor((start-a11)/29); let leap=0, lm=diff+11; if(b11-a11>365){ const lo=leapOff(a11,tz); if(diff>=lo){ lm=diff+10; if(diff===lo) leap=1; } }
+  if(lm>12) lm-=12; if(lm>=11&&diff<4) ly-=1; return {d:ld,m:lm,y:ly,leap}; }
+const holyDay=(ms=Date.now())=>{ const l=lunarDate(ms); return l.d===6?'Lễ cầu an mùng 6':l.d===1?'Mùng 1':l.d===15?'Ngày rằm':''; };
+const vnptServing=(ms=Date.now())=>100+Math.floor(ms/VNPT.step)%900;
+
+Object.assign(QUESTS,{
+  bp_brief:{giver:'bp_lead',title:'Nghe khách brief dự án',desc:'Vào phòng họp kính ở Bearplus, ngồi nghe khách brief website mới (15 giây).',prog:1,reward:{exp:200,vnd:300000}},
+  bp_mood:{giver:'bp_lead',after:'bp_brief',title:'Moodboard 3 hướng',desc:'Ghim 3 hướng hình ảnh lên tường moodboard (mỗi lần 6 giây).',prog:3,reward:{exp:220,vnd:300000}},
+  bp_wire:{giver:'bp_lead',after:'bp_mood',title:'Wireframe trang chủ',desc:'Ngồi 1 bàn iMac dựng wireframe trang chủ cho khách (20 giây).',prog:1,reward:{exp:260,vnd:400000}},
+  bp_3d:{giver:'bp_lead',after:'bp_wire',title:'Render Bé Gấu 3D',desc:'Ra trạm render cùng chị My chạy render Bé Gấu 3D (25 giây).',prog:1,reward:{exp:320,vnd:500000}},
+  bp_motion:{giver:'bp_lead',after:'bp_3d',title:'Motion intro 5 giây',desc:'Ở góc motion, làm đoạn intro Bé Gấu vẫy tay chào (20 giây).',prog:1,reward:{exp:320,vnd:500000}},
+  bp_aww:{giver:'bp_lead',after:'bp_motion',title:'Nộp Awwwards',desc:'Tới tủ giải thưởng bấm nộp dự án lên Awwwards. Hội đồng chấm: Site of the Day (thưởng thêm 1 triệu + cúp) hay Honorable Mention?',prog:1,reward:{exp:400,vnd:800000}},
+  bp_coffee:{giver:'bp_lead',title:'Cà phê cho cả team',desc:'Mua 4 ly cà phê sữa đá ở quầy (25.000đ/ly), mời chị My, Tín, Ngân và Bé Gấu mỗi người 1 ly.',prog:4,reward:{exp:180,vnd:250000}},
+  bp_head:{giver:'bp_bear',title:'Bé Gấu mất đầu',desc:'Bé Gấu đi workshop ở DAS về thì để quên cái đầu gấu! Bay vào DAS tìm (cạnh sofa ở sảnh), mang về trả.',need:{dau_gau:1},reward:{exp:260,vnd:400000}},
+  bp_fix:{giver:'bp_dev',title:'Fix bug lúc 2 giờ sáng',desc:'Từ 22h tới 4h sáng, ngồi bàn iMac deploy bản vá gấp cho khách (15 giây).',prog:1,reward:{exp:300,vnd:350000}},
+  vn_fiber:{giver:'vn_tuan',title:'Kéo cáp quang lên Ké',desc:'Theo anh Tuấn lên Ké Retreat hàn nối 3 hộp cáp quang: cạnh lễ tân, cột điện trước Nhà giải trí, cạnh Lều bể bơi (mỗi hộp 6 giây). Xong thì wifi ở Ké mạnh hơn cho bạn.',prog:3,reward:{exp:300,vnd:400000}},
+  vn_call:{giver:'vn_thu',title:'Ca trực tổng đài',desc:'Ngồi bàn tổng đài nghe 5 cuộc gọi, trả lời đúng ít nhất 4 cuộc.',prog:1,reward:{exp:220,vnd:250000}},
+  mieu_cauan:{giver:'mieu_tu',title:'Lễ cầu an',desc:'Thắp hương ở lư hương, xin một quẻ ở ống xăm và buộc dải lụa ước nguyện lên cây đa.',prog:3,reward:{exp:200,vnd:200000}},
+  tc_clip:{giver:'truongcon',title:'Quay TikTok cùng Trường Con',desc:'Đứng trước đèn vòng quay 3 clip hài cùng Trường Con (mỗi clip 8 giây).',prog:3,reward:{exp:250,vnd:300000}}});
+NPCS.push({id:'bp_lead',scene:'bearplus',x:17.4,y:8.6,place:'bearplus'},{id:'bp_my',scene:'bearplus',x:28.4,y:8.2,place:'bpstaff'},{id:'bp_dev',scene:'bearplus',x:12.4,y:8.4,place:'bpstaff'},
+  {id:'bp_ngan',scene:'bearplus',x:11.6,y:3.8,place:'bpstaff'},{id:'bp_bear',scene:'bearplus',x:16,y:15.6,place:'bpbear',obj:true},
+  {id:'vn_hang',scene:'vnpt',x:11,y:5.0,place:'vnpt'},{id:'vn_minh',scene:'vnpt',x:21,y:5.0,place:'vnpt'},{id:'vn_tuan',scene:'vnpt',x:25.6,y:15.8,place:'vntuan'},
+  {id:'vn_thu',scene:'vnpt',x:33.6,y:17.4,place:'vnthu'},{id:'vn_guard',scene:'vnpt',x:14.2,y:20.6,place:'vnguard'},
+  {id:'mieu_tu',scene:'mieu',x:16.8,y:14.4,place:'mieu'},{id:'truongcon',scene:'mieu',x:13.2,y:27.8,place:'truongcon'},{id:'banhda',scene:'mieu',x:34.4,y:27.4,place:'banhda'});
+Object.assign(CLOTHES,{hoodie_bp:{name:'Hoodie Bearplus',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'2b282e',inner:'ff5fa8'}},
+  ao_soc_bp:{name:'Áo sọc dọc',slot:'top',price:0,hidden:true,opts:{top:'tee',vstripe:true},colors:{top:'f4f4f2',print:'26262c'}},
+  ao_vnpt:{name:'Áo đồng phục VNPT',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'1a6fc4'}},
+  ao_kythuat:{name:'Áo khoác kỹ thuật',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'0b5aa8',inner:'f4f4f2'}},
+  mu_vnpt:{name:'Mũ lưỡi trai xanh',slot:'head',price:0,hidden:true,opts:{hair:'cap'},colors:{cap:'0b6bc2'}},
+  ao_baove:{name:'Áo bảo vệ',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'5a6a4a'}},
+  ao_nau:{name:'Áo nâu',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'7a5232'}},
+  ao_tc:{name:'Áo sơ mi nâu nhạt',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'b8864a'}},
+  quan_vai_den:{name:'Quần vải đen',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'2a2420'}}});
+Object.assign(NPC_LOOKS,{
+  bp_lead:{name:'Anh Khoa (Creative Director · Bearplus)',look:{gender:'nam',hair:'fade',hairColor:'1c1820',skin:'e0a882',outfit:{top:'tee_den',bottom:'jean',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  bp_my:{name:'Chị My (3D & Motion · Bearplus)',look:{gender:'nu',hair:'bowl',hairColor:'e86a9a',skin:'f3c4a4',outfit:{top:'hoodie_bp',bottom:'jean',shoes:'giay_trang'},opts:{mouth:'smile'}}},
+  bp_dev:{name:'Tín (Front-end Dev · Bearplus)',look:{gender:'nam',hair:'messy',hairColor:'2a2420',skin:'e8b48a',outfit:{top:'tee_xanh',bottom:'short_xam',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  bp_ngan:{name:'Ngân (Brand Designer · Bearplus)',look:{gender:'nu',hair:'bun',hairColor:'3a2418',skin:'f3c4a4',outfit:{top:'ao_soc_bp',bottom:'vay_den',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  bp_bear:{name:'Bé Gấu Plus (linh vật)',look:null},
+  vn_hang:{name:'Chị Hằng (giao dịch viên · quầy 2)',look:{gender:'nu',hair:'bun',hairColor:'2a1c16',skin:'f3c4a4',outfit:{top:'ao_vnpt',bottom:'vay_den',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  vn_minh:{name:'Anh Minh (giao dịch viên · quầy 4)',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e0a882',outfit:{top:'ao_vnpt',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  vn_tuan:{name:'Anh Tuấn (kỹ thuật cáp quang)',look:{gender:'nam',hair:'cap',hairColor:'1c1820',skin:'d8986e',outfit:{top:'ao_kythuat',bottom:'jean',shoes:'giay_den',head:'mu_vnpt'},opts:{mouth:'smile'}}},
+  vn_thu:{name:'Chị Thu (trưởng ca tổng đài)',look:{gender:'nu',hair:'long',hairColor:'2a1c16',skin:'f3c4a4',outfit:{top:'ao_vnpt',bottom:'vay_den',shoes:'giay_den',eyes:'kinh_can'},opts:{mouth:'smile'}}},
+  vn_guard:{name:'Bác bảo vệ',look:{gender:'nam',hair:'buzz',hairColor:'9a9a9a',skin:'d8986e',outfit:{top:'ao_baove',bottom:'quan_vai_den',shoes:'giay_den'}}},
+  mieu_tu:{name:'Ông Từ (giữ miếu)',look:{gender:'nam',hair:'bald',hairColor:'d8d8d8',skin:'d8a070',outfit:{top:'ao_nau',bottom:'quan_vai_den',shoes:'giay_den'}}},
+  truongcon:{name:'Trường Con',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e8b48a',outfit:{top:'ao_tc',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'smile'}}},
+  vn_caller:{name:'Khách gọi tổng đài',look:{gender:'nu',hair:'ponytail',hairColor:'3a2418',skin:'f3c4a4',outfit:{top:'tee_hong',bottom:'jean',shoes:'giay_trang'},opts:{mouth:'smile'}}},
+  banhda:{name:'Bà Lụa (bánh đa cua Hải Phòng)',look:{gender:'nu',hair:'bun',hairColor:'8a8a8a',skin:'e0a882',outfit:{top:'somi_hoa',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'smile'}}}});
+Object.assign(ITEMS,{cafe_bp:{name:'Cà phê sữa đá Bearplus',icon:'cafe'},dau_gau:{name:'Đầu Bé Gấu',icon:'bearhead'},cup_sotd:{name:'Cúp Site of the Day',icon:'cup'},banh_da_cua:{name:'Bánh đa cua Hải Phòng',icon:'bowl'}});
+
 /* ---------- Giữ chân người chơi (học từ game mobile, Stardew Valley, Animal Crossing) ----------
    Điểm danh 7 ngày: vào game mỗi ngày nhận quà, quà to dần, ngày 7 mở Rương vàng; lỡ 1 ngày thì quay lại ngày 1.
    Việc mỗi ngày: 3 việc nhỏ đổi lúc 0h giờ VN (mỗi người một bộ khác nhau), xong đủ 3 việc mở Rương ngày.
@@ -830,7 +933,8 @@ const ALBUM={
   vuon:{name:'Nông sản',items:Object.keys(CROPS),rw:{vnd:300000,exp:200}},
   rung:{name:'Lộc rừng',items:['hoa','la','mang','rau','trung','nam'],rw:{vnd:150000,exp:120}},
   co:{name:'Đồ cổ dưới hồ',items:Object.keys(TREASURE.items),rw:{vnd:500000,exp:300}},
-  hp:{name:'Quà Halloween',items:['bi_ngo','mu_phuthuy','ao_bingo','den_bingo'],rw:{vnd:250000,exp:200}}};
+  hp:{name:'Quà Halloween',items:['bi_ngo','mu_phuthuy','ao_bingo','den_bingo'],rw:{vnd:250000,exp:200}},
+  ky:{name:'Kỷ vật Bearplus · Hải Phòng',items:['cafe_bp','dau_gau','cup_sotd','banh_da_cua'],rw:{vnd:300000,exp:250}}};
 // ô đặt bí ngô: chỉ ô cỏ / đường đi được (sinh từ bản đồ), mỗi giờ VN đổi bộ ô
 const SEASON={halloween:{name:'Lễ hội Bí ngô',from:'10-20',to:'11-03',perHour:{retreat:12,dalat:5},
   spots:{retreat:[[181.5,118.6],[239.5,72.6],[202.5,75.6],[161.5,49.6],[124.5,63.6],[280.5,36.6],[39.5,118.6],[95.5,70.6],[261.5,62.6],[131.5,71.6],[274.5,42.6],[106.5,84.6],[226.5,7.6],[46.5,78.6],[178.5,71.6],[113.5,93.6],[225.5,40.6],[85.5,83.6],[216.5,83.6],[39.5,36.6],[330.5,104.6],[331.5,80.6],[92.5,119.6],[193.5,74.6],[171.5,102.6],[113.5,16.6],[276.5,81.6],[263.5,21.6],[189.5,84.6],[229.5,88.6],[12.5,9.6],[254.5,7.6],[162.5,21.6],[57.5,29.6],[196.5,82.6],[85.5,63.6],[22.5,22.6],[140.5,36.6],[45.5,41.6],[138.5,83.6],[282.5,77.6],[267.5,7.6],[261.5,47.6],[305.5,73.6],[317.5,27.6],[86.5,39.6]],
@@ -856,5 +960,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

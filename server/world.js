@@ -62,7 +62,7 @@ on('och',(pl,m)=>{ const msg=clean(m.m); if(!msg) return {err:'Tin trống'}; if
 // số người đang online: gửi cho mọi người mỗi khi đổi (HUD góc trên), người mới vào map cũng nhận
 let lastOnline=-1; hook('slow',()=>{ const n=players.size; if(n===lastOnline) return; lastOnline=n; C.broadcastAll({t:'online',n}); });
 hook('enter',pl=>send(pl,{t:'online',n:players.size}));
-on('who',pl=>({list:[...players.values()].map(q=>({id:q.pid,n:q.prof.name,lv:q.prof.level,where:S.DEST[S.SCENE_DEST[kindOf(q.scene)]]?.name||''}))}));
+on('who',pl=>({list:[...players.values()].map(q=>({id:q.pid,n:q.prof.name,lv:q.prof.level,sim:q.prof.sim?q.prof.sim.num:'',where:S.DEST[S.SCENE_DEST[kindOf(q.scene)]]?.name||''}))}));
 on('opt',(pl,m)=>{ if(typeof m.noSocial==='boolean'){ pl.prof.opts.noSocial=m.noSocial; markDirty(pl); } return {opts:pl.prof.opts}; });
 
 /* ---------- tương tác người chơi (cần người kia đồng ý) ---------- */
@@ -125,16 +125,18 @@ hook('slow',()=>{ const t=now(), dt=(t-lastNeeds)/1000; lastNeeds=t; const h=S.v
     const before=[n.energy|0,n.clean|0,n.battery|0];
     n.energy=Math.max(0,n.energy-dt/S.NEEDS.energy.decay*(out?2:1)*(pl.riding?.5:1));
     n.clean=Math.max(0,n.clean-dt/S.NEEDS.clean.decay*(pl.soc&&pl.soc.kind==='danhnhau'?3:1));
-    if(!(pl.task&&pl.task.act==='sac')) n.battery=Math.max(0,n.battery-dt/S.NEEDS.battery.decay);
+    if(!(pl.task&&pl.task.act==='sac')) n.battery=Math.max(0,n.battery-dt/S.NEEDS.battery.decay*(pl.prof.data&&pl.prof.data.until>now()?S.VNPT.packMul:1));   // gói data VNPT: pin hao chậm hơn
     if(before.join()!==[n.energy|0,n.clean|0,n.battery|0].join()){ send(pl,{t:'nd',n:{energy:+n.energy.toFixed(1),clean:+n.clean.toFixed(1),battery:+n.battery.toFixed(1)}}); markDirty(pl); } } });
 
 /* ---------- Grab ---------- */
 function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.spawn];
+  if(to==='bearplus') return ['bearplus',S.BEARPLUS.spawn]; if(to==='vnpt') return ['vnpt',S.VNPT.spawn]; if(to==='mieu') return ['mieu',S.MIEU.spawn];
   if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; if(to==='lumen') return ['lumen',S.LUMEN.spawn]; if(to==='yenlang') return ['yenlang',S.YENLANG.spawn]; if(to==='pickle') return ['pickle',S.PICKLE.spawn]; if(to==='diep') return ['diep',S.DIEP.spawn]; return ['retreat',S.SPAWN.retreat]; }
 on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene)], p=pl.prof;
   if(!S.DEST[to]) return {err:'Không có điểm đến này'}; if(destSpawn(pl,to)[0]===pl.scene) return {err:'Bạn đang ở đây rồi'};
   if(to==='diep'){ const why=require('./diep').canVisit(p); if(why) return {err:why}; }
-  if(to==='das'&&p.level<S.DAS.level) return {err:`DAS nhận học viên từ cấp ${S.DAS.level}, lên cấp rồi hãy bay vào`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
+  if(to==='das'&&p.level<S.DAS.level) return {err:`DAS nhận học viên từ cấp ${S.DAS.level}, lên cấp rồi hãy bay vào`};
+  if(to==='bearplus'&&p.level<S.BEARPLUS.level) return {err:`Bearplus nhận cộng tác viên từ cấp ${S.BEARPLUS.level}. Lên cấp rồi bay vào nhé`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
   if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
   if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Về phòng sạc đã.'};

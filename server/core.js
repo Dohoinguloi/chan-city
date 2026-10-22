@@ -65,7 +65,7 @@ function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
-  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.needs.clean<20) m*=.85; return m; }
+  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.needs.clean<20) m*=.85; return m; }
 function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.needs.energy<20?.8:1)*S.lvSpeed(pl.prof.level); }
 // cộng EXP; kind 'game' bị giới hạn mỗi ngày
 function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);

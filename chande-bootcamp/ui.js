@@ -505,6 +505,63 @@ UI.pickle=()=>open('Sân pickleball · đấu 2 vs 2',()=>{ const K=SD.PICKLE, v
 // shop đồ pickleball: 10 set, ảnh xem trước là chính nhân vật của bạn mặc set đó
 const PKPRE={}; function pkPreview(z){ const g=G(); if(!g.look||!window.AVATAR) return ''; const key=z.id+JSON.stringify(g.look); if(PKPRE[key]) return PKPRE[key];
   try{ const av=AVATAR.build({...g.look,outfit:{...g.look.outfit,...z.items}}), f=(av.anims.idle_down||av.anims.idle).frames[0]; return PKPRE[key]=f.toDataURL(); }catch(e){ return ''; } }   // cả người, nhìn rõ áo quần giày
+/* ---------- 3 map mới: Bearplus · VNPT · Miếu ông Trường Con ---------- */
+// 1 dòng nhiệm vụ chung: nhận việc / tiến độ + chỉ đường / báo cáo / đã xong
+function qRow(id){ const g=G(), q=SD.QUESTS[id], st=g.quests[id], n=(g.qprog||{})[id]||0; if(!q) return '';
+  if(q.after&&g.quests[q.after]!=='done'&&!st) return '';
+  const ok=GAME.canFinish(id), pg=q.need?Object.entries(q.need).map(([k,c])=>`${SD.ITEMS[k].name} ${Math.min(g.items[k]||0,c)}/${c}`).join(' · '):`Đã làm ${Math.min(n,q.prog)}/${q.prog}`;
+  const r=!st?btn('qstart','Nhận việc: '+esc(q.title),{id},'pri'):st==='active'?(ok?btn('qfinish','Báo cáo: '+esc(q.title),{id},'pri'):`<p>${pg}</p><button class="btn sm qgo" data-go="${id}">➜ Chỉ đường</button>`):'<p class="muted">✔ Đã xong.</p>';
+  return `<h5>${esc(q.title)}</h5><p class="muted">${esc(q.desc)} Thưởng ${q.reward.exp} EXP + ${fmt(q.reward.vnd)}.</p>${r}`; }
+const BP_CHAIN=['bp_brief','bp_mood','bp_wire','bp_3d','bp_motion','bp_aww'];
+PLACE.bearplus=()=>open('Anh Khoa · Bearplus Studio',()=>{ const g=G(), B=SD.BEARPLUS, cur=BP_CHAIN.find(id=>g.quests[id]!=='done')||BP_CHAIN[BP_CHAIN.length-1], nDone=BP_CHAIN.filter(id=>g.quests[id]==='done').length;
+  return `<p>"Chào! Bearplus là studio nhỏ thôi: web, thương hiệu, 3D & motion, UI/UX. Ít người nhưng làm kỹ, không làm cho có. Vào việc nhé?"</p>
+    <p class="muted">Dự án Awwwards: ${nDone}/${BP_CHAIN.length} bước${g.flags.bpAward==='sotd'?' · 🏆 Đã đạt Site of the Day!':g.flags.bpAward==='hm'?' · Honorable Mention':''}</p>${qRow(cur)}${qRow('bp_coffee')}
+    <h5>Việc freelance</h5><p class="muted">Ngồi bất kỳ bàn iMac bấm E: ${B.gig.dur} giây, +${fmt(B.gig.vnd)} + ${B.gig.exp} EXP, ${B.gig.max} lần/ngày (hôm nay ${(g.daily.bpgig||0)}/${B.gig.max}). Làm đêm (${B.night.from}h–${B.night.to}h) EXP ×2.</p>`; });
+const BP_LINES={bp_my:'Chị My: "Render con gấu này mất cả buổi chiều đấy. Lông xù khó lắm!"',bp_dev:'Tín: "Code chạy ở máy em mà, sao lên server lại lỗi nhỉ..."',bp_ngan:'Ngân: "Màu hồng này là hồng Bearplus, không phải hồng thường đâu nha."',bp_bear:'Bé Gấu: "(vẫy vẫy tay, nhún nhảy)"'};
+function coffeeBtn(who){ const g=G(), given=(g.flags.bpcafe||{})[who]; if(g.quests.bp_coffee!=='active') return ''; if(given) return '<p class="muted">✔ Đã mời cà phê.</p>';
+  return (g.items.cafe_bp||0)>0?btn('bpgive','☕ Mời 1 ly cà phê sữa đá',{who},'pri'):'<p class="muted">Mua cà phê ở quầy để mời.</p>'; }
+PLACE.bpstaff=n=>{ const id=n.id; open(SD.NPC_LOOKS[id].name.split(' (')[0]+' · Bearplus',()=>`<p>${esc(BP_LINES[id]||'')}</p>${coffeeBtn(id)}${id==='bp_dev'?qRow('bp_fix'):''}${id==='bp_my'&&G().quests.bp_3d==='active'?'<p class="muted">"Ra trạm render bên kia, mình chạy cùng nhé!"</p>':''}`); };
+PLACE.bpbear=()=>open('Bé Gấu Plus · linh vật Bearplus',()=>{ const g=G(), st=g.quests.bp_head;
+  return `<p>${st==='done'?'Bé Gấu đội lại đầu, nhảy một điệu cảm ơn bạn. Ai vào studio cũng xin chụp ảnh cùng!':'Bộ đồ gấu đứng đó... mà không có đầu! Chiếc cổ áo trống trơn trông vừa buồn cười vừa tội.'}</p>${qRow('bp_head')}${coffeeBtn('bp_bear')}`; });
+ACT.bpgive=async d=>{ const r=await GAME.act({t:'bp',op:'give',who:d.who}); if(r&&!r.err){ GAME.sfx('item_pickup',.5); GAME.toast(esc(r.msg),'quest'); } UI.refresh(); };
+// VNPT
+PLACE.vnpt=n=>{ const i=n.id==='vn_minh'?3:1; GAME.act({t:'vn',op:'counter',i}).then(r=>{ if(r&&!r.err) UI.vnptDesk(i); else if(r&&r.need) GAME.say([[n.id,'Dạ anh/chị vui lòng bốc số thứ tự ở máy cạnh cửa, ngồi ghế chờ, đến lượt bảng sẽ gọi số ạ.']]); }); };
+let vnTab='sim';
+UI.vnptDesk=i=>{ open(`Quầy ${i+1} · VNPT`,()=>{ const g=G(), V=SD.VNPT, now=NET.now(), data=g.data&&g.data.until>now;
+  const tabs=[['sim','SIM số đẹp'],['pack','Gói data'],['fiber','Cáp quang']].map(([k,n])=>`<button class="tab ${k===vnTab?'on':''}" data-a="vntab" data-k="${k}">${n}</button>`).join('');
+  let b=''; if(vnTab==='sim') b=`<p class="muted">Số đang dùng: <b>${g.sim?esc(g.sim.num)+' ('+esc(g.sim.cat)+')':'chưa có'}</b>. Số hiện cạnh tên bạn trong danh sách online.</p><div class="list">${V.sims.map((s,k)=>`<div class="row"><span><b>${s.num==='random'?'09x.xxx.xxx':s.num}</b> <span class="muted">${s.cat}</span></span><span>${fmt(s.price)} ${btn('vnbuy','Mua',{i:k})}</span></div>`).join('')}</div>`;
+  if(vnTab==='pack') b=packHtml(data,g);
+  if(vnTab==='fiber') b=`<p>Lắp cáp quang FiberVNN cho phòng trọ Hà Nội: lướt TikTok ở phòng được <b>×${V.fiber.mul} EXP</b>.</p>${g.flags.fiber?'<p class="muted">✔ Phòng bạn đã có cáp quang.</p>':btn('vnfiber','Lắp ngay · '+fmt(V.fiber.price),{},'pri')}`;
+  return `<p class="muted">"Dạ em chào anh/chị, em có thể giúp gì ạ?"</p><div class="tabs">${tabs}</div>${b}`; }); };
+function packHtml(data,g){ const V=SD.VNPT; return `<p>Có gói data thì điện thoại dùng 4G, <b>pin hao chậm hơn ${Math.round((1-V.packMul)*100)}%</b>.${data?` Đang dùng <b>${esc(g.data.name)}</b> tới ${SD.vnTime(g.data.until).day.split('-').reverse().join('/')}.`:''}</p>
+  <div class="list">${Object.entries(V.packs).map(([k,p])=>`<div class="row"><span><b>${p.name}</b> <span class="muted">${p.h>=48?Math.round(p.h/24)+' ngày':p.h+' giờ'}</span></span><span>${fmt(p.price)} ${btn('vnpack','Đăng ký',{k})}</span></div>`).join('')}</div>`; }
+UI.vnptSim=()=>open('Tủ SIM số đẹp',()=>`<p class="muted">Muốn mua thì bốc số ở máy cạnh cửa rồi ra quầy giao dịch nhé.</p><div class="list">${SD.VNPT.sims.map(s=>`<div class="row"><span><b>${s.num==='random'?'09x.xxx.xxx':s.num}</b> <span class="muted">${s.cat}</span></span><span>${fmt(s.price)}</span></div>`).join('')}</div>`);
+UI.vnptPack=()=>open('Gói cước data VNPT',()=>{ const g=G(); return packHtml(g.data&&g.data.until>NET.now(),g); });
+ACT.vntab=d=>{ vnTab=d.k; UI.refresh(); };
+ACT.vnbuy=async d=>{ const s=SD.VNPT.sims[+d.i]; GAME.ask(`Mua số ${s.num==='random'?'ngẫu nhiên':s.num} giá ${fmt(s.price)}?`,'vn_hang',['Mua','Thôi'],async i=>{ if(i) return; const r=await GAME.act({t:'vn',op:'buysim',i:+d.i}); if(r&&!r.err){ GAME.sfx('level_up',.5); GAME.toast(esc(r.msg),'item'); } UI.refresh(); }); };
+ACT.vnpack=async d=>{ const r=await GAME.act({t:'vn',op:'pack',k:d.k}); if(r&&!r.err) GAME.toast(esc(r.msg),'item'); UI.refresh(); };
+ACT.vnfiber=async()=>{ const r=await GAME.act({t:'vn',op:'fiber'}); if(r&&!r.err) GAME.toast(esc(r.msg),'item'); UI.refresh(); };
+PLACE.vntuan=()=>open('Anh Tuấn · kỹ thuật cáp quang',()=>`<p>"Cáp quang giờ kéo về tận bản. Rảnh thì đi với anh lên Ké nối mấy hộp cáp, xong là trên đó lướt mạng vù vù."</p>${qRow('vn_fiber')}${G().flags.wifiKe?'<p class="muted">✔ Wifi ở Ké đã mạnh hơn cho bạn: lướt TikTok ở phòng thuê ×'+SD.VNPT.keWifi+' EXP.</p>':''}`);
+PLACE.vnthu=()=>open('Chị Thu · trưởng ca tổng đài',()=>{ const V=SD.VNPT, g=G(); return `<p>"Tổng đài lúc nào cũng đông. Em ngồi bàn trống nghe máy giúp chị: khách hỏi gì cứ lễ phép, đúng trọng tâm là được."</p>${qRow('vn_call')}
+  <p class="muted">Mỗi ca ${V.shift} cuộc gọi, khách hài lòng mỗi cuộc +${fmt(V.callPay.vnd)} + ${V.callPay.exp} EXP. Tối đa ${V.shifts} ca/ngày (hôm nay ${g.daily.vncall||0}/${V.shifts}).</p>`; });
+PLACE.vnguard=()=>GAME.say([['vn_guard','Vào giao dịch thì bốc số ở máy bên trái cửa nhé cháu. Ngồi ghế chờ, bảng đỏ trên kia gọi số thì ra quầy.'],['vn_guard','Xe máy dắt vào bãi bên hông, bác trông cho.']]);
+// Miếu ông Trường Con
+PLACE.mieu=()=>open('Ông Từ · Miếu ông Trường Con',()=>{ const M=SD.MIEU, l=SD.lunarDate(NET.now()), h=SD.holyDay(NET.now()), g=G(), mb=g.mbuff&&g.mbuff.until>NET.now();
+  return `<p>"Hôm nay mùng ${l.d} tháng ${l.m} âm lịch${h?` · <b>${h}</b>`:''}. Miếu nhỏ của làng, ai qua cũng ghé thắp nén hương cho bình an."</p>
+    <p class="muted">Mùng 6 âm lịch hằng tháng là lễ cầu an: thắp hương được phúc gấp đôi, bà Lụa mời bát bánh đa cua lấy lộc. Mùng 1, ngày rằm cũng được phúc gấp đôi.</p>
+    <div class="list"><div class="row"><span>🕯 Thắp hương ở lư hương</span><span>${fmt(M.incense.price)} · +${Math.round((M.incense.mul-1)*100)}% EXP ${M.incense.min/60} giờ</span></div>
+    <div class="row"><span>🎋 Xin quẻ ở ống xăm</span><span>miễn phí · 1 lần/ngày</span></div><div class="row"><span>🎀 Buộc dải lụa lên cây đa</span><span>${fmt(M.wishPrice)} · mai linh nghiệm</span></div></div>
+    ${mb?`<p class="good">Đang có phúc bình an: +${Math.round((g.mbuff.mul-1)*100)}% EXP · còn ${Math.ceil((g.mbuff.until-NET.now())/60000)} phút</p>`:''}${qRow('mieu_cauan')}`; });
+let tcJoke=-1;
+PLACE.truongcon=()=>open('Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Trường Con kể chuyện',{},'pri')}${qRow('tc_clip')}
+  <p class="muted">Xong việc thì mỗi ngày vẫn quay được 1 clip cùng Trường Con ở đèn vòng (+${SD.MIEU.clip.exp} EXP).</p>`; });
+ACT.tcjoke=()=>{ const J=SD.MIEU.jokes; let k; do{ k=Math.floor(Math.random()*J.length); }while(J.length>1&&k===tcJoke); tcJoke=k; GAME.sayLine(J[k],.7,'vi'); UI.refresh(); };
+PLACE.banhda=()=>open('Bà Lụa · bánh đa cua Hải Phòng',()=>{ const M=SD.MIEU, h=SD.holyDay(NET.now())==='Lễ cầu an mùng 6', free=h&&!G().daily.mieufree;
+  return `<p>"Bánh đa đỏ, riêu cua đồng, chả lá lốt, rau muống chẻ. Ăn đi cho ấm bụng cháu!"</p><div class="list">
+    <div class="row"><span>🍜 Bánh đa cua <span class="muted">+${M.banhda.energy} năng lượng, tính 1 bữa</span></span><span>${free?'<b class="good">Lộc cầu an: miễn phí</b>':fmt(M.banhda.price)} ${btn('mieufood','Ăn',{k:'banhda'},'pri')}</span></div>
+    <div class="row"><span>🥟 Nem cua bể <span class="muted">+${M.nem.energy} năng lượng</span></span><span>${fmt(M.nem.price)} ${btn('mieufood','Ăn',{k:'nem'})}</span></div></div>`; });
+ACT.mieufood=async d=>{ const r=await GAME.act({t:'mieu',op:'food',k:d.k}); if(r&&!r.err){ GAME.sfx('eat',.5); GAME.toast(esc(r.msg),'item'); } UI.refresh(); };
+
 /* ---------- Hằng ngày: điểm danh 7 ngày · việc hôm nay + rương · sổ sưu tầm · lễ hội theo mùa ---------- */
 let dTab='', dChest=null;
 UI.daily=(tab)=>{ if(tab) dTab=tab; dChest=null; if(!GAME.DQ) GAME.act({t:'dq',op:'state'}); open('Hằng ngày',dailyHtml,{wide:true}); };
@@ -575,7 +632,7 @@ PLACE.diep=()=>open('Diệp',()=>{ const D=SD.DIEP, g=G(), d=SD.vnTime(NET.now()
 let onlineList=null;
 UI.online=()=>{ onlineList=null; NET.req({t:'who'}).then(r=>{ onlineList=r.list||[]; UI.refresh(); });
   open('Đang online',()=>{ if(!onlineList) return '<p class="muted">Đang tải...</p>'; const L=[...onlineList].sort((a,b)=>(b.id===NET.pid)-(a.id===NET.pid)||b.lv-a.lv);
-    return `<p><b>${L.length}</b> người đang chơi.</p><div class="list olist">${L.map(w=>`<div class="row"><span class="${w.id===NET.pid?'you':''}">${esc(w.n)}${w.id===NET.pid?' (bạn)':''}</span><span class="muted">cấp ${w.lv}${w.where?' · '+esc(w.where):''}</span></div>`).join('')}</div>`; }); };
+    return `<p><b>${L.length}</b> người đang chơi.</p><div class="list olist">${L.map(w=>`<div class="row"><span class="${w.id===NET.pid?'you':''}">${esc(w.n)}${w.id===NET.pid?' (bạn)':''}</span><span class="muted">cấp ${w.lv}${w.sim?' · 📱 '+esc(w.sim):''}${w.where?' · '+esc(w.where):''}</span></div>`).join('')}</div>`; }); };
 
 /* ---------- Ộ i i: khô gà đè tem + shisha ở Nhà giải trí ---------- */
 UI.oii=()=>open('Ộ i i',()=>{ const g=G(), row=id=>{ const q=SD.QUESTS[id], st=g.quests[id], kg=Math.min(g.items.khoga||0,10), sh=(g.qprog||{}).shisha||0;
