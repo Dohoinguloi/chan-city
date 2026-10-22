@@ -1140,6 +1140,8 @@ function drawChar(c,av,x,y,face,view,anim,act,t,actT,fl){ const anims=av.anims;
   if(act==='shisha'&&Math.random()<.05) fx.push({kind:'smoke',x:x+face*6,y:y-30,t:0,life:1.8});
   if(act==='shower'&&Math.random()<.2) fx.push({kind:'steam',x:x+(Math.random()-.5)*16,y:y-36,t:0,life:.8}); }
 function draw(){
+  // đặt lại trạng thái canvas mỗi khung: 1 chỗ vẽ lỗi giữa save()/restore() không làm lệch / mờ / lật cả thế giới về sau (trắng màn hình)
+  ctx.setTransform(1,0,0,1,0,0); ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; ctx.shadowBlur=0; ctx.shadowColor='transparent'; ctx.filter='none';
   const mw=S.W*T, mh=S.H*T;
   // đang đua: camera bám đàn ngựa trên đường đua thay vì người đứng ở khán đài
   const racing=S.kind==='track'&&RACE&&(RACE.st==='run'||RACE.st==='done')&&RACE.riders.length, rx=racing?RACE.riders.reduce((a,r)=>a+(r._x||Wd.TRACK.x0*T),0)/RACE.riders.length:0;

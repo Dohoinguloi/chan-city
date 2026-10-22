@@ -409,7 +409,8 @@ function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc
   if(a.neck&&A.muNeckCol(a.neck)&&!back){ const c=A.muNeckCol(a.neck); list.push({y:o.y+.15,d:()=>{ const g=ctx; g.fillStyle=c.chain; if(side){ g.fillRect(X0+o.face*2,Y0-16,1,3); g.fillStyle=c.gem; g.fillRect(X0+o.face*2,Y0-13,2,2); return; }
       for(let i=0;i<4;i++){ g.fillRect(X0-4+i,Y0-17+i,1,1); g.fillRect(X0+3-i,Y0-17+i,1,1); } g.fillStyle=c.gem; g.fillRect(X0-1,Y0-13,2,2); g.fillStyle='#ffffff'; g.fillRect(X0-1,Y0-13,1,1); }}); } } }
 // Thợ Rèn Huyền Thoại: 50 vũ khí chia theo loại, mỗi loại 5 hệ
-const wImg=k=>cached('wimg'+k,()=>{ const s=A.muWeapon(k), c=A.cv(48,48), g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(s.c,0,0,48,48); return c.toDataURL(); });
+const wImg=k=>cached('wimg'+k,()=>{ const s=A.muWeapon(k); if(!s) return GAME.icon64(k);   /* vũ khí rơi từ boss (không phải hàng Thợ Rèn): dùng icon túi đồ */
+  const c=A.cv(48,48), g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(s.c,0,0,48,48); return c.toDataURL(); });
 UI.defPlace('musmith',()=>UI.open('Thợ Rèn Huyền Thoại · 50 vũ khí',()=>{ const it=G().items||{}, cur=ME&&ME.wep, ok=ME&&ME.cls, W=M.weapons;
   const cp=k=>ok?SD.muPower(SD.muStats(ME.cls,ME.lv,ME.fruit,k,ME.lg,{...exOf(ME.acc),...(W[k]&&W[k].bonus||{})})):0, base=ok?SD.muPower(SD.muStats(ME.cls,ME.lv,ME.fruit,cur,ME.lg,{...exOf(ME.acc),...(W[cur]&&W[cur].bonus||{})})):0;
   return `<p>"Vũ khí rèn từ 5 hệ: Kịch Độc, Băng Giá, Hoả Ngục, Lôi Thần, Hư Không. Cầm vào là tăng công, ra chiêu có hiệu ứng riêng. 5 sao là hàng huyền thoại!"</p>${cur&&W[cur]?`<p class="muted">Đang cầm: <b>${esc(W[cur].name)}</b></p>`:''}
