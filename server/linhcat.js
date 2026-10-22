@@ -47,7 +47,7 @@ function foeMove(f,meSp){ const ms=S.lcMoves(f.sp,f.lv); if(Math.random()<.3) re
 const active=(r,b)=>r.party.find(x=>x.u===b.u);
 function bview(pl){ const b=pl.lcb, r=rec(pl.prof); if(!b) return null; const me=active(r,b);
   return {kind:b.kind,foe:{sp:b.foe.sp,lv:b.foe.lv,hp:b.foe.hp,max:b.foe.max},me:me&&{u:me.u,sp:me.sp,lv:me.lv,hp:me.hp,max:maxHp(me),exp:me.exp,next:S.lcNext(me.lv),moves:S.lcMoves(me.sp,me.lv)},
-    canBall:b.kind==='wild',party:r.party.map(x=>({u:x.u,sp:x.sp,lv:x.lv,hp:x.hp,max:maxHp(x)})),need:b.need||null}; }
+    canBall:b.kind==='wild',won:!!b.won,party:r.party.map(x=>({u:x.u,sp:x.sp,lv:x.lv,hp:x.hp,max:maxHp(x)})),need:b.need||null}; }
 function start(pl,kind,sp,lv,extra){ const p=pl.prof, r=rec(p); if(!trained(p)) return {err:'Phải học Huấn luyện Lính Cát ở Trung tâm Lính Cát (thị trấn Đà Bắc) trước'};
   if(pl.lcb) return {err:'Đang đấu rồi'}; if(pl.task) return {err:'Đang bận việc khác'}; const me=r.party.find(x=>x.hp>0); if(!me) return {err:'Lính Cát của bạn kiệt sức hết rồi, về Trung tâm hồi máu'};
   const foe={sp,lv,max:S.lcStats(sp,lv).hp}; foe.hp=foe.max; if(!SP[sp].npc&&!r.dex[sp]) r.dex[sp]=1;
@@ -60,6 +60,11 @@ on('lcb',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now();
   if(op==='park'){ const s=S.PARK.spots.find(x=>x.k===m.k), sp=L.park[m.k]; if(!s||!sp||pl.scene!=='retreat'||!near(pl,s.x,s.y,56)) return {err:'Lại gần đàn thú'}; return start(pl,'park',sp,14+Math.floor(Math.random()*10)); }
   const b=pl.lcb; if(op==='view') return {battle:bview(pl)}; if(!b) return {err:'Không có trận nào'};
   const me=active(r,b), ev=[], F=b.foe, end=(res)=>finish(pl,res,ev);
+  // đã đánh thắng con hoang: có quyền thu phục chắc chắn (tốn 1 bóng) hoặc thả đi
+  if(b.won){ if(op==='release'||op==='run'){ ev.push({k:'release',sp:F.sp}); return end('win'); }
+    if(op!=='ball') return {err:'Thu phục hoặc thả đi'}; const k=m.k==='bong_vang'?'bong_vang':'bong_cat'; if(!has(pl,k)) return {err:`Hết ${S.ITEMS[k].name}, mua ở Trung tâm Lính Cát`}; addItem(pl,k,-1);
+    const mon=mk(r,F.sp,F.lv); mon.hp=Math.max(1,Math.round(maxHp(mon)/2)); (r.party.length<L.party?r.party:r.box).push(mon); r.gone[b.key]=1;
+    ev.push({k:'ball',ball:k,shakes:3,ok:true},{k:'caught',sp:F.sp,box:r.party.indexOf(mon)<0}); return end('caught'); }
   if(op==='run'){ ev.push({k:'run'}); return end('run'); }
   if(op==='switch'){ const x=r.party.find(y=>y.u===m.u&&y.hp>0); if(!x||x.u===b.u) return {err:'?'}; b.u=x.u; b.need=null; ev.push({k:'switch',sp:x.sp}); if(!b.forced) foeTurn(b,x,ev); b.forced=false; return turnEnd(pl,ev); }
   if(b.need) return {err:'Chọn Lính Cát khác ra sân'}; if(!me||me.hp<=0) return {err:'?'};
@@ -84,10 +89,11 @@ function foeDown(pl,ev){ const b=pl.lcb, p=pl.prof, r=rec(p), me=active(r,b), F=
   while(me.lv<50&&me.exp>=S.lcNext(me.lv)){ me.exp-=S.lcNext(me.lv); const before=S.lcMoves(me.sp,me.lv), mh=maxHp(me); me.lv++; me.hp=Math.min(maxHp(me),me.hp+(maxHp(me)-mh)); ev.push({k:'lvl',lv:me.lv,sp:me.sp});
     for(const mv of S.lcMoves(me.sp,me.lv)) if(!before.includes(mv)) ev.push({k:'learn',mv,sp:me.sp});
     const E=SP[me.sp].evo; if(E&&me.lv>=E.lv){ const from=me.sp, ratio=me.hp/maxHp(me); me.sp=E.to; me.hp=Math.max(1,Math.round(maxHp(me)*ratio)); r.dex[me.sp]=2; ev.push({k:'evo',from,to:me.sp}); } }
-  if(b.kind==='wild') r.gone[b.key]=1; if(b.kind==='farm') p.daily.lcfarm=(p.daily.lcfarm||0)+1;
+  if(b.kind==='farm') p.daily.lcfarm=(p.daily.lcfarm||0)+1;
+  if(b.kind==='wild'){ r.gone[b.key]=1; b.won=true; b.paid=true; const g=C.gainExp(pl,L.trainerExp); ev.push({k:'won',sp:F.sp,exp:g.exp}); markDirty(pl); return {ev,battle:bview(pl)}; }   // thắng con hoang: được quyền thu phục
   return finish(pl,'win',ev); }
 function finish(pl,res,ev){ const p=pl.prof, b=pl.lcb, r=rec(p); pl.lcb=null; let msg='';
-  if(res==='win'){ const g=C.gainExp(pl,L.trainerExp); msg=`Thắng! +${g.exp} EXP huấn luyện viên`; }
+  if(res==='win'){ if(b&&b.paid) msg='Đã thả Lính Cát về với thiên nhiên'; else { const g=C.gainExp(pl,L.trainerExp); msg=`Thắng! +${g.exp} EXP huấn luyện viên`; } }
   if(res==='caught') msg='Thu phục thành công!'; if(res==='lose') msg='Lính Cát của bạn kiệt sức hết, về Trung tâm hồi máu nhé'; if(res==='run') msg='Đã rút lui';
   // thú bảo tồn: đấu xong 20% bị công an bắt vì làm hại động vật hoang dã
   if(b&&b.kind==='park'&&Math.random()<L.jail.chance){ const J=L.jail; p.jail={until:now()+J.sec*1000,fine:J.fine,why:'Cho Lính Cát đánh thú bảo tồn ở vườn quốc gia'}; P.stat(pl,'jail',1);

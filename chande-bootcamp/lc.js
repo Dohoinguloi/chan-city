@@ -62,7 +62,7 @@ let FOL=null, lastClock=0;
 const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); const S=GAME.S, P=GAME.P; if(!S||!P) return; const cam=GAME.cam, clock=GAME.clock, dt=Math.min(.1,Math.max(0,clock-lastClock)); lastClock=clock;
   if(S.kind==='retreat'){ const vx=cam.x-40, vy=cam.y-40, vw=innerWidth+80, vh=innerHeight+80, inV=(x,y)=>x>vx&&y>vy&&x<vx+vw&&y<vy+vh;
     for(const w of wildNow()){ const x=w.x*T, y=w.y*T; if(!inV(x,y)) continue; const fr=Math.floor(clock*2+w.i)%2, sp=A.linhcat(w.sp,fr,Math.sin(clock*.5+w.i)>0);
-      list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); if(Math.hypot(P.x-x,P.y-y)<80){ const X0=Math.round(x-cam.x), Y0=Math.round(y-cam.y)-32; ctx.font='12px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='rgba(18,12,22,.75)'; const tx=`Lv${w.lv} ${SP[w.sp].name}`, tw=ctx.measureText(tx).width+8; ctx.fillRect(X0-tw/2,Y0-10,tw,13); ctx.fillStyle=SP[w.sp].night?'#c8a0ff':'#ffd84a'; ctx.fillText(tx,X0,Y0); } }}); }
+      list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); if(Math.hypot(P.x-x,P.y-y)<80){ const X0=Math.round(x-cam.x), Y0=Math.round(y-cam.y)-30; ctx.font='6px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='rgba(18,12,22,.7)'; const tx=`Lv${w.lv} ${SP[w.sp].name}`, tw=ctx.measureText(tx).width+4; ctx.fillRect(Math.round(X0-tw/2),Y0-5,Math.round(tw),7);   /* toạ độ thế giới đã phóng to nên chữ để nhỏ */ ctx.fillStyle=SP[w.sp].night?'#c8a0ff':'#ffd84a'; ctx.fillText(tx,X0,Y0); } }}); }
     L.farm.forEach((f,i)=>{ const [fx,fy]=farmPos(f,i,clock), x=fx*T, y=fy*T; if(!inV(x,y)) return; const sp=A.linhcat(f[2],Math.floor(clock*2+i)%2,Math.cos(clock*.4+i*2)>0); list.push({y,d:()=>{ GAME.shadow(x,y,9); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }); }
   // con đầu đội đi theo người (không theo khi đang đi xe / chèo kayak)
   const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.riding||S.kind==='phongbay'){ FOL=null; return; }
@@ -81,6 +81,7 @@ function open(v){ const k=v.kind; BT={v,busy:false,msg:k==='wild'?`Một ${SP[v.
   setTimeout(()=>{ const ctl=$('#lcCtl'); if(!ctl) return; ctl.addEventListener('click',e=>{ const b=e.target.closest('[data-lc]'); if(!b||b.disabled||!BT||BT.busy) return; act(b.dataset); }); setMsg(BT.msg); controls(); requestAnimationFrame(loop); },0); }
 const setMsg=t=>{ const m=$('#lcMsg'); if(m) m.innerHTML=t; };
 function controls(force){ const ctl=$('#lcCtl'); if(!ctl||!BT) return; const v=BT.v; if(BT.end){ ctl.innerHTML=''; return; }
+  if(v.won){ ctl.innerHTML=`<div class="lcrow2"><button class="btn sm pri" data-lc="ball" data-k="bong_cat" ${cnt('bong_cat')?'':'disabled'}>🎾 Thu phục bằng Bóng Cát (${cnt('bong_cat')})</button><button class="btn sm" data-lc="ball" data-k="bong_vang" ${cnt('bong_vang')?'':'disabled'}>🟡 Bóng Vàng (${cnt('bong_vang')})</button><button class="btn sm" data-lc="release">👋 Thả đi</button></div>${cnt('bong_cat')+cnt('bong_vang')?'':'<p class="muted">Hết bóng rồi! Mua Bóng Cát ở Trung tâm Lính Cát.</p>'}`; return; }
   if(force||v.need){ ctl.innerHTML=`<p class="muted">Chọn Lính Cát ra sân:</p>`+v.party.filter(x=>x.hp>0&&x.u!==v.me.u).map(x=>`<button class="btn sm pri" data-lc="switch" data-u="${x.u}">${img(x.sp,24)} ${esc(SP[x.sp].name)} Lv${x.lv} · ${x.hp}/${x.max}</button>`).join('')+(force&&!v.need?`<button class="btn sm" data-lc="back">↩ Quay lại</button>`:''); return; }
   const me=v.me, mvs=me.moves.map(k=>{ const M=MV[k]; return `<button class="btn sm lcmv" data-lc="move" data-mv="${k}" style="--tc:${TY[M.t].col}"><b>${esc(M.name)}</b><small>${TY[M.t].name} · ${M.pow} · ${Math.round(M.acc*100)}%</small></button>`; }).join('');
   ctl.innerHTML=`<div class="lcmoves">${mvs}</div><div class="lcrow2">${v.canBall?`<button class="btn sm" data-lc="ball" data-k="bong_cat" ${cnt('bong_cat')?'':'disabled'}>🎾 Bóng Cát (${cnt('bong_cat')})</button><button class="btn sm" data-lc="ball" data-k="bong_vang" ${cnt('bong_vang')?'':'disabled'}>🟡 Bóng Vàng (${cnt('bong_vang')})</button>`:''}
@@ -90,7 +91,9 @@ async function act(d){ if(d.lc==='sw') return controls(true); if(d.lc==='back') 
   const m={t:'lcb',op:d.lc}; if(d.mv) m.mv=d.mv; if(d.k) m.k=d.k; if(d.u) m.u=+d.u; const r=await req(m); if(!BT) return; if(r.err){ BT.busy=false; controls(); return; }
   await play(r.ev||[]); if(!BT) return;
   if(r.result!==undefined&&r.battle===null){ BT.end=true; controls(); setMsg(esc(r.msg||'')); await sleep(1700); UI.closeAll(); BT=null; if(r.msg) toast(esc(r.msg),r.result==='lose'?'lock':'item'); return; }
-  BT.v=r.battle; BT.busy=false; const s=BT.s, me=BT.v.me; Object.assign(s.me,{sp:me.sp,lv:me.lv,hp:me.hp,max:me.max}); setMsg(BT.v.need?'Lính Cát của bạn kiệt sức! Chọn con khác ra sân.':`${esc(SP[me.sp].name)} nên làm gì?`); controls(); }
+  BT.v=r.battle; BT.busy=false; const s=BT.s, me=BT.v.me; Object.assign(s.me,{sp:me.sp,lv:me.lv,hp:me.hp,max:me.max});
+  if(BT.v.won){ s.foe.y=0; await tween(s.foe,'vis',.85,300); setMsg(`${esc(SP[s.foe.sp].name)} đã chịu thua! Bạn có quyền <b>thu phục</b> nó: ném 1 Bóng Cát là chắc chắn bắt được.`); controls(); return; }
+  setMsg(BT.v.need?'Lính Cát của bạn kiệt sức! Chọn con khác ra sân.':`${esc(SP[me.sp].name)} nên làm gì?`); controls(); }
 const tween=(o,k,to,ms)=>new Promise(res=>BT.tw.push({o,k,from:o[k],to,t0:performance.now(),ms,res}));
 const name=w=>w==='me'?SP[BT.s.me.sp].name:SP[BT.s.foe.sp].name;
 async function play(ev){ const s=BT.s;
@@ -111,6 +114,8 @@ async function play(ev){ const s=BT.s;
     if(e.k==='switch'){ s.me={...s.me,sp:e.sp,vis:0,y:0}; setMsg(`Ra sân nào, <b>${esc(SP[e.sp].name)}</b>!`); const p=BT.v.party.find(x=>x.sp===e.sp&&x.hp>0); if(p) Object.assign(s.me,{hp:p.hp,max:p.max,lv:p.lv}); await tween(s.me,'vis',1,350); await sleep(300); continue; }
     if(e.k==='heal'){ setMsg(`🧪 Hồi ${e.n} máu`); await tween(s.me,'hp',s.me.hp+e.n,400); continue; }
     if(e.k==='run'){ setMsg('Rút lui an toàn!'); await sleep(600); continue; }
+    if(e.k==='won'){ setMsg(`🏆 Thắng! +${e.exp} EXP huấn luyện viên`); GAME.sfx('level_up',.5); await sleep(900); continue; }
+    if(e.k==='release'){ setMsg(`${esc(SP[e.sp].name)} chạy vào bụi cỏ, ngoái lại vẫy đuôi cảm ơn`); await tween(BT.s.foe,'vis',0,500); continue; }
     if(e.k==='lose'){ setMsg('Không còn Lính Cát nào chiến đấu được...'); await sleep(900); continue; }
     if(e.k==='arrest'){ BT.flash=1; setMsg('🚓 <b>Kiểm lâm phát hiện!</b> Bị bắt vì làm hại động vật hoang dã!'); GAME.sfx('poof',.6); await sleep(1800); continue; } } }
 // ném bóng: bay vòng cung → đối thủ chui vào bóng → bóng rơi, lắc → bắt được (sao lấp lánh) hoặc bóng bật mở
