@@ -51,7 +51,9 @@ function bview(pl){ const b=pl.lcb, r=rec(pl.prof); if(!b) return null; const me
   return {kind:b.kind,foe:{sp:b.foe.sp,lv:b.foe.lv,hp:b.foe.hp,max:b.foe.max},me:me&&{u:me.u,sp:me.sp,lv:me.lv,hp:me.hp,max:maxHp(me),exp:me.exp,next:S.lcNext(me.lv),moves:S.lcMoves(me.sp,me.lv)},
     canBall:b.kind==='wild',won:!!b.won,party:r.party.map(x=>({u:x.u,sp:x.sp,lv:x.lv,hp:x.hp,max:maxHp(x)})),need:b.need||null}; }
 function start(pl,kind,sp,lv,extra){ const p=pl.prof, r=rec(p); if(!trained(p)) return {err:'Phải học Huấn luyện Lính Cát ở Trung tâm Lính Cát (thị trấn Đà Bắc) trước'};
-  if(pl.lcb) return {err:'Đang đấu rồi'}; if(pl.task) return {err:'Đang bận việc khác'}; const me=r.party.find(x=>x.hp>0); if(!me) return {err:'Lính Cát của bạn kiệt sức hết rồi, về Trung tâm hồi máu'};
+  // còn trận cũ (mạng chậm bảng đấu không mở, đóng bảng giữa chừng): mở lại trận đó để đánh tiếp / bỏ chạy; bỏ quá 2 phút thì huỷ, đấu trận mới
+  if(pl.lcb){ if(now()-(pl.lcb.last||pl.lcb.at)<120000) return {battle:bview(pl),resume:true}; pl.lcb=null; }
+  if(pl.task) return {err:'Đang bận việc khác'}; const me=r.party.find(x=>x.hp>0); if(!me) return {err:'Lính Cát của bạn kiệt sức hết rồi, về Trung tâm hồi máu'};
   const foe={sp,lv,max:S.lcStats(sp,lv).hp}; foe.hp=foe.max; if(!SP[sp].npc&&!r.dex[sp]) r.dex[sp]=1;
   pl.lcb={kind,foe,u:me.u,at:now(),...extra}; markDirty(pl); return {battle:bview(pl)}; }
 on('lcb',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now();
@@ -60,7 +62,7 @@ on('lcb',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now();
   if(op==='farm'){ const f=L.farm[m.i|0]; if(!f||pl.scene!=='retreat'||!near(pl,f[0],f[1],48)) return {err:'Lại gần đàn vật nuôi'}; const lead=r.party.find(x=>x.hp>0);
     if((p.daily.lcfarm||0)>=8) return {err:'Đàn vật nuôi mệt rồi, mai đấu tiếp'}; return start(pl,'farm',f[2],Math.max(3,(lead?lead.lv:5)+Math.floor(Math.random()*5)-2)); }
   if(op==='park'){ const s=S.PARK.spots.find(x=>x.k===m.k), sp=L.park[m.k]; if(!s||!sp||pl.scene!=='retreat'||!near(pl,s.x,s.y,56)) return {err:'Lại gần đàn thú'}; return start(pl,'park',sp,14+Math.floor(Math.random()*10)); }
-  const b=pl.lcb; if(op==='view') return {battle:bview(pl)}; if(!b) return {err:'Không có trận nào'};
+  const b=pl.lcb; if(op==='view') return {battle:bview(pl)}; if(!b) return {err:'Không có trận nào'}; b.last=t;
   const me=active(r,b), ev=[], F=b.foe, end=(res)=>finish(pl,res,ev);
   // đã đánh thắng con hoang: có quyền thu phục chắc chắn (tốn 1 bóng) hoặc thả đi
   if(b.won){ if(op==='release'||op==='run'){ ev.push({k:'release',sp:F.sp}); return end('win'); }
