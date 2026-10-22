@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23o',title:'23/10 (Thợ Rèn + boss)',items:['Thợ Rèn Huyền Thoại bán Khiên của Hắc Hoàng Đế (ô Khiên riêng, đeo cùng vũ khí): máu +20%, hồi máu +80%, giáp +15%, chạy nhanh +15%','Dươngg Vũ còn 50% máu gọi ra 10 Phạm Hoàng Hà vây quanh bắn đạn tròn đỏ hồng','Cửu Vĩ Hồ Ly (Naruto hoá) vẽ lại: 9 đuôi xù như lửa, tai dài, mắt đỏ, nhe nanh vung vuốt']},
   {v:'2026-10-23n',title:'23/10 (cân bằng thưởng)',items:['Thưởng hạ boss MU: Ngọc Cường Hoá giảm 4 lần (×5 thay vì ×20), tiền thưởng giảm 3 lần. D-Day: tiền thưởng giảm 3 lần, thắng được 1 Ngọc Cường Hoá']},
   {v:'2026-10-23m',title:'23/10 · Cổng D-Day + class Đại Tượng + Songoku',items:[
     'Cổng D-Day ở quảng trường MU: đấu 1-1 / 2-2 / 3-3, mỗi đội 1 nhà chính + quái ra theo đợt, phá nhà chính đội kia là thắng. Mỗi ngày 2 trận; thắng được item bí mật huyền thoại, EXP, tiền, ngọc, Trái Ác Quỷ',

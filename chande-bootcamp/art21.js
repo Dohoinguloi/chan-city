@@ -56,6 +56,47 @@ function goku(V,f,ssj){ const {st,bob,atk}=pose(f), O=7, Or=R('#f08a24'), Od=R('
 B21.songoku={w:52,h:74,ax:24,ay:72,anim:ANIM5,draw(V,f){ goku(V,f,false); }};
 B21.songoku_ssj={w:52,h:74,ax:24,ay:72,glow:'rgba(255,220,80,.45)',anim:ANIM5,draw(V,f){ goku(V,f,true); }};
 
+// Phạm Hoàng Hà (lính Dươngg Vũ gọi ra): tóc đen buộc chỏm dựng nhọn, áo giáp lưới xanh lá có túi, áo trong đen, quần xám tối quấn ống, dép xanh, mặt lười biếng.
+// khung: 0 đứng / 1 bước / 2 bắn (2 tay chụm đẩy tới, quả cầu đỏ hồng)
+B21.hoangha={w:24,h:32,ax:11,ay:31,draw(V,f){ const Gn=R('#4a9a3a'), Gd=R('#2e6a26'), Pt=R('#3a3a44'), Sd=R('#2a4ab8'), Hr=[[70,64,80,255],[30,26,36,255],[18,14,24,255],[10,8,14,255]], st=f===1?1:0, sh=f===2;
+  for(const [x,s] of [[8,-1],[13,1]]){ const ax=x+s*st*1.5; V.tube([[x,20],[ax,27]],[2,1.8],Pt,{g:'leg'+x}); V.rect(ax-1,25,3,1,'#d8d4c8'); V.ell(ax+s*.5,29.5,2.4,1.2,Sd,{g:'sd'+x,lift:.15}); }
+  V.poly([[5,12],[16,12],[16,21],[5,21]],R('#24202a'),{g:'in'}); V.poly([[5,12],[10,12],[10,21],[5,21]],Gn,{n:[-.3,-.2,.93],g:'vestL'}); V.poly([[11,12],[16,12],[16,21],[11,21]],Gd,{g:'vestR'});
+  V.rect(6,16,3,2,'#2e6a26').rect(12,16,3,2,'#24501e'); V.ell(10.5,12,4.6,1.6,Gn,{g:'collar',lift:.2});
+  if(sh){ V.tube([[16,13],[19,15],[21,16]],[1.5,1.4,1.3],SKIN,{g:'aR'}); V.tube([[5,13],[13,16],[20,17]],[1.5,1.4,1.3],SKIN,{g:'aL'}); V.ell(22,16,2.6,2.6,[[255,230,240,255],[255,120,170,255],[230,40,110,255],[150,20,70,255]],{g:'orb',lift:.5}); }
+  else { V.tube([[16,13],[17.5,17],[17,20+st]],[1.5,1.4,1.3],SKIN,{g:'aR'}); V.tube([[5,13],[3.5,17],[4,20-st]],[1.5,1.4,1.3],SKIN,{g:'aL'}); }
+  V.ell(10.5,8,4.6,4.8,SKIN,{g:'head'}); V.ell(10.5,4.6,4.8,2.6,Hr,{g:'hair'}); V.poly([[8,4],[10,-2+3],[12,4]],Hr,{g:'knot'});
+  for(const pts of [[[9,3],[7,0],[10,2]],[[10,2],[10.5,0],[11.5,2]],[[11,3],[14,0],[12,4]]]) V.poly(pts,Hr,{g:'spk'});   /* chỏm tóc dựng nhọn */
+  V.rect(6,5,1,4,'#1c1820').rect(14,5,1,4,'#1c1820'); V.line(8,8,10,8,K).line(12,8,14,8,K); V.line(9.5,11,11.5,11,'#a85a4a'); }};   /* mắt lim dim chán đời */
+
+// Cửu Vĩ Hồ Ly (Naruto hoá): cáo khổng lồ lông cam, 9 đuôi xù xoè sau lưng uốn lượn theo khung, tai dài trong nâu đỏ, vệt đen quanh mắt kéo lên trán,
+// mắt đỏ đồng tử dọc, mõm dài nhe nanh, tay trước có vuốt đen, hào quang chakra đỏ. Ra đòn: chồm tới vung vuốt, há mõm
+B21.cuuvi={w:124,h:106,ax:62,ay:102,glow:'rgba(255,60,20,.45)',anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose(f), Or=R('#ff7a1a'), Od=R('#d8560e'), Ol=R('#ffa04a'), In=R('#5a1a0a'), Bk='#1c0c08', ph=f*.9, hy=bob-(atk?2:0), lx=atk?4:0;
+  for(let i=0;i<9;i++){ const a=-2.95+i*.24, L=44+(i%3)*5, b0=[52,62+bob], dx=Math.cos(a), dy=Math.sin(a), px=-dy, py=dx, w=Math.sin(i*1.7+ph)*6;
+    const pt=(k,ww)=>[b0[0]+dx*L*k+px*ww,b0[1]+dy*L*k+py*ww];   /* đuôi xù: dày giữa, nhọn ngọn, uốn chữ S lay theo khung, có vệt lông sáng dọc đuôi */
+    V.tube([b0,pt(.25,w),pt(.5,-w*.6),pt(.75,w*.8),pt(1,w*1.2)],[6,9,10,7,1.5],i%2?Or:Od,{g:'tail'+i,flat:.15}); V.tube([pt(.3,w*.9),pt(.5,-w*.6),pt(.72,w*.7)],[2.4,3,2],Ol,{g:'tl'+i,lift:.2}); }
+  V.tube([[56,82],[54,92],[58,99]],[5,4.2,3.6],Od,{g:'hlF'}); V.ell(59,100,5.5,2.2,In,{g:'hpF'});
+  V.ell(46,74+bob,16,13,Or,{g:'haunch'}); V.tube([[44,80],[38-st*2,91],[42-st*3,99]],[7,6,5],Or,{g:'hl'}); V.ell(43-st*3,100,6.5,2.4,Od,{g:'hp'}); for(const x of [38,41,44]) V.px(x-st*3,101,Bk);
+  V.ell(64+lx/2,68+bob,25,15,Or,{g:'body'}); V.ell(81+lx,64+bob,13,14,Ol,{g:'chest',lift:.1});
+  V.tube([[78+lx,72],[82+st*2,86],[86+st*3,99]],[6.5,5.5,4.6],Od,{g:'armF'}); V.ell(87+st*3,100,5.5,2.2,In,{g:'pawF'});
+  if(atk){ V.tube([[86,70],[99,64],[109,58]],[6,5,4.4],Or,{g:'arm'}); V.ell(111,57,5,4.6,Or,{g:'paw',lift:.2}); for(const [x0,y0,x1,y1] of [[113,53,118,49],[115,56,121,54],[114,60,119,62]]) V.line(x0,y0,x1,y1,Bk); }
+  else { V.tube([[86,72],[90-st*2,86],[92-st*3,99]],[7,6,5],Or,{g:'arm'}); V.ell(93-st*3,100,6,2.4,Or,{g:'paw',lift:.2}); for(const x of [90,93,96]) V.line(x-st*3,100,x-st*3+1,102,Bk); }
+  const hx0=88+lx; V.ell(hx0,43+hy,18,15,Or,{g:'head'}); V.ell(hx0-6,50+hy,9,6,Ol,{g:'cheek',lift:.05}); V.ell(hx0+15,51+hy,12,atk?8:7,Or,{g:'snout'}); V.ell(hx0+26,48+hy,2.8,2.2,R('#1c0c08'),{g:'nose',lift:.4});
+  if(atk){ V.poly([[hx0+6,53+hy],[hx0+24,51+hy],[hx0+20,60+hy],[hx0+8,59+hy]],R('#3a0806'),{n:[0,0,1],g:'jaw'}); for(let x=hx0+8;x<hx0+23;x+=3){ V.rect(x,52+hy,1,3,'#ffffff'); V.rect(x+1,57+hy,1,2,'#ffffff'); } }
+  else { V.line(hx0+6,55+hy,hx0+22,53+hy,Bk); V.rect(hx0+10,55+hy,1,2,'#ffffff').rect(hx0+18,54+hy,1,2,'#ffffff'); }
+  V.poly([[hx0-12,37+hy],[hx0-16,6+hy],[hx0-1,32+hy]],Or,{n:[0,0,1],g:'earL'}); V.poly([[hx0-10,34+hy],[hx0-14,13+hy],[hx0-4,31+hy]],In,{n:[0,0,1],g:'earLi'});   /* tai dài, lòng nâu đỏ */
+  V.poly([[hx0+1,32+hy],[hx0+7,4+hy],[hx0+13,33+hy]],Od,{n:[0,0,1],g:'earR'}); V.poly([[hx0+4,31+hy],[hx0+7,11+hy],[hx0+10,31+hy]],In,{n:[0,0,1],g:'earRi'});
+  V.poly([[hx0+1,42+hy],[hx0-3,30+hy],[hx0+5,40+hy]],R('#1c0c08'),{g:'mark1'}); V.poly([[hx0+11,41+hy],[hx0+10,31+hy],[hx0+14,40+hy]],R('#1c0c08'),{g:'mark2'});   /* vệt đen quanh mắt kéo lên trán */
+  for(const ex of [hx0+1,hx0+10]){ V.rect(ex,41+hy,6,3,'#ff2a1a').rect(ex+1,40+hy,4,1,'#ff2a1a'); V.rect(ex+3,40+hy,1,4,Bk); V.px(ex+1,41+hy,'#ffe066'); V.line(ex-1,39+hy,ex+6,40+hy,Bk); }
+  for(const [x,y] of [[hx0+8,48],[hx0+9,50],[hx0+10,52]]) V.line(x,y+hy,x+5,y+hy,Bk);   /* vệt râu trên má */
+  for(let i=0;i<7;i++){ const a=i*.9+ph, r=30+(i%3)*6; V.px(Math.round(64+Math.cos(a)*r*1.4),Math.round(62+Math.sin(a)*r*.8),i%2?'#ff4a2a':'#ffb050'); } }};   /* bọt chakra */
+
+// Khiên của Hắc Hoàng Đế: khiên đen tuyền viền vàng, mặt quỷ sừng vàng mắt đỏ, ngọc đỏ giữa trán. big: hình to cho quầy Thợ Rèn, không thì bản nhỏ đeo trên tay
+const SHIELD={}; A.muShield=(k,big)=>SHIELD[k+!!big]||(SHIELD[k+!!big]=(()=>{ const V=vol(26,30), Bk=R('#2a2234'), Gd=R('#e8b830');
+  V.poly([[2,3],[24,3],[24,14],[13,28],[2,14]],Bk,{n:[-.2,-.3,.93],g:'face'}); for(const pts of [[[2,3],[24,3]],[[24,3],[24,14],[13,28]],[[2,3],[2,14],[13,28]]]) V.tube(pts,1.3,Gd,{g:'rim'});
+  V.poly([[7,10],[4,3],[10,8]],Gd,{g:'hornL'}); V.poly([[19,10],[22,3],[16,8]],Gd,{g:'hornR'}); V.rect(7,12,4,2,'#ff2a2a').rect(15,12,4,2,'#ff2a2a'); V.px(8,12,'#ffe8a0').px(16,12,'#ffe8a0');
+  V.line(7,11,11,12,'#0c0810').line(15,12,19,11,'#0c0810'); V.ell(13,9,1.8,1.8,R('#e8302a'),{g:'gem',lift:.5}); for(const x of [9,12,15]) V.rect(x,18,2,3,'#f4f0e8'); V.rect(8,17,10,1,'#0c0810');
+  const c=V.done(false,{glow:'rgba(255,60,60,.3)',gr:1}); if(big) return {c,ax:13,ay:28}; const sm=A.cv(13,15), g=sm.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(c,0,0,13,15); return {c:sm,ax:6,ay:14}; })());
+
 const C21={}, old=A.muBossSprite, oldAnim=A.bossAnim;
 A.bossAnim=sp=>B21[sp]?B21[sp].anim:oldAnim?oldAnim(sp):null;
 A.muBossSprite=(sp,fr,hit)=>{ const d=B21[sp]; if(!d) return old(sp,fr,hit); const k=sp+fr+!!hit; if(C21[k]) return C21[k]; const V=vol(d.w,d.h); d.draw(V,fr|0);
