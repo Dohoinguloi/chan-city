@@ -949,7 +949,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
         {k:'xichcua',kind:'cross',name:'Xích Cưa Tứ Phương',every:14,warn:1.2,n:4,waves:2,gap:600,range:8,w:.9,dmg:34,phase:2},{k:'cuatruy',kind:'chase',name:'Cưa Truy Hồn',every:12,warn:2.2,lock:.45,r:2,dmg:38,phase:3},
         {k:'xoaycua',kind:'ring',name:'Bão Cưa Xoay',every:12,warn:1.4,r:4.5,dmg:30,phase:2},{k:'manh',kind:'multi',name:'Mưa Mảnh Kim Loại',every:11,warn:1.5,n:4,r:1.6,dmg:20,phase:3}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.6,drops:'cuamay',basicOnly:1,
-      spin:{hits:8,win:3,dur:3,r:3,tick:.5,dmg:8,mul:4,cd:6},call:{k:'reze',hp:.5},pochita:{every:22,dur:6,first:8,nuke:{warn:3,dmg:70,safe:2.6,fx:{stun:1}}}},
+      spin:{hits:8,win:3,dur:3,r:3,tick:.5,dmg:8,mul:4,cd:6,resist:.5},   /* đang xoay cưa: phép chỉ bị kháng 50% (gây nửa sát thương), không xoay thì miễn phép hoàn toàn */call:{k:'reze',hp:.5},pochita:{every:22,dur:6,first:8,nuke:{warn:3,dmg:70,safe:2.6,fx:{stun:1}}}},
     /* Quỷ Cưa: miễn phép, chỉ mất máu vì đánh thường; bị đánh dồn (8 đòn / 3 giây) thì xoay cưa vòng tròn 3 giây, mọi đòn ×4; còn 50% gọi Quỷ Bom Reze;
        có Reze thì cứ 22 giây hoá Pochita 6 giây (đứng im, không đánh), lúc đó Reze thả bom hạt nhân phủ cả khu, chỉ nấp sát Pochita (2,6 ô) là an toàn */
     reze:{name:'Quỷ Bom Reze',sprite:'reze',summon:1,every:12*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:22},area:{x0:72,x1:94,y0:17,y1:27},

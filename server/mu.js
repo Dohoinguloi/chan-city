@@ -163,7 +163,7 @@ function dmgBoss(B,pl,d,t,src){ if(!bossTurn(pl,B)) return -1; if(B.ghostU>t) re
   const bs=BS[B.id]; if(bs.spin&&!(B.pochU>t)){ const S0=bs.spin; B.hitT=(B.hitT||[]).filter(x=>t-x<S0.win*1000); B.hitT.push(t); if(B.hitT.length>=S0.hits&&!(B.spinU>t)&&t>=(B.spinCd||0)){ B.spinU=t+S0.dur*1000; B.spinCd=B.spinU+S0.cd*1000; B.spinNext=t; B.hitT=[]; bcast({t:'mufx',k:'bspin',boss:B.id,x:B.x,y:B.y}); } }   /* bị đánh dồn: xoay cưa */
   if(bs.rage&&t>=(B.rageCd||0)){ const G0=bs.rage; B.rageT=(B.rageT||[]).filter(x=>t-x<G0.win*1000); B.rageT.push(t);   /* bị đánh dồn: ra đòn nổi giận (Doraemon: mưa bánh rán) */
     if(B.rageT.length>=G0.hits){ B.rageT=[]; B.rageCd=t+G0.cd*1000; if(startAttack(B,G0.atk,t,B.phase===3?bs.enrage.mul:1)){ bcast({t:'mufx',k:'brage',boss:B.id,name:G0.atk.name}); pushBoss(); } } }
-  if(bs.basicOnly&&src!=='basic') return -5;   /* -5: miễn phép, chỉ đánh thường mới mất máu */
+  if(bs.basicOnly&&src!=='basic'){ if(!(B.spinU>t&&bs.spin&&bs.spin.resist!=null)) return -5; d=Math.max(1,Math.round(d*(1-bs.spin.resist))); }   /* -5: miễn phép, chỉ đánh thường mới mất máu; đang xoay cưa thì phép vào được 50% */
   for(const G of [B.guardU>t&&B.guard,formOf(B).guard]) if(G) d=Math.max(1,Math.round(d*(1-(src==='basic'?G.armor:G.resist))));   /* hộ thể: giáp giảm đòn đánh thường, kháng phép giảm chiêu / Lính Cát / hiệu ứng */ if(Math.random()<dodgeOf(B,t)) return 0;   /* -3: đang là bóng ma */ B.hp-=d; B.dmg.set(pl.uid,(B.dmg.get(pl.uid)||0)+d); if(B.hp<=0) bossDie(B,pl); return d; }
 // người bị nuốt: dính vào giữa người boss; nhổ ra cạnh boss khi hết giờ / boss chết / người gục
 function holdIn(B,q){ q.x=B.x*T; q.y=B.y*T; q.budget=0; send(q,{t:'pos',x:q.x,y:q.y}); }
