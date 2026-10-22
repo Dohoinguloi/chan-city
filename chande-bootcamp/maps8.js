@@ -364,11 +364,11 @@ function openPas(){ UI.open('⭐ Nội tại',()=>{ if(!ME||!ME.cls) return '<p>
 UI.onAct('mupas',async d=>{ const r=await GAME.act({t:'mu',op:'pas',k:d.k}); if(r&&!r.err) GAME.sfx('level_up',.4); UI.refresh(); });
 UI.onAct('mupasreset',async()=>{ const r=await GAME.act({t:'mu',op:'pasreset'}); if(r&&!r.err) toast(esc(r.msg),'item'); UI.refresh(); });
 // vẽ phụ kiện trên người (mình + người khác, mọi map): aura dưới chân, cánh sau lưng (đi lên thì cánh ở trước), vật hộ thân bay cạnh vai, dây chuyền trên ngực
-function accPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look&&GAME.G.look.acc; if(me&&Object.keys(me).length&&!P.incar) out.push({x:P.x,y:P.y,face:P.face,view:P.view,acc:me,mv:P.moving,k:'me'});
-  for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; if(r._lk!==r.look){ r._lk=r.look; try{ r._acc=JSON.parse(r.look).acc||null; }catch(e){ r._acc=null; } } if(r._acc&&Object.keys(r._acc).length) out.push({x:r.x,y:r.y,face:r.face,view:r.view,acc:r._acc,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),k:r.id}); }
+function accPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look&&GAME.G.look.acc; if(me&&Object.keys(me).length&&!P.incar) out.push({x:P.x,y:P.y,face:P.face,view:P.view,acc:me,mv:P.moving,rd:!!P.riding,k:'me'});
+  for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; if(r._lk!==r.look){ r._lk=r.look; try{ r._acc=JSON.parse(r.look).acc||null; }catch(e){ r._acc=null; } } if(r._acc&&Object.keys(r._acc).length) out.push({x:r.x,y:r.y,face:r.face,view:r.view,acc:r._acc,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!((r.fl||0)&SD.FL.ride),k:r.id}); }
   return out; }
-function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, X0=Math.round(o.x-cam.x), Y0=Math.round(o.y-cam.y), side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
-  if(a.aura&&AC[a.aura]){ const col=AC[a.aura].col; list.push({y:o.y-.6,d:()=>{ const g=ctx, cy=Y0-1; g.save(); g.globalCompositeOperation='lighter';
+function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, Xg=Math.round(o.x-cam.x), Yg=Math.round(o.y-cam.y), X0=Xg+(o.rd?-4*o.face:0), Y0=Yg-(o.rd?8:0),   /* đang cưỡi ngựa: người ngồi cao hơn 8px, lùi 4px */ side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
+  if(a.aura&&AC[a.aura]){ const col=AC[a.aura].col; list.push({y:o.y-.6,d:()=>{ const g=ctx, cy=Yg-1, X0=Xg; g.save(); g.globalCompositeOperation='lighter';
       const gr=g.createRadialGradient(X0,cy,0,X0,cy,19); gr.addColorStop(0,col+'66'); gr.addColorStop(1,col+'00'); g.fillStyle=gr; g.beginPath(); g.ellipse(X0,cy,19,7.5,0,0,7); g.fill();
       g.strokeStyle=col; g.lineWidth=1; g.globalAlpha=.85; g.beginPath(); g.ellipse(X0,cy,16,6,0,0,7); g.stroke();
       for(let i=0;i<6;i++){ const t=clock*1.4+i*1.047; g.beginPath(); g.ellipse(X0,cy,11.5,4.3,0,t,t+.55); g.stroke(); }

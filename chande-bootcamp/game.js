@@ -778,7 +778,7 @@ function update(dt){
   if(hit('h')&&!P.moto&&!P.riding&&(S.kind==='retreat'||S.kind==='dalat')&&rideChoices().length>1){ if(tileAt(P.x,P.y)==='L') toast('Đang ở dưới nước, lên bờ đã','lock'); else UI.rides(); }   // có nhiều xe / ngựa: mở bảng chọn
   else if(hit('h')&&(S.kind==='retreat'||S.kind==='dalat')&&(P.moto||(G.moto&&G.moto.until>NET.now()))&&!P.riding){ if(P.moto) act({t:'moto',op:'dismount'}).then(r=>{ if(!r.err){ P.moto=null; toast('Xuống xe','item'); } }); else mountMoto(); }
   else if(hit('h')&&!P.riding&&tileAt(P.x,P.y)==='L') toast('Đang ở dưới nước, lên bờ rồi mới lên ngựa được','lock');
-  else if(hit('h')&&(S.kind==='dalat'||S.kind==='retreat')) act({t:'horse',op:P.riding?'dismount':'mount'}).then(r=>{ if(!r.err){ P.riding=!P.riding; toast(P.riding?'Lên ngựa! Chạy nhanh hơn, chở được 3 thùng hàng':'Xuống ngựa','item'); } });
+  else if(hit('h')&&(S.kind==='dalat'||S.kind==='retreat'||S.kind==='mu')) act({t:'horse',op:P.riding?'dismount':'mount'}).then(r=>{ if(!r.err){ P.riding=!P.riding; toast(P.riding?'Lên ngựa! Chạy nhanh hơn, chở được 3 thùng hàng':'Xuống ngựa','item'); } });
   if(hit('x')&&SOC_ME()) NET.send({t:'soc',op:'end'});
   const sock=SOC_ME();
   if(sock&&sock.kind==='vattay'&&hit(' ')) NET.send({t:'soc',op:'mash'});
