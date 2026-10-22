@@ -850,19 +850,75 @@ NPC_LOOKS.duongvu={name:'Dương Vũ (Zen Design System)',look:{gender:'nam',hai
 ITEMS.zen_token={name:'Zen Token',icon:'zentoken'};
 /* ---------- MU Online · Lục Địa Cát: thế giới game MU trong Chan City ----------
    Gặp Vệ binh chọn 1 trong 3 class, được tặng free 1 bộ giáp + vũ khí (mặc như trang phục). Đánh nhau theo thời gian thực: phím 1 / 2 / 3 dùng chiêu
-   (tốn mana, có hồi chiêu, phải đứng trong tầm). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút Quỷ Vương Bóng Đêm xuất hiện ở đền phía Bắc,
+   (tốn mana, có hồi chiêu, phải đứng trong tầm). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút boss Luffy Gear 5 xuất hiện ở đền phía Bắc,
    cả server cùng đánh, ai gây sát thương đều có thưởng (EXP, tiền, ngọc). Gục thì 8 giây sau hồi sinh ở cổng thành. Máu / mana / cấp MU riêng. */
-const MU={W:44,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
+const MU={W:96,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
   cls:{dk:{name:'Chiến Binh Bóng Tối',en:'Dark Knight',hp:160,mp:40,atk:20,def:12,col:'#c8302a',set:'mu_dk',desc:'Giáp đỏ, kiếm lớn, cận chiến. Máu trâu, giáp dày, chém xoáy cực mạnh.'},
     elf:{name:'Tiên Nữ',en:'Fairy Elf',hp:115,mp:90,atk:15,def:8,col:'#f2c43d',set:'mu_elf',desc:'Áo trắng viền vàng, cung tên, đánh xa. Hồi máu cho cả đội, rất được việc khi đánh boss.'},
     dw:{name:'Phù Thuỷ Bóng Tối',en:'Dark Wizard',hp:95,mp:130,atk:25,def:6,col:'#3a6ad8',set:'mu_dw',desc:'Giáp xanh, gậy phép, phép thuật. Máu giấy nhưng sát thương phép to nhất.'}},
   skills:{dk:[{k:'chem',name:'Chém',mp:0,cd:.8,mul:1,range:2.4},{k:'xoay',name:'Chém Xoáy',mp:12,cd:5,mul:2.1,range:2.8},{k:'gong',name:'Gồng Giáp',mp:20,cd:18,buff:'def',dur:8,heal:.15}],
     elf:[{k:'ban',name:'Bắn Tên',mp:0,cd:1,mul:.95,range:7},{k:'tamtien',name:'Tam Tiễn',mp:10,cd:4,mul:1.9,range:7},{k:'hoi',name:'Hồi Máu',mp:25,cd:12,heal:.35,team:6}],
     dw:[{k:'caulua',name:'Cầu Lửa',mp:4,cd:1.3,mul:1.25,range:6},{k:'set',name:'Sấm Sét',mp:14,cd:5,mul:2.4,range:6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:6}]},
-  boss:{name:'Quỷ Vương Bóng Đêm',every:20*60e3,life:10*60e3,hp:3000,perPlayer:1400,def:8,hit:{every:2.5,dmg:20,range:5},aoe:{every:10,warn:1.8,r:3,dmg:55},
-    reward:{exp:150,vnd:200000,mu:120,jewel:.35},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen']},
+  // boss tổng Luffy Gear 5 + boss phụ Naruto Cửu Vĩ (rừng Làng Lá phía Đông). Đòn của boss: single (đánh 1 người), circle (vùng tròn ở chỗ 1 người), multi (n vùng cùng lúc),
+  // cone (hình nón trước mặt, nhiều nhát), jump (nhảy tới chỗ 1 người, đáp xuống gây sát thương), ring (sóng quanh boss). Mọi đòn có cảnh báo (warn giây), né được:
+  // tới lúc nổ mà đã ra khỏi vùng thì không mất máu. phase: chỉ dùng khi máu boss xuống dưới mốc (2: <60%, 3: <30%); giai đoạn 3 boss nổi giận (đánh mạnh + nhanh hơn).
+  bosses:{
+    luffy:{name:'Luffy Gear 5',sprite:'luffy',every:20*60e3,offset:0,life:10*60e3,hp:3500,perPlayer:2200,def:12,home:{x:22,y:6.6},area:{x0:4,x1:40},big:1,
+      attacks:[{k:'pistol',kind:'single',name:'Gomu Gomu Pistol',every:3.2,warn:.7,range:7,r:1.4,dmg:24},{k:'gatling',kind:'cone',name:'Gomu Gomu Gatling',every:9,warn:1,hits:5,tick:.25,range:6,cone:.55,dmg:9,phase:2},
+        {k:'gigant',kind:'circle',name:'Gomu Gomu Gigant',every:11,warn:1.8,r:3,dmg:58},{k:'rocket',kind:'jump',name:'Gomu Gomu Rocket',every:19,warn:1.3,r:2.2,dmg:36},
+        {k:'drum',kind:'ring',name:'Trống Giải Phóng',every:15,warn:1.6,r:7.5,dmg:34,phase:3}],
+      phases:[.6,.3],enrage:{mul:1.5,speed:1.35},drops:'luffy'},
+    naruto:{name:'Naruto Cửu Vĩ',sprite:'naruto',every:10*60e3,offset:5*60e3,life:7*60e3,hp:1800,perPlayer:1000,def:8,home:{x:57,y:8},area:{x0:45,x1:69},
+      attacks:[{k:'shuriken',kind:'single',name:'Phi Tiêu Gió',every:2.6,warn:.6,range:8,r:1.2,dmg:16},{k:'rasengan',kind:'jump',name:'Rasengan',every:8,warn:1.1,r:1.8,dmg:34},
+        {k:'bunshin',kind:'multi',name:'Ảnh Phân Thân Chi Thuật',every:12,warn:1.4,n:3,r:1.8,dmg:22,phase:2},{k:'roar',kind:'ring',name:'Cửu Vĩ Gầm',every:14,warn:1.5,r:6,dmg:28,phase:3}],
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'naruto'},
+    cuamay:{name:'Quỷ Cưa',sprite:'cuamay',every:12*60e3,offset:3*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:23},area:{x0:72,x1:95},
+      attacks:[{k:'cua',kind:'single',name:'Cưa Xé',every:2.4,warn:.6,range:5,r:1.4,dmg:18},{k:'lao',kind:'jump',name:'Lao Cưa',every:8,warn:1,r:2,dmg:32},
+        {k:'xoaycua',kind:'ring',name:'Bão Cưa Xoay',every:12,warn:1.4,r:4.5,dmg:30,phase:2},{k:'manh',kind:'multi',name:'Mưa Mảnh Kim Loại',every:11,warn:1.5,n:4,r:1.6,dmg:20,phase:3}],
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'cuamay'},
+    duongvu_ma:{name:'Dươngg Vũ',sprite:'gengar',every:15*60e3,offset:8*60e3,life:7*60e3,hp:1900,perPlayer:1050,def:8,home:{x:84,y:8},area:{x0:72,x1:95},
+      attacks:[{k:'bongden',kind:'single',name:'Cầu Bóng Đêm',every:2.8,warn:.7,range:8,r:1.4,dmg:18},{k:'xuyen',kind:'jump',name:'Xuyên Tường',every:9,warn:1.2,r:2,dmg:30},
+        {k:'thoimien',kind:'multi',name:'Thôi Miên',every:11,warn:1.5,n:3,r:1.8,dmg:22,phase:2},{k:'nguyenrua',kind:'ring',name:'Lời Nguyền Zen',every:14,warn:1.6,r:6,dmg:30,phase:3}],
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'duongvu_ma'},
+    rongxanh:{name:'Rồng Dải Xanh',sprite:'rong',every:18*60e3,offset:11*60e3,life:7*60e3,hp:2300,perPlayer:1200,def:10,home:{x:57,y:23},area:{x0:45,x1:69},big:1,
+      attacks:[{k:'longkich',kind:'single',name:'Long Kích',every:3,warn:.8,range:8,r:1.5,dmg:20},{k:'hoithorong',kind:'cone',name:'Hơi Thở Rồng',every:9,warn:1.1,hits:5,tick:.25,range:7,cone:.5,dmg:9},
+        {k:'bonhao',kind:'jump',name:'Bổ Nhào',every:12,warn:1.3,r:2.4,dmg:34},{k:'loc',kind:'ring',name:'Lốc Xoáy Thiên Không',every:14,warn:1.6,r:6.5,dmg:30,phase:2},
+        {k:'thienthachrong',kind:'multi',name:'Thiên Thạch Rồng',every:12,warn:1.6,n:4,r:1.8,dmg:24,phase:3}],
+      phases:[.6,.3],enrage:{mul:1.45,speed:1.3},drops:'rongxanh'}},
+  // phần thưởng boss phụ: ai góp sức đều có EXP + tiền, có tỉ lệ rơi trang phục / vũ khí riêng của boss, lần đầu hạ được thì lộ nhiệm vụ ẩn
+  reward:{luffy:{exp:150,vnd:200000,mu:120,jewel:.35,fruitPer:10},naruto:{exp:100,vnd:120000,mu:80,costume:'mu_naruto',weapon:'vk_kunai',chance:.25,secret:'mu_cuontruc'},
+    cuamay:{exp:100,vnd:120000,mu:80,costume:'mu_cuamay',weapon:'vk_cua',chance:.25,secret:'mu_banhmut'},duongvu_ma:{exp:110,vnd:130000,mu:85,costume:'mu_bongma',weapon:'vk_luoihai',chance:.25,secret:'mu_lua_ma'},
+    rongxanh:{exp:130,vnd:160000,mu:100,costume:'mu_rongxanh',weapon:'vk_vayrong',chance:.22,secret:'mu_vayrong'}},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen'],
+  // bố cục: quảng trường (x 2–41) · rừng Làng Lá (x 44–69: Bắc Naruto, Nam Đầm Rồng) · phía Đông (x 72–95: Bắc nghĩa địa, Nam bãi phế liệu); cổng ở hàng gateN / gateS, tường ngang y 15–16 có lối giữa
+  zones:{gateN:{y0:6,y1:9},gateS:{y0:21,y1:25},split:15,gapF:[55,58],gapE:[82,85],lake:{x:57,y:23,rx:8,ry:4}},
+  // đồ nhiệm vụ ẩn giấu trong từng khu: cuộn trục (rừng Làng Lá), bánh mì phết mứt (bãi phế liệu), đốm lửa ma (nghĩa địa, chỉ hiện ban đêm)
+  hidden:{vay_rong:[[47.5,19.5],[67.5,19.5],[48.5,27.5],[66.5,27.5]],cuon_truc:[[48.5,4.5],[66.5,11.5],[52.5,12.5]],banh_mut:[[75.5,19.5],[92.5,20.5],[78.5,27.5],[90.5,27.5],[86.5,19.5]],lua_ma:[[76.5,4.5],[92.5,5.5],[80.5,13.5]]},
+  weapons:{vk_kunai:{name:'Kunai Phi Lôi Thần',atk:.12,desc:'Rơi từ Naruto: công MU +12%'},vk_cua:{name:'Cưa Máy Quỷ',atk:.15,desc:'Rơi từ Quỷ Cưa: công MU +15%'},vk_luoihai:{name:'Lưỡi Hái Bóng Đêm',atk:.14,desc:'Rơi từ Dươngg Vũ: công MU +14%'},vk_vayrong:{name:'Thương Vảy Rồng',atk:.16,desc:'Rơi từ Rồng Dải Xanh: công MU +16%'}},
+  // Trái Ác Quỷ: hạ Luffy rơi ra (số trái = 1/10 số người góp sức, tối thiểu 1). Ăn vào được chiêu thứ 4 (phím 4) + chỉ số cộng thêm, mỗi người chỉ ăn được 1 trái
+  fruits:{mera:{name:'Trái Lửa (Mera Mera)',col:'#ff6a2a',skill:{k:'hoaquyen',name:'Hoả Quyền',mp:18,cd:9,mul:3.2,range:5},bonus:{atk:.12},desc:'Hoá thân lửa: tung nắm đấm lửa khổng lồ. Công +12%'},
+    hie:{name:'Trái Băng (Hie Hie)',col:'#7fd8f0',skill:{k:'kybanghao',name:'Kỷ Băng Hà',mp:18,cd:11,mul:2.6,range:6,slow:3},bonus:{def:.15},desc:'Đóng băng đất trời, làm boss ra đòn chậm lại 3 giây. Thủ +15%'},
+    goro:{name:'Trái Sấm (Goro Goro)',col:'#ffd84a',skill:{k:'loithan',name:'Lôi Thần',mp:22,cd:12,mul:3.6,range:7},bonus:{atk:.08,mp:.15},desc:'Gọi sấm sét thần linh giáng xuống. Công +8%, mana +15%'},
+    gomu:{name:'Trái Cao Su (Gomu Gomu)',col:'#c8402a',skill:{k:'gomupistol',name:'Gomu Gomu Pistol',mp:10,cd:5,mul:2.6,range:8},bonus:{hp:.2},desc:'Người cao su: tay dài ra đấm cực xa. Máu +20%'},
+    yami:{name:'Trái Bóng Tối (Yami Yami)',col:'#5a2a8a',skill:{k:'hoden',name:'Hố Đen',mp:20,cd:12,mul:2.8,range:6,drain:.35},bonus:{hp:.08,atk:.06},desc:'Mở hố đen nuốt chửng kẻ địch, hút 35% sát thương thành máu. Máu +8%, công +6%'},
+    chiyu:{name:'Trái Chữa Lành (Chiyu Chiyu)',col:'#5fe06a',skill:{k:'chualanh',name:'Chữa Lành Vạn Vật',mp:24,cd:14,heal:.5,team:8},bonus:{mp:.2},desc:'Hồi 50% máu cho mình và đồng đội quanh 8 ô. Mana +20%'}},
   respawn:8,regen:{hp:.02,mp:.04},duel:{range:14,exp:40,mu:60},lvExp:lv=>60+lv*40,maxLv:50};
-const muStats=(cls,lv)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08; return {hp:Math.round(c.hp*k),mp:Math.round(c.mp*(1+(lv-1)*.05)),atk:Math.round(c.atk*k),def:Math.round(c.def*(1+(lv-1)*.06))}; };
+// tương thích code cũ: MU.boss = boss tổng Luffy (đánh thường + chưởng vùng kiểu cũ)
+MU.boss={...MU.bosses.luffy,hit:{every:2.5,dmg:20,range:5},aoe:{every:10,warn:1.8,r:3,dmg:55},reward:MU.reward.luffy,jewels:MU.jewels};
+const muStats=(cls,lv,fruit,wep)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, b=(fruit&&MU.fruits[fruit]&&MU.fruits[fruit].bonus)||{}, w=(wep&&MU.weapons[wep])||{};
+  return {hp:Math.round(c.hp*k*(1+(b.hp||0))),mp:Math.round(c.mp*(1+(lv-1)*.05)*(1+(b.mp||0))),atk:Math.round(c.atk*k*(1+(b.atk||0))*(1+(w.atk||0))),def:Math.round(c.def*(1+(lv-1)*.06)*(1+(b.def||0)))}; };
+for(const [k,f] of Object.entries(MU.fruits)) ITEMS['taq_'+k]={name:f.name,icon:'fruit_'+k};
+ITEMS.vk_kunai={name:'Kunai Phi Lôi Thần',icon:'kunai'}; ITEMS.vk_cua={name:'Cưa Máy Quỷ',icon:'chainsaw'}; ITEMS.vk_luoihai={name:'Lưỡi Hái Bóng Đêm',icon:'scythe'}; ITEMS.vk_vayrong={name:'Thương Vảy Rồng',icon:'spear'}; ITEMS.vay_rong={name:'Vảy Rồng Dải Xanh',icon:'scale'};
+ITEMS.cuon_truc={name:'Cuộn trục Hokage',icon:'scroll'}; ITEMS.banh_mut={name:'Bánh mì phết mứt',icon:'jambread'}; ITEMS.lua_ma={name:'Đốm lửa ma',icon:'ghostfire'};
+Object.assign(CLOTHES,{mu_naruto:{name:'Đồ ninja cam (Naruto)',slot:'top',price:0,hidden:true,mu:true,set:'mu_naruto',opts:{top:'jacket'},colors:{top:'f2802a',inner:'1c1820',pants:'f2802a',shoes:'2a4ab8'}},
+  mu_hokage:{name:'Áo choàng Hokage',slot:'top',price:0,hidden:true,mu:true,set:'mu_hokage',opts:{top:'long'},colors:{top:'f4f2ec',pants:'2a2a34',shoes:'2a4ab8'}},
+  mu_cuamay:{name:'Đồ thợ săn quỷ (Quỷ Cưa)',slot:'top',price:0,hidden:true,mu:true,set:'mu_cuamay',opts:{top:'suit'},colors:{top:'1c1820',shirt:'f4f2ec',tie:'1c1820',pants:'1c1820',shoes:'1c1820'}},
+  mu_bongma:{name:'Áo choàng bóng ma tím (Dươngg Vũ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_bongma',opts:{top:'long'},colors:{top:'6a4ab0',pants:'4a2a8a',shoes:'2a1a4a'}},
+  mu_rongxanh:{name:'Giáp vảy Rồng Dải Xanh',slot:'top',price:0,hidden:true,mu:true,set:'mu_rongxanh',opts:{top:'long'},colors:{top:'2a8a4a',pants:'1a5a30',shoes:'1c1820'}},
+  mu_chu_cua:{name:'Mũ lưỡi cưa (thưởng nhiệm vụ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_chu_cua',opts:{top:'tee'},colors:{top:'f2802a',pants:'1c1820',shoes:'1c1820'}}});
+Object.assign(QUESTS,{mu_cuontruc:{giver:'mu_guard',secret:true,title:'🔍 3 cuộn trục Hokage',desc:'Hạ Naruto xong, cậu ấy để lộ bí mật: 3 cuộn trục Hokage giấu trong rừng Làng Lá phía Đông. Tìm đủ 3 cuộn mang về cho Vệ binh (thưởng Áo choàng Hokage).',need:{cuon_truc:3},reward:{exp:400,vnd:500000},cloth:'mu_hokage'},
+  mu_banhmut:{giver:'mu_guard',secret:true,title:'🔍 Bữa sáng của Quỷ Cưa',desc:'Quỷ Cưa mê bánh mì phết mứt. Nhặt đủ 5 lát giấu quanh bãi phế liệu mang về cho Vệ binh (thưởng mũ lưỡi cưa).',need:{banh_mut:5},reward:{exp:380,vnd:450000},cloth:'mu_chu_cua'},
+  mu_vayrong:{giver:'mu_guard',secret:true,title:'🔍 4 vảy Rồng Dải Xanh',desc:'Rồng Dải Xanh rụng 4 chiếc vảy quanh Đầm Rồng. Nhặt đủ 4 vảy mang về cho Vệ binh.',need:{vay_rong:4},reward:{exp:450,vnd:600000}},
+  mu_lua_ma:{giver:'mu_guard',secret:true,title:'🔍 Đốm lửa của Dươngg Vũ',desc:'Nửa đêm nghĩa địa có 3 đốm lửa ma lập loè. Gom đủ 3 đốm (chỉ hiện ban đêm giờ game) mang về cho Vệ binh.',need:{lua_ma:3},reward:{exp:420,vnd:550000}}});
 Object.assign(CLOTHES,{mu_dk:{name:'Giáp Rồng Đỏ + Kiếm (Chiến Binh)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dk',opts:{top:'long'},colors:{top:'a8282a',pants:'7a1a1e',shoes:'3a3a44'}},
   mu_elf:{name:'Áo Tiên Thánh + Cung (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
   mu_dw:{name:'Giáp Pháp Sư Xanh + Gậy (Phù Thuỷ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dw',opts:{top:'long'},colors:{top:'2a4ab8',pants:'2a3a8a',shoes:'1c1820'}}});
@@ -1067,7 +1123,7 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
 const SCENE_DEST={mu:'mu',lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={mu:[44,30],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_SIZE={mu:[96,30],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
