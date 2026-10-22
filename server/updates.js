@@ -4,6 +4,12 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23e',title:'23/10 · Rừng quái MU + Ngọc Cường Hoá',items:['MU mở rộng rừng quái phía Nam (đi cổng Nam quảng trường, lối Nam Đầm Rồng / Bãi Phế Liệu): 9 khu, 9 loài quái đi theo bầy (Slime Bí Ngô, Bọ Cạp Tím, Pháp Sư Đen, Người Sói, Bóng Ma, Quỷ Khổng Lồ, Người Đá, Linh Hồn Sọ Hươu, Chó Ba Đầu), càng sâu càng mạnh. Đánh quái được tiền, EXP, EXP MU, chiến lợi phẩm, có thể rơi Ngọc Cường Hoá. Trong rừng có cả Lính Cát hoang',
+    'Ngọc Cường Hoá: Phù Thuỷ Cường Hoá (góc Tây Nam quảng trường MU) khắc 12 lỗ cho vũ khí, giáp, set legacy, phụ kiện, giày. Lỗ càng sâu càng khó (lỗ cuối 7%), Lính Cát đầu đội cấp cao cộng tỉ lệ, mỗi loài Lính Cát huyền thoại tặng 1 Ngọc Huyền Thoại (80%). Ngọc rơi từ boss, quái rừng, nhiệm vụ ẩn, vớt dưới hồ Ké',
+    'Tiệm Giày Lướt Gió (góc Tây Bắc quảng trường MU): 15 đôi giày đi nhanh hơn ở mọi map + chỉ số đánh boss, Ván Trượt Vàng mạnh nhất (+32% tốc độ)',
+    'Vũ khí Thợ Rèn giờ cầm trên tay nhân vật, ai cũng thấy; cường hoá từ +7 vũ khí phát sáng theo hệ',
+    'Top 1 / 2 / 3 đại gia có lửa rực vàng / đỏ / xanh lá trên đầu. Bảng xếp hạng thêm tab Lực chiến MU',
+    'Sổ sưu tầm có gợi ý tìm đủ Kỷ vật Bearplus. Chưa được cúp Site of the Day thì mỗi ngày nộp lại Awwwards 1 lần']},
   {v:'2026-10-23d',title:'23/10 (sửa lỗi)',items:['Sửa lỗi Lính Cát báo "Đang đấu rồi" mà không thấy trận nào: giờ bấm lại là mở đúng trận đang dở để đánh tiếp hoặc bỏ chạy']},
   {v:'2026-10-23c',title:'23/10 (bổ sung)',items:['Ưu đãi học viên & nhân viên: học ở DAS hoặc làm ở Bearplus, Lumen, Everfit thì mua đồ giảm 20% (quần áo, đồ ăn uống, hạt giống, vật nuôi, đồ Lính Cát, ngựa, đồ MU). HUD hiện 🎓 -20% mua đồ']},
   {v:'2026-10-23b',title:'23/10 · Ngày Mèn Mén Thế Giới 🎉',items:['Chào mừng Ngày Mèn Mén Thế Giới: toàn dân Chan City mỗi người được tặng 2.000.000đ (vào game là nhận, tới hết 30/10)','Set 16Typh: chiêu 5 gọi Min ra được cả khi chưa có boss, Min tự hát đánh boss trong 9 ô','Lính Cát đi theo cả khi cưỡi ngựa / thần thú','MU: mua / thuê ngựa ngay ở Người Thuần Thú','Game mượt hơn: hết giật mỗi giây, đi sang khu mới của map không bị khựng, vào lại game tải nhanh hơn (trình duyệt giữ sẵn file game)']},

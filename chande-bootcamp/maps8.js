@@ -12,6 +12,7 @@ let ME=null, MET=0, BOSSES=[], NEXT={}, NUM=[];
 const bossBy=id=>BOSSES.find(b=>b.id===id), shake=(a,t)=>{ if(GAME.shake) GAME.shake(a,t); };
 const posOf=pid=>{ if(pid===NET.pid) return [GAME.P.x,GAME.P.y]; const r=GAME.REM&&GAME.REM.get(pid); return r?[r.x,r.y]:null; };
 const bossPos=id=>{ const b=bossBy(id); return b?[b.x*T,b.y*T]:null; };
+const mobPos=to=>typeof to==='string'&&to.startsWith('mob:')&&window.MUMOB?window.MUMOB.pos(+to.slice(4)):null;   /* quái rừng (maps9) */
 // chiêu: 1–3 class, 4 Trái Ác Quỷ, 5 chiêu riêng của set legacy đang mặc (ô trống thì null)
 const skillsOf=()=>{ if(!ME||!ME.cls) return []; const L=[...M.skills[ME.cls]]; L[3]=ME.fruit&&F[ME.fruit]?F[ME.fruit].skill:null; L[4]=ME.lg&&M.legacy[ME.lg]?M.legacy[ME.lg].skill:null; return L; };
 NET.listen('mume',m=>{ ME=m.v; MET=performance.now(); hud(); });
@@ -53,23 +54,23 @@ const HIT_AT={dam:110,tamlien:130,hoachuong:230,loichuong:240,chem:110,xoay:260,
 const faceOf=pid=>pid===NET.pid?GAME.P.face:((GAME.REM&&GAME.REM.get(pid))||{}).face||1;
 const minPos=pid=>{ const p=posOf(pid); return p&&[p[0]-faceOf(pid)*22,p[1]+2]; };
 function casterFace(c){ const P0=posOf(c.from), Q0=c.toP(); return P0&&Q0?(Q0[0]>=P0[0]?1:-1):1; }
-NET.listen('mufx',e=>{ if(!here()) return; const t=performance.now();
+NET.listen('mufx',e=>{ if(!here()||e.k.startsWith('mob')) return; const t=performance.now();   /* sự kiện quái rừng: maps9 lo */
   if(e.k==='hurt'){ const p=posOf(e.to); if(p){ NUM.push({x:p[0]+rnd(-6,6),y:p[1]-34,v:e.dmg,me:e.to===NET.pid,t}); burst(p[0],p[1]-18,8,{col:C_BLOOD,kind:'spark',sp:[40,90],life:[.15,.3]}); } if(e.to===NET.pid){ meHitAt=t; shake(3,.18); GAME.sfx('poof',.45); } return; }
   if(e.k==='minup'){ MINS.set(e.from,{end:t+(e.until-NET.now()),hitAt:0}); const p=posOf(e.from); if(p) burst(p[0]-20,p[1]-16,30,{col:['#ff9a3a','#ffd0e8','#ffffff'],kind:'star',sp:[30,100],life:[.5,1]}); if(e.from===NET.pid){ GAME.bigText('MIN!'); GAME.sfx('power_up',.5); } return; }
   if(e.k==='mindown'){ const p=minPos(e.from); if(p) burst(p[0],p[1]-16,20,{col:C_SMOKE,kind:'smoke',sp:[10,30],life:[.5,.9],size:[3,5],add:false,up:20}); MINS.delete(e.from); return; }
-  if(e.k==='minhit'){ const M0=MINS.get(e.from); if(M0) M0.hitAt=t; const toP=()=>{ const q=bossPos(e.boss); return q&&[q[0],q[1]-(BS[e.boss]&&BS[e.boss].big?40:26)]; }; CASTS.push({...e,t,toP,done:{}});
-    setTimeout(()=>{ const q=toP(); if(q) NUM.push({x:q[0]+rnd(-10,10),y:q[1]-10,v:e.dmg,t:performance.now()}); hitBoss(e.boss,false); },380); return; }
+  if(e.k==='minhit'){ const M0=MINS.get(e.from); if(M0) M0.hitAt=t; const toP=()=>{ const mp=mobPos(e.to); if(mp) return [mp[0],mp[1]-14]; const q=bossPos(e.boss); return q&&[q[0],q[1]-(BS[e.boss]&&BS[e.boss].big?40:26)]; }; CASTS.push({...e,t,toP,done:{}});
+    setTimeout(()=>{ const q=toP(); if(q) NUM.push({x:q[0]+rnd(-10,10),y:q[1]-10,v:e.dmg,t:performance.now()}); if(e.boss) hitBoss(e.boss,false); else if(mobPos(e.to)) window.MUMOB.hit(+e.to.slice(4),false); },380); return; }
   if(e.k==='bhit') return bossImpact(e);
   if(e.k==='bossdie') return bossDeath(e);
   if(e.k==='phase'){ const b=BS[e.boss]; if(b) GAME.bigText(e.phase===3?`${b.name.toUpperCase()} NỔI GIẬN!`:`${b.name}: GIAI ĐOẠN ${e.phase}`); shake(5,.4); GAME.sfx('power_up',.6); return; }
   if(e.k==='down'){ const p=posOf(e.to); if(p) burst(p[0],p[1]-12,14,{col:C_SMOKE,kind:'smoke',sp:[10,30],life:[.6,1],size:[3,5],add:false,up:20}); return; }
   if(e.k==='eat'){ const p=posOf(e.to), f=F[e.fruit]; if(p&&f){ burst(p[0],p[1]-20,40,{col:[f.col,'#ffffff'],kind:'star',sp:[30,120],life:[.5,1],size:[1,3]}); ring(p[0],p[1],6,50,.8,f.col,3); } if(e.to===NET.pid){ GAME.bigText('NĂNG LỰC TRÁI ÁC QUỶ!'); GAME.sfx('level_up',.8); } return; }
-  const toP=()=>{ if(typeof e.to==='string'&&e.to.startsWith('boss:')){ const p=bossPos(e.to.slice(5)); return p&&[p[0],p[1]-(BS[e.to.slice(5)]&&BS[e.to.slice(5)].big?40:26)]; } if(e.to==='boss'&&e.boss){ const p=bossPos(e.boss); return p&&[p[0],p[1]-30]; } const p=e.to&&posOf(e.to); return p&&[p[0],p[1]-18]; };
+  const toP=()=>{ const mp=mobPos(e.to); if(mp) return [mp[0],mp[1]-14]; if(typeof e.to==='string'&&e.to.startsWith('boss:')){ const p=bossPos(e.to.slice(5)); return p&&[p[0],p[1]-(BS[e.to.slice(5)]&&BS[e.to.slice(5)].big?40:26)]; } if(e.to==='boss'&&e.boss){ const p=bossPos(e.boss); return p&&[p[0],p[1]-30]; } const p=e.to&&posOf(e.to); return p&&[p[0],p[1]-18]; };
   const c={...e,t,toP,done:{}};
   if(e.k.startsWith('lgs_')){ for(let i=0;i<3;i++) CASTS.push({...e,k:'lg',fx:e.k.slice(4),t:t+i*170,toP,done:{}}); setTimeout(()=>shake(3.5,.3),340); }   /* chiêu set legacy: hiệu ứng của set đánh 3 nhịp */
   else { CASTS.push(c); if(e.lg) CASTS.push({...e,k:'lg',fx:e.lg,t:t+40,toP,done:{}}); }
   if(e.w) CASTS.push({...e,k:'wpn',t,toP,done:{}});   /* vũ khí Thợ Rèn: vung + nổ theo hệ */
-  if(e.dmg){ const ht=HIT_AT[e.k]||(e.k.startsWith('lgs_')?420:200); setTimeout(()=>{ const q=toP(); if(q) NUM.push({x:q[0]+rnd(-10,10),y:q[1]-10,v:e.dmg,crit:e.crit,me:e.to===NET.pid,t:performance.now()}); const bid=typeof e.to==='string'&&e.to.startsWith('boss:')?e.to.slice(5):e.boss; if(bid) hitBoss(bid,e.crit); },ht); }
+  if(e.dmg){ const ht=HIT_AT[e.k]||(e.k.startsWith('lgs_')?420:200); setTimeout(()=>{ const q=toP(); if(q) NUM.push({x:q[0]+rnd(-10,10),y:q[1]-10,v:e.dmg,crit:e.crit,me:e.to===NET.pid,t:performance.now()}); const bid=typeof e.to==='string'&&e.to.startsWith('boss:')?e.to.slice(5):e.boss; if(bid) hitBoss(bid,e.crit); else if(mobPos(e.to)) window.MUMOB.hit(+e.to.slice(4),e.crit); },ht); }
   if(e.from===NET.pid){ const P=GAME.P, q=toP(); P.act='attack'; P.actT=0; P.view='side'; if(q) P.face=q[0]>=P.x?1:-1; GAME.sfx({chem:'dash',xoay:'dash',dam:'dash',tamlien:'dash',hoachuong:'poof',loichuong:'power_up',thienthach:'power_up',hoi:'item_pickup',gong:'power_up',pet:'blip'}[e.k]||'dash',.35);
     if(e.k==='xoay') setTimeout(()=>{ P.act='attack'; P.actT=0; },260); } });
 // boss trúng đòn: khựng 70ms + chớp + bẹp nhẹ
@@ -471,5 +472,6 @@ const o0=X.overlay; X.overlay=(ug,sx,sy,tag)=>{ if(o0) o0(ug,sx,sy,tag); if(!her
   for(const pid of MINS.keys()){ const p=minPos(pid); if(p){ ug.font='14px VT323, monospace'; tag(sx(p[0]),sy(p[1]-38),'Min ♪','','#ff9a3a'); } }
   for(const B of BOSSES){ ug.font='16px VT323, monospace'; tag(sx(B.x*T),sy(B.y*T-(B.big?100:70)),B.name+(B.phase===3?' 🔥':''),'',B.id==='luffy'?'#ffd84a':'#ff6a8a'); }
   const hk=(now-meHitAt)/350; if(hk<1){ const w=innerWidth, h=innerHeight, gr=ug.createRadialGradient(w/2,h/2,Math.min(w,h)*.35,w/2,h/2,Math.max(w,h)*.7); gr.addColorStop(0,'rgba(255,0,0,0)'); gr.addColorStop(1,`rgba(220,20,40,${.45*(1-hk)})`); ug.fillStyle=gr; ug.fillRect(0,0,w,h); } };
+window.MU8={burst,ring,shake,rnd,num:(x,y,v,o={})=>NUM.push({x,y,v,...o,t:performance.now()}),setImg,accImg,wImg,me:()=>ME,here,C_SMOKE,C_SPARK,C_GOLD};
 setInterval(()=>{ if(here()&&(!ME)) NET.req({t:'mu',op:'view'}).then(r=>{ if(r&&r.me){ ME=r.me; MET=performance.now(); if(r.boss){ BOSSES=r.boss.list||[]; NEXT=r.boss.next||{}; } hud(); } }); else hudTick(); },1500);
 })();

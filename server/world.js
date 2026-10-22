@@ -11,7 +11,7 @@ on('mv',(pl,m)=>{
   const [W,H]=sizeOf(pl); if(x<0||y<0||x>W*T||y>H*T) return;
   const t=now(), el=Math.min(1,(t-pl.mvAt)/1000); pl.mvAt=t;
   const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed*((S.mythOf(p.look&&p.look.mount)||{}).speed||1):pl.optimus==='truck'?S.RULES.run*S.OPTIMUS.truck:pl.optimus==='robot'?S.RULES.run*S.OPTIMUS.robot:pl.pcar?S.RULES.run*S.PCAR.speed:pl.moto?S.RULES.run*S.MOTO.models[pl.moto].speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
-  const max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1);
+  const max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl)*(pl.kayak?1:S.shoeSpeed(p)))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1);
   pl.budget=Math.min(pl.budget+max*el*1.35,max*.9+60+(p.skills.dash?50:0));
   const d=Math.hypot(x-pl.x,y-pl.y);
   if(d>pl.budget+2){ send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }                   // đi nhanh quá: kéo về chỗ cũ
@@ -32,6 +32,7 @@ function treasureRoll(pl,d){ const TR=S.TREASURE, p=pl.prof; pl.paddled=(pl.padd
   if((p.daily.treasure||0)>=TR.daily||Math.random()>TR.chance) return;
   const tot=Object.values(TR.items).reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, k=null; for(const [id,x] of Object.entries(TR.items)){ r-=x.w; if(r<=0){ k=id; break; } } k=k||'dong_xu_co';
   const n=p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được đồ cổ: ${TR.items[k].name}! (${n}/${TR.daily} hôm nay · bán cho cô Ké ${S.fmt(TR.items[k].price)})`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y}); C.track(pl,'treasure');
+  if(Math.random()<.25){ C.addItem(pl,'ngoc_ch',1); note(pl,'🔮 Vớt được Ngọc Cường Hoá dưới hồ!','item'); }   /* hồ Ké: 1/4 lần vớt đồ cổ kèm ngọc cường hoá */
   if(n>=TR.daily) C.note(pl,`Hôm nay mò đủ ${TR.daily} món đồ cổ rồi, mai chèo tiếp nhé`,'quest'); }
 
 /* ---------- gói vị trí ---------- */

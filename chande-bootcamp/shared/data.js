@@ -771,7 +771,9 @@ LINHCAT.zones={1:{lv:[2,5],pool:['cat_con','cat_con','bong_bong','bong_bong','ti
 LINHCAT.maps={retreat:{spots:LINHCAT.spots},
   dalat:{spots:[[25.5,3.5,2],[13.5,13.5,1],[49.5,13.5,2],[61.5,5.5,2],[5.5,5.5,1]],pool:['sau_nhi','ken_cat','buom_tien','cu_nhi','hoa_hoi','bong_bong','se_nhi','cat_con','mam_nhi']},
   mieu:{spots:[[3.5,3.5,2],[33.5,7.5,2],[13.5,27.5,1]],pool:['khoi_nhi','bong_ma_binh','niem_nhi','doi_nhi','chuot_nhi','ran_nhi','niem_nhi']},
-  deo:{spots:[[31.5,5.5,3],[91.5,5.5,3],[151.5,5.5,3],[211.5,5.5,3]],pool:['da_nhi','da_lan','vo_nhi','vo_si','se_nhi','chim_ung','rong_nhi','ran_nhi','da_nhi']}};   // không thả ở trường đua (đang đua ngựa)
+  deo:{spots:[[31.5,5.5,3],[91.5,5.5,3],[151.5,5.5,3],[211.5,5.5,3]],pool:['da_nhi','da_lan','vo_nhi','vo_si','se_nhi','chim_ung','rong_nhi','ran_nhi','da_nhi']},
+  // rừng MU: hàng khu đầu vùng 1, giữa vùng 2, cuối vùng 3 (có thể gặp huyền thoại), đứng giữa 2 ổ quái phía trên
+  mu:{spots:[[16.5,34.5,1],[48,34.5,1],[79,34.5,2],[16.5,47.5,2],[48,47.5,2],[79,47.5,3],[16.5,60.5,3],[48,60.5,3],[79,60.5,3]]}};   // không thả ở trường đua (đang đua ngựa)
 // cân bằng sức mạnh: mọi loài (trừ vật nuôi / thú rừng) đưa tổng chỉ số gốc về cùng mức theo bậc tiến hoá, giữ nguyên dáng chỉ số của loài
 // (bậc 1: 300 · bậc 2 còn tiến hoá: 405 · bậc 2 cuối dòng: 450 · bậc 3: 500 · huyền thoại: 580, vượt trội hẳn)
 for(const s of Object.values(LC_SPECIES)){ if(s.npc) continue; const tgt=s.legend?580:s.st===1?300:s.st===2?(s.evo?405:450):500, sum=s.b.reduce((a,v)=>a+v,0); s.b=s.b.map(v=>Math.max(15,Math.round(v*tgt/sum))); }
@@ -869,7 +871,7 @@ ITEMS.zen_token={name:'Zen Token',icon:'zentoken'};
    Gặp Vệ binh chọn 1 trong 3 class, được tặng free 1 bộ giáp + vũ khí (mặc như trang phục). Đánh nhau theo thời gian thực: phím 1 / 2 / 3 dùng chiêu
    (tốn mana, có hồi chiêu; mọi class đều đánh gần: phải áp sát mục tiêu 2–3 ô). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút boss Luffy Gear 5 xuất hiện ở đền phía Bắc,
    cả server cùng đánh, ai gây sát thương đều có thưởng (EXP, tiền, ngọc). Gục thì 8 giây sau hồi sinh ở cổng thành. Máu / mana / cấp MU riêng. */
-const MU={W:96,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
+const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
   cls:{dk:{name:'Chiến Binh Bóng Tối',en:'Dark Knight',hp:160,mp:40,atk:20,def:12,col:'#c8302a',set:'mu_dk',desc:'Giáp đỏ, kiếm lớn, cận chiến. Máu trâu, giáp dày, chém xoáy cực mạnh.'},
     elf:{name:'Tiên Nữ',en:'Fairy Elf',hp:115,mp:90,atk:15,def:8,col:'#f2c43d',set:'mu_elf',desc:'Áo trắng viền vàng, song kiếm tiên, cận chiến nhanh nhẹn. Hồi máu cho cả đội, rất được việc khi đánh boss.'},
     dw:{name:'Phù Thuỷ Bóng Tối',en:'Dark Wizard',hp:95,mp:130,atk:25,def:6,col:'#3a6ad8',set:'mu_dw',desc:'Giáp xanh, gậy phép, chưởng lửa chưởng sét áp sát. Máu giấy nhưng sát thương phép to nhất.'}},
@@ -952,7 +954,7 @@ for(const [k,L] of Object.entries(MU.legacy)) CLOTHES[k]={name:'Set Legacy · '+
 // Thợ Kim Hoàn (shop phụ kiện MU): ngoài bộ trang phục chính còn 4 ô phụ kiện tăng lực chiến: cánh (sau lưng), dây chuyền, vật hộ thân (bay lơ lửng cạnh người),
 // aura (vòng phép dưới chân kiểu Warcraft, mỗi aura tăng 1 thuộc tính). Mua 1 lần giữ mãi, mỗi ô đeo 1 món, ai cũng thấy phụ kiện của nhau. (đã giảm giá còn 1/3)
 // bonus: hp / mp / atk / def (+%), regen (hồi máu mana nhanh thêm), crit (tỉ lệ chí mạng), drain (hút % sát thương thành máu)
-MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura'};
+MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura',feet:'Giày'};
 MU.acc={w_angel:{slot:'wing',name:'Cánh Thiên Thần',price:1330000,bonus:{hp:.06,def:.04}},w_pinkbat:{slot:'wing',name:'Cánh Dơi Hồng',price:1330000,bonus:{mp:.08,atk:.02}},
   w_bat:{slot:'wing',name:'Cánh Dơi Huyết',price:1500000,bonus:{atk:.06,hp:.02}},w_fairy:{slot:'wing',name:'Cánh Tiên Hồng',price:1670000,bonus:{mp:.06,def:.04}},
   w_monarch:{slot:'wing',name:'Cánh Bướm Chúa',price:2000000,bonus:{atk:.05,mp:.05}},w_sky:{slot:'wing',name:'Cánh Thiên Thanh',price:2670000,bonus:{hp:.08,def:.06}},
@@ -977,6 +979,62 @@ MU.passive={cuongluc:{name:'Cường Lực',stat:'atk',per:.03,max:10,desc:'Côn
   hutmau:{name:'Hút Máu',stat:'drain',per:.02,max:5,desc:'Hút sát thương thành máu'}};
 const muStats=(cls,lv,fruit,wep,lg,ex)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, f=(fruit&&MU.fruits[fruit]&&MU.fruits[fruit].bonus)||{}, w=(wep&&MU.weapons[wep])||{}, L=(lg&&MU.legacy[lg]&&MU.legacy[lg].bonus)||{}, X=ex||{}, b={hp:(f.hp||0)+(L.hp||0)+(X.hp||0),mp:(f.mp||0)+(L.mp||0)+(X.mp||0),atk:(f.atk||0)+(L.atk||0)+(X.atk||0),def:(f.def||0)+(L.def||0)+(X.def||0)};
   return {hp:Math.round(c.hp*k*(1+b.hp)),mp:Math.round(c.mp*(1+(lv-1)*.05)*(1+b.mp)),atk:Math.round(c.atk*k*(1+b.atk)*(1+(w.atk||0))),def:Math.round(c.def*(1+(lv-1)*.06)*(1+b.def))}; };
+// Ngọc cường hoá (Phù Thuỷ Cường Hoá ở MU): mọi món đồ MU (vũ khí, giáp class, set legacy, cánh, dây chuyền, hộ thân, aura) khắc được 12 lỗ cường hoá (+1 → +12).
+// Mỗi lần khắc tốn 1 ngọc + phí; cấp càng cao tỉ lệ càng thấp (lỗ cuối 7%), thất bại mất ngọc. Lính Cát đầu đội cấp cao cộng tỉ lệ (lv × 0,2%, tối đa +15%);
+// mỗi loài Lính Cát huyền thoại tặng 1 Ngọc Cường Hoá Huyền Thoại (80% thành công). Ngọc rơi từ boss MU, nhiệm vụ ẩn ở mọi map, vớt dưới hồ Ké khi chèo kayak; Phù Thuỷ cũng bán.
+const ENH={max:12,rate:[1,.95,.9,.82,.72,.62,.5,.4,.3,.2,.12,.07],fee:lv=>50000*(lv+1),gemPrice:400000,lcPer:.002,lcMax:.15,legendRate:.8,
+  per:{weapon:{atk:.025},set:{hp:.02,def:.02},wing:{hp:.015,def:.01},neck:{mp:.02,atk:.01},charm:{atk:.015},aura:{hp:.01,atk:.01},feet:{hp:.01,def:.01}}};
+ITEMS.ngoc_ch={name:'Ngọc Cường Hoá',icon:'gem_enh'}; ITEMS.ngoc_ch_ht={name:'Ngọc Cường Hoá Huyền Thoại',icon:'gem_enh_ht'};
+// loại đồ để tính chỉ số mỗi cấp cường hoá: weapon / set (giáp class, set legacy) / wing / neck / charm / aura
+const enhKind=k=>MU.weapons[k]?'weapon':(MU.legacy[k]||Object.values(MU.cls).some(c=>c.set===k))?'set':MU.acc[k]?MU.acc[k].slot:null;
+/* ---------- Rừng MU (phía Nam quảng trường, y 30–70): 9 khu xếp 3 × 3, mỗi khu 1 loài quái đi theo bầy nhỏ, càng xa quảng trường càng mạnh ----------
+   Quái đi lang thang quanh ổ, người lại gần (aggro ô) thì lao vào đánh: vung đòn có báo trước, chạy ra khỏi tầm là né; đuổi xa ổ quá leash ô thì quay về hồi máu.
+   Hạ quái: EXP, tiền, EXP MU chia theo phần sát thương; người đánh nhiều nhất được chiến lợi phẩm (bán cho Phù Thuỷ Cường Hoá) và có tỉ lệ rơi Ngọc Cường Hoá.
+   Cổng xuống rừng: cổng Nam quảng trường, lối Nam Đầm Rồng, lối Nam Bãi Phế Liệu. Lính Cát hoang cũng sống trong rừng (LINHCAT.maps.mu). */
+MU.forest={respawn:35,leash:8,aggro:3.6,windup:.45,mat:.4,gem:t=>.012+t*.004,gemHt:t=>t>=7?.0015:0,
+  // tile: nền khu (1 rừng đêm · 2 đầm rêu · 3 đất đá · 4 đất cháy); kind: melee / ranged (bắn đạn, né được) / float (lơ lửng xuyên vật cản)
+  mobs:{
+    slime:{name:'Slime Bí Ngô',lv:3,spd:1.2,range:1.3,every:2.2,hpM:.9,atkM:.9,n:3,mat:'vo_bi_ngo',kind:'melee',zone:{name:'Đồi Bí Ngô',x0:2,x1:31,y0:31,y1:43,tile:'G'}},
+    scorpion:{name:'Bọ Cạp Tím',lv:8,spd:2,range:1.4,every:1.8,hpM:.95,atkM:1,n:3,mat:'ngoi_bo_cap',kind:'melee',zone:{name:'Hang Bọ Cạp',x0:32,x1:63,y0:31,y1:43,tile:'S'}},
+    mage:{name:'Pháp Sư Đen',lv:13,spd:1.3,range:5,every:2.6,hpM:.8,atkM:1.1,n:3,mat:'mu_phap_su',kind:'ranged',zone:{name:'Tháp Pháp Sư Đen',x0:64,x1:93,y0:31,y1:43,tile:'%'}},
+    wolf:{name:'Người Sói',lv:18,spd:2.4,range:1.4,every:1.6,hpM:1,atkM:1,n:3,mat:'nanh_soi',kind:'melee',zone:{name:'Rừng Trăng Sói',x0:2,x1:31,y0:44,y1:56,tile:'1'}},
+    wraith:{name:'Bóng Ma Hư Không',lv:23,spd:1.7,range:3.2,every:2.2,hpM:.85,atkM:1.05,n:3,mat:'tinh_chat_ma',kind:'float',zone:{name:'Đầm Sương Ma',x0:32,x1:63,y0:44,y1:56,tile:'2'}},
+    ogre:{name:'Quỷ Khổng Lồ',lv:28,spd:1.1,range:1.8,every:2.8,hpM:1.6,atkM:1.25,n:2,mat:'rang_quy',kind:'melee',big:1,zone:{name:'Trại Quỷ Khổng Lồ',x0:64,x1:93,y0:44,y1:56,tile:'C'}},
+    golem:{name:'Người Đá Cổ',lv:33,spd:.9,range:1.8,every:3,hpM:1.8,atkM:1.2,defM:1.5,n:2,mat:'loi_da',kind:'melee',big:1,zone:{name:'Mỏ Đá Cổ',x0:2,x1:31,y0:57,y1:69,tile:'3'}},
+    wendigo:{name:'Linh Hồn Sọ Hươu',lv:38,spd:2,range:4,every:2.2,hpM:1,atkM:1.1,n:3,mat:'sung_huou',kind:'ranged',zone:{name:'Rừng Sọ Hươu',x0:32,x1:63,y0:57,y1:69,tile:'1'}},
+    cerberus:{name:'Chó Ba Đầu',lv:44,spd:1.9,range:2,every:2,hpM:2,atkM:1.3,n:2,mat:'long_lua',kind:'melee',big:1,zone:{name:'Cổng Địa Ngục',x0:64,x1:93,y0:57,y1:69,tile:'4'}}}};
+// chỉ số + phần thưởng theo cấp, 3 ổ mỗi khu (2 ổ phía trên, 1 ổ phía dưới), giá bán chiến lợi phẩm theo bậc
+Object.entries(MU.forest.mobs).forEach(([k,m],i)=>{ const L=m.lv, z=m.zone; m.k=k; m.tier=i+1; m.hp=Math.round(90*(1+.13*(L-1))*m.hpM); m.atk=Math.round(13*(1+.09*(L-1))*m.atkM); m.def=Math.round((3+L*.7)*(m.defM||1));
+  m.exp=Math.round(4+L*1.2); m.vnd=200+L*80; m.mu=Math.round(3+L*1.1); m.packs=[[z.x0+7.5,z.y0+4.5],[z.x1-6.5,z.y0+5.5],[(z.x0+z.x1+1)/2,z.y1-3]]; });
+Object.assign(ITEMS,{vo_bi_ngo:{name:'Vỏ Bí Ngô Ma',icon:'mob_slime'},ngoi_bo_cap:{name:'Ngòi Bọ Cạp',icon:'mob_scorpion'},mu_phap_su:{name:'Mũ Pháp Sư Rách',icon:'mob_mage'},
+  nanh_soi:{name:'Nanh Người Sói',icon:'mob_wolf'},tinh_chat_ma:{name:'Tinh Chất Bóng Ma',icon:'mob_wraith'},rang_quy:{name:'Răng Quỷ Khổng Lồ',icon:'mob_ogre'},
+  loi_da:{name:'Lõi Đá Cổ',icon:'mob_golem'},sung_huou:{name:'Sừng Hươu Ma',icon:'mob_wendigo'},long_lua:{name:'Lông Lửa Địa Ngục',icon:'mob_cerberus'}});
+MU.matPrice=Object.fromEntries(Object.values(MU.forest.mobs).map(m=>[m.mat,1500+m.tier*m.tier*400]));
+// Phù Thuỷ Cường Hoá đứng góc Tây Nam quảng trường (cạnh tháp pha lê): khắc lỗ cường hoá, bán ngọc, thu mua chiến lợi phẩm rừng
+NPCS.push({id:'mu_enchant',scene:'mu',x:7.5,y:25.2,place:'muenchant'});
+NPC_LOOKS.mu_enchant={name:'Phù Thuỷ Cường Hoá',look:{gender:'nu',hair:'long',hairColor:'8a5ad8',skin:'f0d0c0',outfit:{top:'mu_dw',bottom:'kaki',shoes:'giay_den'},opts:{mouth:'smile'}}};
+// Tiệm Giày (MU, góc Tây Bắc quảng trường): ô trang bị thứ 5 "Giày". Đi bộ / chạy nhanh hơn ở mọi map (spd: +% tốc độ, không tính lúc cưỡi ngựa, đi xe)
+// + chỉ số MU như phụ kiện. Ván Trượt Vàng mạnh nhất. Cường hoá được như phụ kiện (ENH.per.feet).
+Object.assign(MU.acc,{
+  sh_flip:{slot:'feet',name:'Dép Tông Biển',price:120000,spd:.05,bonus:{hp:.02},desc:'Dép tông cam quai xanh, lẹp xẹp mà nhanh'},
+  sh_heel:{slot:'feet',name:'Giày Cao Gót Lam',price:180000,spd:.04,bonus:{atk:.03,crit:.02},desc:'Cao gót xanh lam mũi vàng, đạp là đau'},
+  sh_rain:{slot:'feet',name:'Ủng Cao Su Xanh',price:200000,spd:.05,bonus:{def:.04},desc:'Ủng xanh lá viền cam, lội đầm không sợ ướt'},
+  sh_blue:{slot:'feet',name:'Sneaker Xanh Biển',price:350000,spd:.08,bonus:{hp:.03,atk:.02},desc:'Sneaker xanh da trời phối cam, đế êm'},
+  sh_black:{slot:'feet',name:'Sneaker Đen Đế Gỗ',price:380000,spd:.08,bonus:{def:.04},desc:'Đen tuyền vạch trắng, đế nâu chắc chắn'},
+  sh_lolita:{slot:'feet',name:'Giày Lolita Tím',price:420000,spd:.07,bonus:{mp:.06},desc:'Giày búp bê tím nơ hồng, mana dồi dào'},
+  sh_work:{slot:'feet',name:'Boot Da Nâu',price:650000,spd:.1,bonus:{def:.06,hp:.04},desc:'Boot công nhân da nâu, bền như đá'},
+  sh_timber:{slot:'feet',name:'Boot Vàng Timber',price:700000,spd:.1,bonus:{hp:.07},desc:'Boot vàng bò cổ đen, đi rừng cả ngày'},
+  sh_fire:{slot:'feet',name:'Sneaker Lửa Cổ Thấp',price:750000,spd:.12,bonus:{atk:.05},desc:'Cam vàng đế xanh két, chạy như lửa'},
+  sh_pinkhi:{slot:'feet',name:'Sneaker Hồng Cổ Cao',price:1100000,spd:.14,bonus:{atk:.05,crit:.03},desc:'Cổ cao hồng mận dây trắng, bật nhảy tốt'},
+  sh_jordan:{slot:'feet',name:'Sneaker Cam Xanh Cổ Cao',price:1200000,spd:.15,bonus:{hp:.05,def:.04},desc:'Cổ cao cam phối xanh tím, huyền thoại sân bóng'},
+  sh_runner:{slot:'feet',name:'Giày Chạy Bộ + Bình Nước',price:1300000,spd:.17,bonus:{hp:.04,regen:.3},desc:'Giày chạy marathon kèm bình nước: hồi máu nhanh hơn'},
+  sh_rollor:{slot:'feet',name:'Giày Patin Cam',price:1800000,spd:.22,bonus:{atk:.06},desc:'Patin cam bánh hồng, lướt vèo vèo'},
+  sh_rollbl:{slot:'feet',name:'Giày Patin Xanh',price:1900000,spd:.22,bonus:{def:.06,mp:.05},desc:'Patin xanh băng bánh ngọc, êm như trượt băng'},
+  sh_skate:{slot:'feet',name:'Ván Trượt Vàng',price:3500000,spd:.32,bonus:{atk:.08,hp:.06,crit:.04},desc:'Đồ mạnh nhất tiệm: ván trượt vàng bánh tím, lướt nhanh nhất game'}});
+// hệ số tốc độ đi bộ / chạy của giày đang mang (p.mu.acc.feet)
+const shoeSpeed=p=>{ const k=p&&p.mu&&p.mu.acc&&p.mu.acc.feet, a=k&&MU.acc[k]; return 1+(a&&a.spd||0); };
+NPCS.push({id:'mu_shoes',scene:'mu',x:7.5,y:10.4,place:'mushoes'});
+NPC_LOOKS.mu_shoes={name:'Tiệm Giày Lướt Gió',look:{gender:'nam',hair:'swept',hairColor:'ff7a2a',skin:'f0c4a0',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}};
 // lực chiến: 1 con số gộp chỉ số MU (hiện trên HUD, so set legacy)
 const muPower=s=>Math.round(s.atk*10+s.def*8+s.hp*1.5+s.mp*.6);
 for(const [k,f] of Object.entries(MU.fruits)) ITEMS['taq_'+k]={name:f.name,icon:'fruit_'+k};
@@ -1226,7 +1284,7 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192,mount:32768};   // coat: 2 bit màu ngựa (×8192) · mount: 3 bit thần thú đang cưỡi (×32768, 0 = ngựa thường)
 // cảnh → điểm đến Grab
 const SCENE_DEST={mu:'mu',lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={mu:[96,30],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_SIZE={mu:[96,72],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
@@ -1254,6 +1312,7 @@ function lookToTemplate(look){
   for(const [slot] of SLOTS){ const id=look.outfit&&look.outfit[slot], it=id&&CLOTHES[id]; if(!it) continue; Object.assign(opts,it.opts||{}); Object.assign(colors,it.colors||{}); }
   const top=look.outfit&&CLOTHES[look.outfit.top]; if(top&&top.set){ Object.assign(opts,top.opts); Object.assign(colors,top.colors); opts.costume=top.set; }   // set hot đè lên quần/giày
   if(look.opts) Object.assign(opts,look.opts);          // chỉ NPC dùng (ria mép, hình xăm...)
+  if(look.wep) opts.nowep=1;                           // đang cầm vũ khí Thợ Rèn (vẽ riêng trên tay): bỏ vũ khí vẽ sẵn trong bộ đồ
   return {opts,colors};
 }
 
@@ -1434,7 +1493,9 @@ const ALBUM={
   rung:{name:'Lộc rừng',items:['hoa','la','mang','rau','trung','nam'],rw:{vnd:150000,exp:120}},
   co:{name:'Đồ cổ dưới hồ',items:Object.keys(TREASURE.items),rw:{vnd:500000,exp:300}},
   hp:{name:'Quà Halloween',items:['bi_ngo','mu_phuthuy','ao_bingo','den_bingo'],rw:{vnd:250000,exp:200}},
-  ky:{name:'Kỷ vật Bearplus · Hải Phòng',items:['cafe_bp','dau_gau','cup_sotd','banh_da_cua'],rw:{vnd:300000,exp:250}}};
+  ky:{name:'Kỷ vật Bearplus · Hải Phòng',items:['cafe_bp','dau_gau','cup_sotd','banh_da_cua'],rw:{vnd:300000,exp:250},
+    hints:{cafe_bp:'Bay vào Bearplus Studio (TP.HCM, từ cấp 3), mua 1 ly ở quầy cà phê (25.000đ)',dau_gau:'Nhận việc "Bé Gấu mất đầu" với Bé Gấu ở Bearplus, rồi bay vào DAS nhặt đầu gấu cạnh sofa ở sảnh',
+      cup_sotd:'Làm chuỗi việc của anh Khoa ở Bearplus tới bước "Nộp Awwwards", bấm tủ giải. Chưa được Site of the Day thì mỗi ngày nộp lại 1 lần',banh_da_cua:'Ra Miếu (Hải Phòng), ăn 1 bát bánh đa cua ở xe bà Lụa gần cổng'}}};
 // ô đặt bí ngô: chỉ ô cỏ / đường đi được (sinh từ bản đồ), mỗi giờ VN đổi bộ ô
 const SEASON={halloween:{name:'Lễ hội Bí ngô',from:'10-20',to:'11-03',perHour:{retreat:12,dalat:5},
   spots:{retreat:[[181.5,118.6],[239.5,72.6],[202.5,75.6],[161.5,49.6],[124.5,63.6],[280.5,36.6],[39.5,118.6],[95.5,70.6],[261.5,62.6],[131.5,71.6],[274.5,42.6],[106.5,84.6],[226.5,7.6],[46.5,78.6],[178.5,71.6],[113.5,93.6],[225.5,40.6],[85.5,83.6],[216.5,83.6],[39.5,36.6],[330.5,104.6],[331.5,80.6],[92.5,119.6],[193.5,74.6],[171.5,102.6],[113.5,16.6],[276.5,81.6],[263.5,21.6],[189.5,84.6],[229.5,88.6],[12.5,9.6],[254.5,7.6],[162.5,21.6],[57.5,29.6],[196.5,82.6],[85.5,63.6],[22.5,22.6],[140.5,36.6],[45.5,41.6],[138.5,83.6],[282.5,77.6],[267.5,7.6],[261.5,47.6],[305.5,73.6],[317.5,27.6],[86.5,39.6]],
@@ -1460,5 +1521,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  MU,muStats,muPower,mythOf,mythIdx,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  MU,muStats,muPower,mythOf,mythIdx,ENH,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

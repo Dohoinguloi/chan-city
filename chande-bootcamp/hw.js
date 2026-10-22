@@ -97,25 +97,25 @@ const C={
   mu_dk(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%5===0)) U.put(x,y,';'); }); U.rows(26,26,(x,y,c)=>{ if(c==='U'||BODY_T.includes(c)) U.put(x,y,'$'); });
     if(f){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(0,20,4,20,'$'); U.rect(15,20,19,20,'$'); U.rect(4,0,15,3,'_'); U.rect(4,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(9,-5,10,-3,':');
-      U.rect(20,9,21,26,'%'); U.rect(20,9,20,26,'#'); U.rect(18,25,23,26,'$'); U.rect(20,27,21,30,'>'); U.rect(20,31,21,31,'$'); }
+      if(!U.nowep){ U.rect(20,9,21,26,'%'); U.rect(20,9,20,26,'#'); U.rect(18,25,23,26,'$'); U.rect(20,27,21,30,'>'); U.rect(20,31,21,31,'$'); } }
     if(s){ U.rect(12,18,16,20,'_'); U.rect(12,20,16,20,'$'); U.rect(5,0,15,3,'_'); U.rect(5,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(7,-4,9,-3,':');
-      U.rect(18,9,19,25,'%'); U.rect(19,9,19,25,'#'); U.rect(16,24,21,25,'$'); U.rect(18,26,19,29,'>'); }
+      if(!U.nowep){ U.rect(18,9,19,25,'%'); U.rect(19,9,19,25,'#'); U.rect(16,24,21,25,'$'); U.rect(18,26,19,29,'>'); } }
     if(v==='back'){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(4,0,15,3,'_'); U.rect(8,-3,11,0,':'); U.rows(19,27,(x,y)=>{ if(x>=6&&x<=13) U.put(x,y,':'); }); } },
   // MU Online · Tiên Nữ: áo trắng viền vàng, vương miện lá vàng, tai nhọn, song kiếm tiên lưỡi xanh băng
   mu_elf(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||y===23)) U.put(x,y,'$'); }); U.rows(27,30,(x,y,c)=>{ if('Pp'.includes(c)&&y===30) U.put(x,y,'$'); });
     const cx=s?10:9.5; for(let x=Math.round(cx)-5;x<=Math.round(cx)+5;x++) U.put(x,1,x%2?'$':'~'); U.put(Math.round(cx),0,'$'); U.put(Math.round(cx),-1,'?');
     if(f){ U.rect(-1,9,0,10,'S'); U.put(-2,8,'S'); U.rect(19,9,20,10,'S'); U.put(21,8,'S');
-      for(const x of [21,-2]){ U.rect(x,15,x,26,'?'); U.put(x,14,'#'); U.rect(x,16,x,25,x>0?'#':'?'); U.rect(x-1,27,x+1,27,'$'); U.rect(x,28,x,30,'<'); } }
-    if(s){ U.put(5,9,'S'); U.put(4,8,'S'); U.rect(19,14,19,26,'?'); U.put(19,13,'#'); U.rect(20,15,20,25,'#'); U.rect(18,27,21,27,'$'); U.rect(19,28,20,30,'<'); }
+      if(!U.nowep) for(const x of [21,-2]){ U.rect(x,15,x,26,'?'); U.put(x,14,'#'); U.rect(x,16,x,25,x>0?'#':'?'); U.rect(x-1,27,x+1,27,'$'); U.rect(x,28,x,30,'<'); } }
+    if(s){ U.put(5,9,'S'); U.put(4,8,'S'); } if(s&&!U.nowep){ U.rect(19,14,19,26,'?'); U.put(19,13,'#'); U.rect(20,15,20,25,'#'); U.rect(18,27,21,27,'$'); U.rect(19,28,20,30,'<'); }
     if(v==='back'){ U.rect(-1,9,0,10,'S'); U.rect(19,9,20,10,'S'); U.rect(8,19,11,30,'$'); } },
   // MU Online · Phù Thuỷ: giáp xanh lam viền bạc, mũ trùm xanh đính ngọc, áo choàng xanh thẫm, gậy phép gỗ đầu quả cầu sáng
   mu_dw(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%4===0)) U.put(x,y,'%'); });
     if(v!=='side'){ for(let y=17;y<=32;y++){ U.put(-1,y,'*'); U.put(20,y,'*'); } } else { for(let y=16;y<=32;y++){ const w=y<20?1:Math.min(4,1+((y-18)>>1)); for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,'*'); } }
     U.rect(s?5:4,0,s?15:15,2,'&'); U.rect(s?6:5,-2,s?14:14,-1,'&'); U.put(s?10:9,0,'?'); U.put(s?10:10,0,'?');
-    if(f){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
-    if(s){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
+    if(f&&!U.nowep){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
+    if(s&&!U.nowep){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
     if(v==='back'){ U.rows(17,32,(x,y)=>U.put(x,y,(x===5||x===14)?'&':'*')); } },
   // đồ ninja cam: vai + hông đen, băng đeo trán xanh có tấm kim loại, khoá kéo trắng
   mu_naruto(U,v){ const s=v==='side'; U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y<=20||y>=25)) U.put(x,y,'@'); });
@@ -166,14 +166,14 @@ Object.assign(C,{
     LG.pair(U,v,[[2,5],[1,4],[0,3],[-1,2],[-2,1],[-2,0],[-2,-1],[-1,-2],[1,5],[0,4],[-1,3]],'/'); LG.pair(U,v,[[-2,-2],[-1,-3],[0,-3]],'{');
     if(v==='front'){ U.rect(5,10,14,11,']'); U.rect(9,10,10,16,']'); } if(s){ U.rect(11,10,18,11,']'); U.rect(14,10,15,16,']'); }
     if(!s){ U.rect(-1,19,5,21,'0'); U.rect(14,19,20,21,'0'); U.rect(-1,19,5,19,'['); U.rect(14,19,20,19,'['); U.put(2,21,'$'); U.put(17,21,'$'); } else { U.rect(8,19,15,21,'0'); U.rect(8,19,15,19,'['); }
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,9,X,26,'<'); U.rect(X-1,26,X+1,26,'$'); U.rect(X-1,27,X+1,31,'%'); U.rect(X+1,27,X+1,31,'_'); U.put(X,32,'%'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,9,X,26,'<'); U.rect(X-1,26,X+1,26,'$'); U.rect(X-1,27,X+1,31,'%'); U.rect(X+1,27,X+1,31,'_'); U.put(X,32,'%'); } },
   // King Knight: giáp vàng, vương miện có thánh giá, khe mũ dọc, áo choàng đỏ lông trắng, quyền trượng ngọc đỏ
   lg_king(U,v){ const s=v==='side'; LG.cape(U,v,[':',';'],'#'); LG.head(U,['{','$','}']); LG.torso(U,['{','$','}']); LG.legs(U,[':',';'],['$','}']); LG.hands(U,'$');
     U.rows(23,25,(x,y,ch)=>{ if(ch!=='O'&&x>=7&&x<=12&&v==='front') U.put(x,y,':'); });
     const c0=s?5:4, c1=s?15:15; U.rect(c0,0,c1,0,'$'); for(const x of [c0,Math.round((c0+c1)/2),c1]){ U.put(x,-1,'$'); U.put(x,-2,'{'); } U.rect(Math.round((c0+c1)/2)-1,-4,Math.round((c0+c1)/2)+1,-4,'$'); U.put(Math.round((c0+c1)/2),-5,'$'); U.put(c0+3,0,':'); U.put(c1-3,0,':');
     if(v==='front') U.rect(9,9,10,16,']'); if(s) U.rect(14,9,15,16,']');
     if(v==='back') U.rows(20,32,(x,y)=>{ if((x*3+y*5)%11===0) U.put(x,y,'@'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,12,X,29,'$'); U.rect(X-1,8,X+1,11,':'); U.put(X,9,'-'); U.put(X,7,'$'); U.put(X,6,'$'); U.rect(X-1,12,X+1,12,'}'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,12,X,29,'$'); U.rect(X-1,8,X+1,11,':'); U.put(X,9,'-'); U.put(X,7,'$'); U.put(X,6,'$'); U.rect(X-1,12,X+1,12,'}'); } },
   // Sparta Sư Tử: mũ đồng che má, chùm lông đỏ viền xanh, ngực trần, găng đầu sư tử vàng, váy da tua, dép quai
   lg_sparta(U,v){ const s=v==='side'; U.rows(1,10,(x,y)=>U.put(x,y,y<4?'%':'_')); U.rows(11,17,(x,y)=>{ if(s?(x<7):(x<5||x>14)) U.put(x,y,'_'); });
     if(v==='front'){ U.rect(9,3,10,10,'%'); U.rect(8,8,11,8,'@'); } if(s) U.rect(12,3,13,9,'%');
@@ -191,7 +191,7 @@ Object.assign(C,{
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?')':'('); }); U.rows(19,21,(x,y,ch)=>{ if(ch!=='O') U.put(x,y,y===21?'}':'$'); }); if(v==='front') U.rect(9,20,10,21,'?');
     U.rows(24,24,(x,y,ch)=>{ if(ch!=='O'&&(x<6||x>13)) U.put(x,y,'$'); }); LG.hands(U,')'); LG.belt(U,'&');
     U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,y===27?'&':x%3?'~':'^'); }); U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,')'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,y===32?'$':'}'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,8,X,33,'^'); for(const y of [14,22,30]) U.put(X,y,'$'); U.rect(X-1,3,X+1,7,'$'); U.put(X,2,'$'); U.put(X,5,'~'); U.put(X,4,'?'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,8,X,33,'^'); for(const y of [14,22,30]) U.put(X,y,'$'); U.rect(X-1,3,X+1,7,'$'); U.put(X,2,'$'); U.put(X,5,'~'); U.put(X,4,'?'); } },
   // Samurai Quỷ Đỏ: mũ kabuto đen sừng trăng lưỡi liềm vàng, mặt nạ quỷ đỏ mắt vàng nanh trắng, giáp lá đỏ đen, vai to, katana
   lg_samurai(U,v){ const s=v==='side'; LG.head(U,[']','@','@'],1,9); U.rows(9,9,(x,y)=>U.put(x,y,':'));
     LG.pair(U,v,[[5,0],[4,-1],[3,-2],[2,-3],[2,-4],[1,-5],[4,0],[3,-1]],'$'); LG.pair(U,v,[[1,-6],[2,-5]],'a');
@@ -201,7 +201,7 @@ Object.assign(C,{
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,y%2?']':(ch==='t'||ch==='q'?';':':')); }); LG.hands(U,']');
     if(!s){ U.rect(-2,19,4,23,':'); U.rect(15,19,21,23,':'); for(const y of [20,22]){ U.rect(-2,y,4,y,']'); U.rect(15,y,21,y,']'); } } else { U.rect(7,19,15,23,':'); U.rect(7,21,15,21,']'); }
     LG.legs(U,[']','@'],[';',']']); U.rows(27,29,(x,y,ch)=>{ if(ch!=='O'&&(x<7||x>12)) U.put(x,y,y%2?':':';'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,7,X,25,'%'); U.rect(X+1,8,X+1,24,'#'); U.put(X,6,'#'); U.rect(X-1,26,X+1,26,'$'); U.rect(X,27,X,30,']'); U.put(X,28,':'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,7,X,25,'%'); U.rect(X+1,8,X+1,24,'#'); U.put(X,6,'#'); U.rect(X-1,26,X+1,26,'$'); U.rect(X,27,X,30,']'); U.put(X,28,':'); } },
   // Chainsaw Man: đầu cưa máy cam, lưỡi cưa dựng trên trán, hàm răng nhọn, sơ mi trắng cà vạt đen, 2 tay mọc lưỡi cưa
   lg_chainsaw(U,v){ const s=v==='side'; LG.head(U,['a','+','=']); const bx=s?10:9; U.rect(bx-1,-8,bx+1,0,'%'); U.rect(bx,-8,bx,0,'#'); for(let y=-7;y<=0;y+=2){ U.put(bx-2,y,'@'); U.put(bx+2,y+1,'@'); }
     if(v==='front'){ U.rect(4,12,15,16,'@'); for(let x=4;x<=15;x+=2){ U.put(x,12,'#'); U.put(x+1,16,'#'); } U.rect(5,9,6,10,'#'); U.rect(13,9,14,10,'#'); }
@@ -222,7 +222,7 @@ Object.assign(C,{
     LG.torso(U,['$','a','=']); U.rows(19,21,(x,y,ch)=>{ if(ch!=='O'&&x>=5&&x<=14) U.put(x,y,'$'); }); LG.belt(U,'=',25); LG.hands(U,'S');
     U.rows(23,26,(x,y,ch)=>{ if(ch!=='O'&&(x<5||x>14)) U.put(x,y,'$'); });
     LG.legs(U,['$','}'],['<','>']); U.rows(30,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'<'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,2,X,33,'<'); for(const y of [8,9,26,27]) U.put(X,y,'>'); U.put(X,1,'$'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,2,X,33,'<'); for(const y of [8,9,26,27]) U.put(X,y,'>'); U.put(X,1,'$'); } },
   // Quyền Vương: ngực trần, găng đỏ to cổ găng trắng, quần đùi đỏ cạp trắng, giày boxing trắng cao cổ
   lg_boxer(U,v){ const s=v==='side'; U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?'s':'S'); }); if(v==='front'){ U.rect(9,22,10,25,'d'); U.rect(7,24,12,24,'d'); }
     if(!s){ for(const x of [-2,15]){ U.rect(x,23,x+6,29,':'); U.rect(x+4,24,x+6,29,';'); U.rect(x,23,x+6,23,'#'); U.put(x+1,25,'-'); U.put(x+2,24,'-'); } }
@@ -255,7 +255,7 @@ Object.assign(C,{
     U.rows(1,9,(x,y,ch)=>{ if(ch!=='O') U.put(x,y,x<6?'-':':'); }); U.rect(s?12:9,6,s?13:10,7,'?'); if(v!=='side'){ U.rect(0,4,2,9,'#'); U.rect(17,4,19,9,'#'); } else U.rect(4,4,6,9,'#');
     U.rows(10,17,(x,y,ch)=>{ if('HhJX'.includes(ch)) U.put(x,y,'$'); });
     LG.torso(U,['-',':',';']); if(v==='front'){ U.rect(7,20,12,21,'#'); U.rect(9,22,10,25,'%'); } LG.belt(U,'%'); LG.hands(U,'#'); LG.legs(U,[':',';'],[':',';']); U.rows(29,29,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'#'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,5,X,24,'`'); U.rect(X+1,6,X+1,23,'"'); U.rect(X-1,25,X+1,25,'_'); U.rect(X,26,X,29,'%'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,5,X,24,'`'); U.rect(X+1,6,X+1,23,'"'); U.rect(X-1,25,X+1,25,'_'); U.rect(X,26,X,29,'%'); } },
   // 16Typh: tóc bạch kim xanh dựng, blazer đen ve xám, sơ mi hoạ tiết hình học vàng đen, chuỗi ngọc trai, khuyên tai bạc
   lg_16typh(U,v){ const s=v==='side'; U.rows(-10,12,(x,y,ch)=>{ if('HhJX'.includes(ch)) U.put(x,y,x<8||(x+y)%4===0?'?':'_'); }); for(const x of (s?[4,7,10,13]:[3,6,9,12,15])){ U.put(x,0,'?'); U.put(x+1,-1,'?'); U.put(x+1,-2,'_'); }
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='I'||ch==='i'?((x+y)%3===0?'$':(x*2+y)%5===0?'/':'@'):ch==='t'||ch==='q'?'@':']'); });
@@ -297,8 +297,9 @@ Object.assign(C,{
     if(s){ U.rect(12,10,15,12,'@'); U.rect(13,10,14,10,'_'); U.rect(14,13,18,17,'_'); U.rect(15,14,17,16,'@'); }
     LG.torso(U,[']','@','@']); if(v==='front'){ U.rect(7,21,12,23,'_'); U.put(8,22,'-'); U.put(9,22,'0'); U.put(10,22,'$'); U.put(11,22,'-'); } LG.belt(U,'%'); if(v==='front') U.rect(9,26,10,26,'_');
     LG.hands(U,'@'); LG.legs(U,['@',']'],['@',']']);
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,4,X,24,'-'); U.rect(X,5,X,23,'"'); U.put(X-1,4,'-'); U.put(X+1,4,'-'); U.rect(X,25,X,29,'%'); U.put(X,27,']'); } } });
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,4,X,24,'-'); U.rect(X,5,X,23,'"'); U.put(X-1,4,'-'); U.put(X+1,4,'-'); U.rect(X,25,X,29,'%'); U.put(X,27,']'); } } });
 // trả về lưới đã nới lề + vẽ trang phục + viền
-function apply(G,set,view){ const P=pad(G), f=C[set]; if(f) f(api(P),view); outline(P); return P; }
+// nw: người chơi đang cầm vũ khí của Thợ Rèn → không vẽ vũ khí có sẵn trong bộ đồ (vũ khí thật vẽ riêng trên tay)
+function apply(G,set,view,nw){ const P=pad(G), f=C[set]; if(f){ const u=api(P); u.nowep=!!nw; f(u,view); } outline(P); return P; }
 window.HWC={PX,PT,PAL,C,apply};
 })();

@@ -52,6 +52,8 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   { const nm=String(p.name||name||'').normalize('NFC').toLowerCase(); if((nm==='leno'||nm==='ben jr')&&!(p.flags&&p.flags.gift10m)){ p.money+=10000000; p.flags.gift10m=true; } }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
   if(String(p.name||name||'').toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
+  // Kaixa thử tính năng cường hoá: 10 Ngọc Cường Hoá (1 lần)
+  if(String(p.name||name||'').toLowerCase()==='kaixa'&&!(p.flags&&p.flags.gemTest10)){ p.items.ngoc_ch=(p.items.ngoc_ch||0)+10; p.flags.gemTest10=true; }
   // skin riêng Kaixa theo ảnh: tóc xám tro dựng, kính vuông tròng xanh, blazer satin đen + dây chuyền, quần ống rộng, đồng hồ (mặc 1 lần, sau tự đổi trong tủ đồ)
   if(String(p.name||name||'').toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
     for(const id of ['blazer_kaixa','quan_kaixa','kinh_kaixa','dong_ho','giay_den']) p.owned[id]=1;

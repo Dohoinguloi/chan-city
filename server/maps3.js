@@ -28,6 +28,9 @@ on('bp',(pl,m)=>{ const p=pl.prof, B=S.BEARPLUS, q=pr(p), op=m.op, here=pl.scene
   if(op==='render'){ if(!near(pl,B.render.x,B.render.y+.9,30)) return {err:'Lại gần trạm render'}; if(!active(p,'bp_3d')||q.bp_3d) return {err:'Máy đang render cảnh khác, quạt kêu vù vù'}; return job('bp_3d',25,'Render Bé Gấu 3D cùng chị My'); }
   if(op==='motion'){ if(!near(pl,B.motion.x,B.motion.y+.9,30)) return {err:'Lại gần góc motion'}; if(!active(p,'bp_motion')||q.bp_motion) return {err:'Bảng vẽ đang tắt. Nhận việc với anh Khoa trước'}; return job('bp_motion',20,'Làm intro Bé Gấu vẫy tay'); }
   if(op==='cups'){ if(!near(pl,B.cups.x,B.cups.y+.9,30)) return {err:'Lại gần tủ giải'};
+    // nộp xong nhiệm vụ mà mới được Honorable Mention: mỗi ngày nộp lại 1 dự án mới, tới khi được Site of the Day (cúp cho sổ Kỷ vật)
+    if((q.bp_aww||p.quests.bp_aww==='done')&&p.flags.bpAward!=='sotd'){ if(p.daily.bpaww) return {err:'Hôm nay nộp dự án rồi, mai nộp dự án khác nhé'}; p.daily.bpaww=1; const sotd=Math.random()<B.sotd; markDirty(pl);
+      if(sotd){ p.flags.bpAward='sotd'; reward(pl,{exp:150,item:'cup_sotd'},'Awwwards: SITE OF THE DAY!'); P.stat(pl,'sotd',1); } return {sotd,msg:sotd?'Dự án mới được SITE OF THE DAY! Cúp đặt lên hàng đầu tủ':'Lại Honorable Mention. Mai nộp dự án khác thử tiếp!'}; }
     if(!active(p,'bp_aww')||q.bp_aww) return {msg:p.flags.bpAward==='sotd'?'Cúp Site of the Day của bạn nằm ngay hàng đầu tủ!':'Tủ giải của Bearplus: Awwwards, FWA, CSSDA...'};
     const sotd=Math.random()<B.sotd; q.bp_aww=1; p.flags.bpAward=sotd?'sotd':'hm'; markDirty(pl);
     if(sotd){ reward(pl,{...B.sotdBonus,item:'cup_sotd'},'Awwwards: SITE OF THE DAY!'); P.stat(pl,'sotd',1); }

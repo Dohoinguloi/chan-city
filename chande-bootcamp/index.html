@@ -128,7 +128,7 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 .dqrow b{font-weight:400;font-size:19px} .dqrow span{color:var(--muted);font-size:15px} .dqrow i{font-style:normal;color:var(--green)} .dqrow.ok{border-color:var(--green)} .dqrow.got{opacity:.6}
 .dqrow.chest{grid-template-columns:auto 1fr auto;border-style:dashed} .dqrow.chest span{display:block} .dqrow.chest .ico{width:36px;height:36px}
 .dbar{height:8px;background:#1c1516;border:1px solid #0c0a10;margin:3px 0} .dbar i{display:block;height:100%;background:linear-gradient(#ffe680,#f2a33a)}
-.dalb{padding:6px 10px;background:var(--panel2);border:2px solid var(--line)} .dalb.full{border-color:var(--gold)} .dalb h5{margin:0 0 4px;font-weight:400;font-size:19px;color:var(--gold)} .dalb h5 small{color:var(--muted)}
+.dalb{padding:6px 10px;background:var(--panel2);border:2px solid var(--line)} .dhint{margin:4px 0 0;padding-left:18px;font-size:16px;line-height:1.15;color:var(--muted)} .dhint b{font-weight:400;color:var(--cream)} .dalb.full{border-color:var(--gold)} .dalb h5{margin:0 0 4px;font-weight:400;font-size:19px;color:var(--gold)} .dalb h5 small{color:var(--muted)}
 .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:4px} .dcell{display:grid;justify-items:center;gap:1px;padding:4px 2px;background:#241c26;border:1px solid var(--line);font-size:13px;text-align:center;line-height:1}
 .dcell .ico{width:30px;height:30px} .dcell.unk .ico{filter:brightness(0);opacity:.35} .dcell.unk span{color:var(--muted)}
 .drw{margin-top:4px;font-size:15px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap} .drw i{font-style:normal;color:var(--green)}
@@ -251,6 +251,12 @@ body:not(.skills) #hudSkills{display:none}
 #banner{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);padding:4px 18px;font-size:24px;color:var(--gold);transition:transform .35s;z-index:3}
 #banner.show{animation:ban 3s forwards}
 /* banner sự kiện (Ngày Mèn Mén Thế Giới...): thẻ lớn giữa trên, tự ẩn sau 12 giây */
+/* Phù Thuỷ Cường Hoá: thanh ngọc, mỗi món 1 hàng (ảnh · tên +N · 12 lỗ · tỉ lệ · nút khắc) */
+.enbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:6px 8px;background:var(--panel2);border:2px solid var(--line)} .enbar img{vertical-align:middle;image-rendering:pixelated}
+.enlist{display:grid;gap:6px;margin:8px 0} .enrow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:6px 8px;background:var(--panel2);border:2px solid var(--line)} .enrow.on{border-color:var(--gold)}
+.enrow img{image-rendering:pixelated} .enmid{display:grid;gap:2px;min-width:0} .enlv{color:#7fe8ff;text-shadow:1px 1px 0 var(--ink)} .enbtn{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.enholes{display:flex;gap:3px;flex-wrap:wrap} .enholes i{width:9px;height:9px;border:1px solid #5a5068;background:#1a1420;transform:rotate(45deg)} .enholes i.on{background:#5ad0ff;border-color:#c8f4ff;box-shadow:0 0 4px #5ad0ff} .enholes i.on.hi{background:#ffd84a;border-color:#fff3b0;box-shadow:0 0 5px #ffd84a}
+@media (max-width:560px){ .enrow{grid-template-columns:40px 1fr} .enbtn{grid-column:1/-1;justify-content:flex-start} }
 #evBanner{position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:40;display:grid;gap:4px;justify-items:center;width:max-content;max-width:calc(100vw - 32px);padding:12px 44px 12px 28px;text-align:center;
   background:linear-gradient(#4a1d5a,#24122e);border:3px solid var(--gold);box-shadow:0 0 0 3px var(--ink),0 8px 30px rgba(255,216,74,.35)}
 #evBanner b{font-weight:400;font-size:clamp(22px,3vw,34px);line-height:1.05;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #evBanner span{font-size:20px;color:var(--cream)}
@@ -574,6 +580,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art15.js"></script>
 <script src="art16.js"></script>
 <script src="art17.js"></script>
+<script src="art18.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
@@ -597,6 +604,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="maps6.js"></script>
 <script src="maps7.js"></script>
 <script src="maps8.js"></script>
+<script src="maps9.js"></script>
 <script src="auto.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>

@@ -700,6 +700,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
   if(dTab==='album'){ body+=`<p class="dim">Lần đầu có một món là được ghi vào sổ. Đủ bộ thì nhận thưởng lớn.</p>`+Object.entries(SD.ALBUM).map(([a,z])=>{ const have=z.items.filter(k=>D.seen[k]).length, full=have===z.items.length, got=D.albumGot[a];
       return `<div class="dalb ${full?'full':''}"><h5>${esc(z.name)} <small>${have}/${z.items.length}</small></h5><div class="dgrid">${z.items.map(k=>{ const it=SD.ITEMS[k]||SD.CLOTHES[k]||{name:k}, seen=D.seen[k];
         return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
+        ${z.hints&&!full?`<ul class="dhint">${z.items.filter(k=>!D.seen[k]&&z.hints[k]).map(k=>`<li><b>${esc((SD.ITEMS[k]||{}).name||k)}:</b> ${esc(z.hints[k])}</li>`).join('')}</ul>`:''}
         <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{al:a},'pri'):''}</div></div>`; }).join(''); }
   if(dTab==='season'&&season){ const n=g.items.bi_ngo||0, bg=(g.flags&&g.flags.bingo)||{}, end=season.to.split('-').reverse().join('/');
     if(!(g.flags||{}).hwFree) body+=`<p>${btn('hwopen','🎃 Nhận 1 bộ trang phục Halloween miễn phí (15 bộ để chọn)',{},'pri')}</p>`;
@@ -853,7 +854,7 @@ let lbTab='exp', LB=null;
 // ảnh mặt người chơi trong bảng xếp hạng (dựng từ dáng người, nhớ theo dáng)
 const LBFACE={}; const lbFace=l=>{ if(!l) return ''; const k=JSON.stringify(l); if(LBFACE[k]!==undefined) return LBFACE[k]; let u=''; try{ const av=AVATAR.build(l); u=av&&av.portrait?av.portrait.toDataURL():''; }catch(e){} return LBFACE[k]=u; };
 const ttl=rk=>{ const D=SD.TOP_TITLES[rk-1]; return D?`<span class="ttl ttl${rk}" data-t="${esc(D.name)}"><i>${rk===1?'♛ ':rk===7?'🐐 ':''}${esc(D.name)}</i></span>`:''; };
-const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)]];
+const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['power','Lực chiến MU',v=>v.toLocaleString('vi-VN')+' ⚔'],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)]];
 UI.leaderboard=async()=>{ open('Bảng xếp hạng',()=>lbHtml(),{wide:true}); const r=await NET.req({t:'lb'}); if(r.lb){ LB=r.lb; UI.refresh(); } };
 function lbHtml(){ const tab=LB_TABS.find(t=>t[0]===lbTab), rows=LB&&LB[lbTab]||[], me=G().name;
   return `<div class="tabs">${LB_TABS.map(([k,n])=>`<button class="tab ${k===lbTab?'on':''}" data-a="lbtab" data-k="${k}">${n}</button>`).join('')}</div>

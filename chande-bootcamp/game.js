@@ -746,7 +746,7 @@ function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=fal
 let sendT=0, lastSent='', officeT=0, leaving=false;
 function speed(){ if(P.kayak) return 95; if(S.kind==='retreat'&&tileAt(P.x,P.y)==='L') return 45;   // lội nước chậm
   if(P.opt) return SD.RULES.run*SD.OPTIMUS[P.opt];
-  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding){ const mi=SD.mythIdx(G); return SD.RULES.run*SD.HORSE.speed*(mi?SD.HORSE.myth[mi-1].speed:1); }   /* thần thú chạy nhanh hơn */ if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level);
+  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding){ const mi=SD.mythIdx(G); return SD.RULES.run*SD.HORSE.speed*(mi?SD.HORSE.myth[mi-1].speed:1); }   /* thần thú chạy nhanh hơn */ if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level)*SD.shoeSpeed(G);   /* giày MU: đi bộ / chạy nhanh hơn */
   return ((down('shift')&&G.skills.run)?SD.RULES.run:SD.RULES.walk)*s; }
 // trạng thái gửi sang ambient.js (thời tiết, chim, lá rơi, đom đóm, nắng trong phòng)
 let AMB_ST=null; const TREES=[], AMB_NO=new Set(['deo']);
@@ -1333,6 +1333,15 @@ function drawFx(f,cx,cy){ const k=f.t/f.life, X=Math.round(f.x-cx), Y=Math.round
 // tên, khung chat, thanh máu/vật tay vẽ ở độ phân giải màn hình
 /* danh hiệu top 10 đại gia: khung tối viền màu + chữ óng ánh, mỗi hạng 1 hiệu ứng (vàng quét sáng, bạc, đồng, sấm tím, cầu vồng,
    kiếm khí xanh, GOAT nhiễu sóng, bát quái đen trắng, mây trời bồng bềnh, lửa vĩ thú bốc tàn) */
+// top 1 / 2 / 3 đại gia: ngọn lửa rực trên đầu (vàng / đỏ / xanh lá), lập loè + tàn lửa bay lên; vẽ ngay trên danh hiệu
+const FLAME=[['#fff8c0','#ffd84a','#ff9a1a'],['#ffd8b0','#ff4a2a','#a8101a'],['#eaffc8','#6aff4a','#1a8a2a']];
+function drawFlame(x,y,rk,t){ const C=FLAME[rk-1]; if(!C) return; const g=ug; g.save(); g.shadowColor=C[2]; g.shadowBlur=8;
+  for(let i=0;i<5;i++){ const ph=t/170+i*1.7, ox=(i-2)*8+Math.sin(ph)*2, h=22+(i===2?12:i%2?3:7)+Math.sin(ph*1.3)*5, bx=x+ox, by=y;
+    const gr=g.createLinearGradient(bx,by,bx,by-h); gr.addColorStop(0,C[2]); gr.addColorStop(.4,C[1]); gr.addColorStop(.85,C[0]); gr.addColorStop(1,C[0]+'00'); g.fillStyle=gr; g.globalAlpha=.95;
+    g.beginPath(); g.moveTo(bx-7,by); g.quadraticCurveTo(bx-7,by-h*.5,bx+Math.sin(ph*1.7)*3,by-h); g.quadraticCurveTo(bx+7,by-h*.5,bx+7,by); g.closePath(); g.fill(); }
+  g.globalAlpha=.9; g.fillStyle=C[0]; g.beginPath(); g.ellipse(x,y-6,10,4.5,0,0,7); g.fill();
+  for(let k=0;k<6;k++){ const p=((t/900)+k*.17)%1, sx_=x+Math.sin(k*2.3+t/400)*14, sy_=y-8-p*36; g.globalAlpha=1-p; g.fillStyle=C[k%2]; g.fillRect(Math.round(sx_),Math.round(sy_),2,2); }
+  g.restore(); }
 function drawTitle(x,y,rk,t,DX){ const D=DX||SD.TOP_TITLES[rk-1]; if(!D) return; const g=ug, txt=(D.pre||(rk===1?'♛ ':rk===7?'🐐 ':''))+D.name; g.save(); g.font='17px VT323, monospace'; g.textAlign='left'; g.textBaseline='alphabetic';
   const w=g.measureText(txt).width, x0=Math.round(x-w/2), by=Math.round(y), L=x0-6, R=x0+w+6, chars=[...txt];
   g.fillStyle='rgba(14,10,20,.86)'; g.fillRect(L,by-15,R-L,19); g.strokeStyle=D.edge; g.globalAlpha=.55+.35*Math.sin(t/300); g.lineWidth=1; g.strokeRect(L+.5,by-14.5,R-L-1,18); g.globalAlpha=1;
@@ -1367,8 +1376,8 @@ function drawOverlay(){ ug.setTransform(DPR,0,0,DPR,0,0); ug.clearRect(0,0,inner
   const bubble=(x,y,text)=>{ const lines=wrap(text,26), w=Math.max(...lines.map(l=>ug.measureText(l).width))+14, h=lines.length*15+8, X=x-w/2, Y=y-h-6;
     ug.fillStyle='#1c1516'; ug.fillRect(X-2,Y-2,w+4,h+4); ug.fillStyle='#fbfaf6'; ug.fillRect(X,Y,w,h); ug.fillRect(x-3,Y+h,6,4); ug.fillStyle='#1c1516'; lines.forEach((l,i)=>ug.fillText(l,x,Y+15+i*15)); };
   for(const r of REM.values()){ if(!r.av||(r.fl&SD.FL.incar)) continue; const X=sx(r.x), Y=sy(r.y-46); if(X<-60||Y<-40||X>innerWidth+60||Y>innerHeight+40) continue;
-    tag(X,Y,r.name+' · '+r.lv,r.tag,r.tag?'#9fe0ff':'#fff3d6'); if(r.rk) drawTitle(X,Y-(r.tag?36:20),r.rk,t); if(r.chat&&t<r.chat.until) bubble(X,Y-(r.rk?38:18),r.chat.m); }
-  if(MYRANK&&P.av&&!P.incar) drawTitle(sx(P.x),sy(P.y-46)-4,MYRANK,t);
+    tag(X,Y,r.name+' · '+r.lv,r.tag,r.tag?'#9fe0ff':'#fff3d6'); if(r.rk){ if(r.rk<=3) drawFlame(X,Y-(r.tag?36:20)-15,r.rk,t); drawTitle(X,Y-(r.tag?36:20),r.rk,t); } if(r.chat&&t<r.chat.until) bubble(X,Y-(r.rk?38:18),r.chat.m); }
+  if(MYRANK&&P.av&&!P.incar){ if(MYRANK<=3) drawFlame(sx(P.x),sy(P.y-46)-19,MYRANK,t); drawTitle(sx(P.x),sy(P.y-46)-4,MYRANK,t); }
   if(P.av&&P.chat&&t<P.chat.until) bubble(sx(P.x),sy(P.y-46)-2,P.chat.m);
   for(const n of npcs) if(!STORY[n.id]&&Math.hypot(n.x-P.x,n.y-P.y)<90){ const L=SD.NPC_LOOKS[n.id]; tag(sx(n.x),sy(n.y-46),L.name,'','#ffd84a'); if(L.title) drawTitle(sx(n.x),sy(n.y-46)-20,0,t,L.title); }   // NPC có danh hiệu (Giáo chủ...)
   // ô tô đang chạy: ảnh mặt tài xế + người ngồi ghế phụ trên nóc xe, kèm số người
