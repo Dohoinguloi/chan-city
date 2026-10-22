@@ -47,7 +47,7 @@ on('pick',(pl,m)=>{ const p=pl.prof, t=now(); if(!inRetreat(pl)) return {err:'Kh
   if(m.k==='chicken'){ const h=S.CHICKEN_HOME; if(p.quests.co!=='active'||p.flags.chicken||!near(pl,h.x,h.y,(h.r+3)*T)) return {err:'Gà chạy mất'};
     p.flags.chicken=true; addItem(pl,'chicken'); return {item:'chicken'}; }
   if(m.k==='forage'){ const f=S.FORAGE.find(f=>f.id===m.i); if(!f) return {err:'?'}; if(p.forage[f.id]&&t-p.forage[f.id]<f.respawn*1000) return {err:'Chưa mọc lại'};
-    if(!near(pl,f.x,f.y,28)) return {err:'Xa quá'}; p.forage[f.id]=t; addItem(pl,f.item); const g=C.gainExp(pl,2); return {item:f.item,exp:g.exp}; }
+    if(!near(pl,f.x,f.y,28)) return {err:'Xa quá'}; p.forage[f.id]=t; addItem(pl,f.item); C.track(pl,'forage'); const g=C.gainExp(pl,2); return {item:f.item,exp:g.exp}; }
   return {err:'?'}; });
 
 /* ---------- xe 4 bánh trong Ké (lên dốc miễn phí, xuống dốc 150.000đ) ---------- */
@@ -57,7 +57,7 @@ on('car',(pl,m)=>{ const c=S.CARS[m.id]; if(!c||!inRetreat(pl)||!near(pl,c.x,c.y
 
 const jailed=pl=>pl.prof.jail&&pl.prof.jail.until>now();
 // thống kê cho bảng xếp hạng
-function stat(pl,k,v,max){ const s=pl.prof.stats=pl.prof.stats||{}; s[k]=max?Math.max(s[k]||0,v):(s[k]||0)+v; markDirty(pl); achCheck(pl); }
+function stat(pl,k,v,max){ const s=pl.prof.stats=pl.prof.stats||{}; s[k]=max?Math.max(s[k]||0,v):(s[k]||0)+v; markDirty(pl); achCheck(pl); if(!max) C.track(pl,k,v); }
 // mở khoá thành tích khi chỉ số đạt ngưỡng
 function achCheck(pl){ const p=pl.prof, s=p.stats||{}; p.ach=p.ach||{};
   for(const [k,a] of Object.entries(S.ACH)){ if(p.ach[k]) continue; const v=a.stat==='money'?p.money:s[a.stat]||0; if(v>=a.n){ p.ach[k]=now(); reward(pl,{exp:a.exp},`${a.hidden?'Thành tích ẩn':'Thành tích'}: ${a.name}!`); send(pl,{t:'ev',k:'ach',id:k}); } } }
@@ -85,7 +85,7 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
   if(cdMin&&p.foodCd[m.id]>t) return {err:`Vừa ${f.buff?'uống':'ăn'} rồi, ${Math.ceil((p.foodCd[m.id]-t)/60e3)} phút nữa mới mua lại được`};
   if(!take(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
   if(cdMin){ p.foodCd[m.id]=t+cdMin*60e3; for(const k in p.foodCd) if(p.foodCd[k]<t) delete p.foodCd[k]; }
-  if(meal){ const d=today(); if(p.meals.day!==d) p.meals={day:d,eaten:{}}; p.meals.eaten[meal.id]=true; }
+  if(meal){ const d=today(); if(p.meals.day!==d) p.meals={day:d,eaten:{}}; if(!p.meals.eaten[meal.id]) C.track(pl,'meal'); p.meals.eaten[meal.id]=true; }
   if(f.buff) p.buff={mul:f.buff.mul,until:now()+f.buff.min*60e3};
   if(f.drunk){ p.drunk=Math.max(p.drunk||0,now())+f.drunk*1000; }   // rượu cần, bia hơi: say chuếnh choáng một lúc
   if(f.energy) p.needs.energy=Math.min(100,p.needs.energy+f.energy);
@@ -190,7 +190,7 @@ on('photo',(pl,m)=>{ const p=pl.prof; if(p.needs.battery<5) return {err:'Hết p
     if(!spot&&k==='dalat') spot={name:'Nông trại bác Trang',mul:1.3}; }
   else { const c=roomCtx(pl); if(c) spot={name:c.room.name,mul:c.room.view}; }
   if(!spot) return {err:'Chỗ này chụp không ăn ảnh. Ra bến hồ, deck, cổng, khu cắm trại...'};
-  p.needs.battery-=5; p.photos.push({name:spot.name,mul:spot.mul,at:now()}); if(p.photos.length>6) p.photos.shift(); markDirty(pl); return {name:spot.name}; });
+  p.needs.battery-=5; p.photos.push({name:spot.name,mul:spot.mul,at:now()}); C.track(pl,'photo'); if(p.photos.length>6) p.photos.shift(); markDirty(pl); return {name:spot.name}; });
 
 /* ---------- bơi ở bể bơi Ké ---------- */
 on('swim',pl=>{ const P=S.POOL, p=pl.prof, t=now(); if(!inRetreat(pl)) return {err:'Không ở Ké'};
@@ -219,7 +219,7 @@ on('ach',pl=>({ach:pl.prof.ach||{},stats:pl.prof.stats||{}}));
 on('net',(pl,m)=>{ const B=S.BUTTERFLY, i=m.i|0, sp=B.spots[i], p=pl.prof, t=now(); if(!sp) return {err:'?'}; if(!has(pl,'vot_buom')) return {err:'Cần vợt bắt bướm (Pháp có)'};
   if(pl.scene!=='retreat'||!near(pl,sp.x,sp.y,40)) return {err:'Lại gần con bướm đã'}; p.buom=p.buom||{}; if((p.buom[i]||0)>t) return {err:'Bướm bay mất rồi, lát nữa quay lại'};
   if(Math.random()>B.chance[B.kinds[sp.k]]){ p.buom[i]=t+B.miss*1000; markDirty(pl); return {miss:true,msg:'Vồ hụt, bướm bay mất!'}; }
-  p.buom[i]=t+B.respawn*1000; addItem(pl,'buom_'+sp.k); const g=C.gainExp(pl,B.kinds[sp.k]==='rare'?15:B.kinds[sp.k]==='uncommon'?8:4); markDirty(pl);
+  p.buom[i]=t+B.respawn*1000; addItem(pl,'buom_'+sp.k); C.track(pl,'bug'); const g=C.gainExp(pl,B.kinds[sp.k]==='rare'?15:B.kinds[sp.k]==='uncommon'?8:4); markDirty(pl);
   return {item:'buom_'+sp.k,exp:g.exp}; });
 
 /* ---------- lọ: về phòng riêng xem phim, ngoài đường là bị phạt ---------- */

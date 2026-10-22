@@ -25,7 +25,7 @@ ACT.goto=d=>GAME.walkToNpc(d.id);
 async function req(m,ok){ const r=await GAME.act(m,ok); UI.refresh(); return r; }
 
 /* ---------- menu Esc ---------- */
-UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
+UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
   ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
@@ -505,6 +505,42 @@ UI.pickle=()=>open('Sân pickleball · đấu 2 vs 2',()=>{ const K=SD.PICKLE, v
 // shop đồ pickleball: 10 set, ảnh xem trước là chính nhân vật của bạn mặc set đó
 const PKPRE={}; function pkPreview(z){ const g=G(); if(!g.look||!window.AVATAR) return ''; const key=z.id+JSON.stringify(g.look); if(PKPRE[key]) return PKPRE[key];
   try{ const av=AVATAR.build({...g.look,outfit:{...g.look.outfit,...z.items}}), f=(av.anims.idle_down||av.anims.idle).frames[0]; return PKPRE[key]=f.toDataURL(); }catch(e){ return ''; } }   // cả người, nhìn rõ áo quần giày
+/* ---------- Hằng ngày: điểm danh 7 ngày · việc hôm nay + rương · sổ sưu tầm · lễ hội theo mùa ---------- */
+let dTab='', dChest=null;
+UI.daily=(tab)=>{ if(tab) dTab=tab; dChest=null; if(!GAME.DQ) GAME.act({t:'dq',op:'state'}); open('Hằng ngày',dailyHtml,{wide:true}); };
+PLACE.bingo=()=>UI.daily('season');
+function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đang tải…</p>';
+  const season=D.season&&SD.SEASON[D.season], L=D.login, q=D.dq, badge=n=>n?` <span class="dbadge">${n}</span>`:'';
+  const nQ=q.list.filter(t=>t.ok&&!t.got).length+(q.list.length&&q.list.every(t=>t.got)&&!q.chest?1:0), nA=Object.entries(SD.ALBUM).filter(([a,z])=>!D.albumGot[a]&&z.items.every(k=>D.seen[k])).length;
+  if(!dTab) dTab=!L.claimed?'login':nQ?'quest':'quest';
+  const tabs=[['login','Điểm danh'+badge(L.claimed?0:1)],['quest','Việc hôm nay'+badge(nQ)],['album','Sổ sưu tầm'+badge(nA)]]; if(season) tabs.push(['season','🎃 '+season.name]);
+  let body='';
+  if(dChest) body+=`<div class="dchest pop">${ico('ruong_bau')}<div><b>Mở rương!</b><br>+${fmt(dChest.vnd)} · +${dChest.exp} EXP · ${ico(dChest.item)} ${esc((SD.ITEMS[dChest.item]||{name:dChest.item}).name)}</div></div>`;
+  if(dTab==='login'){ const s=L.streak, done=i=>i<s-1||(i===s-1&&L.claimed);
+    body+=`<p class="dim">Vào game mỗi ngày để nhận quà, quà to dần tới ngày 7. Lỡ 1 ngày là quay về Ngày 1.</p><div class="d7">${SD.LOGIN7.map((r,i)=>{ const today=i===s-1, st=done(i)?'got':today?'now':'lock';
+      const ic=r.chest?ico('ruong_bau'):r.items?ico(Object.keys(r.items)[0]):ico('coin');
+      return `<div class="dday ${st}${r.chest?' big':''}"><span>Ngày ${i+1}</span>${ic}<b>${esc(r.label)}</b>${st==='got'?'<i>✔ Đã nhận</i>':today?btn('dlogin','Nhận quà',{},'pri'):'<i>🔒</i>'}</div>`; }).join('')}</div>`; }
+  if(dTab==='quest'){ body+=`<p class="dim">3 việc nhỏ mỗi ngày, đổi việc mới lúc 0h. Nhận đủ thưởng 3 việc thì mở Rương ngày.</p><div class="dq">${q.list.map((t,i)=>{ const def=SD.DAYQ.pool[t.id]; if(!def) return ''; const pct=Math.round(t.n/def.goal*100), rw=[def.rw.vnd?fmt(def.rw.vnd):'',def.rw.exp?def.rw.exp+' EXP':''].filter(Boolean).join(' · ');
+      const num=t.id==='money'?`${fmt(t.n)} / ${fmt(def.goal)}`:`${t.n} / ${def.goal}`;
+      return `<div class="dqrow ${t.got?'got':t.ok?'ok':''}"><div><b>${esc(def.name)}</b><div class="dbar"><i style="width:${pct}%"></i></div><span>${num} · thưởng ${rw}</span></div>${t.got?'<i>✔ Đã nhận</i>':t.ok?btn('dget','Nhận',{i},'pri'):btn('dgo','➜',{id:t.id},'go')}</div>`; }).join('')}
+      <div class="dqrow chest ${q.chest?'got':''}">${ico('ruong_bau')}<div><b>Rương ngày</b><span>${fmt(SD.DAYQ.chest.vnd[0])}–${fmt(SD.DAYQ.chest.vnd[1])} · ${SD.DAYQ.chest.exp} EXP · 1 món ngẫu nhiên</span></div>${q.chest?'<i>✔ Đã mở</i>':q.list.every(t=>t.got)?btn('dchest','Mở rương',{},'pri'):'<i>🔒 '+q.list.filter(t=>t.got).length+'/'+q.list.length+'</i>'}</div></div>`; }
+  if(dTab==='album'){ body+=`<p class="dim">Lần đầu có một món là được ghi vào sổ. Đủ bộ thì nhận thưởng lớn.</p>`+Object.entries(SD.ALBUM).map(([a,z])=>{ const have=z.items.filter(k=>D.seen[k]).length, full=have===z.items.length, got=D.albumGot[a];
+      return `<div class="dalb ${full?'full':''}"><h5>${esc(z.name)} <small>${have}/${z.items.length}</small></h5><div class="dgrid">${z.items.map(k=>{ const it=SD.ITEMS[k]||SD.CLOTHES[k]||{name:k}, seen=D.seen[k];
+        return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
+        <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{a},'pri'):''}</div></div>`; }).join(''); }
+  if(dTab==='season'&&season){ const n=g.items.bi_ngo||0, bg=(g.flags&&g.flags.bingo)||{}, end=season.to.split('-').reverse().join('/');
+    body+=`<div class="dseason"><p>Từ ${season.from.split('-').reverse().join('/')} tới ${end}: bí ngô mọc rải khắp <b>Ké Retreat</b> và <b>Đà Lạt</b> (chấm cam trên minimap), mỗi giờ đổi chỗ. Hái bí rồi mang tới <b>Cô Bí Ngô</b> ở cổng Ké đổi quà. Tối đến đèn bí ngô ở cổng sáng lập loè.</p>
+      <div class="dhave">${ico('bi_ngo')} Bạn có <b>${n}</b> quả bí ngô ${btn('dgo','Tìm bí gần nhất ➜',{id:'pumpkin'},'go')}</div>
+      <div class="dshop">${season.shop.map(it=>{ const own=!it.again&&bg[it.id], can=n>=it.cost&&!own; return `<div class="dsi ${own?'got':''}">${ico(it.item?it.item:it.cloth==='ao_bingo'?'ao_bingo':it.cloth?'mu_phuthuy':'bi_ngo')}<div><b>${esc(it.name)}</b><span>${esc(it.desc)}</span></div><div class="dcost">${it.cost} 🎃 ${own?'<i>✔ Có rồi</i>':btn('bingo','Đổi',{id:it.id},can?'pri':'')}</div></div>`; }).join('')}</div>
+      ${GAME.S&&GAME.S.kind==='retreat'?goBtn('bingo','Cô Bí Ngô'):''}</div>`; }
+  return `<div class="tabs">${tabs.map(([k,n])=>`<button class="tab ${k===dTab?'on':''}" data-a="dtab" data-k="${k}">${n}</button>`).join('')}</div><div class="daily">${body}</div>`; }
+ACT.dtab=d=>{ dTab=d.k; dChest=null; UI.refresh(); };
+ACT.dlogin=async()=>{ const r=await GAME.act({t:'dq',op:'login'}); if(r&&!r.err){ GAME.sfx('level_up',.5); if(r.chest) dChest=r.chest; } UI.refresh(); };
+ACT.dget=async d=>{ const r=await GAME.act({t:'dq',op:'get',i:+d.i}); if(r&&!r.err) GAME.sfx('item_pickup',.5); UI.refresh(); };
+ACT.dchest=async()=>{ const r=await GAME.act({t:'dq',op:'chest'}); if(r&&r.chest){ dChest=r.chest; GAME.sfx('level_up',.6); } UI.refresh(); };
+ACT.dalbum=async d=>{ const r=await GAME.act({t:'dq',op:'album',a:d.a}); if(r&&!r.err) GAME.sfx('level_up',.6); UI.refresh(); };
+ACT.dgo=d=>GAME.dqGo(d.id);
+ACT.bingo=async d=>{ const r=await GAME.act({t:'bingo',id:d.id}); if(r&&!r.err) GAME.sfx('item_pickup',.6); UI.refresh(); };
 PLACE.pkshop=()=>open('Chị Hà · đồ pickleball',()=>{ const g=G(), sets=SD.PK_SETS, card=z=>{ const have=Object.values(z.items).every(k=>g.owned[k]), wearing=Object.entries(z.items).every(([sl,k])=>g.look&&g.look.outfit[sl]===k), img=pkPreview(z);
     return `<div class="row tall"><span style="display:flex;gap:8px;align-items:center">${img?`<img src="${img}" alt="" style="width:48px;height:72px;object-fit:contain;image-rendering:pixelated;background:#3f7fae;border:2px solid ${z.premium?'#d4a83a':'#3a3a44'}">`:''}<span><b>${esc(z.name)}</b>${z.premium?' <b class="good">★ PREMIUM</b>':''}<br><small class="muted">${z.g==='nam'?'Nam':'Nữ'} · áo, ${z.bottom==='skirt'?'váy':'quần'}, giày${z.cap?', mũ':''}${z.premium?' · mặc đủ bộ thắng trận ×1,5 EXP':''}</small></span></span>
       <span>${have?(wearing?'đang mặc':'đã có'):fmt(z.price)}</span>${have?(wearing?'':btn('pkwear','Mặc',{id:z.id},'pri')):btn('pkbuy','Mua & mặc',{id:z.id},'pri')}</div>`; };

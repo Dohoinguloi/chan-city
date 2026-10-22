@@ -35,14 +35,14 @@ function chirp(vol){ const c=ac(); if(!c) return; const t=c.currentTime, o=c.cre
   g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+.13); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.15); }
 
 /* ---------- trạng thái từng cảnh ---------- */
-let key='', birds=[], leaves=[], flies=[], drops=[], splashes=[], prints=[], motes=[], beams=[], clouds=[], fogs=[], boltT=8, boltFlash=0, thunderAt=0, chirpT=3, W=null;
+let bats=[], key='', birds=[], leaves=[], flies=[], drops=[], splashes=[], prints=[], motes=[], beams=[], clouds=[], fogs=[], boltT=8, boltFlash=0, thunderAt=0, chirpT=3, W=null;
 const CLOUD_PX={};
 function cloudShape(seed,w,h,col){ const k=seed+'_'+w+col; if(CLOUD_PX[k]) return CLOUD_PX[k]; const q=4, cw=Math.ceil(w/q), ch=Math.ceil(h/q), c=document.createElement('canvas'); c.width=cw; c.height=ch; const g=c.getContext('2d');
   g.fillStyle=col; const n=5+Math.floor(H(seed)*3); for(let i=0;i<n;i++){ const a=H(seed*7+i), b=H(seed*13+i*3), r=(.22+.18*H(seed*17+i))*ch*1.6;
     g.beginPath(); g.ellipse(cw*(.18+.64*a),ch*(.3+.4*b),r*1.25,r*.8,0,0,7); g.fill(); }
   // gom về pixel cứng (không mờ viền) cho hợp tranh pixel
   const d=g.getImageData(0,0,cw,ch); for(let i=3;i<d.data.length;i+=4) d.data[i]=d.data[i]>110?255:0; g.putImageData(d,0,0); return CLOUD_PX[k]=c; }
-function reset(st){ key=st.key; ripples=[]; jumps=[]; birds=[]; leaves=[]; flies=[]; splashes=[]; prints=[]; motes=[]; boltT=6+rnd()*10;
+function reset(st){ key=st.key; bats=[]; ripples=[]; jumps=[]; birds=[]; leaves=[]; flies=[]; splashes=[]; prints=[]; motes=[]; boltT=6+rnd()*10;
   const s=H(st.key.length*97+st.W*7+st.H);
   const nc=Math.max(4,Math.min(40,Math.round(st.W*st.H*T*T/160000))); clouds=[]; for(let i=0;i<nc;i++){ const sd=Math.floor(H(s*1e4+i)*1e6), w=220+Math.floor(H(sd)*260), h=110+Math.floor(H(sd+1)*110); clouds.push({sd,w,h,y:H(sd+2)*(st.H*T+120)-60,ph:H(sd+3),sp:5+H(sd+4)*7,lv:H(sd+5)}); }
   fogs=[]; for(let i=0;i<6;i++){ const sd=Math.floor(H(s*3e3+i)*1e6); fogs.push({sd,w:260+H(sd)*200,h:60+H(sd+1)*40,y:H(sd+2)*(st.H*T),ph:H(sd+3),sp:3+H(sd+4)*4}); }
@@ -79,6 +79,9 @@ function update(dt,st){ if(st.key!==key) reset(st); W=weather(st.now,st.city,st.
     leaves.push({x:o.x-s.ax+w*(.2+.6*rnd()),y:o.y-s.ay+h*(.15+.35*rnd()),gy:o.y-4+rnd()*12,vy:9+rnd()*7,ph:rnd()*7,sw:4+rnd()*5,col:cols[Math.floor(rnd()*cols.length)],t:0,rest:0,petal:pink}); }
   for(const l of leaves){ l.t+=dt; if(l.rest>0){ l.rest+=dt; continue; } l.y+=l.vy*dt; l.x+=(Math.sin(l.t*2.4+l.ph)*l.sw+wind)*dt; if(l.y>=l.gy){ l.y=l.gy; l.rest=.001; } }
   leaves=leaves.filter(l=>l.rest<4.5&&l.x>x0-60&&l.x<x1+60);
+  // mùa Halloween: dơi bay lượn qua khung nhìn ban đêm
+  if(out&&st.season&&night&&bats.length<6&&rnd()<dt*.35){ const L=rnd()<.5; bats.push({x:L?x0-10:x1+10,y:y0+20+rnd()*v.h*.5,vx:(L?1:-1)*(45+rnd()*35),ph:rnd()*7,amp:6+rnd()*10,t:0}); }
+  for(const b of bats){ b.t+=dt; b.x+=b.vx*dt; } bats=bats.filter(b=>b.x>x0-30&&b.x<x1+30);
   // đom đóm ban đêm (ngoài trời, không mưa to)
   const want=out&&night&&W.rain<.5?16:0;
   while(flies.length<want) flies.push({bx:x0+rnd()*v.w,by:y0+rnd()*v.h,ph:rnd()*7,a:.6+rnd()*.8,b:.5+rnd()*.7,t:rnd()*10});
@@ -167,6 +170,10 @@ function front(ctx,cx,cy,vw,vh,st){ if(!W) return 0;
     for(let i=0;i<n&&i<clouds.length;i++){ const c=clouds[i], span=mw+c.w*2+200, x=((c.ph*span+st.now/1000*c.sp*(W.storm?2.2:1))%span)-c.w-100, y=c.y;
       if(x+c.w<cx||x>cx+vw||y+c.h<cy||y>cy+vh) continue; ctx.globalAlpha=.08+cov*.07; ctx.drawImage(cloudShape(c.sd,c.w,c.h,'#14203a'),Math.round(x-cx),Math.round(y-cy),c.w,c.h); }
     ctx.globalAlpha=1; }
+  // dơi: thân tím thẫm, mắt đỏ, cánh vỗ 2 nhịp
+  for(const b of bats){ const X=Math.round(b.x-cx), Y=Math.round(b.y-cy+Math.sin(b.t*5+b.ph)*b.amp), up=Math.floor(b.t*12)%2; ctx.fillStyle='#2b1a2e';
+    ctx.fillRect(X-1,Y-1,3,3); ctx.fillRect(X,Y-2,1,1); if(up){ ctx.fillRect(X-4,Y-3,3,1); ctx.fillRect(X+2,Y-3,3,1); ctx.fillRect(X-2,Y-2,1,1); ctx.fillRect(X+2,Y-2,1,1); } else { ctx.fillRect(X-4,Y,3,1); ctx.fillRect(X+2,Y,3,1); ctx.fillRect(X-5,Y+1,1,1); ctx.fillRect(X+5,Y+1,1,1); }
+    ctx.fillStyle='#ff4a4a'; ctx.fillRect(X+(b.vx>0?1:-1),Y-1,1,1); }
   // đom đóm
   if(flies.length){ ctx.globalCompositeOperation='lighter'; for(const f of flies){ const x=Math.round(f.bx+Math.sin(f.t*f.a+f.ph)*14-cx), y=Math.round(f.by+Math.cos(f.t*f.b+f.ph)*9-cy), g=Math.max(0,Math.sin(f.t*2.2+f.ph)); if(g<.08) continue;
       ctx.fillStyle=`rgba(190,255,110,${.22*g})`; ctx.fillRect(x-2,y-1,5,3); ctx.fillRect(x-1,y-2,3,5); } ctx.globalCompositeOperation='source-over';

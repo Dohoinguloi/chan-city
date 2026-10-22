@@ -31,7 +31,7 @@ function setAct(pl,a,sec){ pl.act=S.ACTS.indexOf(a); pl.actUntil=sec?now()+sec*1
 function treasureRoll(pl,d){ const TR=S.TREASURE, p=pl.prof; pl.paddled=(pl.paddled||0)+d; if(pl.paddled<TR.every) return; pl.paddled=0;
   if((p.daily.treasure||0)>=TR.daily||Math.random()>TR.chance) return;
   const tot=Object.values(TR.items).reduce((a,x)=>a+x.w,0); let r=Math.random()*tot, k=null; for(const [id,x] of Object.entries(TR.items)){ r-=x.w; if(r<=0){ k=id; break; } } k=k||'dong_xu_co';
-  const n=p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được đồ cổ: ${TR.items[k].name}! (${n}/${TR.daily} hôm nay · bán cho cô Ké ${S.fmt(TR.items[k].price)})`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y});
+  const n=p.daily.treasure=(p.daily.treasure||0)+1; reward(pl,{item:k,exp:k==='ruong_bau'?60:k==='ngoc_trai'?30:12},`Vớt được đồ cổ: ${TR.items[k].name}! (${n}/${TR.daily} hôm nay · bán cho cô Ké ${S.fmt(TR.items[k].price)})`); send(pl,{t:'ev',k:'treasure',item:k,x:pl.x,y:pl.y}); C.track(pl,'treasure');
   if(n>=TR.daily) C.note(pl,`Hôm nay mò đủ ${TR.daily} món đồ cổ rồi, mai chèo tiếp nhé`,'quest'); }
 
 /* ---------- gói vị trí ---------- */
@@ -144,6 +144,6 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   if(fare&&!take(pl,fare)) return {err:`Chuyến này ${S.fmt(fare)}, trong ví còn ${S.fmt(p.money)}`};
   if(free) p.flags.freeRide=true; if(to==='retreat') p.flags.arrived=true;
   p.needs.battery=Math.max(0,p.needs.battery-2);
-  const [id,sp]=destSpawn(pl,to); moveTo(pl,id,sp.x,sp.y,{ride:{from,to,fare,free}}); return {fare,free}; });
+  const [id,sp]=destSpawn(pl,to); moveTo(pl,id,sp.x,sp.y,{ride:{from,to,fare,free}}); C.track(pl,'grab'); return {fare,free}; });
 
 module.exports={setAct,hasBed,inOwnRoom,clean,destSpawn,endSoc};

@@ -803,8 +803,58 @@ function dailyTasks(uid,day,remote){ let h=2166136261; for(const ch of uid+day){
 function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(const ch of 'ot'+uid+day){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } h>>>=0;
   if(h%100>=JOB.ot.chance) return null; const pool=Object.keys(WORK_TASKS).filter(k=>WORK_TASKS[k].where==='desk'); return pool[(h>>8)%pool.length]; }
 
+/* ---------- Giữ chân người chơi (học từ game mobile, Stardew Valley, Animal Crossing) ----------
+   Điểm danh 7 ngày: vào game mỗi ngày nhận quà, quà to dần, ngày 7 mở Rương vàng; lỡ 1 ngày thì quay lại ngày 1.
+   Việc mỗi ngày: 3 việc nhỏ đổi lúc 0h giờ VN (mỗi người một bộ khác nhau), xong đủ 3 việc mở Rương ngày.
+   Sổ sưu tầm: lần đầu có 1 món là đánh dấu vào sổ; đủ một bộ nhận thưởng lớn.
+   Sự kiện mùa: Lễ hội Bí ngô (20/10 – 3/11 hằng năm), bí ngô mọc rải khắp Ké & Đà Lạt, đổi quà với Cô Bí Ngô. */
+const LOGIN7=[{vnd:30000,label:'30K'},{items:{hat_rau_muong:3},label:'3 hạt rau muống'},{vnd:60000,exp:40,label:'60K · 40 EXP'},{items:{trung:2,nam:2},label:'Trứng & nấm'},
+  {vnd:120000,label:'120K'},{items:{khoga:1},exp:80,label:'Khô gà · 80 EXP'},{vnd:300000,exp:150,chest:true,label:'Rương vàng'}];
+const DAYQ={n:3,pool:{
+  fish:{name:'Câu được 3 con cá',goal:3,rw:{vnd:60000,exp:40},lv:2},
+  harvest:{name:'Thu hoạch 4 lần ngoài vườn',goal:4,rw:{vnd:60000,exp:40}},
+  forage:{name:'Hái 4 món hoa lá, rau rừng',goal:4,rw:{vnd:50000,exp:35}},
+  bug:{name:'Bắt 2 con bướm',goal:2,rw:{vnd:60000,exp:40},item:'vot_buom'},
+  money:{name:'Kiếm được 300.000đ',goal:300000,rw:{exp:60}},
+  exp:{name:'Nhận 250 EXP',goal:250,rw:{vnd:80000}},
+  meal:{name:'Ăn đủ 3 bữa trong ngày',goal:3,rw:{vnd:50000,exp:50}},
+  grab:{name:'Đi Grab 2 chuyến',goal:2,rw:{vnd:60000,exp:30}},
+  photo:{name:'Chụp 2 tấm ảnh check-in',goal:2,rw:{vnd:40000,exp:40}},
+  pickle:{name:'Đánh 1 trận pickleball',goal:1,rw:{vnd:80000,exp:60},skill:'pickle'},
+  treasure:{name:'Vớt 1 món đồ cổ dưới hồ',goal:1,rw:{vnd:70000,exp:50},lv:3},
+  pumpkin:{name:'Nhặt 5 quả bí ngô',goal:5,rw:{vnd:60000,exp:50},season:'halloween'}},
+  chest:{vnd:[120000,320000],exp:120,items:['khoga','hat_ca_chua','nam','trung','dong_xu_co']}};
+const ALBUM={
+  ca:{name:'Cá',items:[...new Set(['fish',...Object.keys(FISH),...Object.keys(DL_FISH)])],rw:{vnd:300000,exp:200}},
+  buom:{name:'Bướm',items:Object.keys(BUTTERFLY.kinds).map(k=>'buom_'+k),rw:{vnd:400000,exp:300}},
+  vuon:{name:'Nông sản',items:Object.keys(CROPS),rw:{vnd:300000,exp:200}},
+  rung:{name:'Lộc rừng',items:['hoa','la','mang','rau','trung','nam'],rw:{vnd:150000,exp:120}},
+  co:{name:'Đồ cổ dưới hồ',items:Object.keys(TREASURE.items),rw:{vnd:500000,exp:300}},
+  hp:{name:'Quà Halloween',items:['bi_ngo','mu_phuthuy','ao_bingo','den_bingo'],rw:{vnd:250000,exp:200}}};
+// ô đặt bí ngô: chỉ ô cỏ / đường đi được (sinh từ bản đồ), mỗi giờ VN đổi bộ ô
+const SEASON={halloween:{name:'Lễ hội Bí ngô',from:'10-20',to:'11-03',perHour:{retreat:12,dalat:5},
+  spots:{retreat:[[181.5,118.6],[239.5,72.6],[202.5,75.6],[161.5,49.6],[124.5,63.6],[280.5,36.6],[39.5,118.6],[95.5,70.6],[261.5,62.6],[131.5,71.6],[274.5,42.6],[106.5,84.6],[226.5,7.6],[46.5,78.6],[178.5,71.6],[113.5,93.6],[225.5,40.6],[85.5,83.6],[216.5,83.6],[39.5,36.6],[330.5,104.6],[331.5,80.6],[92.5,119.6],[193.5,74.6],[171.5,102.6],[113.5,16.6],[276.5,81.6],[263.5,21.6],[189.5,84.6],[229.5,88.6],[12.5,9.6],[254.5,7.6],[162.5,21.6],[57.5,29.6],[196.5,82.6],[85.5,63.6],[22.5,22.6],[140.5,36.6],[45.5,41.6],[138.5,83.6],[282.5,77.6],[267.5,7.6],[261.5,47.6],[305.5,73.6],[317.5,27.6],[86.5,39.6]],
+    dalat:[[51.5,27.6],[65.5,23.6],[31.5,46.6],[35.5,61.6],[23.5,40.6],[42.5,21.6],[17.5,51.6],[36.5,13.6],[21.5,7.6],[34.5,22.6],[10.5,5.6],[40.5,43.6],[4.5,35.6],[5.5,61.6]]},
+  // đèn bí ngô trang trí quanh cổng Ké, sáng lập loè buổi tối
+  decor:[[36.6,95.2],[42.6,95.2],[33.4,90.6],[45.8,90.6],[39.5,86.8],[52.6,93.6],[28.6,93.4]],
+  shop:[{id:'keo',name:'Túi kẹo Halloween',cost:5,rw:{vnd:80000,exp:60},again:true,desc:'80.000đ + 60 EXP, đổi bao nhiêu lần cũng được'},
+    {id:'mu',name:'Mũ tím phù thuỷ',cost:12,cloth:'mu_phuthuy',desc:'Mũ tím đội đi chơi lễ, mặc trong Tủ đồ'},
+    {id:'ao',name:'Áo bí ngô chấm bi',cost:20,cloth:'ao_bingo',desc:'Áo cam chấm bi đen, chỉ có mùa lễ'},
+    {id:'den',name:'Đèn bí ngô theo chân',cost:30,item:'den_bingo',desc:'Quả bí ngô phát sáng lon ton theo sau bạn, ai cũng thấy'}]}};
+function seasonOn(id,ms=Date.now()){ const z=SEASON[id]; if(!z) return false; const md=vnTime(ms).day.slice(5); return z.from<=z.to?md>=z.from&&md<=z.to:md>=z.from||md<=z.to; }
+// bộ bí ngô đang mọc trong giờ hiện tại (giống nhau ở mọi máy)
+function pumpkinsNow(scene,ms=Date.now()){ const z=SEASON.halloween, sp=z.spots[scene], n=z.perHour[scene]; if(!sp||!seasonOn('halloween',ms)) return {hour:0,list:[]};
+  const hour=Math.floor((ms+RULES.tzOffsetH*3600e3)/3600e3), idx=sp.map((p,i)=>[i,((Math.imul(hour+1,2654435761)^Math.imul(i+7,40503))>>>0)%9973]).sort((a,b)=>a[1]-b[1]).slice(0,n).map(a=>a[0]);
+  return {hour,list:idx.map(i=>({i,x:sp[i][0],y:sp[i][1]}))}; }
+ITEMS.bi_ngo={name:'Bí ngô',icon:'pumpkin'}; ITEMS.den_bingo={name:'Đèn bí ngô theo chân',icon:'jack'}; ITEMS.mu_phuthuy={name:'Mũ tím phù thuỷ',icon:'hat'}; ITEMS.ao_bingo={name:'Áo bí ngô chấm bi',icon:'pumpkin'};
+CLOTHES.mu_phuthuy={name:'Mũ tím phù thuỷ',slot:'head',price:0,hidden:true,opts:{hair:'cap',capPattern:true},colors:{cap:'5b2a86'}};
+CLOTHES.ao_bingo={name:'Áo bí ngô chấm bi',slot:'top',price:0,hidden:true,opts:{top:'tee',polka:true},colors:{top:'e8742a',print:'2b1a2e'}};
+CLOTHES.ao_phuthuy={name:'Áo choàng tím',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'4a2470'}};
+NPCS.push({id:'bingo',scene:'retreat',x:44.2,y:93.6,place:'bingo',season:'halloween'});
+NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',hair:'long',hairColor:'2b1a2e',skin:'f3c4a4',outfit:{top:'ao_phuthuy',bottom:'vay_den',shoes:'giay_den',head:'mu_phuthuy'},opts:{mouth:'smile'}}};
+
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

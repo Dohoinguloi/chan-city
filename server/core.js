@@ -8,7 +8,7 @@ const players=new Map();       // pid → người chơi
 const byUid=new Map();         // uid → người chơi
 const scenes=new Map();        // id cảnh → Set người chơi
 const handlers={};             // loại tin → hàm xử lý
-const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[]};
+const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[]};   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
 let nextPid=1;
 
 const on=(t,fn)=>{ handlers[t]=fn; };
@@ -58,9 +58,11 @@ function publicProfile(pl){ return {...pl.prof,pub:pl.pub,pid:pl.pid,extra:pl.ex
 
 /* ---------- tiền, đồ, EXP ---------- */
 function take(pl,v){ v=Math.round(v); if(v<0||pl.prof.money<v) return false; pl.prof.money-=v; markDirty(pl); return true; }
-function give(pl,v){ v=Math.round(v); if(v>0){ pl.prof.money+=v; markDirty(pl); } }
+function give(pl,v){ v=Math.round(v); if(v>0){ pl.prof.money+=v; markDirty(pl); for(const f of hooks.money) f(pl,v); } }
 function has(pl,k,n=1){ return (pl.prof.items[k]||0)>=n; }
-function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]<=0) delete it[k]; markDirty(pl); }
+function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]<=0) delete it[k]; markDirty(pl); if(n>0) for(const f of hooks.item) f(pl,k,n); }
+// báo một việc vừa làm (đi Grab, ăn bữa, chụp ảnh...) cho các module đếm tiến độ
+function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
   if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.needs.clean<20) m*=.85; return m; }
@@ -69,7 +71,7 @@ function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.need
 function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
   if(kind==='game'){ a=Math.max(0,Math.min(S.RULES.gameExpCap-p.daily.gameExp,a)); p.daily.gameExp+=a; }
   a=Math.round(a); if(a<=0) return {exp:0};
-  p.exp+=a; const lv=S.levelOf(p.exp), out={exp:a}; if(lv>p.level){ p.level=lv; out.level=lv; } markDirty(pl); return out; }
+  p.exp+=a; for(const f of hooks.exp) f(pl,a); const lv=S.levelOf(p.exp), out={exp:a}; if(lv>p.level){ p.level=lv; out.level=lv; } markDirty(pl); return out; }
 // thưởng + báo cho client hiện thông báo
 function reward(pl,r,msg){ const out={t:'rw',msg:msg||''};
   if(r.exp){ const g=gainExp(pl,r.exp,r.kind); out.exp=g.exp; if(g.level){ out.level=g.level; levelUp(pl); } }
@@ -83,7 +85,7 @@ function note(pl,msg,kind){ send(pl,{t:'note',msg,kind:kind||''}); }
 
 /* ---------- cảnh ---------- */
 // thông tin hiển thị của 1 người (gửi cho người khác lần đầu thấy, hoặc khi đổi đồ)
-function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():''}; }
+function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():'',bn:(pl.prof.items.den_bingo||0)>0?1:0}; }   // bn: có đèn bí ngô theo chân
 function refreshInfo(pl){ for(const q of players.values()) if(q.sent&&q.sent.has(pl.pid)) q.sent.delete(pl.pid); }
 // chuyển người chơi sang cảnh khác; x,y theo ô
 function moveTo(pl,id,x,y,extra={}){
@@ -97,5 +99,5 @@ function moveTo(pl,id,x,y,extra={}){
 }
 
 module.exports={stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  defaults,fixProfile,markDirty,save,publicProfile,take,give,has,addItem,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
+  defaults,fixProfile,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};

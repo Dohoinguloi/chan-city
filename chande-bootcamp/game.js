@@ -147,7 +147,7 @@ function sceneData(kind,room){ const key=kind==='stay'?'stay:'+room:kind; return
 function officeOpen(){ const t=vn(), wd=!SD.isWeekend(t.day); if(wd&&t.hf>=SD.JOB.hours[0]&&t.hf<SD.JOB.hours[1]) return true;
   const j=G&&G.extra&&G.extra.job; return !!(j&&j.hired&&j.today&&j.today.ot&&!j.today.otDone&&t.hf>=SD.JOB.ot.from&&t.hf<SD.JOB.ot.to); }
 function sceneNpcs(kind){ const open=kind==='everfit'?officeOpen():true; if(S) S.closed=!open;
-  return SD.NPCS.filter(n=>(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
+  return SD.NPCS.filter(n=>(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)&&(!n.season||SD.seasonOn(n.season,NET.now()))).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
 let CSGT_POST=null, CSGT_STOP=null, IMPOUNDS=[], CRASHES=[], OPT_ON=0, MEGA=null, ramAt=0, WDINO=null, WCROC=null;
 const DINOSPR={}, dinoSpr=(k,f,o)=>DINOSPR[k+f+(o?'o':'')]||(DINOSPR[k+f+(o?'o':'')]=k==='croc'?A.croc(f,o):({bronto:A.dino,trice:A.trice,ptero:A.ptero,rexpink:A.rexPink,rex:A.rexGreen}[k]||A.dino)(f));
 // CR7 + Messi đi dạo ngoài phố (vị trí tính theo giờ nên ai cũng thấy giống nhau), lại gần thì ăn mừng / khoe
@@ -290,6 +290,7 @@ function nearest(){
   if(k==='retreat'&&!MCKB){ const M=SD.MCK.stage, d=dist(M.x*T,(M.y+2)*T); if(d<56) consider(d,{type:'mckcall',label:'🎤 Thách đấu boss MCK'}); }
   if(k==='retreat'){ const Q=SD.YENLANG.pho, d=dist(Q.x*T,Q.y*T); if(d<26) consider(d,{type:'pho',label:G.quests.pho==='active'?'Mua phở chị Thảo ('+fmt(Q.price)+')':'Quán phở chị Thảo'}); }
   for(const s of khogaHere()){ const d=dist(s.x*T,s.y*T); if(d<18) consider(d,{type:'khoga',i:s.i,label:'Nhặt khô gà đè tem'}); }
+  for(const s of pumpkinsHere()){ const d=dist(s.x*T,s.y*T); if(d<20) consider(d,{type:'pumpkin',i:s.i,label:'Hái bí ngô'}); }
   if(k==='club') for(const r of REM.values()) if(r.act==='shisha'){ const d=dist(r.x,r.y); if(d<9*T) consider(d*.3,{type:'report',r,label:'📸 Chụp ảnh '+r.name+' báo công an'}); }
   for(const c of FOLLOW.values()) if(!c.hide){ const d=dist(c.x,c.y); if(d<(c.f.kind==='cat'?20:26)) consider(d*.55,{type:'follow',c,label:c.f.kind==='cat'?'Vuốt ve '+c.f.name:'Nghe '+c.f.name+' nói'}); }
   for(const it of S.map.inter){ const d=dist(it.x,it.y); if(d<it.r) consider(d,{type:'obj',it,label:it.label}); }
@@ -335,6 +336,7 @@ async function interact(x){
   if(x.type==='mckcall'){ const r=await act({t:'mck',op:'call'}); if(!r.err) toast(esc(r.msg),'quest'); return; }
   if(x.type==='design'){ const r=await act({t:'design',id:x.id}); return; }
   if(x.type==='pho'){ const r=await act({t:'yl',op:'pho'}); if(!r.err){ sfx('item_pickup',.5); toast(esc(r.msg),'item'); } return; }
+  if(x.type==='pumpkin'){ const r=await act({t:'pumpkin',i:x.i}); if(!r.err){ sfx('item_pickup',.5); for(let k=0;k<8;k++) fx.push({kind:'glint',x:P.x+(Math.random()-.5)*20,y:P.y-14+(Math.random()-.5)*12,t:-k*.04,life:.6}); toast(`Hái được <b>Bí ngô</b> · có ${r.n} quả, đổi quà với Cô Bí Ngô ở cổng Ké`,'item'); } return; }
   if(x.type==='khoga'){ const r=await act({t:'khoga',i:x.i}); if(!r.err){ sfx('item_pickup',.5); toast(`Nhặt được <b>Khô gà đè tem</b> (${Math.min(r.n,10)}/10)`,'item'); } return; }
   if(x.type==='report'){ const r=await act({t:'shisha',op:'report',id:x.r.id}); if(!r.err){ flash=.6; tone('square',1900,700,.05,.07); toast(esc(r.msg),'quest'); } return; }
   if(x.type==='pick'){ const r=await act({t:'pick',k:x.k,i:x.i}); if(r.err) return;
@@ -542,6 +544,13 @@ function doGo(id){ const Y=SD.YENLANG; if(canFinish(id)){ if(S.kind==='yenlang')
   if(OIS.on&&S.kind!=='yenlang') return walkTo(OIS.x/T,OIS.y/T+.8,'Ộ i i',()=>{ const x=nearest(); if(x) interact(x); }); toast('Ộ i i đang lang thang ở map khác (buổi tối thì ở nhà anh Độ). Ra Ké, Đà Lạt, DAS... tìm nhé','quest'); }
 // việc của Ộ i i: xong thì đi tìm Ộ i i (map nào cũng có), khô gà thì tới gói gần nhất ở map này, shisha thì vào góc shisha Nhà giải trí
 const OII_MAPS={retreat:'Ké Retreat',dalat:'Đà Lạt',das:'DAS',everfit:'Everfit',club:'Nhà giải trí',net:'tiệm net Đà Lạt'};
+// nút → ở bảng Hằng ngày: chỉ đường / mở đúng bảng cho từng việc
+function dqGo(id){ UI.closeAll();
+  if(id==='pumpkin'){ const here=pumpkinsHere().sort((a,b)=>Math.hypot(a.x*T-P.x,a.y*T-P.y)-Math.hypot(b.x*T-P.x,b.y*T-P.y)); if(here.length) return walkTo(here[0].x,here[0].y,'Bí ngô'); toast('Bí ngô mọc ở Ké Retreat và Đà Lạt (chấm cam trên minimap), mỗi giờ đổi chỗ','quest'); return; }
+  if(id==='harvest') return UI.farm(); if(id==='grab') return UI.grab(); if(id==='meal'&&typeof eatGo==='function') return eatGo();
+  const tip={fish:'Ra mép hồ ở Ké hoặc Đà Lạt, đứng sát nước bấm E để câu',forage:'Hoa lá, măng, nấm mọc ven rừng ở Ké, lại gần bấm E để hái',bug:'Cầm vợt vào rừng ở Ké, thấy bướm bay thì bấm E để vồ',
+    photo:'Tới chỗ cảnh đẹp (cổng Ké, bến hồ, khu cắm trại...) bấm P để chụp',pickle:'Bấm G gọi Grab tới Sân pickleball (Hà Nội), vào sân đấu 2 vs 2',treasure:'Thuê kayak ở bãi cát cạnh bến Ké, chèo vòng quanh hồ là vớt được đồ cổ',
+    money:'Làm việc, bán nông sản, cá, đồ cổ cho cô Ké đều ra tiền',exp:'Làm nhiệm vụ, học ở DAS, làm việc đều có EXP'}[id]; if(tip) toast(tip,'quest'); }
 function oiiGo(id){ const H=SD.SHISHA;
   if(canFinish(id)){ if(OIS.on) return walkTo(OIS.x/T,OIS.y/T+.8,'Ộ i i',()=>{ oiiSay(); UI.oii(); }); toast('Ra ngoài tìm Ộ i i, map nào cũng có','quest'); return; }
   if(id==='khoga'){ const here=khogaHere().sort((a,b)=>Math.hypot(a.x*T-P.x,a.y*T-P.y)-Math.hypot(b.x*T-P.x,b.y*T-P.y)); if(here.length) return walkTo(here[0].x,here[0].y,'Khô gà đè tem');
@@ -616,6 +625,7 @@ cvs.addEventListener('contextmenu',e=>{ e.preventDefault(); if(!mouseOk()) retur
 $('#btnLb').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.leaderboard(); });
 $('#btnWard').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.wardrobe(); });
 $('#btnFarm').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.farm(); });
+for(const id of ['#btnDaily','#mDaily']) $(id).addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.daily(); });
 
 /* ---------- chuyển cảnh ---------- */
 let ringing=null, ringTimer=0, travelling=false;
@@ -644,7 +654,7 @@ function speed(){ if(P.kayak) return 95; if(S.kind==='retreat'&&tileAt(P.x,P.y)=
 let AMB_ST=null; const TREES=[], AMB_NO=new Set(['deo']);
 const ambFree=(x,y)=>{ const tx=Math.floor(x/T), ty=Math.floor(y/T); return tx>=0&&ty>=0&&tx<S.W&&ty<S.H&&S.solid[ty*S.W+tx]!==1; };
 function ambSt(){ const t=vn(); return {key:S.kind+'|'+(S.id||'')+'|'+(S.room||''),W:S.W,H:S.H,grid:S.map.grid,indoor:!!S.map.indoor,city:(SD.DEST[SD.SCENE_DEST[S.kind]]||{}).city||'hn',now:NET.now(),hf:t.hf,
-  px:P.x,py:P.y,fast:!!(down('shift')||P.moto||P.riding||P.pcar),muted:AUD.muted,view:{cx:cam.x,cy:cam.y,w:VW,h:VH},trees:TREES,free:ambFree,others:REM.size?[...REM.values()]:null,birds:!AMB_NO.has(S.kind)}; }
+  px:P.x,py:P.y,fast:!!(down('shift')||P.moto||P.riding||P.pcar),muted:AUD.muted,view:{cx:cam.x,cy:cam.y,w:VW,h:VH},trees:TREES,free:ambFree,others:REM.size?[...REM.values()]:null,birds:!AMB_NO.has(S.kind),season:SD.seasonOn('halloween',NET.now())}; }
 function update(dt){
   if(ringTimer>0){ ringTimer-=dt; if(ringTimer<=0&&!G.flags.called&&S.kind==='room'){ ringing=sfx('phone_ring',.5); toast('Điện thoại đang reo... (lại bàn, bấm <kbd>E</kbd>)','quest'); } }
   if(ringing&&ringing.ended&&!G.flags.called){ ringing=null; ringTimer=5; }
@@ -678,7 +688,7 @@ function update(dt){
   if(hit('m')){ toggleMap(); return; } if(!$('#mapView').hidden){ if(hit('escape','m')) toggleMap(); return; }
   if(hit('escape')){ UI.menu(); return; }
   if(hit('enter')){ UI.chat(); return; }
-  if(hit('g')){ UI.grab(); return; } if(hit('i')){ UI.bag(); return; } if(hit('b')){ goHome(); return; } if(hit('l')){ UI.leaderboard(); return; } if(hit('u')){ UI.wardrobe(); return; } if(hit('f')){ UI.farm(); return; }
+  if(hit('g')){ UI.grab(); return; } if(hit('i')){ UI.bag(); return; } if(hit('b')){ goHome(); return; } if(hit('l')){ UI.leaderboard(); return; } if(hit('u')){ UI.wardrobe(); return; } if(hit('f')){ UI.farm(); return; } if(hit('y')){ UI.daily(); return; }
   if(hit('n','`','~')) toggleSkills();                                 // N: thanh kỹ năng (tiếng bật/tắt bằng nút loa)
   if(hit('p')) act({t:'photo'}).then(r=>{ if(!r.err){ flash=1; sfx('item_pickup',.5); toast(`Đã chụp ảnh sống ảo: <b>${esc(r.name)}</b> · up ảnh ở phòng`,'item'); } });
   { const sp=!!P.moto&&P.moto!=='xedap'&&down('shift')&&(S.kind==='retreat'||S.kind==='dalat'); if(sp!==!!P.speeding){ P.speeding=sp; act({t:'moto',op:'speed',on:sp}); if(sp) toast('Phóng nhanh vượt ẩu! CSGT thấy là bắt, dễ xoè xe đấy','lock'); }
@@ -874,6 +884,24 @@ function drawOii(list,inView){ if(!OIS.on||!inView(OIS.x,OIS.y)) return; const x
   if(S.kind==='club'&&Math.random()<.05) fx.push({kind:'smoke',x:x-7,y:y-28,t:0,life:1.8});
   SAYS.push({x,y:y-46,name:'Ộ i i',text:line}); }
 // khô gà đè tem rơi ở các map (khi đang nhận việc của Ộ i i)
+/* ---------- Lễ hội Bí ngô: bí mọc đổi chỗ mỗi giờ, đèn bí khắc mặt trang trí cổng Ké, đèn bí lon ton theo chân người đã đổi quà ---------- */
+function pumpkinsHere(){ if(!G||!S||(S.kind!=='retreat'&&S.kind!=='dalat')) return []; const cur=SD.pumpkinsNow(S.kind,NET.now()), got=G.pk&&G.pk.h===cur.hour?G.pk.got:{}; return cur.list.filter(s=>!got[S.kind+s.i]); }
+const PUMP={}, pumpSpr=v=>PUMP[v]||(PUMP[v]=A.pumpkin(v)), JACK={}, jackSpr=f=>JACK[f]||(JACK[f]=A.jack(f));
+function warmGlow(x,y,r,a){ const X=x-cam.x, Y=y-cam.y, g=ctx.createRadialGradient(X,Y,1,X,Y,r); g.addColorStop(0,`rgba(255,190,80,${a})`); g.addColorStop(1,'rgba(255,150,40,0)');
+  ctx.globalCompositeOperation='lighter'; ctx.fillStyle=g; ctx.fillRect(X-r,Y-r,r*2,r*2); ctx.globalCompositeOperation='source-over'; }
+function drawPumpkins(list){ if(!G||!S) return;
+  for(const s of pumpkinsHere()){ const x=s.x*T, y=s.y*T, sp=pumpSpr(s.i%3); list.push({y,d:()=>{ shadow(x,y,7); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }});
+    if(Math.random()<.012) fx.push({kind:'glint',x:x+(Math.random()-.5)*12,y:y-8,t:0,life:.6}); }
+  if(S.kind==='retreat'&&SD.seasonOn('halloween',NET.now())){ const h=vn().hf, night=h>=17.5||h<6;
+    SD.SEASON.halloween.decor.forEach(([jx,jy],i)=>{ const x=jx*T, y=jy*T; list.push({y,d:()=>{ shadow(x,y,7); const sp=jackSpr(Math.floor(clock*5+i*1.7)%3); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y));
+      warmGlow(x,y-7,night?26:14,(night?.32:.12)+Math.sin(clock*9+i)*.04); }}); }); }
+  // đèn bí theo chân: của mình + người khác có quà
+  const owners=[]; if((G.items.den_bingo||0)>0) owners.push(['me',P]); for(const r of REM.values()) if(r.bn&&r.av) owners.push([r.id,r]);
+  for(const [id,o] of owners){ let L=LANT.get(id); const tx=o.x-(o.face||1)*15, ty=o.y+2; if(!L){ L={x:tx,y:ty,t:Math.random()*5}; LANT.set(id,L); }
+    const dx=tx-L.x, dy=ty-L.y, d=Math.hypot(dx,dy); if(d>200){ L.x=tx; L.y=ty; } else { L.x+=dx*.08; L.y+=dy*.08; } L.t+=d>4?.22:.05;
+    const hop=d>4?Math.abs(Math.sin(L.t*2.4))*4:Math.sin(L.t)*1, X=L.x, Y=L.y; list.push({y:Y,d:()=>{ shadow(X,Y,5); const sp=jackSpr(Math.floor(clock*6)%3); ctx.drawImage(sp.c,Math.round(X-sp.ax-cam.x),Math.round(Y-sp.ay-cam.y-hop)); warmGlow(X,Y-8-hop,18,.22); }}); }
+  for(const id of LANT.keys()) if(!owners.some(o=>o[0]===id)) LANT.delete(id); }
+const LANT=new Map();
 function khogaHere(){ if(!G||G.quests.khoga!=='active') return []; const got=G.flags.khoga||{}; return OI.khoga.map((s,i)=>({...s,i})).filter(s=>s.scene===S.kind&&!got[s.i]); }
 function drawKhoga(list){ for(const s of khogaHere()){ const x=s.x*T, y=s.y*T; list.push({y,d:()=>{ shadow(x,y,6); ctx.drawImage(pick('khoga'),Math.round(x-7-cam.x),Math.round(y-15-cam.y+Math.sin(clock*3+s.i)*1.5)); }});
   if(Math.random()<.02) fx.push({kind:'glint',x:x+(Math.random()-.5)*10,y:y-10,t:0,life:.7}); } }
@@ -1042,7 +1070,7 @@ function draw(){
   if(k==='track') drawRace(list);
   for(const n of npcs) list.push({y:n.y,d:()=>drawNpc(n)});
   const dancing=k==='phongbay'&&DANCE&&DANCE.st==='play', dn=dancing?new Set(DANCE.dancers.map(d=>d.name)):null;
-  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPickle(list);
+  drawFollow(list,inView); drawOii(list,inView); drawKhoga(list); drawPumpkins(list); drawPickle(list);
   const pkSeated=k==='pickle'&&PK&&PK.st==='play'?new Set(PK.seats.filter(s=>s&&!s.bot).map(s=>s.pid)):null;   // người đang đấu pickleball vẽ ở drawPickle (chạy theo bóng)
   for(const r of REM.values()){ interp(r); if(!r.av||!inView(r.x,r.y)||(pkSeated&&pkSeated.has(r.id))) continue; const ac=dancing&&dn.has(r.name)?'quay':r.act; list.push({y:r.y,d:()=>drawChar(ctx,r.av,r.x,r.y,r.face,r.view,r.anim,ac,r.t,ac==='quay'?r.t:r.actT,r.fl)}); }
   if(k==='deo'&&STUNT){ const mode=STUNT.fallT>0?'fallen':STUNT.wheelieT>0?'wheelie':''; const dx=P.x+26+Math.sin(clock*.7)*18, dc=SHEETS.donche;
@@ -1314,7 +1342,7 @@ function drawMini(){ const box=$('#minimap'); if(!S||(S.kind!=='retreat'&&S.kind
   for(const n of npcs) dot(n.x,n.y,STORY[n.id]?'#ffd84a':'#f4f1ea');
   for(const r of REM.values()){ const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X>=0&&Y>=0&&X<=c.width&&Y<=c.height){ dot(r.x,r.y,'#7fe0ff',2); continue; }   // người cùng map ngoài khung: tam giác ghim ở mép chỉ hướng
     const cx=Math.max(4,Math.min(c.width-4,X)), cy=Math.max(4,Math.min(c.height-4,Y)), a=Math.atan2(Y-c.height/2,X-c.width/2); g.save(); g.translate(cx,cy); g.rotate(a); g.fillStyle='#1c1516'; g.beginPath(); g.moveTo(5,0); g.lineTo(-4,-4); g.lineTo(-4,4); g.closePath(); g.fill(); g.fillStyle='#7fe0ff'; g.beginPath(); g.moveTo(3,0); g.lineTo(-3,-2.5); g.lineTo(-3,2.5); g.closePath(); g.fill(); g.restore(); }
-  for(const s of khogaHere()) dot(s.x*T,s.y*T,'#ff9f2e',1); if(S.kind==='retreat'&&MCKB) dot(MCKB.x*T,MCKB.y*T,'#c070ff',3);
+  for(const s of khogaHere()) dot(s.x*T,s.y*T,'#ff9f2e',1); for(const s of pumpkinsHere()) dot(s.x*T,s.y*T,'#ff7a1a',1); if(S.kind==='retreat'&&MCKB) dot(MCKB.x*T,MCKB.y*T,'#c070ff',3);
   if(S.kind==='retreat'&&WDINO) dot(WDINO.x*T,WDINO.y*T,'#b6ff3a',2); if(S.kind==='retreat'&&WCROC&&!WCROC.dive) dot(WCROC.x*T,WCROC.y*T,'#3a6a2a',1);
   // người chơi ở gần (trong khung minimap): hiện tên nhỏ trên chấm
   g.font='10px VT323, monospace'; g.textAlign='center'; for(const r of REM.values()){ if(!r.name) continue; const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X<0||Y<8||X>c.width||Y>c.height) continue;
@@ -1376,6 +1404,13 @@ NET.listen('me',m=>{ const old=G; G=m.p; window.CHANDE&&(CHANDE._g=G); if(old&&s
   if(old&&old.level<G.level){ bigText(`LÊN CẤP ${G.level}!`); sfx('level_up',.6); }
   if(G.flags.phapForm==='cam') delete PORTRAIT.phap; renderHUD(); UI.refresh&&UI.refresh(); });
 NET.listen('scene',m=>{ if(!started) return; enterScene(m); });
+// bảng Hằng ngày: điểm danh, việc hôm nay, sổ sưu tầm. Vào game lần đầu trong ngày thì tự mở trang điểm danh (kiểu game mobile)
+let DQ=null, DQ_OPENED='';
+function dqBadge(){ if(!DQ) return 0; let n=DQ.login&&!DQ.login.claimed?1:0; const L=DQ.dq.list; n+=L.filter(t=>t.ok&&!t.got).length; if(L.length&&L.every(t=>t.got)&&!DQ.dq.chest) n++;
+  for(const [a,z] of Object.entries(SD.ALBUM)) if(!DQ.albumGot[a]&&z.items.every(k=>DQ.seen[k])) n++; return n; }
+NET.listen('dq',m=>{ DQ=m; const n=dqBadge(); for(const id of ['#btnDaily','#mDaily']){ const b=$(id); b.classList.toggle('hot',n>0); b.dataset.n=n||''; }
+  if(started&&m.login&&!m.login.claimed&&DQ_OPENED!==m.dq.day){ DQ_OPENED=m.dq.day; setTimeout(()=>{ if(!UI.isOpen()&&!DLG.open&&!TASK) UI.daily('login'); },2200); }
+  if(UI.refresh) UI.refresh(); });
 // đồ mới vào túi bật lên trên đầu như nhặt được (kiểu Stardew), tiền / EXP thì số bay lên
 function gainPops(o,n){ let d=0; const oi=o.items||{}, ni=n.items||{};
   for(const k in ni){ const g=(ni[k]||0)-(oi[k]||0); if(g>0&&SD.ITEMS[k]&&d<3){ fx.push({kind:'pop',icon:k,n:g,x:P.x,y:P.y-34,t:-d*.2,life:1.2}); d++; } }
@@ -1383,7 +1418,7 @@ function gainPops(o,n){ let d=0; const oi=o.items||{}, ni=n.items||{};
   const de=(n.exp||0)-(o.exp||0); if(de>0&&n.level===o.level) fx.push({kind:'num',txt:'+'+de+' EXP',x:P.x,y:P.y-(d?58:44)-(Math.abs(dm)>=1000?14:0),t:-.12-d*.15,life:1.3,col:'#9cf0a0'}); }
 NET.listen('pos',m=>{ P.x=m.x; P.y=m.y; if(m.ride) fadeOnly(''); });
 NET.listen('nd',m=>{ if(G){ Object.assign(G.needs,m.n); renderHUD(); } });
-NET.listen('pj',m=>{ const r=remote(m.id); r.name=m.n; r.lv=m.lv; r.tag=m.tag; const lk=JSON.stringify(m.l); if(lk!==r.look&&m.l){ r.look=lk; r.av=AVATAR.build(m.l); } });
+NET.listen('pj',m=>{ const r=remote(m.id); r.name=m.n; r.lv=m.lv; r.tag=m.tag; r.bn=m.bn; const lk=JSON.stringify(m.l); if(lk!==r.look&&m.l){ r.look=lk; r.av=AVATAR.build(m.l); } });
 NET.listen('s',m=>{ const tm=performance.now();
   for(const e of m.u){ const [id,x,y,f,v,a,ac,fl]=e, r=remote(id), last=r.buf[r.buf.length-1];
     if(last&&tm-last.tm>250) r.buf.push({...last,tm:tm-100});
@@ -1486,7 +1521,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
   await Promise.all(jobs); requestAnimationFrame(frame); }
 // lobby gọi khi đã đăng nhập + có nhân vật
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
-window.GAME={get PK(){ return PK; },pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
+window.GAME={get PK(){ return PK; },get DQ(){ return DQ; },dqGo,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
   set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,
   get started(){return started;}};
