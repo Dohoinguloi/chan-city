@@ -305,7 +305,7 @@ UI.pen=(k,loc)=>open(loc==='ke'?'Sân gà Ké':SD.ANIMALS[k].name,()=>{ const g=
 // lợn nhà người khác đang online: trộm 1 con (40%), nhà có chó canh thì chó ra tay trước
 function pigSteal(){ const R=SD.PIG_STEAL, rows=[]; for(const h of GAME.herds||[]) if(h.pid!==NET.pid) h.a.forEach((a,i)=>{ if(R.kinds.includes(a.k)&&a.loc!=='ke'){ const dog=(GAME.dogs||[]).find(d=>d.n===h.n);
       rows.push(`<div class="row"><span>${esc(SD.ANIMALS[a.k].name)} của <b>${esc(h.n)}</b>${dog?` · 🐕 ${esc(SD.DOGS[dog.k].name)} canh`:''}</span>${btn('pigsteal','Trộm',{pid:h.pid,i})}</div>`); } });
-  return `<h5>Lợn nhà người khác</h5><p class="muted">Trộm 1 con: ${Math.round(R.chance*100)}% trót lọt (dắt về chuồng bạn), hỏng thì bị chủ bắt đền ${fmt(R.fine)}. Nhà có chó canh thì chó sủa đuổi, giống dữ còn cắn đền tiền.</p>`+
+  return `<h5>Lợn nhà người khác</h5><p class="muted">Trộm 1 con: ${Math.round(R.chance*100)}% trót lọt (dắt về chuồng bạn). Bị bắt quả tang thì vào đồn ${R.jail} giây và bồi thường chủ ${fmt(R.comp)}. Nhà có chó canh thì chó sủa đuổi, giống dữ còn cắn đền tiền.</p>`+
     (rows.length?`<div class="list">${rows.join('')}</div>`:'<p class="muted">Chưa có lợn của ai khác đang online.</p>'); }
 ACT.pigsteal=d=>req({t:'animal',op:'steal',pid:+d.pid,i:+d.i}).then(r=>{ if(!r.err&&r.msg) GAME.toast(esc(r.msg),r.ok?'vnd':'lock'); });
 ACT.feed=d=>req({t:'animal',op:'feed',i:+d.i});
@@ -474,6 +474,43 @@ UI.rides=()=>open('Chọn xe để đi',()=>{ const now=NET.now(), L=GAME.rideCh
   return rows.length?`<div class="list">${rows.join('')}</div><p class="muted">Thuê thêm mẫu xe khác ở tiệm thuê xe cạnh Shop Chande: xe cũ được cất vào gara, không mất giờ thuê. Bấm H lần nữa để xuống xe.</p>`
     :'<p class="muted">Chưa có xe nào. Thuê xe máy ở tiệm cạnh Shop Chande, xe đạp công cộng ở trạm cạnh bến xe buýt, ngựa ở trại ngựa thị trấn Đà Bắc hoặc Đà Lạt.</p>'; });
 ACT.ridego=d=>GAME.rideGo(d.k==='horse'?{kind:'horse',coat:+d.c}:{kind:'moto',model:d.m});
+
+/* ---------- 120 Yên Lãng · anh Độ: 3 việc + lên sóng buổi tối ---------- */
+PLACE.yenlang=()=>open('Anh Độ · 120 Yên Lãng',()=>{ const g=G(), Y=SD.YENLANG, row=id=>{ const q=SD.QUESTS[id], st=g.quests[id], n=(g.qprog||{})[id]||0;
+    const ok=q.need?Object.entries(q.need).every(([k,c])=>(g.items[k]||0)>=c):n>=q.prog, prog=q.need?(ok?'Có phở rồi!':'Chưa có phở'):id==='goioii'?(n?'Đã gọi Ộ i i':'Chưa gọi'):`Đã làm ${Math.min(n,q.prog)}/${q.prog}`;
+    const r=!st?btn('qstart','Nhận việc: '+q.title,{id},'pri'):st==='active'?(ok?btn('qfinish','Báo cáo: '+q.title,{id},'pri'):`<p>${prog}</p><button class="btn sm qgo" data-go="${id}">➜ Chỉ đường</button>`):'<p class="muted">Đã xong.</p>';
+    return `<h5>${q.title}</h5><p class="muted">${q.desc} Thưởng ${q.reward.exp} EXP + ${fmt(q.reward.vnd)}.</p>${r}`; };
+  return `<p>"Chào anh em! Vào chơi tự nhiên, đừng sờ vào mô hình là được. Mà nhân tiện nhờ tí việc..."</p>${row('pho')}${row('hulk')}${row('goioii')}
+    <h5>Lên sóng cùng anh Độ</h5><p class="muted">Từ ${Y.stream.from}:00 tới ${Y.stream.to}:00, ngồi ghế khách đỏ cạnh bàn stream bấm E: ${Y.stream.dur} giây, +${Y.stream.exp} EXP + ${fmt(Y.stream.vnd)} tiền donate. Mỗi ngày 1 lần. Buổi tối Ộ i i cũng về đây.</p>`; });
+
+/* ---------- Sân pickleball: HLV Tuấn dạy chơi, bảng vào sân đấu 2 vs 2 (thiếu người thuê bot tuyển thủ) ---------- */
+const PK_RULE=K=>`Chạm ${K.target} điểm (hơn 2, tối đa ${K.cap}), tính điểm mỗi pha bóng. Bóng bay tới bạn thì bấm <kbd>SPACE</kbd> đúng lúc bóng chạm vòng vàng; chọn cú trả trước bằng mũi tên: <kbd>↑</kbd> drive (nhanh, đối thủ khó đỡ), <kbd>↓</kbd> dink (chậm, chắc), <kbd>← →</kbd> lob (bổng).`;
+PLACE.pickle=()=>open('HLV Tuấn · pickleball',()=>{ const K=SD.PICKLE, g=G();
+  return money()+`<p>"Pickleball dễ chơi mà nghiện lắm! Học với anh 1 buổi là vào sân đánh được, thiếu người thì thuê bot tuyển thủ, có cả Lý Hoàng Nam đấy."</p><p class="muted">${PK_RULE(K)}</p>
+    ${g.skills.pickle?'<p class="good">Bạn đã biết chơi. Ra giữa sân bấm E để vào trận.</p>':btn('pklesson',`Học 1 buổi · ${fmt(K.lesson.price)} · ${K.lesson.dur} giây`,{},'pri')}`; });
+UI.pickle=()=>open('Sân pickleball · đấu 2 vs 2',()=>{ const K=SD.PICKLE, v=GAME.PK||{st:'idle',seats:[null,null,null,null],score:[0,0],me:-1}, g=G(), me=v.me;
+  if(!g.skills.pickle) return '<p>Chưa biết chơi pickleball: gặp <b>HLV Tuấn</b> ở góc dưới bên trái sân để học 1 buổi.</p>';
+  const free=v.st==='idle'||v.st==='lobby', seat=i=>{ const s=v.seats[i]; return `<div class="row"><span>${i<2?'Đội A (nửa dưới)':'Đội B (nửa trên)'} · ô ${i%2+1}</span><span>${s?esc(s.name)+(s.bot?' 🤖':''):'<span class="muted">trống</span>'}</span>${!s&&me<0&&free?btn('pkjoin','Vào ô này',{seat:i},'pri'):''}</div>`; };
+  const empty=v.seats.filter(s=>!s).length;
+  return `<p class="muted">${PK_RULE(K)}</p><div class="list">${[0,1,2,3].map(seat).join('')}</div>
+    ${v.st==='play'?`<p>Đang đấu: <b>${v.score[0]} – ${v.score[1]}</b></p>`:v.st==='end'?`<p>${esc(v.log||'')}</p>`:''}
+    ${me>=0&&v.st==='lobby'?`<div class="col">${btn('pkstart',empty?`Bắt đầu · thuê ${empty} bot (${fmt(empty*K.hire)})`:'Bắt đầu trận',{},'pri')}${btn('pkleave','Rời sân')}</div>`:''}
+    <p class="muted">Bot tuyển thủ: ${K.bots.map(b=>esc(b[0])).join(', ')}. Thắng: +${K.win.exp} EXP + ${fmt(K.win.vnd)}.</p>`; });
+ACT.pklesson=async()=>{ const r=await GAME.act({t:'pk',op:'lesson'}); if(!r.err) UI.closeAll(); };
+ACT.pkjoin=d=>req({t:'pk',op:'join',seat:+d.seat}); ACT.pkleave=()=>req({t:'pk',op:'leave'});
+ACT.pkstart=async()=>{ const r=await req({t:'pk',op:'start'}); if(!r.err) UI.closeAll(); };
+
+PLACE.qnt=()=>open('Quang Nịnh Thần (QNT)',()=>{ const F=SD.YENLANG.flatter, done=G().daily&&G().daily.qnt;
+  return `<p>"Ôi anh/chị đến rồi! Nhìn thần thái này là biết khách VIP của anh Độ!"</p><p class="muted">QNT nịnh 1 câu mỗi ngày: +${Math.round((F.buff.mul-1)*100)}% EXP trong ${F.buff.min} phút, +${F.energy} năng lượng.</p>
+    ${done?'<p class="muted">Hôm nay nghe nịnh rồi, mai quay lại.</p>':btn('qntflatter','Nghe QNT nịnh',{},'pri')}`; });
+ACT.qntflatter=async()=>{ const r=await req({t:'yl',op:'flatter'}); if(!r.err) GAME.toast(esc(r.msg),'quest'); };
+
+/* ---------- Huy Phan: chuỗi việc thiết kế (Lumen Studio / DAS) ---------- */
+UI.huyphan=()=>open('Huy Phan · việc thiết kế',()=>{ const g=G(), ids=Object.keys(SD.QUESTS).filter(k=>SD.QUESTS[k].giver==='huyphan'&&SD.QUESTS[k].job);
+  const rows=ids.map(id=>{ const q=SD.QUESTS[id], st=g.quests[id], ok=!!(g.qprog||{})[id], locked=q.after&&g.quests[q.after]!=='done';
+    const r=locked?'<p class="muted">Làm xong việc trước đã.</p>':!st?btn('qstart','Nhận việc: '+q.title,{id},'pri'):st==='active'?(ok?btn('qfinish','Báo cáo: '+q.title,{id},'pri'):`<p>${esc(q.job.label)} ở <b>${esc(SD.DEST[q.job.where].name)}</b></p><button class="btn sm qgo" data-go="${id}">➜ Chỉ đường</button>`):'<p class="muted">Đã xong.</p>';
+    return `<h5>${q.title}${st==='done'?' ✓':''}</h5><p class="muted">${q.desc} Thưởng ${q.reward.exp} EXP + ${fmt(q.reward.vnd)}.</p>${r}`; }).join('');
+  return `<p>"Ké sắp đổi nhận diện mới, anh cần người làm thiết kế. Việc nhiều mà lương cao, chịu khó chạy sang Lumen với DAS nhé!"</p>${rows}`; },{wide:true});
 
 /* ---------- Phòng của Diệp ---------- */
 PLACE.diep=()=>open('Diệp',()=>{ const D=SD.DIEP, g=G(), d=SD.vnTime(NET.now()).day, n=g.diep&&g.diep.day===d?g.diep.n:0, exp=Math.min(D.cook.expMax,Math.round(D.cook.expK*Math.sqrt(Math.max(0,g.money)/1e6)));

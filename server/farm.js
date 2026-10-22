@@ -117,7 +117,10 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
       if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm lợn! Nhận ${fmt(v)} tiền đền`,'vnd'); }
       else note(o,`${D.name} của bạn vừa đuổi ${me} đang định trộm lợn!`,'quest');
       if(D.drain) p.needs.energy=Math.max(0,p.needs.energy-D.drain); markDirty(pl); return {msg}; }
-    if(Math.random()>=R.chance){ const v=Math.min(p.money,R.fine); take(pl,v); give(o,v); note(o,`Bắt quả tang ${me} trộm lợn! ${me} đền bạn ${fmt(v)}`,'vnd'); markDirty(pl); return {msg:`Bị ${oname} bắt quả tang, đền ${fmt(v)}`}; }
+    if(Math.random()>=R.chance){ const v=Math.min(p.money,R.comp); take(pl,v); give(o,v);                                   // bị bắt quả tang: bồi thường cho chủ + vào đồn
+      p.jail={until:t+R.jail*1000,fine:R.fine,why:`Trộm lợn của ${oname} bị bắt quả tang`}; P.stat(pl,'jail',1); markDirty(pl);
+      note(o,`Bắt quả tang ${me} trộm lợn! Đã giải lên đồn, ${me} bồi thường bạn ${fmt(v)}`,'vnd'); broadcastScene(pl.scene,{t:'ev',k:'pigBust',id:pl.pid,name:me,by:oname});
+      C.moveTo(pl,'doncongan',7,6); return {msg:`Bị ${oname} bắt quả tang! Bồi thường ${fmt(v)}, tạm giữ ${R.jail} giây (nộp ${fmt(R.fine)} để về sớm)`}; }
     o.prof.animals.splice(j,1); markDirty(o); const room=p.animals.filter(x=>x.k===an.k).length<A.max;
     if(room) p.animals.push({...an,loc:'dl'}); else addItem(pl,'lon_thit',1);
     note(o,`😱 ${me} vừa trộm 1 ${A.name.toLowerCase()} trong chuồng của bạn!`,'lock'); markDirty(pl);

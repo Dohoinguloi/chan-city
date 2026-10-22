@@ -416,6 +416,7 @@ function compose(o){
   if(o.hair==='shag'){ overlay(rows,'shagL'); overlay(rows,'shagR'); }
   if(o.mask){ overlay(rows,'mask'); for(let x=0;x<W;x++) if(rows[18][x]==='d') rows[18][x]='s'; }   // cổ dưới khẩu trang: bỏ bóng đỏ sẫm
   if(o.glasses) overlay(rows,o.glasses==='sun'?'sunglasses':o.glasses==='tint'?'tintglasses':'glasses');
+  if(o.glasses==='tint'&&o.lensO) for(let y=8;y<=14;y++) for(let x=0;x<W;x++){ if(rows[y][x]==='4') rows[y][x]='2'; else if(rows[y][x]==='5') rows[y][x]='3'; }   // tròng cam (QNT)
   const open=o.top==='jacket'||o.top==='suit'||o.top==='cardigan';
   if(o.top==='cardigan') overlay(rows,'coatTail');
   if(o.turtle){ overlay(rows,'turtle');
@@ -425,6 +426,7 @@ function compose(o){
   if(o.plaid) plaid(rows);
   if(o.floral) floral(rows);
   if(o.polka) polka(rows);
+  if(o.vstripe) vstripe(rows);
   if(o.tie&&(o.top==='tee'||o.top==='long')) overlay(rows,'tieTee');
   if(o.capPattern&&o.hair==='cap') for(let y=1;y<=5;y++) for(let x=0;x<W;x++) if(rows[y][x]==='C'&&(x*2+y)%4===0) rows[y][x]='c';
   if(o.capWeb&&o.hair==='cap') overlay(rows,'capWeb');
@@ -445,6 +447,8 @@ function compose(o){
   return rows;
 }
 // hoa: chấm hoa 2 màu rải đều trên vải áo (sơ mi hoa)
+// sọc dọc: vải áo kẻ sọc màu print xen sọc tối (áo len QNT)
+function vstripe(rows,y0=19,y1=26){ for(let y=y0;y<=y1;y++) for(let x=0;x<W;x++){ const c=rows[y]&&rows[y][x]; if(!c||!'Ttq'.includes(c)) continue; if(x%4===0) rows[y][x]='B'; else if(x%4===2) rows[y][x]='D'; } }
 // chấm bi: chấm màu print thưa đều trên vải áo + váy (váy Diệp)
 function polka(rows,y0=19,y1=31){ for(let y=y0;y<=y1;y++) for(let x=0;x<W;x++){ const c=rows[y]&&rows[y][x]; if(!c||!'TtqPp'.includes(c)) continue; if((x+(y>>1)*2)%4===0&&y%2===1) rows[y][x]='B'; } }
 function floral(rows){
@@ -845,7 +849,7 @@ function composeView(o,view){
   if(o.bottom==='skirt'){ for(let y=10;y<=12;y++) for(let x=4;x<=15;x++) rows[y][x]=y===12?'p':'P'; rows[13]=('......SS....SS......').split(''); }
   rows.forEach((r,i)=>{ R[18+i]=r.map((c,x)=>c==='.'&&R[18+i][x]!=='.'?R[18+i][x]:c); });
   // hoạ tiết áo + phụ kiện
-  if(o.plaid) plaid(R); if(o.floral) floral(R); if(o.polka) polka(R,18,34);
+  if(o.plaid) plaid(R); if(o.floral) floral(R); if(o.polka) polka(R,18,34); if(o.vstripe) vstripe(R,18,26);
   const put=(pts,ch)=>{ for(const [x,y] of pts) if(R[y]) R[y][x]=ch; };
   if(o.hair==='cap'&&o.capPattern) for(let y=0;y<=5;y++) for(let x=0;x<W;x++) if(R[y][x]==='C'&&(x*2+y)%4===0) R[y][x]='c';
   if(o.hair==='cap'&&o.mongCap) mongCap(R,false,!front);
@@ -860,7 +864,7 @@ function composeView(o,view){
     if(o.mask){ for(let y=13;y<=17;y++) for(let x=0;x<W;x++) if(inSkull(x,y)) R[y][x]=y===15||y===17?'k':'K'; put([[2,12],[17,12]],'k'); }
     if(o.glasses){ put([[5,10],[6,10],[7,10],[12,10],[13,10],[14,10],[4,11],[4,12],[8,11],[8,12],[11,11],[11,12],[15,11],[15,12],[5,13],[6,13],[7,13],[12,13],[13,13],[14,13],[9,11],[10,11],[3,11],[16,11]],'G');
       if(o.glasses==='sun'){ put([[5,11],[6,11],[7,11],[5,12],[6,12],[7,12],[12,11],[13,11],[14,11],[12,12],[13,12],[14,12]],'G'); put([[5,11],[12,11]],'u'); }
-      if(o.glasses==='tint'){ put([[5,11],[7,11],[5,12],[7,12],[12,11],[14,11],[12,12],[14,12]],'4'); put([[5,11],[12,11]],'5'); put([[4,10],[15,10],[8,10],[11,10]],'G'); } }
+      if(o.glasses==='tint'){ put([[5,11],[7,11],[5,12],[7,12],[12,11],[14,11],[12,12],[14,12]],o.lensO?'2':'4'); put([[5,11],[12,11]],o.lensO?'3':'5'); put([[4,10],[15,10],[8,10],[11,10]],'G'); } }
     if(o.earring) put([[18,13]],'V');
     if(o.chain&&top!=='suit') { if(open||o.turtle) put([[8,19],[11,19],[9,20],[10,20]],'Y'),put([[9,21],[9,22]],'y'); else put([[7,19],[12,19],[8,20],[11,20],[9,21],[10,21]],'Y'),put([[9,22],[10,22]],'y'); }
     if(o.idcard&&!o.chain) put([[8,19],[11,19],[9,20],[10,20]],'D'),put([[9,21],[10,21],[9,22]],'Z'),put([[10,22]],'g');

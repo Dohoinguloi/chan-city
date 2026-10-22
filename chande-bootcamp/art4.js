@@ -511,3 +511,70 @@ const workTable=()=>S(48,26,24,24,(g,P)=>{ P.rect(2,8,44,10,'#b88a5a'); P.rect(2
 const glassWall=(w=96)=>S(w,22,w/2,21,(g,P)=>{ P.rect(0,0,w,22,'#7a8a94'); P.rect(2,2,w-4,18,'#bfe2f2'); for(let x=2;x<w-2;x+=24) P.rect(x,2,2,18,'#7a8a94'); P.rect(2,2,w-4,3,'#e8f8ff'); for(let x=8;x<w;x+=24) P.rect(x,6,6,1,'#ffffff'); },false);
 Object.assign(A,{pottedFern,workTable,glassWall});
 })();
+
+/* bãi đỗ xe Ké: vạch trắng chia ô (nằm phẳng trên nền nhựa), chữ P */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+const parkingLines=(cols=3,rows=2,cw=72,rh=46)=>S(cols*cw+4,rows*rh+4,0,0,(g,P)=>{ for(let r=0;r<=rows;r++) P.rect(0,r*rh,cols*cw+4,2,'#f4f1ea'); for(let c=0;c<=cols;c++) for(let r=0;r<rows;r++) P.rect(c*cw,r*rh,2,rh-8,'#f4f1ea'); },false);
+const parkSign=()=>S(20,34,10,32,(g,P)=>{ P.rect(9,14,2,18,'#8a9098'); P.rect(2,1,16,15,'#2a5aa8'); P.rect(3,2,14,13,'#3a6ad0'); P.rect(7,4,2,9,'#ffffff'); P.rect(9,4,4,1,'#ffffff'); P.rect(12,5,1,3,'#ffffff'); P.rect(9,8,4,1,'#ffffff'); });
+Object.assign(A,{parkingLines,parkSign});
+})();
+
+/* 120 Yên Lãng · phòng stream anh Độ (theo ảnh): sàn gỗ xương cá sáng 'e', tường xám xanh đậm viền LED 'f', giá súng mô hình treo tường, bàn stream 3 màn hình,
+   tủ kính figure đèn LED, mảng tường gạch đỏ + kệ figure, mô hình Hulkbuster đỏ 3 mét, đôn đen, thảm xám; bát phở chị Thảo (icon) */
+(function(){
+const A=ART, T=A.T, TE=A.TILE_EXT, hash=A.hash, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol), OUT='#1c1516';
+A.WALKABLE.add('e');
+TE.e=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#c8a878'); for(let k=0;k<T;k+=4){ const off=(ty*4+k)/4%2?0:4; for(let x=0;x<T;x+=8){ P.rect(X+(x+off)%T,Y+k,4,3,'#d8bc8e'); P.rect(X+(x+off)%T,Y+k+3,4,1,'#b08e60'); } } };
+TE.f=(g,X,Y,tx,ty,nb,fr,P)=>{ const below=nb(0,1);
+  if(below&&below!=='f'&&A.WALKABLE.has(below)){ P.rect(X,Y,T,T,'#2f3d44'); P.rect(X,Y+2,T,1,'#7fe0ff'); for(let x=2;x<T;x+=6) P.rect(X+x,Y+4,1,10,'#28353b'); P.rect(X,Y+T-2,T,2,'#1e282d'); }   // mặt tường + dải LED xanh
+  else { P.rect(X,Y,T,T,'#1e282d'); P.rect(X,Y,T,1,'#3a4a52'); } };
+const gunRack=(w=110)=>S(w,26,w/2,25,(g,P)=>{ for(const [y,len,c] of [[5,w-20,'#2a2a2f'],[13,w-34,'#3a3a40'],[20,w-26,'#4a3a2a']]){ const x=8+(w-20-len)/2; P.rect(x,y,len,3,c); P.rect(x,y+3,8,3,c); P.rect(x+len-12,y-2,10,2,'#5a5a66'); P.rect(x+len*.45,y+3,3,4,c); }
+    for(const x of [6,w-8]) P.rect(x,2,2,22,'#8a9098'); },false);
+const streamDesk=(w=128)=>S(w,40,w/2,38,(g,P)=>{ P.rect(2,22,w-4,8,'#8a5d3b'); P.rect(2,22,w-4,2,'#a7744c'); P.rect(4,30,3,8,'#5a3a22'); P.rect(w-7,30,3,8,'#5a3a22');
+    for(const [x,c] of [[14,'#5aa9d6'],[46,'#7fe0ff'],[78,'#4f9a3e']]){ P.rect(x,2,30,18,'#18181c'); P.rect(x+2,4,26,13,c); P.rect(x+4,6,10,2,'#f4f4f1'); P.rect(x+13,19,4,3,'#3a3a40'); }   // 3 màn hình
+    P.rect(w-26,14,18,8,'#c8ccd2'); P.rect(w-25,9,16,6,'#2a2a30'); P.rect(w-24,10,14,4,'#ff7a8a');                                                  // laptop
+    P.rect(4,10,2,12,'#3a3a40'); P.disc(5,8,3,'#26262c'); P.rect(40,23,26,3,'#26262c'); for(let x=41;x<65;x+=3) P.px(x,24,['#ff4fa3','#7fe0ff','#5fe06a'][x%3]); });   // mic + bàn phím LED
+const displayCase=(seed=0)=>S(34,46,17,44,(g,P)=>{ P.rect(1,1,32,43,'#3a4a52'); P.rect(3,3,28,38,'rgba(190,230,245,.35)'); P.rect(2,2,1,41,'#f4f4f1'); P.rect(31,2,1,41,'#f4f4f1');
+    for(const y of [14,26,38]) P.rect(3,y,28,1,'#e8f8ff');
+    for(let r=0;r<3;r++) for(let i=0;i<3;i++){ const x=6+i*9, y=6+r*12, c=['#d9263a','#f2c43d','#3a6ad0','#5fe06a','#ff7a2a','#a87ac8'][(seed+r*3+i)%6]; P.rect(x+1,y,3,3,'#f3c4a4'); P.rect(x,y+3,5,5,c); P.rect(x+1,y+8,1,1,c); P.rect(x+3,y+8,1,1,c); } });
+const brickWall=(w=110)=>S(w,44,w/2,43,(g,P)=>{ P.rect(0,0,w,44,'#a8482e'); for(let y=0;y<44;y+=6){ P.rect(0,y,w,1,'#7a3420'); for(let x=(y/6%2)*6;x<w;x+=12) P.rect(x,y,1,6,'#7a3420'); }
+    for(const y of [12,28]){ P.rect(4,y,w-8,2,'#5a3a22'); for(let x=8;x<w-8;x+=11){ const c=['#d9263a','#f2c43d','#5fe06a','#3a6ad0','#f4f1ea'][(x+y)%5]; P.rect(x,y-7,4,7,c); P.rect(x+1,y-9,2,2,'#f3c4a4'); } } },false);
+const hulkbuster=()=>S(56,92,28,90,(g,P)=>{ const R='#c4282a', r='#8a1a1c', Y='#e8b83a';
+    P.rect(16,2,24,20,R); P.rect(20,6,16,8,Y); P.rect(22,9,4,2,'#ffffff'); P.rect(30,9,4,2,'#ffffff'); P.rect(18,18,20,3,r);                          // đầu
+    P.rect(6,22,44,30,R); P.rect(10,24,36,4,'#e04040'); P.disc(28,36,6,'#bfe2f2'); P.disc(28,36,3,'#ffffff'); P.rect(8,48,40,4,r);                    // ngực + lò phản ứng
+    P.rect(0,24,8,34,R); P.rect(48,24,8,34,R); P.rect(0,56,10,10,r); P.rect(46,56,10,10,r); P.rect(2,60,6,3,Y); P.rect(48,60,6,3,Y);                   // tay to
+    P.rect(12,52,32,10,Y); P.rect(14,62,12,26,R); P.rect(30,62,12,26,R); P.rect(12,86,16,4,r); P.rect(28,86,16,4,r); P.rect(16,70,8,3,Y); P.rect(32,70,8,3,Y); });
+const ottoman=()=>S(30,18,15,16,(g,P)=>{ P.rect(2,3,26,11,'#26262c'); P.rect(3,4,24,3,'#3a3a44'); P.rect(2,14,26,2,'#18181c'); });
+const plainRug=(w=128,h=96,c='#7a7e86',edge='#5a5e66')=>S(w,h,w/2,h/2,(g,P)=>{ P.rect(0,0,w,h,edge); P.rect(3,3,w-6,h-6,c); for(let x=6;x<w-6;x+=8) P.rect(x,6,1,h-12,'rgba(255,255,255,.06)'); },false);
+const phoIcon=P=>{ P.rect(1,6,12,5,'#f4f1ea'); P.rect(2,11,10,2,'#d8d2c6'); P.rect(2,6,10,2,'#e8b860'); P.rect(3,5,3,1,'#5fae46'); P.rect(8,5,2,1,'#d9463a'); P.rect(9,1,1,5,'#a8763a'); P.rect(11,0,1,6,'#a8763a'); };
+const oldIcon=A.icon; A.icon=function(name,scale=1){ if(name!=='pho') return oldIcon(name,scale); const c=A.cv(14,14); phoIcon(A.painter(c.getContext('2d'))); A.outline(c);
+  if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
+Object.assign(A,{gunRack,streamDesk,displayCase,brickWall,hulkbuster,ottoman,plainRug});
+})();
+
+/* sân pickleball trong nhà: mặt sân xanh dương 'c', viền sân xanh lá 'd', vạch kẻ (biên, giữa, vùng cấm volley "kitchen"), lưới, bóng nhựa lỗ vàng, bảng điểm */
+(function(){
+const A=ART, T=A.T, TE=A.TILE_EXT, hash=A.hash, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+A.WALKABLE.add('c'); A.WALKABLE.add('d');
+TE.c=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#3f7fae'); if(hash(tx,ty,91)<.2) P.px(X+5,Y+9,'#4a8cbc'); };
+TE.d=(g,X,Y,tx,ty,nb,fr,P)=>{ P.rect(X,Y,T,T,'#4f9a6a'); if(hash(tx,ty,92)<.2) P.px(X+9,Y+4,'#5aaa76'); };
+const courtLines=(w,h,net,kit)=>S(w,h,0,0,(g,P)=>{ const L='#f4f1ea'; P.rect(0,0,w,2,L); P.rect(0,h-2,w,2,L); P.rect(0,0,2,h,L); P.rect(w-2,0,2,h,L);
+  P.rect(0,net-kit,w,2,L); P.rect(0,net+kit,w,2,L); P.rect(w/2-1,0,2,net-kit,L); P.rect(w/2-1,net+kit,2,h-net-kit,L); P.rect(0,net-1,w,2,'rgba(0,0,0,.25)'); },false);
+const pkNet=(w)=>S(w+8,22,4,18,(g,P)=>{ P.rect(0,2,4,18,'#3a3a40'); P.rect(w+4,2,4,18,'#3a3a40'); P.rect(4,4,w,2,'#f4f1ea'); for(let y=6;y<16;y+=2) P.rect(4,y,w,1,'rgba(30,30,36,.75)'); for(let x=4;x<w+4;x+=3) P.rect(x,6,1,10,'rgba(30,30,36,.55)'); });
+const pkBall=()=>S(6,6,3,3,(g,P)=>{ P.disc(3,3,2,'#e8f040'); P.px(2,2,'#a8b020'); P.px(4,3,'#a8b020'); P.px(3,4,'#a8b020'); });
+const scoreBoard=()=>S(56,30,28,29,(g,P)=>{ P.rect(26,20,4,10,'#3a3a40'); P.rect(1,1,54,20,'#18181c'); P.rect(3,3,24,16,'#2a2a30'); P.rect(29,3,24,16,'#2a2a30'); P.rect(9,6,12,10,'#ff4a3d'); P.rect(35,6,12,10,'#7fe0ff'); },false);
+const paddleRack=()=>S(28,30,14,28,(g,P)=>{ P.rect(2,10,24,18,'#8a5d3b'); P.rect(2,10,24,2,'#a7744c'); for(const [x,c] of [[4,'#c4382e'],[10,'#3a6ad0'],[16,'#2f9a52'],[22,'#f2c43d']]){ P.rect(x,2,4,9,c); P.rect(x+1,11,2,4,'#26262c'); } });
+Object.assign(A,{courtLines,pkNet,pkBall,scoreBoard,paddleRack});
+})();
+
+/* đấu trường MCK: sân khấu đen (màn LED, 2 dàn loa, đèn), cột đèn sân khấu */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+const mckStage=()=>S(150,64,75,62,(g,P)=>{ P.rect(4,30,142,30,'#18181c'); P.rect(4,30,142,3,'#3a3a44'); P.rect(4,56,142,4,'#0e0e12');
+  P.rect(34,2,82,30,'#26262c'); P.rect(37,5,76,24,'#3a2a5a'); P.rect(40,8,70,18,'#a259ff'); A.drawText(g,'MCK',62,12,'#ffffff'); for(let x=42;x<108;x+=6) P.px(x,24,'#ff4fa3');
+  for(const x of [6,124]){ P.rect(x,14,20,44,'#26262c'); P.rect(x+2,16,16,40,'#1a1a1e'); for(const y of [22,36,48]){ P.disc(x+10,y,5,'#3a3a44'); P.disc(x+10,y,2,'#5a5a66'); } }
+  for(const [x,c] of [[30,'#ff4fa3'],[60,'#7fe0ff'],[90,'#ffd84a'],[120,'#5fe06a']]) P.rect(x,33,6,3,c); });
+const stageLight=(c='#ff4fa3')=>S(14,44,7,42,(g,P)=>{ P.rect(6,10,2,32,'#3a3a40'); P.rect(2,40,10,3,'#26262c'); P.rect(2,3,10,8,'#26262c'); P.disc(7,7,3,c); P.disc(7,7,1,'#ffffff'); });
+Object.assign(A,{mckStage,stageLight});
+})();

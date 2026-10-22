@@ -332,5 +332,31 @@ function buildDiep(){ const D=SD.DIEP, W=D.W, H=D.H, K=kit(), {put,block,act}=K,
   put(A.sofaSide('#8a5aaa'),21.2,9.6); block(21,7,22,8); put(A.sofaSide('#8a5aaa'),21.2,14); block(21,12,22,13);
   act(11.5,16.6,'Về thôi (gọi Grab)',{do:'grab'},24);
   return {name:'Phòng của Diệp · Hà Nội',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:D.spawn.x*T,y:D.spawn.y*T},indoor:true,music:'music_room'}; }
-Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,buildDeo,buildDas,buildLumen,buildDiep,TRACK});
+/* ---------- 120 Yên Lãng · nhà anh Độ (Hà Nội) ----------
+   theo ảnh phòng stream: tường xám xanh đậm viền LED, sàn gỗ xương cá; tường trên: giá súng mô hình, 3 tủ kính figure, mảng gạch đỏ + kệ figure;
+   góc trên bên phải mô hình Hulkbuster đỏ 3 mét; bàn stream 3 màn hình dọc tường trái (anh Độ ngồi, có ghế khách lên sóng); sofa da nâu + đôn đen giữa phòng */
+function buildYenLang(){ const Y=SD.YENLANG, W=Y.W, H=Y.H, K=kit(), {put,block,act}=K, g=shell(W,H,'e','f');
+  put(A.plainRug(144,96,'#6a6e76','#4a4e56'),5.6,7.6,{flat:true}); put(A.plainRug(112,64,'#5a3a2a','#3a2418'),16.4,11.4,{flat:true});
+  put(A.gunRack(116),5,2.6,{flat:true}); for(const [i,x] of [11,13.4,15.8].entries()){ put(A.displayCase(i*2),x,3.9); block(Math.floor(x)-1,2,Math.floor(x),3); }
+  put(A.brickWall(96),20.6,3.2,{flat:true}); put(A.hulkbuster(),Y.hulk.x,Y.hulk.y-1.2); block(21,4,23,6); act(Y.hulk.x-.4,Y.hulk.y+.2,'Lau mô hình Hulkbuster',{do:'ylhulk'},28);
+  put(A.streamDesk(128),5,4.6); block(1,3,8,3); put(A.cameraRig(),9.6,6.2); block(9,5,9,5);
+  put(A.gamingChair('#26262c'),4.6,5.8); put(A.gamingChair('#d9263a'),Y.guest.x,Y.guest.y-.4); act(Y.guest.x,Y.guest.y+.2,'Ghế khách: lên sóng cùng anh Độ',{do:'ylstream'},22);
+  put(A.sofa('#7a4428',72),16.4,10.4); block(14,9,18,9); put(A.sofaSide('#7a4428'),24.2,12.2); block(24,10,24,11); put(A.ottoman(),16.4,12.6); block(15,12,17,12);
+  for(const [x,y] of [[1.8,15.6],[24.2,15.6]]){ put(A.pottedFern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
+  put(A.label('120 YEN LANG','#1e282d','#7fe0ff'),12.5,15.4,{flat:true}); act(12.5,16.6,'Ra ngõ (gọi Grab)',{do:'grab'},24);
+  return {name:'120 Yên Lãng · nhà anh Độ',W,H,grid:g,obj:K.obj,solid:K.solid,inter:K.inter,spawn:{x:Y.spawn.x*T,y:Y.spawn.y*T},indoor:true,music:'music_room'}; }
+/* ---------- Sân pickleball Cầu Giấy (Hà Nội, trong nhà) ----------
+   sân giữa phòng (đội A nửa dưới, đội B nửa trên, lưới ở giữa), ghế + giá vợt + bình nước 2 bên, HLV Tuấn đứng góc dưới trái, bảng điểm trên tường */
+function buildPickle(){ const K=SD.PICKLE, W=K.W, H=K.H, C=K.court, Kt=kit(), {put,block,act}=Kt, g=shell(W,H,'d','h');
+  for(let y=C.y0;y<=C.y1;y++) for(let x=C.x0;x<=C.x1;x++) g[y][x]='c';
+  const w=(C.x1-C.x0+1)*T, h=(C.y1-C.y0+1)*T, net=(K.net-C.y0)*T;
+  put(A.courtLines(w,h,net,T*2.2),C.x0,C.y0,{flat:true}); put(A.pkNet(w),C.x0-.25,K.net+.4); put(A.scoreBoard(),(C.x0+C.x1+1)/2,2.2,{flat:true});
+  put(A.label('PICKLEBALL CAU GIAY','#1e4a3a','#e8f040'),(C.x0+C.x1+1)/2,20.2,{flat:true});
+  for(const y of [6,9.5,13]){ put(A.bench(),4.2,y); put(A.bench(),25.8,y); }
+  put(A.paddleRack(),4.4,16.2); block(3,15,5,15); put(A.drinkFridge('#3f9a4a'),26,16.6); block(25,15,26,15); act(26,17.6,'Bình nước miễn phí (+5 năng lượng)',{do:'pkwater'},22);
+  for(const [x,y] of [[1.8,3.6],[28.2,3.6],[1.8,21.6],[28.2,21.6]]){ put(A.pottedFern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
+  act((C.x0+C.x1+1)/2,19.4,'Vào sân đấu 2 vs 2',{do:'pickle'},40);
+  act(14.5,22.6,'Ra đường (gọi Grab)',{do:'grab'},24);
+  return {name:'Sân pickleball Cầu Giấy · Hà Nội',W,H,grid:g,obj:Kt.obj,solid:Kt.solid,inter:Kt.inter,spawn:{x:K.spawn.x*T,y:K.spawn.y*T},indoor:true,music:'music_room'}; }
+Object.assign(WORLD,{buildInterior,buildStay,buildOffice,buildDalat,buildTrack,buildDeo,buildDas,buildLumen,buildDiep,buildYenLang,buildPickle,TRACK});
 })();

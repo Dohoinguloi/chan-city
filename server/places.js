@@ -24,7 +24,7 @@ function canFinish(pl,id){ const q=S.QUESTS[id], p=pl.prof;
   if(q.need) return Object.entries(q.need).every(([k,n])=>has(pl,k,n));
   if(q.spots) return q.spots.every(s=>p.flags.spots[s]);
   if(q.eat) return ((p.qprog||{})[id]||0)>=q.eat.n;
-  if(q.dance) return ((p.qprog||{})[id]||0)>=q.dance; if(q.shisha) return ((p.qprog||{})[id]||0)>=q.shisha; return false; }
+  if(q.dance) return ((p.qprog||{})[id]||0)>=q.dance; if(q.shisha) return ((p.qprog||{})[id]||0)>=q.shisha; if(q.prog) return ((p.qprog||{})[id]||0)>=q.prog; return false; }
 on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Không có nhiệm vụ'}; if(q.giver!=='oii'&&!nearNpc(pl,q.giver)) return {err:'Đứng gần người giao việc'};   // Ộ i i đi lang thang (vị trí tính ở máy khách)
   if(m.op==='start'){ if(p.quests[m.id]) return {err:'Đã nhận rồi'}; if(q.after&&p.quests[q.after]!=='done') return {err:'Làm xong việc trước đã'}; p.quests[m.id]='active';
     if(q.butterflies&&!has(pl,'vot_buom')) addItem(pl,'vot_buom');   // Pháp đưa vợt

@@ -151,9 +151,13 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 /* đang đua ngựa: ẩn hết bảng HUD cho thoáng màn đua */
 body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #minimap,body.racing #hudBottom,body.racing #hudBuffs{display:none!important}
 #bossBar{position:fixed;left:50%;top:74px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;z-index:6;pointer-events:none;font-size:20px}
+#mckBar{position:fixed;left:50%;top:74px;transform:translateX(-50%);display:flex;gap:14px;align-items:center;z-index:6;pointer-events:none;font-size:20px}
 #bossBar>div:not(.vs){display:grid;gap:2px;min-width:min(300px,36vw);background:rgba(20,16,24,.8);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a3a8a;padding:4px 10px} #bossBar .op{box-shadow:0 0 0 2px #2a4ad0}
+#mckBar>div:not(.vs){display:grid;gap:2px;min-width:min(300px,36vw);background:rgba(20,16,24,.8);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a3a8a;padding:4px 10px} #mckBar .op{box-shadow:0 0 0 2px #2a4ad0}
 #bossBar .bar{height:12px;background:#2a2228;border:1px solid #000} #bossBar .bar i{display:block;height:100%;transition:width .25s} #bossBar .mg .bar i{background:linear-gradient(90deg,#7a3ab0,#c070ff)} #bossBar .op .bar i{background:linear-gradient(90deg,#c4201a,#2a4ad0)}
+#mckBar .bar{height:12px;background:#2a2228;border:1px solid #000} #mckBar .bar i{display:block;height:100%;transition:width .25s} #mckBar .mg .bar i{background:linear-gradient(90deg,#7a3ab0,#c070ff)} #mckBar .op .bar i{background:linear-gradient(90deg,#c4201a,#2a4ad0)}
 #bossBar .vs{font-size:34px;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #bossBar b{font-weight:400;font-size:16px;color:var(--muted)}
+#mckBar .vs{font-size:34px;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #mckBar b{font-weight:400;font-size:16px;color:var(--muted)}
 .dthumb{flex:1 1 100%;width:100%;aspect-ratio:12/7;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;display:block;background:#2a2228} .dthumb.load{background:repeating-linear-gradient(90deg,#2a2228 0 10px,#33292f 10px 20px)}
 /* bento: danh sách trong cửa sổ thành lưới thẻ (thêm class rows để giữ dạng hàng: bảng xếp hạng, nài ngựa) */
 .panel .list:not(.rows){grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
@@ -302,6 +306,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div class="need"><span>Sạch sẽ</span><div class="bar"><div id="barClean"></div></div><span id="barCleanT">100</span></div>
     <div class="need"><span>Pin</span><div class="bar"><div id="barBattery"></div></div><span id="barBatteryT">100</span></div>
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
+  <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="hudNav" class="hudTop"><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>

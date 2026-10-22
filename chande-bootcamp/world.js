@@ -71,6 +71,7 @@ function buildRetreat(){
   const shore2=x=>118+Math.round(1.6*Math.sin(x*.13)+1.1*Math.sin(x*.37+2));          // bờ Nam của hồ
   for(let x=0;x<W;x++){ const s=shore(x), s2=shore2(x); for(let y=98;y<H;y++) set(x,y,y<s?'G':y===s?'D':y<s2?(y-s>=4&&s2-y>=4?'o':'W'):y===s2?'D':'G'); }
   rect(0,95,W-1,97,'R'); rect(68,98,W-1,100,'R');                                   // đoạn qua thị trấn: 6 làn
+  rect(54,98,67,104,'R'); rect(54,105,67,105,'D');                                 // bãi đỗ ô tô trước cổng Ké (xe Chika Phú, xe 4 bánh, xe tải Optimus đỗ ở đây cho khỏi vướng đường)
   // bến xuống hồ: bậc đá + cầu gỗ
   rect(42,98,43,shore(42)-1,'T'); rect(42,shore(42),43,shore(42),'T'); rect(42,shore(42)+1,43,shore(42)+5,'Q');
 
@@ -232,7 +233,14 @@ function buildRetreat(){
   // ven hồ
   put(A.kayak(),46.5,99.6); put(A.kayak(),48.8,100.2); put(A.bench(),37,98.8);
   // xe 4 bánh: dưới cổng và trên bãi đỗ cạnh Nhà Mái Đá
-  const carLow=put(A.car(),46.2,96.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
+  { const M=SHARED.MCK, A0=M.arena, cx=(A0.x0+A0.x1)/2, cy=(A0.y0+A0.y1)/2;   // đấu trường MCK ở góc rừng Tây Bắc: sân đá bầu dục, sân khấu, đèn, lối mòn xuống Nhà ăn khu trên
+    ell(cx,cy+1,(A0.x1-A0.x0)/2,(A0.y1-A0.y0)/2,'S',['F','G']); line([[cx,A0.y1],[cx+.5,M.gate.y],[21,31.5]],1,'P',['F','G']);
+    put(A.mckStage(),M.stage.x,M.stage.y+1.6); solid.push([Math.round(M.stage.x)-4,Math.round(M.stage.y)-1,Math.round(M.stage.x)+4,Math.round(M.stage.y)]);
+    for(const [x,y,c] of [[A0.x0+2,cy-4,'#ff4fa3'],[A0.x1-2,cy-4,'#7fe0ff'],[A0.x0+3,cy+6,'#ffd84a'],[A0.x1-3,cy+6,'#5fe06a']]){ put(A.stageLight(c),x,y); solid.push([Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1]); }
+    put(A.label('DAU TRUONG MCK','#3a2a5a','#ff4fa3'),cx+.5,A0.y1+1.4,{flat:true}); EXTRA_ZONES.push({name:'Đấu trường MCK',x0:A0.x0,y0:A0.y0,x1:A0.x1,y1:A0.y1}); }
+  { const Q=SHARED.YENLANG.pho; put(A.stall('#c4382e',['#f4ead8','#e8b860','#5fae46']),Q.x-1,Q.y-.8); solid.push([Math.floor(Q.x)-2,Math.floor(Q.y)-2,Math.floor(Q.x),Math.floor(Q.y)-2]); put(A.label('PHO CHI THAO','#8c231f','#fff3d6'),Q.x-1,Q.y-3.2,{flat:true}); }   // quán phở chị Thảo trong ngõ
+  put(A.parkingLines(3,2,72,46),54.4,98.2,{flat:true}); put(A.parkSign(),67.4,98.6); solid.push([67,97,67,97]);
+  const carLow=put(A.car(),SHARED.CARS.car_low.x,SHARED.CARS.car_low.y-.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
   rect(48,40,51,41,'G',['F']); solid.push([45,96,47,96],[48,41,50,41]);
   // vườn rau Ké: hàng rào gỗ, chừa lối vào ở giữa phía Nam
   // cửa vào vườn: giữa cạnh dưới (x 54), cạnh trên (x 57–58), cạnh trái (y 83–84), cạnh phải (y 80–81)
