@@ -185,7 +185,7 @@ on('horse',(pl,m)=>{ const p=pl.prof, t=now();
 hook('tick',()=>{ for(const pl of players.values()) if(pl.riding&&!hasHorse(pl)){ pl.riding=false; note(pl,'Hết giờ thuê ngựa'); } });
 hook('leave',pl=>{ pl.riding=false; pl.herd=null; });
 // thần thú tặng riêng (tên nhân vật viết thường → con): lần đăng nhập đầu sau cập nhật mở ngựa tới bậc con đó (đã cao hơn thì giữ) và chọn cưỡi luôn
-const GIFT_MOUNT={'chika phú':'haclong','truong con':'rongxanh'};
+const GIFT_MOUNT={'chika phú':'haclong','truong con':'rongxanh','kaixa':'tinhvan'};
 hook('login',pl=>{ const p=pl.prof, k=p&&GIFT_MOUNT[String(p.name||'').toLowerCase()]; if(!k||(p.giftMount||{})[k]) return; const my=S.mythOf(k), h=p.horse||{};
   p.horse={...h,own:true,until:h.until||0,myth:Math.max(h.myth||0,my.lv)}; p.skills.cuoingua=true; if(p.look) p.look.mount=k; p.giftMount={...(p.giftMount||{}),[k]:1}; markDirty(pl); C.refreshInfo(pl);
   setTimeout(()=>note(pl,`🐉 Quà riêng: bạn được tặng thần thú ${my.name}! Đã chọn sẵn, bấm cưỡi ngựa ngoài trời là lên ${my.name} (đổi con khác ở Người Thuần Thú / trại ngựa)`,'item'),2500); });
