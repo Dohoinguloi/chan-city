@@ -180,8 +180,24 @@ on('horse',(pl,m)=>{ const p=pl.prof, t=now();
       for(const [k,n] of Object.entries(nx.jewels)) if((p.items[k]||0)<n) return {err:`Cần ${n} ${S.ITEMS[k].name} (rơi từ boss MU)`};
       if(!take(pl,nx.price)) return {err:`Cần ${fmt(nx.price)} để cường hoá thành ${nx.name}`}; for(const [k,n] of Object.entries(nx.jewels)) addItem(pl,k,-n);
       p.horse.myth=lv+1; if(p.look) p.look.mount=nx.k; markDirty(pl); C.refreshInfo(pl); return {msg:`Cường hoá thành công! Ngựa đã hoá ${nx.name}`,horse:p.horse,look:p.look}; }
-    const k=String(m.k||''), my=k&&S.mythOf(k); if(k&&(!my||my.lv>lv)) return {err:'Chưa mở bậc này'}; if(p.look) p.look.mount=k; markDirty(pl); C.refreshInfo(pl);
+    const k=String(m.k||''), my=k&&S.mythOf(k,p); if(k&&(!my||my.lv>lv)) return {err:k==='xichtho'?'Chưa có Xích Thố: làm 4 nhiệm vụ của ông Trường Con ở Miếu':'Chưa mở bậc này'}; if(p.look) p.look.mount=k; markDirty(pl); C.refreshInfo(pl);
     return {msg:k?`Đổi sang cưỡi ${my.name}`:'Cưỡi ngựa thường',look:p.look}; } });
+// Xích Thố (ông Trường Con): nhận ngựa ở Miếu khi xong 4 nhiệm vụ của ông; lên cấp / chọn hệ ở Người Thuần Thú hoặc trại ngựa
+on('xichtho',(pl,m)=>{ const p=pl.prof, X=S.XICHTHO, x=p.xt;
+  if(m.op==='claim'){ if(x&&x.lv) return {err:'Bạn đã có Xích Thố rồi'}; if(!P.nearNpc(pl,'truongcon')) return {err:'Gặp ông Trường Con ở Miếu (Hải Phòng)'};
+    const left=X.quests.filter(q=>p.quests[q]!=='done'); if(left.length) return {err:`Ông Trường Con: "Giúp ta xong ${left.length} việc nữa rồi ta trao ngựa": ${left.map(q=>S.QUESTS[q].title).join(', ')}`};
+    p.xt={lv:1,el:''}; const h=p.horse||{}; p.horse={...h,own:true,until:h.until||0,myth:h.myth||0}; p.skills.cuoingua=true; if(p.look) p.look.mount='xichtho'; markDirty(pl); C.refreshInfo(pl);
+    return {msg:'Ông Trường Con trao cho bạn Xích Thố! Đã chọn sẵn, bấm H cưỡi. Mang tới Người Thuần Thú (MU) / trại ngựa để lên cấp và chọn hệ',horse:p.horse,look:p.look,xt:p.xt}; }
+  if(!x||!x.lv) return {err:'Chưa có Xích Thố: làm 4 nhiệm vụ của ông Trường Con ở Miếu'};
+  if(!P.nearNpc(pl,'mu_tamer')&&!P.nearNpc(pl,'anhphong')&&!P.nearNpc(pl,'chuongngua')&&!P.nearNpc(pl,'truongcon')) return {err:'Gặp Người Thuần Thú (MU), trại ngựa hoặc ông Trường Con'};
+  if(m.op==='up'){ if(x.lv>=X.max) return {err:`Xích Thố đã cấp tối đa ${X.max}`}; const c=X.cost(x.lv+1);
+    for(const [k,n] of Object.entries(c.jewels)) if((p.items[k]||0)<n) return {err:`Cần ${n} ${S.ITEMS[k].name} (rơi từ boss MU)`};
+    if(!take(pl,c.vnd)) return {err:`Cần ${fmt(c.vnd)} để lên cấp ${x.lv+1}`}; for(const [k,n] of Object.entries(c.jewels)) addItem(pl,k,-n); x.lv++; markDirty(pl); C.refreshInfo(pl);
+    return {msg:`🔥 Xích Thố lên cấp ${x.lv}!${x.lv===X.tele?' Mở khoá DỊCH CHUYỂN: mở bảng Grab, bấm 🔥 để tới ngay mọi map, ở đâu cũng được, không tốn tiền / pin':''}`,xt:x}; }
+  if(m.op==='el'){ const e=String(m.el||''); if(!X.els[e]) return {err:'?'}; if(x.el===e) return {err:'Đang theo hệ này rồi'};
+    if(x.el){ if((p.items.ngoc_hon_nguyen||0)<1) return {err:'Đổi hệ cần 1 Ngọc Hỗn Nguyên'}; addItem(pl,'ngoc_hon_nguyen',-1); }
+    x.el=e; markDirty(pl); C.refreshInfo(pl); return {msg:`Xích Thố theo hệ ${X.els[e].name}: ${X.els[e].fx}`,xt:x}; }
+  return {err:'?'}; });
 hook('tick',()=>{ for(const pl of players.values()) if(pl.riding&&!hasHorse(pl)){ pl.riding=false; note(pl,'Hết giờ thuê ngựa'); } });
 hook('leave',pl=>{ pl.riding=false; pl.herd=null; });
 // thần thú tặng riêng (tên nhân vật viết thường → con): lần đăng nhập đầu sau cập nhật mở ngựa tới bậc con đó (đã cao hơn thì giữ) và chọn cưỡi luôn

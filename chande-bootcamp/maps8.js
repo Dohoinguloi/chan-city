@@ -49,7 +49,7 @@ function drawPT(g,cam,add){ for(const p of PT){ if(p.add!==add) continue; const 
 function drawWaves(g,cam){ for(const w of WAVES){ const k=w.t/w.dur, r=w.r0+(w.r1-w.r0)*(1-Math.pow(1-k,2)); g.globalAlpha=1-k; g.strokeStyle=w.col; g.lineWidth=w.w*(1-k*.5); g.beginPath(); g.ellipse(w.x-cam.x,w.y-cam.y,r,r*w.flat,0,0,7); g.stroke(); } g.globalAlpha=1; }
 const C_FIRE=['#fff3b0','#ffd84a','#ff9a2a','#ff5a1a'], C_SPARK=['#ffffff','#fff3b0','#ffd84a'], C_BLOOD=['#ff4a5a','#ff8a8a','#ffffff'], C_ICE=['#ffffff','#bff0ff','#7fd8f0'], C_ELEC=['#ffffff','#bff0ff','#7fb8ff'], C_HEAL=['#c8ffd0','#5fe06a','#ffffff'], C_GOLD=['#fff3b0','#ffd84a','#c8901a'], C_DARK=['#c8a0ff','#8a5ad8','#3a1a5a'], C_SMOKE=['#6a6068','#8a8088','#4a4448'];
 // thời điểm trúng đích (ms sau khi ra chiêu): số sát thương + boss khựng hiện đúng lúc này
-const HIT_AT={dapchoang:240,phunlua:300,dam:200,tamlien:130,hoachuong:230,loichuong:240,chem:110,xoay:260,thienthach:640,pet:420,hoaquyen:360,kybanghao:420,loithan:320,gomupistol:260,hoden:520};
+const HIT_AT={xtfire:260,dapchoang:240,phunlua:300,dam:200,tamlien:130,hoachuong:230,loichuong:240,chem:110,xoay:260,thienthach:640,pet:420,hoaquyen:360,kybanghao:420,loithan:320,gomupistol:260,hoden:520};
 // chỗ Min đứng: cạnh chủ, lùi về phía sau lưng
 const faceOf=pid=>pid===NET.pid?GAME.P.face:((GAME.REM&&GAME.REM.get(pid))||{}).face||1;
 const minPos=pid=>{ const p=posOf(pid); return p&&[p[0]-faceOf(pid)*22,p[1]+2]; };
@@ -181,6 +181,9 @@ function castStep(g,c,now,cam){ const el=now-c.t, P0=posOf(c.from), Q=c.toP(), o
     for(let i=0;i<6;i++){ const a=i/6*6.283+.52+el/500, r1=R0+2+Math.min(1,el/250)*8; g.strokeStyle='#ffd84a'; g.lineWidth=2; g.beginPath(); g.moveTo(X0+Math.cos(a)*R0,Y0-18+Math.sin(a)*R0*1.15); g.lineTo(X0+Math.cos(a)*r1,Y0-18+Math.sin(a)*r1*1.15); g.stroke(); } g.restore();
     once('b',()=>{ burst(P0[0],P0[1]-18,22,{col:['#ffd84a','#ffffff','#c8ccd8'],kind:'spark',sp:[50,130],life:[.2,.4]}); ring(P0[0],P0[1],6,34,.45,'#ffd84a',3); shake(1.5,.15); }); return true; }
   case 'hoimau': return castStep(g,{...c,k:'hoi',heal:c.heal&&c.heal.length?c.heal:[c.from]},now,cam);
+  case 'xtfire': { if(!Q) return el<500; const col=(SD.XICHTHO.els[c.el]||{col:'#ff8a1a'}).col, m0=[P0[0]+face*26,P0[1]-34], k=Math.min(1,el/260);   /* Xích Thố phun lửa theo hệ từ miệng ngựa */
+    if(el<420){ for(let i=0;i<3;i++){ const p=lerp(m0,Q,Math.max(0,k-i*.1)); burst(p[0]+rnd(-4,4),p[1]+rnd(-4,4),1,{col:[col,'#ffffff','#ffd84a'],sp:[10,40],life:[.15,.3],size:[2,4]}); } const p=lerp(m0,Q,k); glow(p[0],p[1],12,col); }
+    if(el>260) once('h',()=>{ burst(Q[0],Q[1],22,{col:[col,'#ffffff'],sp:[40,140],life:[.25,.5],size:[2,4]}); ring(Q[0],Q[1]+8,3,24,.35,col,3); }); return el<560; }
   case 'refl': { if(!Q) return el<300; const k=Math.min(1,el/150), p=lerp([P0[0],P0[1]-20],Q,k);   /* gai vàng bay ngược về kẻ vừa đánh */
     if(k<1){ g.save(); g.strokeStyle='#ffd84a'; g.lineWidth=2.5; g.beginPath(); g.moveTo(P0[0]-cam.x,P0[1]-20-cam.y); g.lineTo(p[0]-cam.x,p[1]-cam.y); g.stroke(); g.restore(); glow(p[0],p[1],6,'rgba(255,230,120,.9)'); }
     else once('h',()=>burst(Q[0],Q[1],10,{col:['#ffd84a','#ffffff'],kind:'spark',sp:[50,120],life:[.1,.25]})); return el<300; }
@@ -545,7 +548,7 @@ UI.onAct('mupasreset',async()=>{ const r=await GAME.act({t:'mu',op:'pasreset'});
 function accPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look&&GAME.G.look.acc; if(me&&Object.keys(me).length&&!P.incar) out.push({x:P.x,y:P.y,face:P.face,view:P.view,acc:me,mv:P.moving,rd:!!P.riding,mi:P.riding?SD.mythIdx(GAME.G):0,k:'me'});
   for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; if(r._lk!==r.look){ r._lk=r.look; try{ r._acc=JSON.parse(r.look).acc||null; }catch(e){ r._acc=null; } } if(r._acc&&Object.keys(r._acc).length) out.push({x:r.x,y:r.y,face:r.face,view:r.view,acc:r._acc,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!((r.fl||0)&SD.FL.ride),mi:Math.floor((r.fl||0)/SD.FL.mount)&15,k:r.id}); }
   return out; }
-function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, Xg=Math.round(o.x-cam.x), Yg=Math.round(o.y-cam.y), st=o.rd?(o.mi&&SD.HORSE.myth[o.mi-1]&&A.mythMount?A.mythMount.M[SD.HORSE.myth[o.mi-1].k].seat:{dx:-4,dy:-15}):null, X0=Xg+(st?st.dx*o.face:0), Y0=Yg+(st?st.dy+7:0),   /* đang cưỡi: dời theo yên ngựa / thần thú */ side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
+function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, Xg=Math.round(o.x-cam.x), Yg=Math.round(o.y-cam.y), st=o.rd?(o.mi&&A.mythMount&&A.mythMount.M[SD.mountKey(o.mi)]?A.mythMount.M[SD.mountKey(o.mi)].seat:{dx:-4,dy:-15}):null, X0=Xg+(st?st.dx*o.face:0), Y0=Yg+(st?st.dy+7:0),   /* đang cưỡi: dời theo yên ngựa / thần thú */ side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
   if(a.aura&&AC[a.aura]){ const col=AC[a.aura].col; list.push({y:o.y-.6,d:()=>{ const g=ctx, cy=Yg-1, X0=Xg; g.save(); g.globalCompositeOperation='lighter';
       const gr=g.createRadialGradient(X0,cy,0,X0,cy,19); gr.addColorStop(0,col+'66'); gr.addColorStop(1,col+'00'); g.fillStyle=gr; g.beginPath(); g.ellipse(X0,cy,19,7.5,0,0,7); g.fill();
       g.strokeStyle=col; g.lineWidth=1; g.globalAlpha=.85; g.beginPath(); g.ellipse(X0,cy,16,6,0,0,7); g.stroke();
@@ -575,8 +578,8 @@ UI.onAct('mushieldbuy',async d=>shDone(await GAME.act({t:'mu',op:'accbuy',k:d.k}
 UI.onAct('mushield',async d=>shDone(await GAME.act({t:'mu',op:'accwear',k:d.k,slot:'shield'})));
 UI.onAct('musmithbuy',async d=>{ const r=await GAME.act({t:'mu',op:'smithbuy',k:d.k}); if(r&&!r.err){ GAME.sfx('item_pickup',.7); toast(esc(r.msg),'item'); } UI.refresh(); });
 // Người Thuần Thú: cường hoá ngựa đã mua lần lượt 6 bậc thần thú, cưỡi con nào cũng được trong số đã mở
-const mountImg=k=>cached('mimg'+k+(k?'':(G().horseCoat||0)),()=>{ const s=k?A.mythMount(k,0,false):A.horse(0,G().horseCoat||0,false,true), c=A.cv(128,104), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
-  const sc=Math.min(2,128/s.c.width,104/s.c.height); g.drawImage(s.c,Math.round(64-s.ax*sc),Math.round(102-s.ay*sc),s.c.width*sc,s.c.height*sc); return c.toDataURL(); });   /* vừa khung dù hình to / nhỏ */
+const mountImg=k0=>{ const k=k0==='xichtho'?'xichtho_'+((G().xt||{}).el||''):k0; return cached('mimg'+k+(k?'':(G().horseCoat||0)),()=>{ const s=k?A.mythMount(k,0,false):A.horse(0,G().horseCoat||0,false,true), c=A.cv(128,104), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
+  const sc=Math.min(2,128/s.c.width,104/s.c.height); g.drawImage(s.c,Math.round(64-s.ax*sc),Math.round(102-s.ay*sc),s.c.width*sc,s.c.height*sc); return c.toDataURL(); }); };   /* vừa khung dù hình to / nhỏ; Xích Thố theo hệ đang chọn */
 UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Mua ngựa & cường hoá',()=>{ const g=G(), h=g.horse||{}, lv=h.myth||0, cur=(g.look&&g.look.mount)||'', it=g.items||{}, rent=h.until>NET.now()?Math.ceil((h.until-NET.now())/60000):0;
   return `<p>"Mang ngựa đã mua tới đây, ta cường hoá thành thần thú! Mỗi bậc chạy nhanh hơn, cộng máu + công MU. Đã mở bậc nào thì cưỡi con nào cũng được, ai cũng thấy."</p>
   ${h.own?`<p class="muted">Ngựa của bạn: <b>bậc ${lv}/${SD.HORSE.myth.length}</b> · bấm H để lên ngựa</p>`:`<p class="bad">Chưa có ngựa riêng: mua ngựa ở đây để cưỡi và cường hoá (ngựa thuê chỉ cưỡi được, không cường hoá được).</p>
@@ -586,8 +589,28 @@ UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Mua ngựa & cườn
     return `<div class="mulgc ${m.lv>=5?'wr5':m.lv>=3?'wr4':m.lv?'wr3':''}"><img src="${mountImg(m.k)}" width="128" height="104" alt=""><b>${esc(m.name)}</b>${m.lv?`<small class="star">${'★'.repeat(m.lv)} Bậc ${m.lv}</small>`:''}<small>${esc(m.desc)}</small>
       ${m.lv?`<small class="good">Tốc độ +${Math.round((m.speed-1)*100)}% · ${bonusTxt(m.bonus)}</small>`:''}
       <div class="mulgb">${!h.own?'':open?(cur===m.k?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:m.k},'pri')):next?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('mythup','Cường hoá '+SD.fmt(m.price),{},'pri')}`:'<small class="muted">🔒 Cường hoá bậc trước</small>'}</div></div>`; }).join('')}</div>
+  ${xtCard(g,h,cur,it)}
   ${window.MU9?window.MU9.gemGuide((()=>{ const nx=SD.HORSE.myth[lv]; const ks=nx?Object.keys(nx.jewels||{}):[]; return ks.length?ks:M.jewels; })()):''}`; },{wide:true}));
-const mythDone=r=>{ if(!r||r.err) return; if(r.horse) GAME.G.horse=r.horse; if(r.look) GAME.G.look=r.look; toast(esc(r.msg),'item'); UI.refresh(); };
+const mythDone=r=>{ if(!r||r.err) return; if(r.horse) GAME.G.horse=r.horse; if(r.look) GAME.G.look=r.look; if(r.xt) GAME.G.xt=r.xt; toast(esc(r.msg),'item'); UI.refresh(); };
+// thẻ Xích Thố (ông Trường Con): chưa có thì khoá + hướng dẫn 4 nhiệm vụ (➜ tự đi), có rồi thì cưỡi / lên cấp / chọn 5 hệ
+function xtCard(g,h,cur,it){ const X=SD.XICHTHO, x=g.xt||{}, has=x.lv>0, my=has?SD.mythOf('xichtho',g):null, E=X.els[x.el], c=has&&x.lv<X.max?X.cost(x.lv+1):null;
+  const need=c?Object.entries(c.jewels).map(([k,n])=>`${n} ${SD.ITEMS[k].name} (có ${it[k]||0})`).join(', '):'';
+  const qs=X.quests.map(q=>{ const st=(g.quests||{})[q], Q=SD.QUESTS[q]; return `<li>${st==='done'?'✔':st==='active'?'▶':'◻'} ${esc(Q.title)} ${st==='done'?'':`<button class="qgo" type="button" data-go="${q}" title="Tự đi tới">➜</button>`}</li>`; }).join('');
+  /* 6 dáng Xích Thố: lửa gốc + 5 hệ; có ngựa rồi thì bấm để chọn / đổi hệ */
+  const gal=`<div class="xtgal">${[['',{name:'Lửa gốc',col:'#ff8a1a',fx:'chưa chọn hệ'}]].concat(Object.entries(X.els)).map(([k,e])=>{ const on=has&&(x.el||'')===k, inner=`<img src="${mountImg('xichtho_'+k)}" width="96" height="78" alt=""><b>${k?'Hệ ':''}${esc(e.name)}</b><small>${esc(k?e.fx.split(',')[0]:e.fx)}</small>`;
+    return has&&k?`<button type="button" class="xtv ${on?'on':''}" style="--lc:${e.col}" data-a="xtel" data-el="${k}" title="${esc(e.fx)}">${inner}${on?'<em>✔ đang theo</em>':''}</button>`:`<div class="xtv ${on?'on':''}" style="--lc:${e.col}" title="${esc(e.fx)}">${inner}</div>`; }).join('')}</div>`;
+  const tele=x.lv>=X.tele?`<small class="good">🔥 Đã mở DỊCH CHUYỂN: bảng Grab bấm 🔥 là tới ngay mọi map</small>`:`<small class="star">✨ Cấp ${X.tele}: mở DỊCH CHUYỂN tới mọi map, ở đâu cũng đi được, không cần gọi Grab</small>`;
+  return `<h5>🔥 Xích Thố của ông Trường Con <small class="muted">· ngựa lửa thần thoại, chọn 1 trong 5 hệ, cưỡi trong MU tự phun lửa đánh quái</small></h5>
+  <div class="mulgc wr5 ${has?'':'xtlock'}"><img src="${mountImg('xichtho')}" width="128" height="104" alt=""><b>Xích Thố${has?` · cấp ${x.lv}/${X.max}`:''}${E?` · hệ ${E.name}`:''}</b>
+    <small class="good">⚡ MẠNH HƠN mọi thú cưỡi thường: chỉ số hơn thần thú cùng bậc 30%${has?'':' · máu ??? · công ??? · tốc độ ???'}</small>${tele}
+    ${has?`<small class="good">Tốc độ +${Math.round((my.speed-1)*100)}% · ${bonusTxt(my.bonus)}</small>${E?`<small>${esc(E.fx)}</small>`:'<small class="bad">Chưa chọn hệ: bấm 1 trong 5 con bên dưới (lần đầu miễn phí)</small>'}
+      <div class="mulgb">${cur==='xichtho'?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:'xichtho'},'pri')}${c?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('xtup','Lên cấp '+(x.lv+1)+' · '+SD.fmt(c.vnd),{},'pri')}`:'<small class="good">Cấp tối đa</small>'}</div>
+      ${gal}${x.el?'<small class="muted">đổi hệ: 1 Ngọc Hỗn Nguyên</small>':''}`
+    :`<small class="bad">🔒 Chưa mở: làm xong 4 nhiệm vụ của ông Trường Con ở Miếu (Hải Phòng) rồi gặp ông xin ngựa</small>${gal}<ul class="xtq">${qs}</ul>
+      <div class="mulgb">${btn('xtgo','➜ Tới gặp ông Trường Con',{},'pri')}</div>`}</div>`; }
+UI.onAct('xtup',async()=>{ const r=await GAME.act({t:'xichtho',op:'up'}); if(r&&!r.err){ GAME.sfx('level_up',.8); GAME.bigText('XÍCH THỐ CẤP '+r.xt.lv+'!'); } mythDone(r); });
+UI.onAct('xtel',async d=>mythDone(await GAME.act({t:'xichtho',op:'el',el:d.el})));
+UI.onAct('xtgo',()=>{ UI.closeAll(); GAME.autoGo('mieu',()=>GAME.walkToNpc('truongcon')); });
 UI.onAct('mythup',async()=>{ const r=await GAME.act({t:'horse',op:'mythup'}); if(r&&!r.err){ GAME.sfx('level_up',.8); const m=SD.mythOf(r.look&&r.look.mount); if(m) GAME.bigText(m.name.toUpperCase()+'!'); } mythDone(r); });
 UI.onAct('mythpick',async d=>mythDone(await GAME.act({t:'horse',op:'mythpick',k:d.k})));
 /* ======================= thách đấu + nhặt đồ nhiệm vụ ẩn ======================= */

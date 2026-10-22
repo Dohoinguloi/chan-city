@@ -4,6 +4,13 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24b',title:'24/10 · Xích Thố + Đại nhiệm vụ Tân Thế Giới Chande',items:[
+    'Đại nhiệm vụ Tân Thế Giới Chande: truy tìm 3 món huyền thoại (Cái Pod của Kaixa, Cây Bút của Redtype, Airpod của VNPT), mỗi món 15 mảnh. Banner lúc vào game bấm vào từng món để xem đường đi',
+    'Xích Thố của ông Trường Con: ngựa lửa thần thoại MẠNH HƠN mọi thú cưỡi thường (chỉ số hơn thần thú cùng bậc 30%). Làm xong 4 nhiệm vụ của ông ở Miếu (Hải Phòng) rồi gặp ông xin ngựa',
+    'Xích Thố có 6 dáng: lửa gốc + 5 hệ Kim / Mộc / Thuỷ / Hoả / Thổ, toàn thân rực lửa theo màu hệ, mỗi hệ cộng chỉ số riêng và lửa phun có hiệu ứng riêng. Cưỡi trong MU tự phun lửa vào quái / boss gần nhất',
+    'Lên cấp Xích Thố bằng tiền + ngọc (Ước Nguyện → Tâm Linh → Hỗn Nguyên), tối đa cấp 15. Cấp 15 mở DỊCH CHUYỂN: ở đâu cũng tới ngay mọi map, không cần gọi Grab, không tốn tiền / pin',
+    'Người Thuần Thú hiện thẻ Xích Thố: chưa mở thì khoá kèm danh sách nhiệm vụ, bấm ➜ tự đi làm',
+    'Mảnh Airpod mới: cường hoá Xích Thố lên cấp 5']},
   {v:'2026-10-24a',title:'24/10 · 3 item huyền thoại',items:[
     '3 ô item huyền thoại cạnh thanh đồ: Cái Pod của Kaixa (+150% mọi chỉ số MU), Cây Bút của Redtype (phím 6: hoá gà quái 2 giây + mọi chiêu hồi về 0, 10 giây dùng lại), Airpod của VNPT (cứ 10 giây bất tử 3 giây, chiêu +500%)',
     'Mỗi món ghép từ 15 mảnh: thành tựu cày (1000 quái rừng, 200 lần hạ Luffy, Everfit 20 ngày, hết chứng chỉ DAS, cờ vua, Poker, CSGT, trồng cây, nuôi lợn vịt, stream anh Độ...), nhiệm vụ ẩn, câu đố logic ở phiến đá cổ, nhiệm vụ nhóm ở vòng sáng. Bấm vào ô để xem hướng dẫn',

@@ -1388,9 +1388,24 @@ HORSE.myth=[{k:'thienma',name:'Thiên Mã',desc:'Ngựa trắng cánh lông vũ,
   {k:'thuyquan',name:'Thuỷ Quân',desc:'Thú thần nước xanh băng, bờm mây tím ánh sao, dải lụa trắng bay',price:14000000,jewels:{ngoc_hon_nguyen:3},speed:1.35},
   {k:'tinhvan',name:'Tinh Vân Thần Điểu',desc:'Chim thần trắng mào vàng, cánh đuôi lửa xanh ngọc lấp lánh sao',price:20000000,jewels:{ngoc_hon_nguyen:4,ngoc_uoc:2},speed:1.4}];   /* bậc 7, 8 */
 HORSE.myth.forEach((m,i)=>{ m.lv=i+1; m.bonus={hp:.03*(i+1),atk:.02*(i+1)}; });
-const mythOf=k=>HORSE.myth.find(m=>m.k===k)||null;
-// số thứ tự thần thú đang chọn (1…6) nếu ngựa đã mua và đã cường hoá tới bậc đó, không thì 0
-const mythIdx=p=>{ const i=HORSE.myth.findIndex(m=>m.k===(p&&p.look&&p.look.mount)); return i>=0&&p.horse&&p.horse.own&&(p.horse.myth||0)>i?i+1:0; };
+// Xích Thố của ông Trường Con: ngựa lửa riêng, không nằm trong chuỗi cường hoá thần thú. Mở bằng 4 nhiệm vụ của ông ở Miếu (ông tặng ngựa),
+// lên cấp 1 → 10 ở Người Thuần Thú / trại ngựa bằng tiền + ngọc quý; chỉ số = thần thú cùng bậc × 1,3 (nhỉnh hơn 30%); chọn 1 trong 5 hệ (Kim / Mộc / Thuỷ / Hoả / Thổ):
+// thêm chỉ số theo hệ + khi cưỡi trong MU cứ 4 giây phun lửa đánh quái / boss gần nhất (hiệu ứng theo hệ). Đổi hệ tốn 1 Ngọc Hỗn Nguyên (lần đầu miễn phí)
+const XICHTHO={max:15,tele:15,mul:1.3,quests:['tc_luocga','tc_raubun','tc_antruc','tc_clip'],els:{
+    kim:{name:'Kim',col:'#ffd84a',bonus:{crit:.015,shred:.02},fx:'chí mạng + trừ giáp, lửa vàng 30% chí mạng'},moc:{name:'Mộc',col:'#4ad86a',bonus:{regen:.12,drain:.01},fx:'hồi máu + hút máu, lửa xanh hồi 3% máu cho bạn'},
+    thuy:{name:'Thuỷ',col:'#3ab8f0',bonus:{mp:.04,slowp:.02},fx:'mana + làm chậm, lửa nước làm chậm quái 2 giây'},hoa:{name:'Hoả',col:'#ff5a1a',bonus:{atk:.03,tdmg:.02},fx:'công + độc, lửa đỏ cháy mạnh gấp rưỡi'},
+    tho:{name:'Thổ',col:'#c8902a',bonus:{def:.03,armor:.012},fx:'thủ + giáp, lửa đất 20% làm choáng quái 1 giây'}},
+  breath:{every:4,range:6,mul:.5,per:.12},cost:lv=>({vnd:(lv>10?3000000:1500000)*lv,jewels:lv<=3?{ngoc_uoc:lv}:lv<=6?{ngoc_tam_linh:lv-2}:lv<=10?{ngoc_hon_nguyen:lv-5}:{ngoc_hon_nguyen:lv-5,ngoc_uoc:lv-8}})};   /* cấp 11-15 đắt gấp đôi, cấp 15 mở dịch chuyển */
+const XT_ELS=['','kim','moc','thuy','hoa','tho'];
+const xtBonus=p=>{ const x=p&&p.xt; if(!x||!x.lv) return null; const L=x.lv*XICHTHO.mul, b={hp:.03*L,atk:.02*L,aspd:.025*L,regen:.08*L,drain:.005*L,armor:.01*L}, E=XICHTHO.els[x.el];
+  if(E) for(const [k,v] of Object.entries(E.bonus)) b[k]=(b[k]||0)+v*x.lv; return b; };
+// thần thú theo mã (look.mount): 'xichtho' tính theo hồ sơ p (cấp, hệ) nên cần truyền p
+const mythOf=(k,p)=>k==='xichtho'?(p&&p.xt&&p.xt.lv?{k,name:'Xích Thố',lv:0,speed:1+.05*Math.min(10,p.xt.lv)*XICHTHO.mul,bonus:xtBonus(p),xt:1}:null):HORSE.myth.find(m=>m.k===k)||null;
+// số thứ tự thần thú đang cưỡi gửi cho người khác (cờ FL.mount, 4 bit): 1…8 thần thú đã cường hoá tới bậc đó, 9…14 Xích Thố (theo hệ), không thì 0
+const mythIdx=p=>{ const k=p&&p.look&&p.look.mount; if(k==='xichtho') return p.xt&&p.xt.lv&&p.horse&&p.horse.own?9+Math.max(0,XT_ELS.indexOf(p.xt.el||'')):0;
+  const i=HORSE.myth.findIndex(m=>m.k===k); return i>=0&&p.horse&&p.horse.own&&(p.horse.myth||0)>i?i+1:0; };
+// mã hình vẽ thần thú từ số thứ tự (art17: Xích Thố mỗi hệ 1 hình)
+const mountKey=mi=>mi>=9?'xichtho_'+(XT_ELS[mi-9]||''):mi&&HORSE.myth[mi-1]?HORSE.myth[mi-1].k:'';
 const CRATES={vnd:25000,exp:8,daily:12};
 // trường đua: thuê ngựa đua, cá cược; đua kiểu Audition (gõ đúng chuỗi mũi tên rồi bấm Space đúng nhịp)
 // every: cứ chừng ấy giây chốt danh sách 1 lần, ghế trống bot vào đủ 6 ngựa cho mọi người cược; botMul: trận có bot thì phí thuê + tiền thưởng ×1,5
@@ -1768,13 +1783,13 @@ const LEGEND={need:15,
     {id:'ap_q0',it:'airpod',t:'q',q:'sq_tainghe'},
     {id:'ap_q1',it:'airpod',t:'q',q:'sq_mix'},
     {id:'ap_p1',it:'airpod',t:'puz',sc:'vnpt',x:11,y:7.4,where:'VNPT · trước quầy chị Hằng',q:'Số nào khi lộn ngược lại thì tăng thêm 3?'},
-    {id:'ap_p2',it:'airpod',t:'puz',sc:'mieu',x:18.8,y:15.8,where:'Miếu · cạnh Ông Từ',q:'Cái gì đen khi bạn mua, đỏ khi dùng và xám khi vứt đi?'},
+    {id:'ap_a10',it:'airpod',t:'ach',st:'xtlv',need:5,label:'Cường hoá Xích Thố của ông Trường Con lên level 5',where:'Miếu (nhận ngựa) · Người Thuần Thú (lên cấp)',go:{sc:'mieu',npc:'truongcon'}},
     {id:'ap_g1',it:'airpod',t:'grp',sc:'vnpt',x:31.6,y:18.8,n:2,where:'VNPT · cạnh chị Thu trưởng ca',label:'Cùng nối đường truyền'},
     {id:'ap_g2',it:'airpod',t:'grp',sc:'pickle',x:6.6,y:21.6,n:2,where:'Sân Pickleball · cạnh HLV Tuấn',label:'Cùng đánh bóng qua lại'}]};
 // thành tựu cày (t:'ach'): giá trị hiện tại theo hồ sơ (MU, DAS, Lính Cát, thú cưỡi, nhiệm vụ đã xong; còn lại đếm ở p.stats qua places.stat)
 const legendAch=(p,k)=>{ if(!p) return 0; const s=p.stats||{}, mu=p.mu||{};
   switch(k){ case 'mobs': return mu.mobs||0; case 'luffy': return (mu.bossK||{}).luffy||0; case 'boss': return mu.boss||0; case 'mulv': return mu.lv||0; case 'das': return ((p.das||{}).certs||[]).length;
-    case 'quests': return Object.values(p.quests||{}).filter(v=>v==='done').length; case 'myth': return (p.horse&&p.horse.myth)||0;
+    case 'quests': return Object.values(p.quests||{}).filter(v=>v==='done').length; case 'myth': return (p.horse&&p.horse.myth)||0; case 'xtlv': return (p.xt&&p.xt.lv)||0;
     case 'lc40': { const lc=p.lc||{}; return [...(lc.party||[]),...(lc.box||[])].filter(m=>(m.lv||0)>=40).length; } default: return s[k]||0; } };
 const legendDone=(p,t)=>t.t==='q'?!!(p&&p.quests&&p.quests[t.q]==='done'):t.t==='ach'?legendAch(p,t.st)>=t.need:!!(p&&p.legend&&p.legend.f&&p.legend.f[t.id]);
 const legendCount=(p,it)=>LEGEND.tasks.filter(t=>t.it===it&&legendDone(p,t)).length;
@@ -1801,5 +1816,5 @@ MU.nap={x:27.5+MU.OX,y:15.6,price:50000,energy:50,cd:30};
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

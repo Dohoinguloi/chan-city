@@ -50,7 +50,7 @@ function gearPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look; if(me&&!P
   for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; const lk=lookOf(r), fl=r.fl||0; if(!lk||!(lk.wep||lk.acc&&lk.acc.feet)||fl&SD.FL.moto||fl&SD.FL.kayak) continue;
     out.push({x:r.x,y:r.y,face:r.face,view:r.view,lk,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!(fl&SD.FL.ride),mi:Math.floor(fl/SD.FL.mount)&15,atk:(r.anim||'').startsWith('attack'),k:r.id}); }
   return out; }
-function drawGear(list,ctx,cam,clock){ for(const o of gearPeople()){ const seat=o.rd?(o.mi&&SD.HORSE.myth[o.mi-1]&&A.mythMount?A.mythMount.M[SD.HORSE.myth[o.mi-1].k].seat:{dx:-4,dy:-15}):null,
+function drawGear(list,ctx,cam,clock){ for(const o of gearPeople()){ const seat=o.rd?(o.mi&&A.mythMount&&A.mythMount.M[SD.mountKey(o.mi)]?A.mythMount.M[SD.mountKey(o.mi)].seat:{dx:-4,dy:-15}):null,
     X0=Math.round(o.x-cam.x)+(seat?seat.dx*o.face:0), Y0=Math.round(o.y-cam.y)+(seat?seat.dy+7:0), w=o.lk.wep&&M.weapons[o.lk.wep], feet=o.lk.acc&&o.lk.acc.feet;
   // ván trượt / patin: dưới chân, chỉ khi đi bộ
   if(feet&&!o.rd){ const fg=A.footGear(feet); if(fg) list.push({y:o.y-.4,d:()=>{ const side=o.view==='side'; if(side) ctx.drawImage(fg.c,X0-fg.ax,Y0-fg.ay+(o.mv&&feet==='sh_skate'?Math.round(Math.sin(clock*18)*.6):0));

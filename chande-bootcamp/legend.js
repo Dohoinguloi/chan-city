@@ -18,8 +18,10 @@ const own=k=>SD.legendOwn(G(),k), cnt=k=>SD.legendCount(G(),k);
 // 3 ô cạnh thanh đồ (game.js ghép vào #hudItems mỗi lần vẽ HUD)
 const LEGUI={slots(){ const now=NET.now(), b=G().legend||{}; return '<span class="lgsep"></span>'+Object.entries(L.items).map(([k,I])=>{ const o=own(k), cd=k==='but'&&o&&(b.butAt||0)>now?Math.ceil((b.butAt-now)/1000):0;
     return `<button class="slot lgslot ${o?'on':'off'}" type="button" data-lg="${k}" title="${esc(I.name)}: ${esc(I.desc)}" style="--lc:${I.col}"><img src="${icon(k)}" alt="">${o?(I.key?`<kbd>${I.key}</kbd>`:'<b>✔</b>'):`<i>${cnt(k)}/${L.need}</i>`}${cd?`<em>${cd}</em>`:''}</button>`; }).join(''); }};
+// thẻ 3 món trong banner Đại nhiệm vụ Tân Thế Giới Chande
+LEGUI.banner=()=>Object.entries(L.items).map(([k,I])=>`<button type="button" class="evlgi" data-lg="${k}" style="--lc:${I.col}"><img src="${icon(k)}" alt=""><b>${esc(I.name)}</b><small>${own(k)?'✔ Đã ghép xong':`Mảnh ${cnt(k)}/${L.need} · ➜ xem đường đi`}</small></button>`).join('');
 window.LEGUI=LEGUI;
-document.addEventListener('click',e=>{ const b=e.target.closest('.lgslot'); if(!b) return; e.stopPropagation(); b.blur(); openItem(b.dataset.lg); },true);
+document.addEventListener('click',e=>{ const b=e.target.closest('.lgslot,.evlgi'); if(!b) return; e.stopPropagation(); b.blur(); if(b.classList.contains('evlgi')) document.getElementById('evBanner').hidden=true; openItem(b.dataset.lg); },true);
 function line(t){ const done=SD.legendDone(G(),t), k=kindOf(t), [ic,tn]=TYPE[k], q=t.t==='q'&&SD.QUESTS[t.q], st=q&&(G().quests||{})[t.q];
   const what=t.t==='q'?esc(q.title.replace('🔍 ','')):t.t==='puz'?'Phiến đá câu đố cổ':t.t==='ach'?esc(t.label):esc(t.label)+` (cần ${t.n} người)`;
   const where=t.t==='ach'?esc(t.where):t.t==='q'?esc(sceneName(GAME.npcScene(q.giver)||'retreat'))+' · '+esc((SD.NPC_LOOKS[q.giver]||{}).name||q.giver):esc(t.where);
@@ -48,6 +50,9 @@ const p0=X.pick; X.pick=async x=>{ if(x.k==='lgpuz') return puzzle(x.id); if(x.k
 function puzzle(id){ const t=L.tasks.find(x=>x.id===id), I=L.items[t.it]; UI.open('🧩 Phiến đá câu đố cổ',()=>`<p class="muted">Giải đúng nhận 1 mảnh <b>${esc(I.name)}</b>.</p><p class="lgq">"${esc(t.q)}"</p>
   <form class="lgans" data-id="${t.id}"><input id="lgAns" maxlength="40" autocomplete="off" placeholder="Câu trả lời..." aria-label="Câu trả lời"><button class="btn pri" type="submit">Trả lời</button></form>`,{}); setTimeout(()=>{ const i=document.getElementById('lgAns'); if(i) i.focus(); },50); }
 document.addEventListener('submit',async e=>{ const f=e.target.closest('.lgans'); if(!f) return; e.preventDefault(); const a=f.querySelector('input').value.trim(); if(!a) return; const r=await GAME.act({t:'legend',op:'answer',id:f.dataset.id,a}); if(r&&!r.err){ UI.closeAll(); toast(esc(r.msg),'item'); } });
+// ông Trường Con ở Miếu: xin Xích Thố (xong 4 nhiệm vụ của ông thì ông trao ngựa)
+{ const c1=X.consider; X.consider=(consider,dist)=>{ c1(consider,dist); const S=GAME.S, n=SD.NPCS.find(x=>x.id==='truongcon'); if(!S||S.kind!=='mieu'||!n||(G().xt&&G().xt.lv)) return; const d=dist(n.x*T,n.y*T); if(d<2.6*T) consider(d*.6+4,{type:'mapx',k:'xtclaim',label:'🐎 Xin ông Trường Con cưỡi Xích Thố'}); };
+  const p1=X.pick; X.pick=async x=>{ if(x.k!=='xtclaim') return p1(x); const r=await GAME.act({t:'xichtho',op:'claim'}); if(r&&!r.err){ const g=GAME.G; if(r.horse) g.horse=r.horse; if(r.look) g.look=r.look; if(r.xt) g.xt=r.xt; GAME.bigText('XÍCH THỐ!'); GAME.sfx('level_up',.8); toast(esc(r.msg),'item'); } }; }
 // hiệu ứng: gà thay boss / quái (2 giây), khiên bất tử Airpod (3 giây), bút loé sáng
 const CHICK=[], AIR=new Map();
 NET.listen('mufx',e=>{ const t=performance.now(); if(e.k==='chick'&&!e.boss) CHICK.push({x:e.x*T,y:e.y*T,end:t+e.dur*1000}); if(e.k==='chick'){ GAME.sfx('poof',.5); } if(e.k==='airpod'){ AIR.set(e.to,t+e.dur*1000); if(e.to===NET.pid) GAME.bigText('AIRPOD: BẤT TỬ!'); } });

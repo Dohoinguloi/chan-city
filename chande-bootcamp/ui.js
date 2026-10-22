@@ -88,14 +88,14 @@ ACT.soc=async d=>{ const r=await GAME.act({t:'soc',op:'ask',to:+d.to,kind:d.k});
 
 /* ---------- Grab ---------- */
 const destOf=()=>SD.SCENE_DEST[GAME.S.kind];
-UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery);
-  return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được '+btn('nhosac','🔌 Xin sạc nhờ người gần đây',{},'pri'):''}</p>`+money()+
+UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery), xt=(g.xt&&g.xt.lv||0)>=SD.XICHTHO.tele;
+  return (xt?'<p class="good">🔥 Xích Thố cấp '+SD.XICHTHO.tele+': bấm 🔥 để dịch chuyển tới ngay, ở đâu cũng được, không tốn tiền, không cần pin</p>':'')+`<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được '+btn('nhosac','🔌 Xin sạc nhờ người gần đây',{},'pri'):''}</p>`+money()+
   `<div class="list grab">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
     if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
-    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}</div>`; }).join('')}</div>
+    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}${here||!xt?'':btn('grab','🔥 Dịch chuyển',{to:k,xt:1},'pri')}</div>`; }).join('')}</div>
   <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; },{xwide:true});
-ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to}); if(!r.err) UI.closeAll(); };
+ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to,xt:d.xt?1:0}); if(!r.err) UI.closeAll(); };
 
 /* ---------- túi đồ + tủ quần áo ---------- */
 UI.bag=()=>open('Túi đồ',()=>{ const g=G(), it=Object.entries(g.items);

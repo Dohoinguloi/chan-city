@@ -194,6 +194,7 @@ function enterScene(m){ const d=sceneData(m.s,m.room);
   banner(m.s==='stay'?(m.own?'Phòng của bạn · ':'Phòng của '+m.host+' · ')+S.map.name:S.map.name);
   if(m.s==='room'&&!G.flags.called) ringTimer=2.2;
   if(m.ride) travelAnim(m.ride);
+  if(m.xtp) xtArrive(m.xtp);
   if(LEARN_AFTER&&(m.s==='room'||(String(m.s).startsWith('stay')&&m.own))){ LEARN_AFTER=false; setTimeout(learnGo,600); } else if(m.s!=='retreat') LEARN_AFTER=false;
   AUTO=null; if(NEED_AFTER&&(m.s==='room'||String(m.s).startsWith('stay')||(m.s==='retreat'&&NEED_AFTER==='clean'))){ const k=NEED_AFTER; NEED_AFTER=null; setTimeout(()=>needGo(k),600); } else if(m.s!=='retreat') NEED_AFTER=null;
   if(GOAFTER&&destOf(m.s)===destOf(GOAFTER.scene)&&performance.now()-GOAFTER.at<120000){ const g=GOAFTER; GOAFTER=null; setTimeout(()=>g.then&&g.then(),travelling?2600:900); } else if(GOAFTER&&performance.now()-GOAFTER.at>=120000) GOAFTER=null;   /* tới map rồi: tự đi tiếp */
@@ -262,8 +263,9 @@ function toast(html,kind=''){ const d=document.createElement('div'); d.className
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function banner(text){ const b=$('#banner'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
 // banner sự kiện (server gửi khi vào game trong ngày sự kiện, kèm quà nếu vừa nhận): tự ẩn sau 12 giây, bấm ✕ để tắt
-NET.listen('evbanner',m=>{ const b=$('#evBanner'); b.querySelector('b').textContent=m.title; b.querySelector('span').textContent=m.sub+(m.gift?` · bạn vừa nhận ${fmt(m.gift)}`:'');
-  b.hidden=false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); clearTimeout(b._t); b._t=setTimeout(()=>{ b.hidden=true; },12000); if(m.gift) sfx('coin',.6); });
+NET.listen('evbanner',m=>{ const b=$('#evBanner'); b.querySelector('b').textContent=m.title; b.querySelector('span').textContent=m.sub+(m.gift?` · bạn vừa nhận ${fmt(m.gift)}${m.giftWhy?' ('+m.giftWhy+')':''}`:'');
+  const lg=b.querySelector('.evlg'); lg.innerHTML=m.legend&&window.LEGUI?window.LEGUI.banner():''; lg.hidden=!lg.innerHTML;   /* 3 món huyền thoại: bấm để xem đường đi */
+  b.hidden=false; b.classList.remove('in'); void b.offsetWidth; b.classList.add('in'); clearTimeout(b._t); b._t=setTimeout(()=>{ b.hidden=true; },m.legend?24000:12000); if(m.gift) sfx('coin',.6); });
 document.addEventListener('click',e=>{ if(e.target.closest('#evBanner button')) $('#evBanner').hidden=true; });
 function bigText(text){ const b=$('#bigtext'); b.textContent=text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
 // gửi lệnh lên server, báo lỗi nếu có
@@ -467,7 +469,8 @@ function runRoute(){ if(!ROUTE||!ROUTE.length){ ROUTE=null; return; } const st=R
 let GOAFTER=null;
 const destOf=sc=>SD.SCENE_DEST[sc]||(SD.DEST[sc]?sc:null), npcScene=id=>{ const n=SD.NPCS.find(x=>x.id===id); return n?(n.scene||'retreat'):null; };
 async function autoGo(scene,then){ const want=destOf(scene); if(!want||destOf(S.kind)===want){ then&&then(); return true; }
-  const r=await act({t:'grab',to:want}); if(r&&!r.err){ GOAFTER={scene,then,at:performance.now()}; toast(`🚕 Tự gọi Grab tới <b>${esc(SD.DEST[want].name)}</b>, tới nơi tự đi tiếp`,'quest'); return true; } return false; }
+  const xt=(G.xt&&G.xt.lv||0)>=SD.XICHTHO.tele;   /* Xích Thố cấp 15: dịch chuyển thay Grab */
+  const r=await act({t:'grab',to:want,xt:xt?1:0}); if(r&&!r.err){ GOAFTER={scene,then,at:performance.now()}; if(!xt) toast(`🚕 Tự gọi Grab tới <b>${esc(SD.DEST[want].name)}</b>, tới nơi tự đi tiếp`,'quest'); return true; } return false; }
 // nút ➜ ở bảng Việc cần làm: tự đi tới chỗ làm tiếp nhiệm vụ (hoặc về gặp người giao khi đã xong); nhiệm vụ ở map khác thì tự gọi Grab sang rồi đi tiếp
 function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') return scholarGo(); const q=Q[id]; if(!q) return; UI.closeAll&&UI.closeAll();
   { const sc=q.job?null:npcScene(q.giver); if(sc&&destOf(sc)&&destOf(S.kind)!==destOf(sc)&&!(q.dance&&S.kind==='club')&&(canFinish(id)||G.quests[id]!=='active'||sc==='retreat')){ autoGo(sc,()=>questGo(id)); return; } }   /* về gặp người giao (nhận / trả việc, việc ở Ké); việc đang làm ở map khác để module map tự dẫn */
@@ -711,6 +714,10 @@ const TRAVEL_TIPS=['Bấm Y mở Hằng ngày: điểm danh, 3 việc nhỏ và 
   'Sổ sưu tầm: lần đầu có món mới là được ghi, đủ bộ nhận thưởng lớn','Lên cấp tròn chục từ cấp 20 được thưởng tiền','Mỗi giờ bí ngô mọc chỗ mới ở Ké và Đà Lạt','Bearplus Studio nhận việc freelance, làm đêm EXP gấp đôi'];
 function skyPal(h){ if(h>=5&&h<6.5) return {top:'#3a4a8a',bot:'#f6a878',sun:'#ffb070',night:0,dusk:1}; if(h>=6.5&&h<16.5) return {top:'#5aa8e8',bot:'#d8f0f8',sun:'#fff6c8',night:0,dusk:0};
   if(h>=16.5&&h<18.6) return {top:'#5a4a9a',bot:'#ff9a68',sun:'#ff8a4a',night:0,dusk:1}; return {top:'#0c1430',bot:'#2a3a6a',sun:'#f4f0d8',night:1,dusk:0}; }
+const xtCol=el=>(SD.XICHTHO.els[el]||{}).col||'#ff8a1a';
+// Xích Thố cấp 15 dịch chuyển tới: cột lửa theo màu hệ bùng lên chỗ đứng
+function xtArrive(el){ const c=xtCol(el); sfx('dash',.6); shake(4,.25); for(let i=0;i<46;i++){ const a=Math.random()*6.283, r=Math.random()*14; fx.push({kind:'ember',c:[c,'#fff3b0',c,'#ffd84a'][i%4],x:P.x+Math.cos(a)*r,y:P.y-Math.random()*8,vx:Math.cos(a)*(10+Math.random()*30),vy:-30-Math.random()*70,t:-Math.random()*.25,life:.6+Math.random()*.6,s:1+(i%3===0)}); }
+  toast('🔥 Xích Thố dịch chuyển tới <b>'+esc(S.map.name)+'</b>','item'); }
 function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=false; const D=SD.DEST, to=D[ride.to]||{}, from=D[ride.from]||{}, fly=!!(to.plane||from.plane), city=to.city||'hn', same=from.city&&from.city===to.city;
   const mode=fly?'plane':same?'bike':'car'; sfx(fly?'dash':'car_4wd',.12);   /* tiếng xe / máy bay nhỏ nhẹ lúc chờ */
   $('#tvMode').textContent=fly?'✈ BAY':mode==='bike'?'🛵 GRABBIKE':'🚗 GRABCAR'; $('#tvTo').textContent=to.name||''; $('#tvRoute').textContent=`${from.name?from.name.split(' (')[0]:''} → ${(to.name||'').split(' (')[0]}`;
@@ -773,7 +780,7 @@ function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=fal
 let sendT=0, lastSent='', officeT=0, leaving=false;
 function speed(){ if(P.kayak) return 95; if(S.kind==='retreat'&&tileAt(P.x,P.y)==='L') return 45;   // lội nước chậm
   if(P.opt) return SD.RULES.run*SD.OPTIMUS[P.opt];
-  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding){ const mi=SD.mythIdx(G); return SD.RULES.run*SD.HORSE.speed*(mi?SD.HORSE.myth[mi-1].speed:1); }   /* thần thú chạy nhanh hơn */ if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level)*SD.shoeSpeed(G);   /* giày MU: đi bộ / chạy nhanh hơn */
+  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding){ const my=SD.mythIdx(G)?SD.mythOf(G.look&&G.look.mount,G):null; return SD.RULES.run*SD.HORSE.speed*(my?my.speed:1); }   /* thần thú chạy nhanh hơn */ if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level)*SD.shoeSpeed(G);   /* giày MU: đi bộ / chạy nhanh hơn */
   return ((down('shift')&&G.skills.run)?SD.RULES.run:SD.RULES.walk)*s; }
 // trạng thái gửi sang ambient.js (thời tiết, chim, lá rơi, đom đóm, nắng trong phòng)
 let AMB_ST=null; const TREES=[], AMB_NO=new Set(['deo']);
@@ -880,6 +887,7 @@ function update(dt){
   if(P.anim!==name){ P.anim=name; P.t=0; } P.t+=dt;
   if(P.moving&&!P.kayak){ P.stepT-=dt; if(P.stepT<=0){ sfx(Math.random()<.5?'step1':'step2',.14); P.stepT=running?.24:.34; if(window.AMB&&AMB_ST&&!P.moto&&!P.pcar&&!P.riding) AMB.step(AMB_ST,P.x,P.y,P.face,P.view,(P.stepN=(P.stepN||0)+1)%2);
     if((running||P.riding)&&!P.moto&&!P.pcar) for(let i=0;i<(P.riding?3:2);i++) fx.push({kind:'puff',x:P.x-P.face*(P.riding?14:4)+(Math.random()-.5)*6,y:P.y+1,vx:-P.face*(6+Math.random()*10),vy:-4-Math.random()*6,t:-i*.04,life:.42+Math.random()*.15}); } }   /* chạy, phi ngựa: bụi tung sau gót */
+  if(P.riding&&SD.mythIdx(G)>=9&&Math.random()<(P.moving?.7:.2)){ const c=xtCol(G.xt&&G.xt.el); fx.push({kind:'ember',c:Math.random()<.4?'#fff3b0':c,x:P.x-P.face*(4+Math.random()*24),y:P.y-10-Math.random()*26,vx:-P.face*(P.moving?20:2)+(Math.random()-.5)*8,vy:-14-Math.random()*22,t:0,life:.5+Math.random()*.4,s:1+(Math.random()<.4)}); }   /* Xích Thố: tàn lửa bay theo màu hệ */
   // gửi vị trí 10 lần/giây
   // bước qua khe cửa ở mép dưới phòng là tự ra ngoài (không phải tìm nút)
   if(S.map.indoor&&!leaving&&P.y>=(S.H-1)*T+2){ const ex=(S.map.inter||[]).find(i=>(i.do==='exit'||i.do==='grab')&&Math.hypot(i.x-P.x,i.y-P.y)<56);
@@ -1119,7 +1127,7 @@ function drawChar(c,av,x,y,face,view,anim,act,t,actT,fl){ const anims=av.anims;
   if(act&&anims[act==='gong'?'gong':act]){ an=anims[act==='gong'?'gong':act]; k=Math.max(0,Math.floor(actT*an.fps)); fr=an.loop?an.frames[k%an.frames.length]:an.frames[Math.min(an.frames.length-1,k)]; }
   else { an=anims[anim]||anims[anim&&anim.split('_')[0]]||anims.idle; fr=an.frames[Math.floor(t*an.fps)%an.frames.length]; }
   const flip=face<0&&(!!act||view==='side'||!anims[anim]);
-  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4, mi=Math.floor((fl||0)/SD.FL.mount)&15, mk=mi&&SD.HORSE.myth[mi-1]?SD.HORSE.myth[mi-1].k:'', my=mk&&A.mythMount?A.mythMount(mk,f,moving):null;
+  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4, mi=Math.floor((fl||0)/SD.FL.mount)&15, mk=SD.mountKey(mi),   /* 9…14: Xích Thố theo hệ */ my=mk&&A.mythMount?A.mythMount(mk,f,moving):null;
     if(my){ drawMounted(av,x,y,face,'myth',{spr:my,M:A.mythMount.M[mk],bob:0}); return; }   /* thần thú (cường hoá ngựa) */
     drawMounted(av,x,y,face,'horse',{spr:saddled(Math.floor((fl||0)/SD.FL.coat)&3,f,moving),bob:moving&&f%2?1:0}); return; }   // màu ngựa theo loại người cưỡi chọn
   if(fl&(SD.FL.optimus|SD.FL.otruck)){ const tr=!!(fl&SD.FL.otruck), moving=anim.startsWith('run')||anim.startsWith('walk'), v=view==='side'?'side':view==='up'?'up':'down', f=Math.floor(t*(moving?(tr?12:7):1));
@@ -1356,6 +1364,7 @@ function drawFx(f,cx,cy){ const k=f.t/f.life, X=Math.round(f.x-cx), Y=Math.round
     ctx.globalAlpha=a; ctx.fillStyle='rgba(28,21,22,.35)'; ctx.beginPath(); ctx.ellipse(X,Y+2,5*(1-e*.4),2,0,0,7); ctx.fill(); ctx.drawImage(ic,X-7,y-7);
     if(f.t<.25){ ctx.fillStyle='#fff3d6'; for(let i=0;i<4;i++){ const an=i*1.57+.78, rr=6+f.t*40; ctx.fillRect(Math.round(X+Math.cos(an)*rr),Math.round(y+Math.sin(an)*rr),1,1); } }
     ctx.font='14px VT323, monospace'; ctx.textAlign='left'; ctx.fillStyle='#1c1516'; ctx.fillText('+'+f.n,X+8,y+6); ctx.fillStyle='#ffd84a'; ctx.fillText('+'+f.n,X+7,y+5); ctx.globalAlpha=1; return; }
+  if(f.kind==='ember'){ if(f.t<0) return; ctx.globalAlpha=1-k; ctx.fillStyle=f.c; const z=f.s||2; ctx.fillRect(Math.round(f.x+f.vx*f.t-cx),Math.round(f.y+f.vy*f.t-cy),z,z); ctx.globalAlpha=1; }   /* tàn lửa có màu (Xích Thố) */
   if(f.kind==='dust'){ ctx.fillStyle=`rgba(230,220,200,${1-k})`; ctx.fillRect(Math.round(f.x+f.vx*f.t-cx),Math.round(f.y+f.vy*f.t-cy),2,2); }
   if(f.kind==='note'){ ctx.fillStyle=`rgba(255,216,74,${1-k})`; const x=Math.round(X+Math.sin(f.t*6)*3), y=Math.round(Y-f.t*16); ctx.fillRect(x,y,2,2); ctx.fillRect(x+1,y-4,1,4); ctx.fillRect(x+1,y-4,2,1); }
   if(f.kind==='heart'){ ctx.fillStyle=`rgba(255,90,120,${1-k})`; const y=Math.round(Y-f.t*14); ctx.fillRect(X-2,y,2,2); ctx.fillRect(X+1,y,2,2); ctx.fillRect(X-2,y+1,5,2); ctx.fillRect(X-1,y+3,3,1); ctx.fillRect(X,y+4,1,1); }

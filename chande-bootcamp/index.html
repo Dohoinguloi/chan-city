@@ -189,6 +189,7 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 .lghead{display:flex;gap:12px;align-items:center;border:2px solid var(--lc);padding:8px;margin-bottom:8px} .lghead img{image-rendering:pixelated} .lghead p{margin:2px 0}
 .lgbar{height:8px;background:#2a2230;border:1px solid #000;margin:4px 0} .lgbar.sm{height:4px;margin:0 6px 2px 40px} .lgbar i{display:block;height:100%;background:linear-gradient(90deg,#c8a23a,#ffd84a)}
 .lglist{display:grid;gap:4px} .lgrow{display:grid;grid-template-columns:28px 1fr auto;gap:6px;align-items:center;padding:4px 6px;background:var(--panel2);border:1px solid var(--line)} .lgrow.done{opacity:.6} .lgic{font-size:18px;text-align:center} .lgty{color:#ffd84a}
+.xtlock>img{filter:grayscale(.85) brightness(.55)} .xtgal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0} .xtv{display:grid;justify-items:center;align-content:start;gap:1px;width:112px;padding:4px 3px;background:rgba(0,0,0,.28);border:2px solid var(--lc);color:var(--cream);font:inherit;text-align:center} button.xtv{cursor:pointer} button.xtv:hover{background:rgba(255,255,255,.08)} .xtv.on{box-shadow:0 0 0 2px var(--lc),0 0 14px var(--lc)} .xtv b{color:var(--lc)} .xtv small{font-size:12px;line-height:1.05;opacity:.9} .xtv em{font-style:normal;font-size:12px;color:var(--lc)} .xtlock{opacity:.92} .xtq{margin:4px 0;padding-left:16px;font-size:15px;text-align:left} .xtq .qgo{font-size:13px;padding:0 4px}
 .lgq{font-size:20px;color:#ffe9a0;margin:8px 0} .lgans{display:flex;gap:6px} .lgans input{flex:1;font:18px var(--f);padding:4px 8px;background:#1c1516;color:var(--cream);border:2px solid var(--line)}
 /* MU Online: HUD máu / mana / chiêu, thanh boss, bảng chọn class */
 #muHud{pointer-events:auto;padding:5px 7px;display:grid;gap:4px} #muHud[hidden],#muBoss[hidden]{display:none!important} body:not(.playing) #muBoss{display:none!important}
@@ -281,7 +282,9 @@ body:not(.skills) #hudSkills{display:none}
 #evBanner{position:fixed;left:50%;top:56px;transform:translateX(-50%);z-index:40;display:grid;gap:4px;justify-items:center;width:max-content;max-width:calc(100vw - 32px);padding:12px 44px 12px 28px;text-align:center;
   background:linear-gradient(#4a1d5a,#24122e);border:3px solid var(--gold);box-shadow:0 0 0 3px var(--ink),0 8px 30px rgba(255,216,74,.35)}
 #evBanner b{font-weight:400;font-size:clamp(22px,3vw,34px);line-height:1.05;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #evBanner span{font-size:20px;color:var(--cream)}
-#evBanner button{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--gold);font:inherit;font-size:20px;cursor:pointer}
+#evBanner>button{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--gold);font:inherit;font-size:20px;cursor:pointer}
+#evBanner span{max-width:760px;line-height:1.1} #evBanner .evlg{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px} #evBanner .evlg[hidden]{display:none}
+.evlgi{display:grid;justify-items:center;gap:2px;width:150px;padding:6px 4px;background:rgba(0,0,0,.3);border:2px solid var(--lc);color:var(--cream);font:inherit;cursor:pointer;box-shadow:0 0 10px var(--lc)} .evlgi:hover{background:rgba(255,255,255,.1)} .evlgi img{width:48px;height:48px;image-rendering:pixelated} .evlgi b{font-size:17px!important;color:var(--lc)!important;text-shadow:1px 1px 0 var(--ink)!important} .evlgi small{font-size:14px}
 #evBanner.in{animation:evb .5s ease-out} @keyframes evb{from{transform:translate(-50%,-30px);opacity:0}to{transform:translateX(-50%);opacity:1}}
 @keyframes ban{0%{transform:translate(-50%,-140%)}12%,80%{transform:translate(-50%,0)}100%{transform:translate(-50%,-140%)}}
 #bigtext{position:fixed;left:50%;top:34%;transform:translate(-50%,-50%) scale(.6);font-size:64px;color:var(--gold);text-shadow:3px 3px 0 var(--ink),-2px -2px 0 var(--ink);opacity:0;pointer-events:none}
@@ -530,7 +533,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="chatBox" class="hud"><div id="chatLog"></div><div id="wchat" class="panel"><div id="wcLog" aria-live="polite"></div><div id="wcRow"><input id="wcIn" maxlength="120" placeholder="Chat (Enter): cả server cùng thấy, người gần thấy trên đầu" aria-label="Chat kênh tổng"><button id="wcFold" type="button" title="Mở rộng / thu nhỏ">▴</button><button id="wcHide" type="button" title="Ẩn kênh chat tổng">—</button></div></div><button id="wcShow" class="panel muteBtn" type="button" hidden title="Hiện kênh chat tổng">💬 Chat tổng <b id="wcNew"></b></button><input id="chatIn" maxlength="120" placeholder="Nói gì đó... (Enter gửi, Esc huỷ)" hidden aria-label="Chat"></div>
 <div id="prompt" class="panel" hidden><kbd>E</kbd> <span id="promptLabel">Nói chuyện</span></div>
 <div id="banner" class="panel"></div>
-<div id="evBanner" class="panel" hidden role="status"><button type="button" aria-label="Đóng thông báo">✕</button><b></b><span></span></div>
+<div id="evBanner" class="panel" hidden role="status"><button type="button" aria-label="Đóng thông báo">✕</button><b></b><span></span><div class="evlg" hidden></div></div>
 <div id="bigtext"></div>
 <div id="keyHint" hidden></div>
 <div id="toasts"></div>

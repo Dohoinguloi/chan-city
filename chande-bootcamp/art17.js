@@ -6,6 +6,17 @@ const A=ART, vol=A.vol, K='#1c1516', WH='#ffffff';
 const hx=c=>[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)], mix=(a,b,k)=>a.map((v,i)=>Math.round(v+(b[i]-v)*k));
 const R=c=>{ const b=hx(c); return [mix(b,[255,252,240],.55),b,mix(b,[20,10,50],.32),mix(b,[10,5,30],.6)].map(v=>[...v,255]); };
 const X=x=>40+x, Y=y=>62+y;
+// Xích Thố: màu lửa theo hệ [chính, lõi sáng, viền tối] + màu hào quang
+const XT_FC={'':['#ff8a1a','#ffd84a','#ff5a1a'],kim:['#ffd84a','#fff3b0','#e8b030'],moc:['#4ad86a','#c8ffb0','#2a9a4a'],thuy:['#3ab8f0','#bff0ff','#2a6ad8'],hoa:['#ff3a1a','#ffd84a','#ff8a1a'],tho:['#c8902a','#f0d090','#8a5a22']};
+// lửa rực quanh Xích Thố: lưỡi lửa bốc sau lưng, cổ, mông, quanh 4 chân (vẽ ra sau thân) + tàn lửa bay lên phía trước, nhấp nháy theo khung
+function xtFlame(c,el,f,mv){ const g=c.getContext('2d'), fc=XT_FC[el]||XT_FC[''], bb=Math.round(mv?[0,-1,0,-1][f]:[0,0,-.5,0][f]);
+  const tongue=(x0,y0,h,w,sway)=>{ for(const [col,ins] of [[fc[2],0],[fc[0],1],[fc[1],2]]){ g.fillStyle=col; for(let k=ins;k<h-ins;k++){ const t=k/h, ww=Math.max(1,Math.round((w-ins*2)*(1-t*t))), dx=Math.round(Math.sin(t*3+sway)*t*2); g.fillRect(X(x0)+dx-(ww>>1),Y(y0)-k,ww,1); } } };
+  g.save(); g.globalCompositeOperation='destination-over';
+  const pts=[[-15,-28,7,4],[-11,-30,9,4],[-7,-31,11,5],[-3,-31,10,5],[1,-31,9,4],[5,-31,8,4],[9,-32,7,4],[14,-37,7,4],[18,-41,6,3],[-19,-27,8,4],[-21,-20,6,3],[-13,-4,5,3],[-9,-4,5,3],[7,-4,5,3],[11,-4,5,3],[-4,-18,4,6],[4,-18,4,6]];
+  pts.forEach(([x,y,h,w],i)=>tongue(x,y+bb,h+((i+f)%3)-1+(mv?1:0),w,f*1.6+i));
+  g.restore(); g.save();
+  for(let i=0;i<7;i++){ const k=(f+i*3)%8; g.fillStyle=[fc[1],fc[0],fc[1]][i%3]; g.globalAlpha=1-k/9; g.fillRect(X(-16+i*5+((i*7+f)%3)),Y(-36-k*2.5+bb),1+(i%2),1+(i%2)); }   /* tàn lửa */
+  g.restore(); return c; }
 const sw=(f,mv,a)=>mv?Math.sin((f/4+a)*Math.PI*2):0;
 // chân ngựa 2 khớp: đùi → gối → móng; nhấc chân thì gối gập, móng co lên
 function hoof(V,hx0,hy0,len,f,mv,a,ramp,r,hf){ const s=sw(f,mv,a), lift=Math.max(0,s)*3, kx=hx0+s*3.5, ky=hy0+len*.5-lift, fx=hx0+s*5.5+(lift?1.5:0), fy=-1-lift*.6;
@@ -82,6 +93,11 @@ const M={
     x:(V,f,mv,y0)=>{ for(let i=0;i<5;i++) V.px(X(-36+((i*7+f*3)%10)),Y(y0-14+i*2),['#fff3b0','#ffd84a','#ff8a2a'][i%3]); }})},
   haclong:{seat:{dx:-3,dy:-27},mouth:null,draw:(V,f,mv)=>dragon(V,f,mv,{body:'#2e2440',dark:'#1a1426',belly:'#4a2a6a',horn:'#c8c0d8',spike:'#7a3ac8',mem:'#4a2a6a',plate:'#6a3aa8',eye:'#ff2a3a',
     x:(V,f,mv,bb)=>{ if(f%2) V.px(X(29),Y(-33+bb),'#b070ff').px(X(30),Y(-34+bb),'#d8a0ff'); }})},
+  // Xích Thố (ông Trường Con): ngựa chiến đỏ rực, bờm + đuôi như lửa đổi màu theo hệ (chưa chọn hệ: lửa cam), lửa liếm quanh móng, yên vàng
+  ...Object.fromEntries(Object.entries(XT_FC).map(([el,fc])=>['xichtho_'+el,{seat:{dx:-2,dy:-27},mouth:{dx:26,dy:-33},
+    draw:(V,f,mv)=>horse(V,f,mv,{body:'#c8302a',dark:'#7a1a1e',manes:fc,tail:[fc[0],fc[2],fc[1],fc[0]],hoof:'#2a2026',
+      x:(V,f,mv,bb)=>{ V.rect(X(-5),Y(-29+bb),9,2,'#c8a23a').rect(X(-4),Y(-28+bb),7,2,'#7a4a22'); for(let i=0;i<4;i++){ const hx0=[-12,-8,8,11][i], fy=-1-((f+i)%2); V.px(X(hx0+(i%2)),Y(fy-1),fc[1]).px(X(hx0+1-(i%2)),Y(fy-2),fc[0]); }   /* yên vàng + lửa liếm móng */
+        V.px(X(20),Y(-39+bb),'#ffd84a'); }})}])),
   // Thuỷ Quân: thú thần nước xanh băng, bờm mây tím → xanh ngọc ánh sao bay ngược ra sau, 2 dải lụa trắng, mào trắng trên trán
   thuyquan:{seat:{dx:-2,dy:-27},mouth:null,draw:(V,f,mv)=>horse(V,f,mv,{body:'#d0f0f8',dark:'#7ac0dc',manes:['#7a5ad8','#3a8ae8','#3ad8e8'],tail:['#6a4ad8','#3a8ae8','#3ad8e8'],hoof:'#9adcec',
     x:(V,f,mv,bb,ph)=>{ const cl=['#6a4ad8','#5a5ae8','#3a8ae8','#3ab8e8','#3ad8e8'];
@@ -94,6 +110,7 @@ const M={
     x:(V,f,mv,y0)=>stars(V,[[-14,y0-14],[-22,y0-12],[-30,y0-10],[-26,y0-6],[-34,y0-8],[-6,y0-30],[-10,y0-26],[2,y0-34],[-2,y0-38]],f)})}};
 const CACHE={};
 A.mythMount=(k,f=0,mv=false)=>{ const m=M[k]; if(!m) return null; const key=k+(f%4)+(mv?'m':''); if(CACHE[key]) return CACHE[key]; const V=vol(80,64); m.draw(V,f%4,mv);
+  if(k.startsWith('xichtho')){ const el=k.slice(8), col=hx((XT_FC[el]||XT_FC[''])[0]); return CACHE[key]={c:xtFlame(V.done(false,{glow:`rgba(${col.join(',')},.4)`,gr:3}),el,f%4,mv),ax:40,ay:62}; }
   return CACHE[key]={c:V.done(false,k==='tinhvan'?{glow:'rgba(90,220,240,.35)',gr:2}:k==='thuyquan'?{glow:'rgba(140,120,255,.3)',gr:2}:undefined),ax:40,ay:62}; };
 A.mythMount.M=Object.fromEntries(Object.entries(M).map(([k,m])=>[k,{seat:m.seat,mouth:m.mouth}]));
 // chuồng thần thú ở MU: mái lá, rào gỗ, máng cỏ, tượng rồng nhỏ

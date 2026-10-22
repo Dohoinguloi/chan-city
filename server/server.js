@@ -133,7 +133,7 @@ C.hook('slow',()=>{ const d=today(); for(const pl of players.values()){ const p=
 if(process.env.CHAN_TEST==='1') handlers.dbg=(pl,m)=>{ const p=pl.prof;
   if(m.money) p.money+=m.money|0; if(m.items) for(const [k,n] of Object.entries(m.items)) C.addItem(pl,k,n|0);
   if(m.skills) for(const k of m.skills) p.skills[k]=true; if(m.level){ p.exp=S.RULES.levels[m.level-1]||0; p.level=m.level; }
-  if(m.needs) Object.assign(p.needs,m.needs); if(m.flags) Object.assign(p.flags,m.flags); if(m.stayType) pl.stayType=m.stayType;
+  if(m.needs) Object.assign(p.needs,m.needs); if(m.flags) Object.assign(p.flags,m.flags); if(m.quests) Object.assign(p.quests,m.quests); if(m.stayType) pl.stayType=m.stayType;
   if(m.plot) FARM.agePlot(m.plot.id,m.plot.ago);
   if(m.tp){ if(!m.tp.scene||m.tp.scene===pl.scene){ pl.x=m.tp.x*C.T; pl.y=m.tp.y*C.T; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } else moveTo(pl,m.tp.scene,m.tp.x,m.tp.y); }
   markDirty(pl); return {ok:true}; };

@@ -10,7 +10,7 @@ on('mv',(pl,m)=>{
   if(pl.csgt||pl.freeze){ if(Math.hypot(x-pl.x,y-pl.y)>2) send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }   /* đang bị CSGT giữ lại kiểm tra / đứng ô của mình trên sân pickleball */
   const [W,H]=sizeOf(pl); if(x<0||y<0||x>W*T||y>H*T) return;
   const t=now(), el=Math.min(1,(t-pl.mvAt)/1000); pl.mvAt=t;
-  const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed*((S.mythOf(p.look&&p.look.mount)||{}).speed||1):pl.optimus==='truck'?S.RULES.run*S.OPTIMUS.truck:pl.optimus==='robot'?S.RULES.run*S.OPTIMUS.robot:pl.pcar?S.RULES.run*S.PCAR.speed:pl.moto?S.RULES.run*S.MOTO.models[pl.moto].speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
+  const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed*((S.mythOf(p.look&&p.look.mount,p)||{}).speed||1):pl.optimus==='truck'?S.RULES.run*S.OPTIMUS.truck:pl.optimus==='robot'?S.RULES.run*S.OPTIMUS.robot:pl.pcar?S.RULES.run*S.PCAR.speed:pl.moto?S.RULES.run*S.MOTO.models[pl.moto].speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
   const mc=(pl.scene==='mu'||pl.scene==='muw'||String(pl.scene).startsWith('dday:'))&&p.mu&&S.MU.cls[p.mu.cls], max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl)*(pl.kayak?1:S.shoeSpeed(p)))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1)*((mc&&mc.move)||1);   /* MU: Tiên Nữ chạy nhanh ×2 */
   pl.budget=Math.min(pl.budget+max*el*1.35,max*.9+60+(p.skills.dash?50:0));
   const d=Math.hypot(x-pl.x,y-pl.y);
@@ -150,8 +150,10 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   if(to==='bearplus'&&p.level<S.BEARPLUS.level) return {err:`Bearplus nhận cộng tác viên từ cấp ${S.BEARPLUS.level}. Lên cấp rồi bay vào nhé`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
   if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
-  if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Bấm 🔌 Xin sạc nhờ để cắm sạc nhờ người gần đó'};
   if(to==='retreat'&&!p.flags.called) return {err:'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.'};
+  if(m.xt){ if(!(p.xt&&p.xt.lv>=S.XICHTHO.tele)) return {err:`Xích Thố cấp ${S.XICHTHO.tele} mới dịch chuyển được`};   /* Xích Thố cấp 15: tới mọi map ngay, không tốn tiền / pin */
+    if(to==='retreat') p.flags.arrived=true; const [id,sp]=destSpawn(pl,to); moveTo(pl,id,sp.x,sp.y,{xtp:p.xt.el||'-'}); C.track(pl,'grab'); return {fare:0,xt:1}; }
+  if(p.needs.battery<S.GRAB.minBattery) return {err:'Điện thoại hết pin, không gọi được Grab. Bấm 🔌 Xin sạc nhờ để cắm sạc nhờ người gần đó'};
   let fare=Math.round(S.grabFare(from,to)*(1-(C.simPerk(p).grab||0))), free=false;   // SIM Lặp kép: Grab rẻ hơn
   if(to==='retreat'&&!p.flags.freeRide){ fare=0; free=true; }
   if(fare&&!take(pl,fare)) return {err:`Chuyến này ${S.fmt(fare)}, trong ví còn ${S.fmt(p.money)}`};

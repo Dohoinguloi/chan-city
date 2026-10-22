@@ -19,7 +19,7 @@ function extraOf(p){ const r=rec(p), o={hp:0,mp:0,atk:0,def:0,armor:0,gw:0,regen
   for(const k of Object.values(r.acc||{})){ const a=M.acc[k]; if(a) for(const [s,v] of Object.entries(a.bonus)) o[s]+=v; }
   for(const pp of [r.pas||{},r.pasB||{}]) for(const [k,n] of Object.entries(pp)){ const P=M.passive[k]; if(P) o[P.stat]+=P.per*n; }   /* điểm nội tại + cấp đọc sách */
   const w=M.weapons[r.wep]; if(w&&w.bonus) for(const [s,v] of Object.entries(w.bonus)) o[s]+=v;   /* chỉ số phụ của vũ khí Thợ Rèn */
-  const my=S.mythOf(p.look&&p.look.mount); if(my&&p.horse&&p.horse.own) for(const [s,v] of Object.entries(my.bonus)) o[s]+=v;   /* thần thú đang chọn */
+  const my=S.mythOf(p.look&&p.look.mount,p); if(my&&p.horse&&p.horse.own) for(const [s,v] of Object.entries(my.bonus)) o[s]+=v;   /* thần thú đang chọn */
   if(S.legendOwn(p,'pod')){ o.hp+=1.5; o.mp+=1.5; o.atk+=1.5; o.def+=1.5; }   /* Cái Pod của Kaixa: +150% mọi chỉ số */
   if(S.legendOwn(p,'airpod')) o.spell+=S.LEGEND.items.airpod.spell;   /* Airpod của VNPT: sức mạnh chiêu +500% */
   // cấp cường hoá của đồ đang dùng: vũ khí, áo (giáp class / set legacy), 4 phụ kiện
@@ -316,6 +316,14 @@ function bossDie(B,killer){ if(!LIVE.has(B.id)) return; if(B.gulp){ B.gulp.until
     if(extra.length) note(pl,'🎁 Rơi ra: '+extra.join(', '),'item'); if(pl.mus) st(pl); push(pl); markDirty(pl); if(rank<3) lines.push(`${rank+1}. ${p.name} ${Math.round(sh*100)}%`); });
   C.broadcastAll({t:'note',msg:`🏆 ${b.name} đã bị hạ${killer?` bởi ${killer.prof.name}`:''}! ${lines.join(' · ')}${fruitTo.size?` · rơi ${fruitTo.size} Trái Ác Quỷ`:''}`,kind:'quest'});
   bcast({t:'mufx',k:'bossdie',boss:B.id,x:B.x,y:B.y}); pushBoss(); }
+// Xích Thố: người đang cưỡi trong MU cứ every giây phun lửa (theo hệ) vào boss / quái gần nhất trong range ô
+function xtTick(t){ const BR=S.XICHTHO.breath; for(const pl of inScene()){ const p=pl.prof, x=p&&p.xt, m=pl.mus; if(!x||!x.lv||!pl.riding||!p.look||p.look.mount!=='xichtho'||!m||m.dead>t||(pl.xtAt||0)>t) continue;
+    const B=[...LIVE.values()].filter(b=>scOf(b)===pl.scene&&!(b.diveU>t)&&dist(pl,b.x,b.y)<=BR.range+radius(BS[b.id],b)).sort((u,v)=>dist(pl,u.x,u.y)-dist(pl,v.x,v.y))[0], X0=nearestExtra(pl), useX=!!(X0&&X0.d<=BR.range+X0.rad&&(!B||X0.d<dist(pl,B.x,B.y)));
+    if(!B&&!useX) continue; pl.xtAt=t+BR.every*1000; const el=x.el, crit=el==='kim'&&Math.random()<.3; let d=Math.max(1,Math.round(m.atk*(BR.mul+BR.per*x.lv)*(el==='hoa'?1.5:1)*(crit?1.5:1))), to;
+    if(useX){ to=X0.hit(d,pl,{}); if(el==='thuy'&&X0.slow) X0.slow(2); if(el==='tho'&&Math.random()<.2&&X0.stun&&!X0.pvp) X0.stun(1); }
+    else { const dd=dmgBoss(B,pl,d,t,'xt'); if(dd<=0) d=0; else { if(el==='thuy') B.slow=t+2000; if(el==='tho'&&Math.random()<.2) stunT(B,null,1,t); } to='boss:'+B.id; }
+    if(el==='moc'&&d){ m.hp=Math.min(m.max,m.hp+m.max*.03); push(pl); }
+    bcast({t:'mufx',k:'xtfire',from:pl.pid,to,boss:useX?'':B.id,el,dmg:d,crit}); } }
 // Min (gọi từ set 16Typh) hát ra nốt nhạc đánh boss gần chủ nhất trong 9 ô, mỗi 0,9 giây, tới khi hết giờ / chủ gục
 function minTick(t){ for(const pl of inScene()){ const mm=pl.muMin; if(!mm) continue; const m=pl.mus;
     if(mm.until<=t||!m||m.dead>t){ pl.muMin=null; bcast({t:'mufx',k:'mindown',from:pl.pid}); continue; } if(t<mm.next) continue; mm.next=t+900;
@@ -459,7 +467,7 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
   return {err:'?'}; });
 // boss AI 5 lần / giây (đủ mịn để né đòn), Lính Cát đánh phụ, hồi máu / mana, hồi sinh
 let regenT=0;
-setInterval(()=>{ try{ const t=now(); bossTick(t); petTick(t); minTick(t); if(t<regenT) return; regenT=t+500;
+setInterval(()=>{ try{ const t=now(); bossTick(t); petTick(t); minTick(t); xtTick(t); if(t<regenT) return; regenT=t+500;
   for(const pl of inScene()){ const m=pl.mus; if(!m||!rec(pl.prof).cls) continue;
     if(m.dead&&m.dead<=t){ m.dead=0; m.safe=t+4000; m.hp=m.max; m.mp=m.mmax; const sp=RESPAWN.f&&RESPAWN.f(pl); if(sp) C.moveTo(pl,sp[0],sp[1],sp[2]); else C.moveTo(pl,'mu',M.spawn.x,M.spawn.y);   /* D-Day: hồi sinh cạnh nhà mình */ push(pl); continue; }
     if(S.legendOwn(pl.prof,'airpod')&&m.dead<=t&&t>=(m.apNext||0)){ const AP=S.LEGEND.items.airpod; m.apNext=t+AP.every*1000; m.safe=Math.max(m.safe||0,t+AP.dur*1000); bcast({t:'mufx',k:'airpod',to:pl.pid,dur:AP.dur}); }   /* Airpod: tự bật bất tử */
@@ -476,7 +484,7 @@ C.hook('login',pl=>{ if(pl.prof&&pl.prof.mu){ syncAcc(pl.prof); syncWep(pl.prof)
 on('gear',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const r=rec(p), k=String(m.k||'');
   if(m.op==='wep'){ if(k&&(!M.weapons[k]||!C.has(pl,k))) return {err:'Chưa có vũ khí này'}; r.wep=k; }
   else if(m.op==='acc'){ const slot=String(m.slot||''); if(!M.slots[slot]) return {err:'?'}; if(k&&(!M.acc[k]||M.acc[k].slot!==slot||!(r.accOwned||{})[k])) return {err:'Chưa có món này'}; r.acc=r.acc||{}; if(k) r.acc[slot]=k; else delete r.acc[slot]; syncAcc(p); }
-  else if(m.op==='mount'){ const my=k&&S.mythOf(k), lv=(p.horse&&p.horse.myth)||0; if(!(p.horse&&p.horse.own)) return {err:'Chưa có ngựa riêng'}; if(k&&(!my||my.lv>lv)) return {err:'Chưa mở thần thú này'}; if(p.look) p.look.mount=k; }
+  else if(m.op==='mount'){ const my=k&&S.mythOf(k,p), lv=(p.horse&&p.horse.myth)||0; if(!(p.horse&&p.horse.own)) return {err:'Chưa có ngựa riêng'}; if(k&&(!my||my.lv>lv)) return {err:'Chưa mở thần thú này'}; if(p.look) p.look.mount=k; }
   else return {err:'?'};
   syncWep(p); if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); if(inMu(pl)) push(pl); return {ok:true,look:p.look}; });
 C.hook('enter',pl=>{ if(pl.scene==='mu'&&pl.prof) pl.prof.muOX=S.MU.OX;   /* đánh dấu vị trí MU theo toạ độ mới */
