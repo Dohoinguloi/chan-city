@@ -972,7 +972,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
   // mỗi người hạ mỗi boss tối đa bossPerDay lần / ngày (tính lúc boss chết, ai góp sát thương đều tính 1 lần); hạ đủ thì không gây sát thương, không có thưởng nữa: chống đánh hộ
   bossPerDay:5,
   // thưởng hạ boss ×bossRewardX: EXP, tiền, EXP MU, số Ngọc Cường Hoá / ngọc quý (đồ độc nhất như trang phục, vũ khí, Huy Hiệu, Trái Ác Quỷ giữ nguyên)
-  bossRewardX:20,
+  bossRewardX:20,bossGemX:5,bossVndX:20/3,   /* riêng Ngọc Cường Hoá ×5 (giảm 4 lần so với ×20), tiền ×6,7 (giảm 3 lần) */
   // phần thưởng boss phụ: ai góp sức đều có EXP + tiền, có tỉ lệ rơi trang phục / vũ khí riêng của boss, lần đầu hạ được thì lộ nhiệm vụ ẩn
   reward:{luffy:{exp:150,vnd:200000,mu:120,jewel:.35,fruitPer:10},naruto:{exp:100,vnd:120000,mu:80,costume:'mu_naruto',weapon:'vk_kunai',chance:.25,secret:'mu_cuontruc'},
     cuamay:{exp:100,vnd:120000,mu:80,costume:'mu_cuamay',weapon:'vk_cua',chance:.25,secret:'mu_banhmut'},duongvu_ma:{exp:110,vnd:130000,mu:85,costume:'mu_bongma',weapon:'vk_luoihai',chance:.25,secret:'mu_lua_ma'},
@@ -1024,7 +1024,7 @@ for(const [k,L] of Object.entries(MU.legacy)) CLOTHES[k]={name:'Set Legacy · '+
 // Thợ Kim Hoàn (shop phụ kiện MU): ngoài bộ trang phục chính còn 4 ô phụ kiện tăng lực chiến: cánh (sau lưng), dây chuyền, vật hộ thân (bay lơ lửng cạnh người),
 // aura (vòng phép dưới chân kiểu Warcraft, mỗi aura tăng 1 thuộc tính). Mua 1 lần giữ mãi, mỗi ô đeo 1 món, ai cũng thấy phụ kiện của nhau. (đã giảm giá còn 1/3)
 // bonus: hp / mp / atk / def (+%), regen (hồi máu mana nhanh thêm), crit (tỉ lệ chí mạng), drain (hút % sát thương thành máu)
-MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura',feet:'Giày'};
+MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura',feet:'Giày',shield:'Khiên'};   /* khiên: tay trái, bán ở Thợ Rèn Huyền Thoại */
 MU.acc={w_angel:{slot:'wing',name:'Cánh Thiên Thần',price:1330000,bonus:{hp:.06,def:.04}},w_pinkbat:{slot:'wing',name:'Cánh Dơi Hồng',price:1330000,bonus:{mp:.08,atk:.02}},
   w_bat:{slot:'wing',name:'Cánh Dơi Huyết',price:1500000,bonus:{atk:.06,hp:.02}},w_fairy:{slot:'wing',name:'Cánh Tiên Hồng',price:1670000,bonus:{mp:.06,def:.04}},
   w_monarch:{slot:'wing',name:'Cánh Bướm Chúa',price:2000000,bonus:{atk:.05,mp:.05}},w_sky:{slot:'wing',name:'Cánh Thiên Thanh',price:2670000,bonus:{hp:.08,def:.06}},
@@ -1059,7 +1059,7 @@ const muStats=(cls,lv,fruit,wep,lg,ex)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, f
 // per: chỉ số cộng thêm mỗi cấp (đã ×3 so với bản đầu); ngọc 1 triệu, gói 5 viên 4,7 triệu
 const ENH={max:12,rate:[1,.95,.9,.82,.72,.62,.5,.4,.3,.2,.12,.07].map(v=>v/2),   /* tỉ lệ thành công đã giảm một nửa: +1 50% … +12 3,5% */
   fee:lv=>50000*(lv+1),gemPrice:1000000,gemPack:{n:5,price:4700000},lcPer:.002,lcMax:.15,legendRate:.8,
-  per:{weapon:{atk:.075},set:{hp:.06,def:.06},wing:{hp:.045,def:.03},neck:{mp:.06,atk:.03},charm:{atk:.045},aura:{hp:.03,atk:.03},feet:{hp:.03,def:.03}}};
+  per:{weapon:{atk:.075},set:{hp:.06,def:.06},wing:{hp:.045,def:.03},neck:{mp:.06,atk:.03},charm:{atk:.045},aura:{hp:.03,atk:.03},feet:{hp:.03,def:.03},shield:{hp:.04,def:.04}}};
 const gemCost=n=>n===ENH.gemPack.n?ENH.gemPack.price:ENH.gemPrice*n;   // giá mua n ngọc (gói 5 viên rẻ hơn)
 ITEMS.ngoc_ch={name:'Ngọc Cường Hoá',icon:'gem_enh'}; ITEMS.ngoc_ch_ht={name:'Ngọc Cường Hoá Huyền Thoại',icon:'gem_enh_ht'};
 // loại đồ để tính chỉ số mỗi cấp cường hoá: weapon / set (giáp class, set legacy) / wing / neck / charm / aura
@@ -1130,7 +1130,8 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
         {k:'pepecon',kind:'summon',name:'Gọi Pepe Con',every:30,n:10,minion:'pepe_con'},{k:'thienthach',kind:'rain',name:'Mưa Thiên Thạch',every:40,warn:1.6,n:16,r:1.9,dmg:50}],
       phases:[.6,.3],enrage:{mul:1.3,speed:1},move:1,drops:'pepe'}});
   // quái con boss gọi ra: hpFrac phần máu so với boss lúc gọi, spd ô / giây (0 = đứng yên), đánh gần range ô mỗi every giây, laser: tia bắn người gần nhất
-  MU.minions={pepe_con:{name:'Pepe Con',hpFrac:1/70,spd:4,range:1.3,every:1.1,dmg:18,def:6,sprite:'pepe_con'},egg:{name:'Trứng Laser',hpFrac:1/90,spd:0,def:8,sprite:'egg',laser:{every:3.2,warn:.9,range:10,w:.45,dmg:26}}};
+  MU.minions={pepe_con:{name:'Pepe Con',hpFrac:1/70,spd:4,range:1.3,every:1.1,dmg:18,def:6,sprite:'pepe_con'},egg:{name:'Trứng Laser',hpFrac:1/90,spd:0,def:8,sprite:'egg',laser:{every:3.2,warn:.9,range:10,w:.45,dmg:26}},
+    hoangha:{name:'Phạm Hoàng Hà',hpFrac:1/40,spd:2.4,keep:4.5,def:6,sprite:'hoangha',shoot:{every:2.4,range:9,speed:6.5,dmg:14}}};   /* Dươngg Vũ gọi ra: vây quanh người cách 4,5 ô, bắn đạn tròn đỏ hồng */
   // thưởng: như boss phụ; pas: +cấp sách nội tại ngẫu nhiên (buff chỉ số nội tại); badge: Huy Hiệu Pepe (top 3 chắc chắn, còn lại badgeChance)
   Object.assign(MU.reward,{doraemon:{exp:140,vnd:180000,mu:110,gems:1},nobita:{exp:110,vnd:130000,mu:85,gems:1},conan:{exp:140,vnd:180000,mu:110,gems:1},eren:{exp:170,vnd:220000,mu:130,gems:2},
     yeunu:{exp:150,vnd:190000,mu:115,gems:1},pepe:{exp:600,vnd:2000000,mu:400,gems:3,jewels:2,pas:1,badge:'huy_hieu_pepe',badgeChance:.3}}); }
@@ -1144,7 +1145,7 @@ MU.dday={gate:{x:89.5,y:21},perDay:2,time:480,W:64,H:28,modes:{1:'1-1',2:'2-2',3
   bases:[{x:6,y:14,name:'Đội Xanh',col:'#3a8ae8'},{x:58,y:14,name:'Đội Đỏ',col:'#e83a3a'}],spawn:[{x:9.5,y:10.5},{x:54.5,y:10.5}],lane:{y0:9,y1:19,y:14.5},
   base:{hp:12000,per:6000,def:20,r:2},turret:{range:6.5,dmg:150,every:1.3},
   wave:{every:20,first:4,n:3,hp:700,atk:40,def:6,spd:1.6,range:1.5,cd:1.1,aggro:4.5},
-  reward:{win:{exp:600,vnd:3000000,mu:500,gems:5,jewels:2,fruit:1},lose:{exp:150,vnd:500000,mu:120}},
+  reward:{win:{exp:600,vnd:1000000,mu:500,gems:1,jewels:2,fruit:1},lose:{exp:150,vnd:170000,mu:120}},   /* tiền giảm 3 lần, Ngọc Cường Hoá giảm từ 5 còn 1 */
   secret:[['ngoc_ch_ht',4,1],['huy_hieu_pepe',1,1],['sach_kn5',3,2],['ngoc_uoc',2,1]]};   /* [vật phẩm, trọng số, số lượng] */
 // Phù Thuỷ Cường Hoá đứng góc Tây Nam quảng trường (cạnh tháp pha lê): khắc lỗ cường hoá, bán ngọc, thu mua chiến lợi phẩm rừng
 NPCS.push({id:'mu_enchant',scene:'mu',x:7.5,y:25.2,place:'muenchant'});
@@ -1166,9 +1167,10 @@ Object.assign(MU.acc,{
   sh_runner:{slot:'feet',name:'Giày Chạy Bộ + Bình Nước',price:1300000,spd:.17,bonus:{hp:.04,regen:.3},desc:'Giày chạy marathon kèm bình nước: hồi máu nhanh hơn'},
   sh_rollor:{slot:'feet',name:'Giày Patin Cam',price:1800000,spd:.22,bonus:{atk:.06},desc:'Patin cam bánh hồng, lướt vèo vèo'},
   sh_rollbl:{slot:'feet',name:'Giày Patin Xanh',price:1900000,spd:.22,bonus:{def:.06,mp:.05},desc:'Patin xanh băng bánh ngọc, êm như trượt băng'},
-  sh_skate:{slot:'feet',name:'Ván Trượt Vàng',price:3500000,spd:.32,bonus:{atk:.08,hp:.06,crit:.04},desc:'Đồ mạnh nhất tiệm: ván trượt vàng bánh tím, lướt nhanh nhất game'}});
-// hệ số tốc độ đi bộ / chạy của giày đang mang (p.mu.acc.feet)
-const shoeSpeed=p=>{ const k=p&&p.mu&&p.mu.acc&&p.mu.acc.feet, a=k&&MU.acc[k]; return 1+(a&&a.spd||0); };
+  sh_skate:{slot:'feet',name:'Ván Trượt Vàng',price:3500000,spd:.32,bonus:{atk:.08,hp:.06,crit:.04},desc:'Đồ mạnh nhất tiệm: ván trượt vàng bánh tím, lướt nhanh nhất game'},
+  kh_hachoang:{slot:'shield',name:'Khiên của Hắc Hoàng Đế',price:9800000,spd:.15,bonus:{hp:.2,regen:.8,armor:.15},desc:'Khiên đen tuyền viền vàng, mặt quỷ đế vương sừng vàng mắt đỏ. Máu trâu, hồi máu nhanh, giáp dày, chạy nhanh hơn'}});
+// hệ số tốc độ đi bộ / chạy của giày + khiên đang đeo (p.mu.acc.feet / .shield)
+const shoeSpeed=p=>{ const E=(p&&p.mu&&p.mu.acc)||{}; let s=1; for(const k of [E.feet,E.shield]){ const a=k&&MU.acc[k]; if(a&&a.spd) s+=a.spd; } return s; };
 NPCS.push({id:'mu_shoes',scene:'mu',x:7.5,y:10.4,place:'mushoes'});
 NPC_LOOKS.mu_shoes={name:'Tiệm Giày Lướt Gió',look:{gender:'nam',hair:'swept',hairColor:'ff7a2a',skin:'f0c4a0',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}};
 // lực chiến: 1 con số gộp chỉ số MU (hiện trên HUD, so set legacy)

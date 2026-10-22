@@ -52,7 +52,7 @@ const formOf=B=>(B.form&&(BS[B.id].forms||[]).find(f=>f.k===B.form))||{};   /* d
 const scOf=B=>BS[B.id].scene||'mu';
 function phaseOf(B){ const k=B.hp/B.max, P=BS[B.id].phases; return k<P[1]?3:k<P[0]?2:1; }
 function bossView(B){ const b=BS[B.id], F=formOf(B), t=now(); return {id:B.id,name:b.name,sprite:F.sprite||b.sprite,big:b.big||0,scene:scOf(B),form:B.form||'',fname:F.name||'',tint:F.tint||'',size:F.size||1,fly:B.buffU>t&&B.fly?1:0,ghost:B.ghostU>t?(B.ghostA.r||3):0,stun:B.stunU>t?B.stunU-t:0,dive:B.diveU>t?B.diveU-t:0,say:B.say&&t-B.say.t<3500?B.say.txt:'',ts:t,
-  mins:(B.mins||[]).map(m=>[m.id,m.k,+m.x.toFixed(2),+m.y.toFixed(2),Math.round(m.hp/m.max*100)]),shots:(B.shots||[]).map(o=>[+o.x.toFixed(2),+o.y.toFixed(2),o.vx,o.vy]),hp:Math.round(B.hp),max:B.max,x:B.x,y:B.y,phase:B.phase,anim:B.anim,until:B.until,slow:B.slow>now()?1:0,
+  mins:(B.mins||[]).map(m=>[m.id,m.k,+m.x.toFixed(2),+m.y.toFixed(2),Math.round(m.hp/m.max*100)]),shots:(B.shots||[]).map(o=>[+o.x.toFixed(2),+o.y.toFixed(2),o.vx,o.vy,o.pk?1:0]),hp:Math.round(B.hp),max:B.max,x:B.x,y:B.y,phase:B.phase,anim:B.anim,until:B.until,slow:B.slow>now()?1:0,
   tele:B.tele.map(z=>({id:z.id,k:z.k,kind:z.kind,x:+z.x.toFixed(2),y:+z.y.toFixed(2),r:z.r,r0:z.r0,ang:z.ang,range:z.range,cone:z.cone,w:z.w,dash:z.dash,lock:z.lock,at:z.at,end:z.end||0}))}; }
 const allView=()=>({list:[...LIVE.values()].map(bossView),next:NEXT});
 const pushBoss=()=>bcast({t:'muboss',v:allView()});
@@ -170,10 +170,12 @@ function summonMin(B,k,n,t){ const D=M.minions[k], b=BS[B.id]; const room=Math.m
   bcast({t:'mufx',k:'summon',boss:B.id,mk:k,n}); }
 function minionTick(B,t,dt){ const b=BS[B.id]; if(!B.mins.length) return false; const L=targets(B,30); let moved=false;
   for(const m of B.mins){ if(m.stun>t) continue; const D=M.minions[m.k], q=L.slice().sort((u,v)=>dist(u,m.x,m.y)-dist(v,m.x,m.y))[0]; if(!q) continue; const dx=q.x/T-m.x, dy=q.y/T-m.y, d=Math.hypot(dx,dy)||1;
-    if(D.spd){ const an=m.id*2.39996, tx=q.x/T+Math.cos(an)*1.15, ty=q.y/T+Math.sin(an)*.85; let vx=tx-m.x, vy=ty-m.y;   /* mỗi con vây 1 hướng quanh người + đẩy nhau ra, không chồng lên nhau */
+    if(D.spd){ const an=m.id*2.39996, kr=D.keep||1.15, tx=q.x/T+Math.cos(an)*kr, ty=q.y/T+Math.sin(an)*kr*.74;   /* keep: đứng vây cách xa (lính bắn) */ let vx=tx-m.x, vy=ty-m.y;   /* mỗi con vây 1 hướng quanh người + đẩy nhau ra, không chồng lên nhau */
       for(const o of B.mins){ if(o===m) continue; const ox=m.x-o.x, oy=m.y-o.y, od=Math.hypot(ox,oy); if(od<1&&od>.001){ vx+=ox/od*(1-od)*4; vy+=oy/od*(1-od)*4; } }
       const vd=Math.hypot(vx,vy); if(vd>.12){ const sp=Math.min(vd,D.spd*dt); [m.x,m.y]=clampA(b,m.x+vx/vd*sp,m.y+vy/vd*sp); moved=true; } }
     if(t<m.next) continue;
+    if(D.shoot){ if(d>D.shoot.range) continue; const S0=D.shoot, ty=q.y/T-.5, dx2=q.x/T-m.x, dy2=ty-m.y, l=Math.hypot(dx2,dy2)||1; m.next=t+S0.every*1000*(.8+Math.random()*.4);   /* bắn đạn tròn đỏ hồng về người gần nhất */
+      B.shots.push({x:m.x,y:m.y-.6,vx:+(dx2/l*S0.speed).toFixed(2),vy:+(dy2/l*S0.speed).toFixed(2),until:t+2400,dmg:S0.dmg*HARD.dmg,k:'hhshot',pk:1}); bcast({t:'mufx',k:'bmhit',boss:B.id,id:m.id}); moved=true; continue; }
     if(D.laser){ if(d>D.laser.range) continue; m.next=t+D.laser.every*1000; const [tx,ty]=lead(B,q,D.laser.warn); B.tele.push({id:SEQ++,k:'laser',kind:'line',x:m.x,y:m.y,ang:Math.atan2(ty-m.y,tx-m.x),range:D.laser.range,w:D.laser.w,dmg:D.laser.dmg*HARD.dmg,at:t+D.laser.warn*1000,mob:1}); moved=true; }
     else if(d<=D.range+BODY){ m.next=t+D.every*1000; hurtP(q,D.dmg*HARD.dmg*weakOf(B,t),`Bị ${D.name} cắn`,{ak:'bm',boss:B.id}); bcast({t:'mufx',k:'bmhit',boss:B.id,id:m.id,to:q.pid}); } }
   return moved; }
@@ -190,7 +192,7 @@ function hurtP(q,d,why,fx){ const m=st(q); if(!m||m.dead>now()||m.safe>now()) re
   if(m.reflect&&(m.buff.giap||0)>now()) reflect(q,Math.round(d*m.reflect),fx);
   if(m.hp<=0) down(q,why); else push(q); return dd; }
 const hurt=(B,q,d,k)=>{ const ps=BS[B.id].poisonStack, D=q.mus&&q.mus.fx&&q.mus.fx.dot; if(ps&&D&&D.until>now()&&(D.hits=(D.hits||0)+1)>=ps.hits){ D.hits=0; D.until+=ps.add*1000; }   /* trúng 3 đòn lúc đang độc: độc kéo dài thêm */
-  const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit; return hurtP(q,(cr?d*1.5:d)*weakOf(B,now()),`Dính ${(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0}); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
+  const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit; return hurtP(q,(cr?d*1.5:d)*weakOf(B,now()),`Dính ${k==='hhshot'?'đạn của Phạm Hoàng Hà':(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0}); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
 // mục tiêu khác ngoài boss (quái rừng ở muforest.js): mỗi nguồn có nearest(pl) → {x,y,d,def,rad,hit(d,pl,sk) → mã mục tiêu} hoặc null
 const EXTRA=[];
 EXTRA.push({kind:'bm',nearest:pl=>{ let best=null, bd=1e9; for(const B of LIVE.values()) if(scOf(B)===pl.scene) for(const m of B.mins||[]){ const d=dist(pl,m.x,m.y); if(d<bd){ bd=d; best=[B,m]; } } return best&&bd<=14?asMin(best[0],best[1],bd):null; },
@@ -226,6 +228,7 @@ function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!b.summon&&!LIV
     const ph=phaseOf(B); if(ph!==B.phase){ B.phase=ph; dirty=true; bcast({t:'mufx',k:'phase',boss:B.id,phase:ph}); if(ph===3) bcast({t:'note',msg:`🔥 ${b.name} nổi giận! Đánh mạnh và nhanh hơn`,kind:'lock'}); }
     if(!B.fightAt&&targets(B,16).length) B.fightAt=t;
     if(b.forms&&!B.form) for(const f of b.forms) if((f.when.hp&&B.hp/B.max<=f.when.hp)||(f.when.t&&B.fightAt&&t-B.fightAt>=f.when.t*1000)){ transform(B,f,t); dirty=true; break; }
+    if(b.minAt&&!B.minCalled&&B.hp/B.max<=b.minAt.hp){ B.minCalled=1; summonMin(B,b.minAt.k,b.minAt.n,t); const MD=M.minions[b.minAt.k]; for(const q of inScene()) if(q.scene===scOf(B)) note(q,`⚠ ${b.name} gọi ${b.minAt.n} ${MD.name} ra bắn!`,'lock'); dirty=true; }
     if(b.call&&!B.called&&B.hp/B.max<=b.call.hp){ B.called=1; callBoss(B,b.call.k,t); dirty=true; }
     if(b.dive&&B.hp/B.max<b.dive.hp&&t>=(B.diveNext||0)){ B.diveU=t+b.dive.dur*1000; B.diveNext=t+b.dive.every*1000; B.tele=B.tele.filter(z=>z.mob); bcast({t:'mufx',k:'dive',boss:B.id,x:B.x,y:B.y,dur:b.dive.dur}); dirty=true; }   /* lặn: bỏ đòn đang gồng */
     const F=formOf(B); if(F.regen&&B.hp<B.max){ B.hp=Math.min(B.max,B.hp+B.max*F.regen*.2*(B.gw&&B.gw.until>t?1-B.gw.mul:1)); dirty=true; }   /* bị giảm hồi máu thì hồi ít đi */   /* Titan hồi máu mỗi giây */
@@ -260,8 +263,8 @@ function bossDie(B,killer){ if(!LIVE.has(B.id)) return; const b=BS[B.id], R=RW[b
     let cos='', sec=''; if(R.costume&&!p.owned[R.costume]&&(rank===0||Math.random()<R.chance)){ p.owned[R.costume]=1; cos=R.costume; extra.push(`trang phục ${S.CLOTHES[R.costume].name}`); }
     if(R.weapon&&!C.has(pl,R.weapon)&&(rank===0&&hadCos||Math.random()<R.chance)){ items[R.weapon]=1; const r=rec(p), cur=(M.weapons[r.wep]||{}).atk||0; if(M.weapons[R.weapon].atk>cur) r.wep=R.weapon; extra.push(`vũ khí ${M.weapons[R.weapon].name}`); }
     if(R.secret&&!p.quests[R.secret]){ p.quests[R.secret]='active'; sec=R.secret; extra.push(`nhiệm vụ ẩn "${S.QUESTS[R.secret].title.replace('🔍 ','')}"`); }
-    const RX=M.bossRewardX||1; for(const k of ['ngoc_ch',...M.jewels]) if(items[k]) items[k]*=RX;   /* thưởng ×bossRewardX (20): ngọc nhân lên, đồ độc nhất giữ nguyên */
-    const got=reward(pl,{exp:(R.exp+Math.round(300*sh))*RX,vnd:(R.vnd+Math.round((B.id==='luffy'?600000:300000)*sh))*RX,items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}`), mu=(R.mu+Math.round(200*sh))*RX; gainMu(pl,mu); rec(p).boss++;
+    const RX=M.bossRewardX||1; for(const k of ['ngoc_ch',...M.jewels]) if(items[k]) items[k]*=k==='ngoc_ch'?(M.bossGemX||RX):RX;   /* thưởng ×bossRewardX (20), Ngọc Cường Hoá ×bossGemX (5): ngọc nhân lên, đồ độc nhất giữ nguyên */
+    const got=reward(pl,{exp:(R.exp+Math.round(300*sh))*RX,vnd:Math.round((R.vnd+Math.round((B.id==='luffy'?600000:300000)*sh))*(M.bossVndX||RX)/1000)*1000,items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}`), mu=(R.mu+Math.round(200*sh))*RX; gainMu(pl,mu); rec(p).boss++;
     send(pl,{t:'muloot',boss:B.id,name:b.name,rank:rank+1,n:top.length,share:Math.round(sh*100),exp:got.exp||0,vnd:got.vnd||0,mu,items:got.items||{},cos,sec});   // bảng tổng kết chiến lợi phẩm
     if(extra.length) note(pl,'🎁 Rơi ra: '+extra.join(', '),'item'); if(pl.mus) st(pl); push(pl); markDirty(pl); if(rank<3) lines.push(`${rank+1}. ${p.name} ${Math.round(sh*100)}%`); });
   C.broadcastAll({t:'note',msg:`🏆 ${b.name} đã bị hạ${killer?` bởi ${killer.prof.name}`:''}! ${lines.join(' · ')}${fruitTo.size?` · rơi ${fruitTo.size} Trái Ác Quỷ`:''}`,kind:'quest'});
@@ -341,7 +344,7 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     if(!C.has(pl,k)){ if(!shopPay(pl,w.price)) return {err:`Cần ${fmt(w.price)} để mua ${w.name}`}; addItem(pl,k,1); }
     r.wep=k; syncWep(p); C.refreshInfo(pl); if(pl.mus) st(pl); markDirty(pl); push(pl); return {msg:`Đã cầm ${w.name}! ${w.desc}`,look:p.look}; }
   // Thợ Kim Hoàn: mua phụ kiện (giữ mãi, đeo luôn), đeo / tháo theo ô
-  if(op==='accbuy'||op==='accwear'){ if(!P.nearNpc(pl,'mu_acc')&&!P.nearNpc(pl,'mu_shoes')) return {err:'Gặp Thợ Kim Hoàn (phụ kiện) hoặc Tiệm Giày ở quảng trường'}; const k=String(m.k||''), a=M.acc[k], slot=a?a.slot:String(m.slot||'');
+  if(op==='accbuy'||op==='accwear'){ if(!P.nearNpc(pl,'mu_acc')&&!P.nearNpc(pl,'mu_shoes')&&!P.nearNpc(pl,'mu_smith')) return {err:'Gặp Thợ Kim Hoàn (phụ kiện), Tiệm Giày hoặc Thợ Rèn (khiên) ở quảng trường'}; const k=String(m.k||''), a=M.acc[k], slot=a?a.slot:String(m.slot||'');
     if(!M.slots[slot]) return {err:'?'}; const own=r.accOwned=r.accOwned||{}, eq=r.acc=r.acc||{};
     if(op==='accbuy'){ if(!a) return {err:'?'}; if(own[k]) return {err:'Có món này rồi, bấm Đeo'}; if(!shopPay(pl,a.price)) return {err:`Cần ${fmt(a.price)} để mua ${a.name}`}; own[k]=1; }
     else if(k&&(!a||!own[k])) return {err:'Chưa có món này'};

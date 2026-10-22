@@ -189,6 +189,14 @@ const GIFT_MOUNT={'chika phú':'haclong','truong con':'rongxanh'};
 hook('login',pl=>{ const p=pl.prof, k=p&&GIFT_MOUNT[String(p.name||'').toLowerCase()]; if(!k||(p.giftMount||{})[k]) return; const my=S.mythOf(k), h=p.horse||{};
   p.horse={...h,own:true,until:h.until||0,myth:Math.max(h.myth||0,my.lv)}; p.skills.cuoingua=true; if(p.look) p.look.mount=k; p.giftMount={...(p.giftMount||{}),[k]:1}; markDirty(pl); C.refreshInfo(pl);
   setTimeout(()=>note(pl,`🐉 Quà riêng: bạn được tặng thần thú ${my.name}! Đã chọn sẵn, bấm cưỡi ngựa ngoài trời là lên ${my.name} (đổi con khác ở Người Thuần Thú / trại ngựa)`,'item'),2500); });
+// điều chỉnh tài khoản theo yêu cầu admin (tên nhân vật viết thường → các lần điều chỉnh, làm lần lượt): money cộng trừ (không xuống âm), setMoney đặt thẳng số dư (âm = nợ),
+// items cộng trừ đồ. Áp dụng lần đăng nhập đầu sau cập nhật, id đánh dấu đã làm
+const ADJ_MEN=[{id:'2026-10-23a',money:-15000000,items:{ngoc_ch:-100}},{id:'2026-10-23b',setMoney:-30000000}];
+const ADJUST={'mèn mén':ADJ_MEN,'men men':ADJ_MEN};
+hook('login',pl=>{ const p=pl.prof, L=p&&ADJUST[String(p.name||'').normalize('NFC').toLowerCase()]; if(!L) return;
+  for(const A of L){ if((p.adjDone||{})[A.id]) continue; if(A.money) p.money=Math.max(0,(p.money||0)+A.money); if(A.setMoney!=null) p.money=A.setMoney;
+    for(const [k,n] of Object.entries(A.items||{})){ const v=Math.max(0,(p.items[k]||0)+n); if(v) p.items[k]=v; else delete p.items[k]; }
+    p.adjDone={...(p.adjDone||{}),[A.id]:1}; markDirty(pl); console.log('[adjust]',p.name,A.id,'money',p.money,'items',JSON.stringify(A.items||{})); } });
 // chăn ngựa: nhận đàn ở chuồng → dắt ra đồng cỏ → cho ăn cỏ 20 giây → dắt về
 on('herd',(pl,m)=>{ const p=pl.prof, H=S.HORSE.herd;
   if(m.op==='start'){ if(!P.nearNpc(pl,'anhphong')) return {err:'Gặp anh Phong ở trại ngựa'}; if(p.daily.herd>=H.daily) return {err:'Hôm nay chăn đủ rồi'}; pl.herd={phase:'go'}; return {}; }

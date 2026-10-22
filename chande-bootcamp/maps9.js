@@ -89,7 +89,7 @@ const a0=X.anim; X.anim=(o,clock)=>{ const a=o.anim; if(a==='muenchant'){ const 
 /* ======================= nơi tìm ngọc (bảng Phù Thuỷ, Người Thuần Thú) ======================= */
 // mỗi nguồn: [nơi, cách rơi, [x, y] trong MU để tự đi tới | null]
 const GEM_SRC={ngoc_ch:[['Quái rừng phía Nam MU','mỗi con hạ được có tỉ lệ rơi: 1,6% ở Đồi Bí Ngô, càng xuống sâu càng dễ, tới 4,8% ở Cổng Địa Ngục',[21.5,34]],
-    ['Boss MU','Luffy Gear 5: top 1 được 2 viên, người góp sức khác 60% được 1. Boss phụ: top 1 được 1, người khác 35%',[22,9]],
+    ['Boss MU','Luffy Gear 5: top 1 được 10 viên, người góp sức khác 60% được 5. Boss phụ: top 1 được 5, người khác 35%',[22,9]],
     ['Nhiệm vụ ẩn ở mọi map','xong mỗi nhiệm vụ ẩn (🔍) tặng thêm 1 viên',null],['Hồ Ké Retreat','thuê kayak chèo trên hồ: 1/4 lần vớt được đồ cổ có kèm 1 viên',null],
     ['Phù Thuỷ Cường Hoá','mua 1.000.000đ/viên, gói 5 viên 4.700.000đ',[7.5,26.4]]],
   ngoc_ch_ht:[['Mọi boss MU','người nhiều sát thương nhất có 15% được 1 viên',[22,9]],['Lính Cát huyền thoại','mỗi loài huyền thoại có trong đội / hộp tặng 1 viên (bấm 🎁 ở Phù Thuỷ Cường Hoá)',[7.5,26.4]],['Rừng quái sâu (3 khu dưới cùng)','Mỏ Đá Cổ, Rừng Sọ Hươu, Cổng Địa Ngục: mỗi con 0,15%',[48,61]]]};

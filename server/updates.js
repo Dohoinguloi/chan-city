@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23n',title:'23/10 (cân bằng thưởng)',items:['Thưởng hạ boss MU: Ngọc Cường Hoá giảm 4 lần (×5 thay vì ×20), tiền thưởng giảm 3 lần. D-Day: tiền thưởng giảm 3 lần, thắng được 1 Ngọc Cường Hoá']},
   {v:'2026-10-23m',title:'23/10 · Cổng D-Day + class Đại Tượng + Songoku',items:[
     'Cổng D-Day ở quảng trường MU: đấu 1-1 / 2-2 / 3-3, mỗi đội 1 nhà chính + quái ra theo đợt, phá nhà chính đội kia là thắng. Mỗi ngày 2 trận; thắng được item bí mật huyền thoại, EXP, tiền, ngọc, Trái Ác Quỷ',
     'Class mới Đại Tượng (tank, đổi ở Vệ binh): máu gấp 10, giáp gấp 5 Chiến Binh, đánh chậm 3 lần. Chiêu: Đập Choáng, Bật Giáp (giáp dày + phản 40% đòn), Hồi Máu',
