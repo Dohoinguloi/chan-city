@@ -81,6 +81,8 @@ const CLOTHES={
   // skin riêng của Kaixa (chỉ tài khoản Kaixa có): blazer satin đen hở cổ đeo dây chuyền bạc, quần ống rộng đen, kính vuông tròng xanh nhạt
   blazer_kaixa:{name:'Blazer satin đen · Kaixa',slot:'top',price:0,hidden:true,opts:{top:'jacket',chain:true},colors:{top:'202026',inner:'ecb898',gold:'d0d4da'}},quan_kaixa:{name:'Quần ống rộng satin đen · Kaixa',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'18181e'}},
   kinh_kaixa:{name:'Kính vuông tròng xanh · Kaixa',slot:'eyes',price:0,hidden:true,opts:{glasses:'tint'}},
+  ao_cr7:{name:'Áo đỏ số 7',slot:'top',price:0,hidden:true,colors:{top:'a80000'}},quan_cr7:{name:'Quần đùi xanh lá',slot:'bottom',price:0,hidden:true,opts:{bottom:'shorts'},colors:{pants:'48d848'}},
+  ao_messi:{name:'Áo sọc xanh trắng số 10',slot:'top',price:0,hidden:true,opts:{floral:true},colors:{top:'4ab8f8',print:'f4f4f4'}},quan_messi:{name:'Quần đùi đen',slot:'bottom',price:0,hidden:true,opts:{bottom:'shorts'},colors:{pants:'1c1c22'}},
   ao_csgt:{name:'Áo cảnh sát giao thông',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'e8c860'}},quan_csgt:{name:'Quần CSGT',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'d8b850'}},mu_csgt:{name:'Mũ kê-pi CSGT',slot:'head',price:0,hidden:true,opts:{hair:'cap'},colors:{cap:'e8c860'}},
   ao_kiemlam:{name:'Áo kiểm lâm',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'4f6e3a'}},ao_nau:{name:'Áo nâu nhà chùa',slot:'top',price:0,hidden:true,opts:{top:'long'},colors:{top:'8a5a2a'}},
   blazer_be:{name:'Blazer be (thầy Huy Tạ)',slot:'top',price:0,hidden:true,opts:{top:'jacket'},colors:{top:'b8a070',inner:'1c1c22'}},
@@ -282,6 +284,8 @@ const NPC_LOOKS={
   sv3:{name:'Sinh viên DAS',look:{gender:'nu',hair:'long',hairColor:'211c21',skin:'f3b194',outfit:{top:'cardigan',bottom:'vay_den',shoes:'giay_den'}}},
   chuongngua:{name:'Chú Hải (trại ngựa Đà Bắc)',look:{gender:'nam',hair:'buzz',hairColor:'3a2f37',skin:'c98a64',outfit:{top:'somi_caro',bottom:'jean',shoes:'giay_den',head:'mu_be'}}},
   thuexe:{name:'Anh Tùng (thuê xe máy)',look:{gender:'nam',hair:'fade',hairColor:'211c21',skin:'d99a78',outfit:{top:'khoac_jean',bottom:'jean',shoes:'giay_den',eyes:'kinh_ram'}}},
+  cr7:{name:'CR7',look:{gender:'nam',hair:'fade',hairColor:'14121a',skin:'eeaa88',outfit:{top:'ao_cr7',bottom:'quan_cr7',shoes:'giay_trang'}}},
+  messi:{name:'Messi',look:{gender:'nam',hair:'swept',hairColor:'14121a',skin:'f4bca8',outfit:{top:'ao_messi',bottom:'quan_messi',shoes:'giay_trang'},opts:{beard:'goatee'}}},
   csgt:{name:'Cảnh sát giao thông',look:{gender:'nam',hair:'buzz',hairColor:'211c21',skin:'e8a882',outfit:{top:'ao_csgt',bottom:'quan_csgt',shoes:'giay_den',head:'mu_csgt'}}},
   kiemlam:{name:'Chú kiểm lâm (vườn quốc gia)',look:{gender:'nam',hair:'buzz',hairColor:'3a2f37',skin:'c98a64',outfit:{top:'ao_kiemlam',bottom:'kaki',shoes:'giay_den',head:'mu_ca'}}},
   suthay:{name:'Sư thầy chùa Đà Bắc',look:{gender:'nam',hair:'bald',hairColor:'3a2f37',skin:'e8b090',outfit:{top:'ao_nau',bottom:'kaki',shoes:'dep_to_ong'}}},
@@ -363,7 +367,7 @@ const POOL={x0:11,y0:77,x1:34,y1:83,dur:8,clean:40,energy:15,cooldown:180,pee:{c
 const ACH={pee5:{name:'Kẻ phá bĩnh bể bơi',desc:'Tè vào bể bơi 5 lần',stat:'pee',n:5,hidden:true,exp:50},
   fish10:{name:'Cần thủ Đà Bắc',desc:'Câu được 10 con cá',stat:'fish',n:10,exp:40},harvest50:{name:'Nông dân chăm chỉ',desc:'Thu hoạch 50 nông sản',stat:'harvest',n:50,exp:40},
   dance:{name:'Vũ công Phòng Bay',desc:'Đạt 8000 điểm trong 1 bài',stat:'dance',n:8000,exp:40},stunt:{name:'Bốc đầu thần sầu',desc:'Bốc đầu thành công 10 lần',stat:'stunt',n:10,exp:40},
-  jail:{name:'Có tiền án',desc:'Bị công an tạm giữ 1 lần',stat:'jail',n:1,hidden:true,exp:20},megatron:{name:'Kẻ diệt Decepticon',desc:'Optimus Prime đánh bại Megatron',stat:'megatron',n:1,hidden:true,exp:100},rich:{name:'Đại gia Chan City',desc:'Có 10.000.000đ trong ví',stat:'money',n:10000000,exp:80}};
+  jail:{name:'Có tiền án',desc:'Bị công an tạm giữ 1 lần',stat:'jail',n:1,hidden:true,exp:20},megatron:{name:'Kẻ diệt Decepticon',desc:'Optimus Prime đánh bại Megatron',stat:'megatron',n:1,hidden:true,exp:100},dino:{name:'Công viên kỷ Jura',desc:'Chụp ảnh khủng long trong rừng',stat:'dino',n:1,hidden:true,exp:60},rich:{name:'Đại gia Chan City',desc:'Có 10.000.000đ trong ví',stat:'money',n:10000000,exp:80}};
 // nhân viên Ké Retreat: xin cô Ké, 3 suất, mỗi ngày 3 việc, xong việc nào trả lương việc đó, được ở Nhà Ngủ miễn phí
 const KE_JOB={max:3,wage:70000,perDay:3,fireAfter:3,room:'nhangu',minLevel:2,tasks:{
   cho_ca:{name:'Cho cá ăn ở bến hồ',x:42.5,y:103.2,dur:6,exp:15},tuoi_rau:{name:'Tưới vườn rau Ké',x:58,y:86.4,dur:8,exp:18},
@@ -519,6 +523,12 @@ const PCAR={owner:'chika phú',name:'Xe của Chika Phú',speed:2.8,seats:3,park
 // Optimus Prime: xe đầu kéo đỗ cạnh xe Chika Phú, chỉ Kaixa biến hình được (robot đi nhanh hơn người, dạng xe tải chạy rất nhanh)
 // Megatron: Optimus (Kaixa) bấm Z gọi ra đánh nhau. Megatron đuổi theo đấm khi gần, bắn pháo khi xa; Optimus đấm (J) hoặc hoá xe húc
 const MEGATRON={hp:110,optHp:100,speed:2.1,melee:10,meleeCd:1300,shot:12,shotCd:2800,shotSpeed:9,punch:4,punchCd:420,ram:7,ramCd:900,cd:120,winExp:300,prize:3000000,loseEnergy:30};
+// thú hoang ngẫu nhiên: khủng long trong rừng (5 loài, chụp ảnh được thưởng, bạo chúa đến gần thì bị đớp), cá sấu dưới hồ đớp người chèo kayak
+const WILDLIFE={dino:{every:[360,720],stay:180,photoKnow:2,bite:{r:1.7,cd:3500,energy:10,push:3},
+  kinds:{bronto:{name:'Khủng long cổ dài',speed:.7,exp:40},trice:{name:'Khủng long ba sừng',speed:.9,exp:50},ptero:{name:'Thằn lằn bay',speed:2.6,exp:60,fly:true},
+    rexpink:{name:'Khủng long bạo chúa hồng',speed:1.1,exp:80,bite:true},rex:{name:'Khủng long bạo chúa',speed:1.3,exp:90,bite:true}},
+  spots:[[100,30],[124,40],[180,30],[60,190],[200,200],[290,215],[40,226],[250,130],[262,30],[230,56]]},
+  croc:{every:[180,360],stay:150,y:[105,114],x:[6,330],speed:1.4,stalk:12,r:1.6,energy:20,drop:.1,dropMax:200000}};
 const OPTIMUS={owner:'kaixa',park:{x:PCAR.park.x+6.5,y:PCAR.park.y-.3},robot:1.25,truck:2.6};
 // vườn quốc gia: mua vé ở cổng (theo ngày), mỗi trạm quan sát xem thú 1 lần/ngày được EXP + hiểu biết; quyên góp cho vườn
 const PARK={x0:212,y0:4,x1:335,y1:93,gate:216.5,ticket:50000,visitExp:15,donate:[20000,100000,500000,2000000],
@@ -693,6 +703,6 @@ function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(
 
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
-  lvSpeed,OPTIMUS,MEGATRON,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
+  lvSpeed,OPTIMUS,MEGATRON,WILDLIFE,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

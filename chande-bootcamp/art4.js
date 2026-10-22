@@ -327,3 +327,71 @@ function megatron(view='side',fr=0){ const f=fr%2;
 const megaShot=()=>S(14,14,7,7,(g,P)=>{ P.disc(7,7,6,'rgba(170,90,255,.45)'); P.disc(7,7,4,'#a050ff'); P.disc(7,7,2,'#f0d8ff'); },false);
 Object.assign(A,{megatron,megaShot});
 })();
+
+/* ---------- khủng long cổ dài (theo ảnh mẫu): xanh lá đốm xanh đậm, bụng + mặt dưới cổ cam, quay phải, đi 2 nhịp ---------- */
+(function(){
+const A=ART, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol);
+function dino(fr=0){ const f=fr%2, G='#5ab832', G2='#3a8a2a', L='#8ad84a', O='#e8a030', O2='#c47a1a';
+  return S(48,40,24,39,(g,P)=>{
+    P.rect(15+f,29,4,8-f,G2); P.rect(28+f,29,4,8-f,G2);                                                               // chân phía xa
+    P.rect(1,26,4,2,G); P.rect(4,24,6,4,G); P.rect(9,22,6,6,G); P.rect(3,27,8,1,O); P.rect(9,28,6,1,O);                 // đuôi thon về trái
+    P.rect(12,15,24,14,G); P.rect(14,13,18,2,G); P.rect(17,12,12,1,G); P.rect(11,18,1,9,G); P.rect(36,17,1,10,G);        // thân gù
+    P.rect(16,13,12,1,L); P.rect(13,16,4,1,L);                                                                         // vệt sáng lưng
+    for(const [x,y,r] of [[19,17,2],[26,16,2],[31,20,2],[22,23,1],[15,21,1]]) P.disc(x,y,r,G2);                         // đốm
+    P.rect(13,28,22,2,O); P.rect(13,29,22,1,O2);                                                                        // bụng cam
+    P.rect(33,10,4,8,G); P.rect(35,5,4,7,G); P.rect(37,2,4,5,G); P.rect(37,12,1,6,O); P.rect(39,7,1,5,O);               // cổ dài + mặt dưới cổ cam
+    P.rect(37,0,9,6,G); P.rect(38,0,6,1,L); P.rect(44,2,3,3,G); P.px(42,2,'#1c1516'); P.px(41,2,'#ffffff'); P.rect(42,5,5,1,G2); P.px(46,3,G2);   // đầu, mắt, miệng
+    P.rect(18-f,29,4,8-(1-f),G); P.rect(31-f,29,4,8-(1-f),G); for(const x of [18,31]) P.rect(x-f,36,4,1,G2); }); }      // chân phía gần
+// ba sừng: cam, diềm cổ vàng có sọc, 3 sừng xám, đốm nâu đỏ trên lưng
+function trice(fr=0){ const f=fr%2, O='#f07a10', O2='#c85a08', Y='#f4b020', Y2='#d08a10', H='#b0a8c0', SP='#a83a1a';
+  return S(50,32,25,31,(g,P)=>{
+    P.rect(15+f,24,4,7-f,O2); P.rect(29+f,24,4,7-f,O2);                                                                // chân xa
+    P.rect(1,18,3,2,O); P.rect(3,17,6,4,O); P.rect(8,15,6,7,O);                                                         // đuôi
+    P.rect(12,10,24,15,O); P.rect(14,8,18,2,O); P.rect(17,7,12,1,O); P.rect(12,23,24,2,O2);                             // thân
+    for(const [x,y] of [[17,11],[23,10],[28,13],[20,16],[31,17]]){ P.px(x,y,SP); P.px(x-1,y+1,SP); P.px(x+1,y+1,SP); P.px(x,y+2,SP); }   // đốm hình thoi
+    P.rect(30,1,8,18,Y); P.rect(28,4,2,12,Y); P.rect(38,3,1,14,Y2); for(const y of [4,8,12]) P.rect(31,y,6,1,Y2);       // diềm cổ
+    P.rect(36,9,10,10,O); P.rect(44,13,4,5,O); P.rect(47,15,2,2,O2); P.rect(38,18,9,1,O2); P.px(41,12,'#1c1516'); P.rect(42,16,4,1,O2);   // đầu + mỏ
+    for(const [x,y] of [[40,8],[41,7],[42,6],[43,5],[44,4]]) P.rect(x,y,2,1,H); for(const [x,y] of [[36,8],[37,7],[38,6],[39,5]]) P.rect(x,y,2,1,H); P.rect(46,12,2,1,H); P.px(48,11,H);   // 3 sừng
+    P.rect(18-f,24,4,7-(1-f),O); P.rect(32-f,24,4,7-(1-f),O); for(const x of [18,32]) P.rect(x-f,30,4,1,'#e8e0f0'); }); }
+// thằn lằn bay: thân tím, cánh màng cam, mỏ dài, mào; 2 khung vỗ cánh
+function ptero(fr=0){ const up=fr%2===0, Pu='#8a5aa8', Pl='#b08ad0', Pd='#5a3a78', W='#f4a820', W2='#d07a10';
+  return S(52,30,26,29,(g,P)=>{ const wing=(pts,dark)=>{ g.fillStyle=dark?W2:W; g.beginPath(); g.moveTo(...pts[0]); for(const p of pts.slice(1)) g.lineTo(...p); g.closePath(); g.fill(); g.strokeStyle=Pu; g.lineWidth=1; g.beginPath(); g.moveTo(...pts[0]); g.lineTo(...pts[1]); g.stroke(); };
+    if(up){ wing([[30,14],[40,2],[47,4],[34,16]],true); wing([[20,14],[6,1],[26,2],[28,14]],false); } else { wing([[30,16],[42,26],[47,23],[34,16]],true); wing([[20,16],[6,27],[26,26],[28,16]],false); }
+    P.rect(12,16,8,2,Pu); P.rect(8,17,5,1,Pu);                                                                          // đuôi
+    P.rect(18,13,16,6,Pu); P.rect(19,13,14,1,Pl); P.rect(18,18,16,1,Pd);                                                 // thân
+    P.rect(32,11,8,6,Pu); P.rect(33,11,6,1,Pl); P.rect(26,9,7,2,Pu); P.rect(24,8,3,2,Pd);                               // đầu + mào
+    P.rect(40,13,9,2,Pu); P.rect(40,15,7,1,Pd); P.px(49,13,Pd); P.px(35,12,'#1c1516'); P.rect(38,15,3,1,'#a8322a');     // mỏ dài, mắt, miệng
+    P.rect(24,19,1,3,Pd); P.rect(28,19,1,3,Pd); }); }
+// bạo chúa hồng: đầu to há miệng có răng, bụng vàng, tay ngắn, đứng thẳng
+function rexPink(fr=0){ const f=fr%2, K='#d8507a', L='#f07aa0', D='#a83a5a', Y='#f4b030', Y2='#d08a10';
+  return S(44,44,22,43,(g,P)=>{
+    P.rect(0,30,4,2,K); P.rect(3,28,6,5,K); P.rect(8,26,6,8,K);                                                         // đuôi
+    P.rect(26+f,34,6,8-f,D);                                                                                             // chân xa
+    P.rect(11,15,18,20,K); P.rect(13,14,14,1,K); P.rect(15,17,8,18,Y); P.rect(15,17,2,18,Y2);                            // thân + bụng vàng
+    for(const [x,y] of [[24,20],[26,25],[12,22]]) P.px(x,y,D);
+    P.rect(28,18,5,2,K); P.rect(32,19,2,3,L); P.rect(30,22,4,2,K); P.rect(33,23,2,2,L);                                 // tay ngắn
+    P.rect(16,1,24,10,K); P.rect(18,0,20,1,K); P.rect(17,1,22,1,L); P.rect(16,13,22,4,K); P.rect(16,16,22,1,D);         // đầu: hàm trên, hàm dưới
+    P.rect(18,11,20,2,'#5a1a2a'); for(let x=19;x<38;x+=3){ P.rect(x,10,2,2,'#ffffff'); P.rect(x+1,13,2,1,'#ffffff'); }    // miệng há, răng
+    P.rect(29,3,5,4,'#ffffff'); P.rect(31,4,2,2,'#1c1516'); P.rect(28,2,6,1,D); P.px(38,4,D); P.px(37,5,D);             // mắt trợn, lỗ mũi
+    P.rect(12-f,28,10,8,K); P.rect(13-f,28,8,2,L); P.rect(12-f,36,6,6-(1-f),K); P.rect(10-f,41,10,2,D); for(const x of [10,14,18]) P.px(x-f,42,'#ffffff'); }); }   // đùi + bàn chân to, móng
+// bạo chúa xanh: tư thế ngang đang gầm, miệng hồng há to, bụng be, đuôi vểnh
+function rexGreen(fr=0){ const f=fr%2, G='#4ab83a', L='#7ad84a', D='#2a7a2a', B='#e8d4a8', M='#e87a8a';
+  return S(56,40,28,39,(g,P)=>{
+    P.rect(2,2,6,3,D); P.rect(6,3,6,5,G); P.rect(10,6,8,6,G); P.rect(4,1,3,2,G);                                        // đuôi vểnh lên trái
+    P.rect(32+f,26,4,12-f,D); P.rect(31+f,37,7,2,D);                                                                     // chân xa
+    P.rect(14,9,26,14,G); P.rect(16,8,22,1,L); for(const x of [20,26,32]) P.rect(x,10,3,1,D); P.rect(18,21,22,3,B);       // thân + vằn lưng + bụng
+    P.rect(36,11,3,2,G); P.rect(38,13,3,2,G); P.px(40,15,'#e8e8f0');                                                     // tay ngắn
+    P.rect(38,3,14,7,G); P.rect(39,3,12,1,L); P.px(47,5,'#1c1516'); P.px(46,5,'#ffffff'); P.rect(50,4,3,4,G);            // hàm trên + mắt
+    P.rect(40,10,12,4,M); for(let x=41;x<52;x+=3){ P.rect(x,10,1,2,'#ffffff'); P.rect(x+1,13,1,1,'#ffffff'); }            // miệng hồng, răng
+    P.rect(39,14,13,3,G); P.rect(40,16,11,1,D);                                                                          // hàm dưới
+    P.rect(23-f,20,8,8,G); P.rect(24-f,20,6,2,L); P.rect(25-f,28,4,9,G); P.rect(23-f,37,8,2,D); for(const x of [23,26,29]) P.px(x-f,38,'#e8e8f0'); }); }   // đùi + chân gần
+// cá sấu (theo ảnh mẫu): xanh lá, bụng xanh nhạt, móng vàng, mắt lồi trên đỉnh đầu; dáng thấp để nổi nửa người dưới nước
+function croc(fr=0,open=false){ const f=fr%2, G='#7aa844', D='#5a8a30', L='#b8cc60', Y='#f2d84a';
+  return S(46,18,23,17,(g,P)=>{
+    P.rect(0,10,6,2,G); P.rect(5,9,8,3,G); P.rect(12,7,14,7,G); P.rect(13,13,12,1,D); for(let x=8;x<24;x+=3) P.rect(x,6+(x>14?0:2),2,1,D);   // đuôi + thân, gai lưng
+    P.rect(26,6,8,6,G); P.rect(28,3,2,3,G); P.rect(31,3,2,3,G); P.px(28,4,'#ffffff'); P.px(29,4,'#1c1516'); P.px(31,4,'#ffffff'); P.px(32,4,'#1c1516');   // đầu + 2 mắt lồi
+    if(open){ P.rect(34,4,10,3,G); P.rect(34,7,10,2,'#e87a8a'); P.rect(34,9,10,2,L); for(let x=35;x<43;x+=2){ P.px(x,7,'#ffffff'); P.px(x+1,8,'#ffffff'); } }
+    else { P.rect(34,7,10,3,G); P.rect(36,10,8,1,L); P.px(43,7,'#1c1516'); }                                            // mõm dài
+    P.rect(20,12,10,2,L); for(const [x,k] of [[14,0],[24,1]]) { P.rect(x+(f^k),14,3,2,G); P.rect(x+(f^k),16,3,1,Y); } }); }
+Object.assign(A,{dino,trice,ptero,rexPink,rexGreen,croc});
+})();
