@@ -784,9 +784,9 @@ const HW_SETS=[['hw_witch','Phù thuỷ',{top:'long',bottom:'skirt'},{top:'5b2a8
   ['hw_pumpkin','Bí ngô',{top:'long'},{top:'3a7a3a',pants:'2a4a2a',shoes:'1c2a1c'}],['hw_zombie','Thây ma',{top:'tee'},{skin:'9ab890',hair:'3a4a30',top:'5a7a9a',pants:'6a5040',shoes:'3a3030'}],
   ['hw_cowboy','Cao bồi',{top:'tee'},{top:'c84a3a',pants:'4a6a9a',shoes:'6a4228'}]];
 for(const [id,name,opts,colors] of HW_SETS) CLOTHES[id]={name:'Đồ Halloween: '+name,slot:'top',price:0,hidden:true,hw:true,set:id,opts,colors};
-/* ---------- Lavi Studio (TP.HCM): studio thiết kế của Linh Manh + 2 bé cún Bé Mực (Malamute) và Bé Bơ (Golden) ----------
+/* ---------- Lavi Studio (TP.HCM): studio thiết kế của Linh Manh + 2 bé cún Gấu (Malamute) và Luna (Golden) ----------
    Linh Manh giao việc typography, layout, vibe code: làm ở đúng chỗ trong studio, có câu đố kiến thức (đúng ≥2/3 mới qua).
-   2 bé cún giấu nhiệm vụ bí mật: vuốt ve Bé Mực đủ 3 lần trong ngày, lục kệ sách mẫu chữ, ban đêm ngồi cạnh bát ăn. */
+   2 bé cún giấu nhiệm vụ bí mật: vuốt ve Gấu đủ 3 lần trong ngày, lục kệ sách mẫu chữ, ban đêm ngồi cạnh bát ăn. */
 const LAVI={W:32,H:22,spawn:{x:16,y:20},desks:[[11,9.6],[15,9.6],[19,9.6]],muc:{x:9.4,y:16},bo:{x:23.6,y:15.6},night:[22,4],
   spots:{type:{x:7.6,y:4.8,label:'Tường chữ: bảng kerning'},grid:{x:15.6,y:4.8,label:'Bảng lưới layout 12 cột'},specimen:{x:24,y:4.8,label:'Kệ sách mẫu chữ'},
     vibe:{x:26.4,y:11.4,label:'Góc vibe code'},screen:{x:4.6,y:11.4,label:'Màn chiếu thuyết trình'},bowl:{x:12.6,y:17.6,label:'Bát ăn của 2 bé cún'},sofa:{x:20,y:18,label:'Khe ghế sofa'}},
@@ -804,17 +804,17 @@ const LAVI={W:32,H:22,spawn:{x:16,y:20},desks:[[11,9.6],[15,9.6],[19,9.6]],muc:{
       {q:'Muốn làm nổi tiêu đề nhất trang thì?',a:['To, đậm, nhiều khoảng trắng quanh','Cùng cỡ với chữ thường','Viết bằng màu trùng nền'],ok:0},
       {q:'Gutter trong lưới layout là gì?',a:['Khe hở giữa các cột','Lề trên cùng','Tên một loại font'],ok:0},
       {q:'Căn chỉnh (alignment) đều tay giúp gì?',a:['Bố cục gọn, có trật tự','Làm chậm trang web','Không giúp gì'],ok:0}]},
-  lines:{be_muc:['Gâu! (Bé Mực vẫy đuôi, áo sơ mi caro hơi xộc xệch)','Gâu gâu! (Bé Mực đánh hơi quanh ghế sofa)','Ư ử... (Bé Mực nhìn về phía sofa như muốn nói gì đó)'],
-    be_bo:['Gâu~ (Bé Bơ xoay một vòng khoe váy)','(Bé Bơ dụi đầu vào tay bạn, chiếc nơ trên đầu đâu mất rồi?)','Gâu! (Bé Bơ chạy ra phía kệ sách rồi quay lại nhìn bạn)']}};
+  lines:{be_muc:['Gâu! (Gấu vẫy đuôi, áo sơ mi caro hơi xộc xệch)','Gâu gâu! (Gấu đánh hơi quanh ghế sofa)','Ư ử... (Gấu nhìn về phía sofa như muốn nói gì đó)'],
+    be_bo:['Gâu~ (Luna xoay một vòng khoe váy)','(Luna dụi đầu vào tay bạn, chiếc nơ trên đầu đâu mất rồi?)','Gâu! (Luna chạy ra phía kệ sách rồi quay lại nhìn bạn)']}};
 Object.assign(QUESTS,{
   lv_kern:{giver:'linhmanh',title:'Kerning chữ LAVI',desc:'Ra tường chữ căn kerning cho logo LAVI (10 giây), rồi trả lời 3 câu typography của Linh Manh.',prog:1,reward:{exp:240,vnd:300000}},
   lv_grid:{giver:'linhmanh',after:'lv_kern',title:'Lưới layout 12 cột',desc:'Ra bảng lưới dựng layout 12 cột cho landing page (12 giây), trả lời 3 câu về layout.',prog:1,reward:{exp:280,vnd:350000}},
   lv_vibe:{giver:'linhmanh',after:'lv_grid',title:'Vibe code landing page',desc:'Ra góc vibe code làm 3 bước: viết prompt cho AI, sửa lỗi giao diện điện thoại, deploy (mỗi bước 12 giây).',prog:3,reward:{exp:360,vnd:450000}},
   lv_launch:{giver:'linhmanh',after:'lv_vibe',title:'Ra mắt website Lavi',desc:'Thuyết trình website mới trên màn chiếu cho cả studio (15 giây).',prog:1,reward:{exp:500,vnd:800000}},
-  sq_xuong:{giver:'be_muc',secret:true,title:'🔍 Khúc xương bí mật của Bé Mực',desc:'Tìm thấy khúc xương Bé Mực giấu trong khe ghế sofa. Mang trả Bé Mực.',need:{xuong_muc:1},reward:{exp:220,vnd:250000}},
-  sq_no_bo:{giver:'be_bo',secret:true,title:'🔍 Chiếc nơ của Bé Bơ',desc:'Chiếc nơ trắng của Bé Bơ rơi sau kệ sách mẫu chữ. Mang trả Bé Bơ.',need:{no_bo:1},reward:{exp:220,vnd:250000}},
+  sq_xuong:{giver:'be_muc',secret:true,title:'🔍 Khúc xương bí mật của Gấu',desc:'Tìm thấy khúc xương Gấu giấu trong khe ghế sofa. Mang trả Gấu.',need:{xuong_muc:1},reward:{exp:220,vnd:250000}},
+  sq_no_bo:{giver:'be_bo',secret:true,title:'🔍 Chiếc nơ của Luna',desc:'Chiếc nơ trắng của Luna rơi sau kệ sách mẫu chữ. Mang trả Luna.',need:{no_bo:1},reward:{exp:220,vnd:250000}},
   sq_bua_khuya:{giver:'linhmanh',secret:true,title:'🔍 Bữa khuya của 2 bé',desc:'Nửa đêm 2 bé cún ngồi chầu bát ăn. Đổ hạt cho 2 bé (10 giây, chỉ ban đêm) rồi báo Linh Manh.',prog:1,reward:{exp:300,vnd:350000}},
-  sq_dao:{giver:'be_bo',secret:true,title:'🔍 Đi dạo với Bé Mực và Bé Bơ',desc:'Vuốt ve Bé Mực đủ 3 lần, 2 bé đòi đi dạo! Dắt 2 bé ra cửa studio đứng hóng gió 15 giây rồi về báo Bé Bơ.',prog:1,reward:{exp:280,vnd:300000}}});
+  sq_dao:{giver:'be_bo',secret:true,title:'🔍 Đi dạo với Gấu và Luna',desc:'Vuốt ve Gấu đủ 3 lần, 2 bé đòi đi dạo! Dắt 2 bé ra cửa studio đứng hóng gió 15 giây rồi về báo Luna.',prog:1,reward:{exp:280,vnd:300000}}});
 LAVI.spots.door={x:16,y:20.4,label:'Cửa studio'}; LAVI.tasks.sq_dao={at:'door',dur:15,label:'Dắt 2 bé đi dạo hóng gió'}; LAVI.talkSecret={be_muc:'sq_dao'};
 NPCS.push({id:'linhmanh',scene:'lavi',x:19.6,y:13,place:'linhmanh'},{id:'lv_mem',scene:'lavi',x:13,y:13.2,place:'lvmem'},
   {id:'be_muc',scene:'lavi',x:LAVI.muc.x,y:LAVI.muc.y,place:'lvdog',obj:true},{id:'be_bo',scene:'lavi',x:LAVI.bo.x,y:LAVI.bo.y,place:'lvdog',obj:true});
@@ -822,8 +822,8 @@ Object.assign(CLOTHES,{blazer_lm:{name:'Blazer xanh navy oversize + polo đen',s
   quan_lm:{name:'Quần âu xếp ly xanh navy',slot:'bottom',price:0,hidden:true,opts:{bottom:'pants'},colors:{pants:'1e2a4a',buckle:'1c1820'}}});
 Object.assign(NPC_LOOKS,{linhmanh:{name:'Linh Manh (Lavi Studio)',look:{gender:'nam',hair:'messy',hairColor:'1c1820',skin:'f0c4a0',outfit:{top:'blazer_lm',bottom:'quan_lm',shoes:'giay_den'},opts:{mouth:'smile'}}},
   lv_mem:{name:'Designer Lavi',look:{gender:'nu',hair:'long',hairColor:'5a3a2a',skin:'f3c8ae',outfit:{top:'ao_rf_trang',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}},
-  be_muc:{name:'Bé Mực (Alaskan)',look:null},be_bo:{name:'Bé Bơ (Golden)',look:null}});
-ITEMS.xuong_muc={name:'Khúc xương của Bé Mực',icon:'bone'}; ITEMS.no_bo={name:'Nơ trắng của Bé Bơ',icon:'bow'};
+  be_muc:{name:'Gấu (Alaskan)',look:null},be_bo:{name:'Luna (Golden)',look:null}});
+ITEMS.xuong_muc={name:'Khúc xương của Gấu',icon:'bone'}; ITEMS.no_bo={name:'Nơ trắng của Luna',icon:'bow'};
 /* ---------- Dương Vũ: đi khắp các map quảng cáo Zen Design System, giao nhiệm vụ ẩn ----------
    Mỗi `period` chuyển sang 1 map trong `stops` (máy khách và server tính giống nhau). Gặp lần đầu lộ ra nhiệm vụ ẩn: đuổi theo anh ở 3 map,
    nhặt 5 Zen Token giấu ở 5 studio; gặp ở 2 map thì có bài kiểm tra Zen; qua bài kiểm tra thì có việc áp dụng Zen vào file thật ở bàn studio. */
@@ -845,6 +845,28 @@ Object.assign(QUESTS,{
 Object.assign(CLOTHES,{ao_zen:{name:'Áo thun Zen Design System',slot:'top',price:0,hidden:true,opts:{top:'tee',print:true},colors:{top:'f4f2ec',print:'2a2436',line:'7a9a6a'}}});
 NPC_LOOKS.duongvu={name:'Dương Vũ (Zen Design System)',look:{gender:'nam',hair:'fringe',hairColor:'1c1820',skin:'f0c4a0',outfit:{top:'ao_zen',bottom:'kaki',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile'}}};
 ITEMS.zen_token={name:'Zen Token',icon:'zentoken'};
+/* ---------- MU Online · Lục Địa Cát: thế giới game MU trong Chan City ----------
+   Gặp Vệ binh chọn 1 trong 3 class, được tặng free 1 bộ giáp + vũ khí (mặc như trang phục). Đánh nhau theo thời gian thực: phím 1 / 2 / 3 dùng chiêu
+   (tốn mana, có hồi chiêu, phải đứng trong tầm). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút Quỷ Vương Bóng Đêm xuất hiện ở đền phía Bắc,
+   cả server cùng đánh, ai gây sát thương đều có thưởng (EXP, tiền, ngọc). Gục thì 8 giây sau hồi sinh ở cổng thành. Máu / mana / cấp MU riêng. */
+const MU={W:44,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
+  cls:{dk:{name:'Chiến Binh Bóng Tối',en:'Dark Knight',hp:160,mp:40,atk:20,def:12,col:'#c8302a',set:'mu_dk',desc:'Giáp đỏ, kiếm lớn, cận chiến. Máu trâu, giáp dày, chém xoáy cực mạnh.'},
+    elf:{name:'Tiên Nữ',en:'Fairy Elf',hp:115,mp:90,atk:15,def:8,col:'#f2c43d',set:'mu_elf',desc:'Áo trắng viền vàng, cung tên, đánh xa. Hồi máu cho cả đội, rất được việc khi đánh boss.'},
+    dw:{name:'Phù Thuỷ Bóng Tối',en:'Dark Wizard',hp:95,mp:130,atk:25,def:6,col:'#3a6ad8',set:'mu_dw',desc:'Giáp xanh, gậy phép, phép thuật. Máu giấy nhưng sát thương phép to nhất.'}},
+  skills:{dk:[{k:'chem',name:'Chém',mp:0,cd:.8,mul:1,range:2.4},{k:'xoay',name:'Chém Xoáy',mp:12,cd:5,mul:2.1,range:2.8},{k:'gong',name:'Gồng Giáp',mp:20,cd:18,buff:'def',dur:8,heal:.15}],
+    elf:[{k:'ban',name:'Bắn Tên',mp:0,cd:1,mul:.95,range:7},{k:'tamtien',name:'Tam Tiễn',mp:10,cd:4,mul:1.9,range:7},{k:'hoi',name:'Hồi Máu',mp:25,cd:12,heal:.35,team:6}],
+    dw:[{k:'caulua',name:'Cầu Lửa',mp:4,cd:1.3,mul:1.25,range:6},{k:'set',name:'Sấm Sét',mp:14,cd:5,mul:2.4,range:6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:6}]},
+  boss:{name:'Quỷ Vương Bóng Đêm',every:20*60e3,life:10*60e3,hp:3000,perPlayer:1400,def:8,hit:{every:2.5,dmg:26,range:5},aoe:{every:10,warn:1.6,r:3,dmg:70},
+    reward:{exp:150,vnd:200000,mu:120,jewel:.35},jewels:['ngoc_uoc','ngoc_tam_linh','ngoc_hon_nguyen']},
+  respawn:8,regen:{hp:.02,mp:.04},duel:{range:14,exp:40,mu:60},lvExp:lv=>60+lv*40,maxLv:50};
+const muStats=(cls,lv)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08; return {hp:Math.round(c.hp*k),mp:Math.round(c.mp*(1+(lv-1)*.05)),atk:Math.round(c.atk*k),def:Math.round(c.def*(1+(lv-1)*.06))}; };
+Object.assign(CLOTHES,{mu_dk:{name:'Giáp Rồng Đỏ + Kiếm (Chiến Binh)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dk',opts:{top:'long'},colors:{top:'a8282a',pants:'7a1a1e',shoes:'3a3a44'}},
+  mu_elf:{name:'Áo Tiên Thánh + Cung (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
+  mu_dw:{name:'Giáp Pháp Sư Xanh + Gậy (Phù Thuỷ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dw',opts:{top:'long'},colors:{top:'2a4ab8',pants:'2a3a8a',shoes:'1c1820'}}});
+Object.assign(ITEMS,{ngoc_uoc:{name:'Ngọc Ước Nguyện',icon:'jewel_bless'},ngoc_tam_linh:{name:'Ngọc Tâm Linh',icon:'jewel_soul'},ngoc_hon_nguyen:{name:'Ngọc Hỗn Nguyên',icon:'jewel_chaos'}});
+NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'});
+Object.assign(NPC_LOOKS,{mu_guard:{name:'Vệ binh Lục Địa Cát',look:{gender:'nam',hair:'buzz',hairColor:'3a2a22',skin:'e8b48a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'goatee'}}},
+  mu_mage:{name:'Pháp sư Cát (cửa hàng)',look:{gender:'nam',hair:'long',hairColor:'e8e4dc',skin:'f0c4a0',outfit:{top:'mu_dw',bottom:'kaki',shoes:'giay_den'},opts:{beard:'mustache'}}}});
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
 const DIEP={W:24,H:18,spawn:{x:12,y:16.2},level:4,money:1000000,kick:1000000,seat:{x:9.6,y:12.2},
@@ -1017,7 +1039,7 @@ Object.assign(NPC_LOOKS,{
 const DEST={home:{name:'Phòng của bạn (Hà Nội)',city:'hn'},everfit:{name:'Văn phòng Everfit (Hà Nội)',city:'hn'},lumen:{name:'Lumen Studio (Hà Nội)',city:'hn'},yenlang:{name:'120 Yên Lãng · nhà anh Độ (Hà Nội)',city:'hn'},pickle:{name:'Sân pickleball Cầu Giấy (Hà Nội)',city:'hn'},diep:{name:'Phòng của Diệp (Hà Nội)',city:'hn'},
   retreat:{name:'Ké Retreat (Đà Bắc, Hoà Bình)',city:'hb'},dalat:{name:'Nông trại bác Trang (Đà Lạt)',city:'dl'},
   das:{name:'DAS · Design Anthropology School (TP.HCM)',city:'hcm',plane:true},bearplus:{name:'Bearplus Studio (Khánh Hội, TP.HCM)',city:'hcm',plane:true},
-  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},nghienmotion:{name:'Group Nghiện Motion (Hà Nội)',city:'hn'},lavi:{name:'Lavi Studio (TP.HCM)',city:'hcm',plane:true},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
+  vnpt:{name:'VNPT · điểm giao dịch (Hà Nội)',city:'hn'},nghienmotion:{name:'Group Nghiện Motion (Hà Nội)',city:'hn'},lavi:{name:'Lavi Studio (TP.HCM)',city:'hcm',plane:true},mu:{name:'MU Online · Lục Địa Cát (vào game)',city:'mu'},mieu:{name:'Miếu ông Trường Con (Hải Phòng)',city:'hp'}};
 const GRAB={hn_hn:1000,hb_hn:6000,hb_hb:0,dl_hn:16000,dl_hb:16000,dl_dl:0,hcm_hn:50000,hb_hcm:53000,dl_hcm:30000,hcm_hcm:0,hn_hp:7000,hb_hp:9000,dl_hp:22000,hcm_hp:52000,hp_hp:0,minBattery:5};   // tới TP.HCM phải mua vé máy bay   // khoá: 2 thành phố xếp theo abc
 function grabFare(from,to){ return GRAB[[DEST[from].city,DEST[to].city].sort().join('_')]??0; }
 // khoá học online ở phòng: mất tiền + thời gian, cần đủ cấp
@@ -1041,8 +1063,8 @@ const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko
 // cờ trong gói vị trí
 const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
 // cảnh → điểm đến Grab
-const SCENE_DEST={lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
-const SCENE_SIZE={lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
+const SCENE_DEST={mu:'mu',lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
+const SCENE_SIZE={mu:[44,30],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
 
 /* ---------- Thời gian Việt Nam ---------- */
 // giờ trong game: sáng/tối, thứ, bữa ăn, giới hạn mỗi ngày, tiền thuê, lương. realTime: lịch thật (điểm danh, việc hằng ngày, lễ hội, giờ chat)
@@ -1276,5 +1298,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  MU,muStats,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

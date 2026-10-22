@@ -1,6 +1,6 @@
 /* Lavi Studio (TP.HCM): studio thiết kế tông kem + tím lilac. Sàn gỗ sồi sáng '7', tường trắng viền lilac '8'. Tường chữ "Aa" có vạch kerning,
    bảng lưới 12 cột, kệ sách mẫu chữ, góc vibe code (laptop chạy code, đèn LED đổi màu), màn chiếu landing page, bàn iMac trắng,
-   ổ nằm + bát ăn cho 2 bé cún: Bé Mực (Alaskan đen-vàng lông xù, áo sơ mi caro trắng xám) và Bé Bơ (Golden kem, váy caro bèo, nơ trắng). */
+   ổ nằm + bát ăn cho 2 bé cún: Gấu (Alaskan đen-vàng lông xù, áo sơ mi caro trắng xám) và Luna (Golden kem, váy caro bèo, nơ trắng). */
 (function(){
 const A=ART, T=A.T, TE=A.TILE_EXT, hash=A.hash, S=(w,h,ax,ay,fn,ol=true)=>A.sprite(w,h,ax,ay,fn,ol), t3=(...a)=>A.text3(...a);
 const {ell,eye}=A.lcKit, K='#1c1516', WH='#ffffff', LIL='#b8a0e8', LILD='#8a6ac8';

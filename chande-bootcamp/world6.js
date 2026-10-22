@@ -1,5 +1,5 @@
 /* Chan City — Lavi Studio (TP.HCM): tường chữ + bảng lưới + kệ sách mẫu chữ trên tường, 3 bàn iMac, góc vibe code, màn chiếu,
-   khu nghỉ có sofa, ổ nằm và bát ăn của Bé Mực, Bé Bơ. Toạ độ theo ô 16px. */
+   khu nghỉ có sofa, ổ nằm và bát ăn của Gấu, Luna. Toạ độ theo ô 16px. */
 (function(){
 const A=ART, T=A.T, SD=SHARED;
 function kit(){ const obj=[], solid=[], inter=[];

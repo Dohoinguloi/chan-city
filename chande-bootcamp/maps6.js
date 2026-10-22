@@ -1,4 +1,4 @@
-/* Chan City — client của Lavi Studio (TP.HCM): tương tác lv:spot, câu đố typography / layout của Linh Manh, Bé Mực và Bé Bơ đi lại quanh ổ nằm
+/* Chan City — client của Lavi Studio (TP.HCM): tương tác lv:spot, câu đố typography / layout của Linh Manh, Gấu và Luna đi lại quanh ổ nằm
    (vẫy đuôi, bấm E để vuốt ve), chỉ đường nhiệm vụ, hình động góc vibe code + màn chiếu. Nối thêm vào MAPX. */
 (function(){
 const SD=SHARED, A=ART, T=A.T, X=window.MAPX, L=SD.LAVI, G=()=>GAME.G, esc=s=>GAME.esc(s), toast=(h,k)=>GAME.toast(h,k), btn=(...a)=>UI.btn(...a);
@@ -27,9 +27,9 @@ const g0=X.go; X.go=id=>{ if(!/^(lv_|sq_xuong|sq_no_bo|sq_bua_khuya|sq_dao)/.tes
 const LM_SAY=['Chữ đẹp là chữ dễ đọc trước đã, rồi mới tới cá tính.','Layout đẹp nằm ở khoảng trắng. Đừng sợ để trống!','Vibe code thì vibe nhưng vẫn phải đọc code AI viết nhé.','Hai bé cún là trưởng phòng tinh thần của Lavi đấy.'];
 let lmSay=0;
 UI.defPlace('linhmanh',()=>UI.open('Linh Manh · Lavi Studio',()=>`<p>"${esc(LM_SAY[lmSay])}"</p>${btn('lmsay','💬 Nghe Linh Manh chia sẻ')}${['lv_kern','lv_grid','lv_vibe','lv_launch','sq_bua_khuya'].filter(k=>!SD.QUESTS[k].secret||Q(k)).map(UI.qRow).join('')}
-  <p class="muted">Việc typography và layout xong phải trả lời 3 câu đố, đúng từ 2 câu mới qua. Bé Mực và Bé Bơ hay giấu đồ quanh studio đấy!</p>`));
+  <p class="muted">Việc typography và layout xong phải trả lời 3 câu đố, đúng từ 2 câu mới qua. Gấu và Luna hay giấu đồ quanh studio đấy!</p>`));
 UI.onAct('lmsay',()=>{ lmSay=(lmSay+1)%LM_SAY.length; GAME.sayLine(LM_SAY[lmSay],.7,'vi'); UI.refresh(); });
-UI.defPlace('lvmem',()=>UI.open('Designer Lavi',()=>`<p>"Chào bạn! Mình làm UI ở Lavi. Linh Manh khó tính lắm, căn lệch 1px là bắt làm lại đó hihi."</p><p>"Bé Mực hay rúc vào ghế sofa, còn Bé Bơ thì cứ chạy ra kệ sách mẫu chữ. Nửa đêm hai bé ngồi chầu bát ăn đòi ăn khuya!"</p>`));
+UI.defPlace('lvmem',()=>UI.open('Designer Lavi',()=>`<p>"Chào bạn! Mình làm UI ở Lavi. Linh Manh khó tính lắm, căn lệch 1px là bắt làm lại đó hihi."</p><p>"Gấu hay rúc vào ghế sofa, còn Luna thì cứ chạy ra kệ sách mẫu chữ. Nửa đêm hai bé ngồi chầu bát ăn đòi ăn khuya!"</p>`));
 let dogLine={};
 UI.defPlace('lvdog',n=>UI.open(SD.NPC_LOOKS[n.id].name,()=>{ const sec=Object.keys(SD.QUESTS).filter(k=>SD.QUESTS[k].giver===n.id), shown=sec.filter(k=>Q(k));
   return `<p>${esc(dogLine[n.id]||SD.LAVI.lines[n.id][0])}</p>${btn('lvpet','🐾 Vuốt ve',{who:n.id},'pri')}${shown.map(UI.qRow).join('')}${sec.length>shown.length?'<p class="muted">🔍 Bé có vẻ muốn nhờ bạn chuyện gì đó... thử vuốt ve thêm hoặc lục lọi quanh studio.</p>':''}`; }));

@@ -1,5 +1,5 @@
 // Lavi Studio (TP.HCM): việc của Linh Manh làm ở đúng chỗ trong studio (LAVI.tasks), việc typography / layout xong phải trả lời 3 câu đố (đúng ≥2 mới qua);
-// 2 bé cún Bé Mực, Bé Bơ giấu nhiệm vụ bí mật (LAVI.secrets): lục khe sofa, kệ sách mẫu chữ, ban đêm ngồi cạnh bát ăn, vuốt ve Bé Mực đủ 3 lần trong ngày.
+// 2 bé cún Gấu, Luna giấu nhiệm vụ bí mật (LAVI.secrets): lục khe sofa, kệ sách mẫu chữ, ban đêm ngồi cạnh bát ăn, vuốt ve Gấu đủ 3 lần trong ngày.
 'use strict';
 const C=require('./core'), P=require('./places');
 const {S,on,now,near,markDirty,has,addItem}=C;
