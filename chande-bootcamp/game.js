@@ -1509,7 +1509,7 @@ NET.listen('kick',m=>{ started=false; $('#kickMsg').textContent=m.msg; $('#kicke
 NET.listen('close',()=>{ if(started){ toast('Mất kết nối server. Đang thử lại...','lock'); setTimeout(()=>location.reload(),2500); } });
 
 // phòng hờ: nếu trình duyệt vẫn xoá mất hình đã vẽ sẵn khi tab chạy nền thì tải lại trang (server giữ nguyên tiến trình)
-document.addEventListener('visibilitychange',()=>{ if(document.hidden||!started||!S) return; const g0=S.ground.chunk(0,0,0), g=g0.getContext('2d').getImageData(Math.floor(g0.width/2),Math.floor(g0.height/2),1,1).data;
+document.addEventListener('visibilitychange',()=>{ if(document.hidden||!started||!S) return; const g0=S.ground.chunk(0,0,0), g=g0.getContext('2d').getImageData(Math.floor(Math.min(g0.width,S.W*T)/2),Math.floor(Math.min(g0.height,S.H*T)/2),1,1).data;   // lấy điểm nằm trong map (map nhỏ hơn 1 khối nền thì giữa khối là chỗ trống)
   if(g[3]===0) location.reload(); });
 // nhạc Phòng Bay: phát đúng lúc bài bắt đầu theo giờ server
 function playDance(v){ stopDance(); if(AUD.muted||!v.song) return; window.MUSIC&&window.MUSIC.stop(); bgmKey=''; const a=new Audio('audio/'+v.song+'.mp3'); a.volume=.6; a.loop=true; danceAudio=a; if(AUD.music) AUD.music.pause();
