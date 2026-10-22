@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-22i',title:'22/10 (sửa lỗi)',items:['Server gửi dữ liệu game dạng nén + dùng lại file đã tải: vào game nhanh hơn nhiều, bớt lỗi "Server không phản hồi" khi mạng chậm','Quà admin: Leno và Ben Jr mỗi người +10.000.000đ']},
   {v:'2026-10-22h',title:'22/10 (bổ sung)',items:['Cường hoá ngựa thành thần thú ở Người Thuần Thú (MU) hoặc trại ngựa: Thiên Mã, Kỳ Lân, Bạch Hổ, Rồng Xanh, Phượng Hoàng, Hắc Long. Mỗi bậc chạy nhanh hơn + tăng máu, công MU','MU: thanh máu boss chuyển xuống góc dưới trái, ngay trên khung chiêu']},
   {v:'2026-10-22g',title:'22/10 (bổ sung)',items:['MU: Thợ Rèn Huyền Thoại bán 50 vũ khí (10 loại × 5 hệ Kịch Độc, Băng Giá, Hoả Ngục, Lôi Thần, Hư Không), có vũ khí 5 sao Huyền thoại. Cầm vào tăng công + chỉ số phụ, ra chiêu có hiệu ứng vung và nổ theo hệ']},
   {v:'2026-10-22f',title:'22/10 (bổ sung)',items:['MU Online cưỡi ngựa được: bấm H để lên / xuống ngựa (cần có ngựa thuê hoặc mua ở trại ngựa)']},

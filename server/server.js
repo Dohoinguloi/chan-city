@@ -1,7 +1,7 @@
 // Chan City server: phục vụ file game, đăng nhập (Google / tên thử), WebSocket thời gian thực.
 // Chạy: cd server && npm install && npm start  →  http://localhost:8790
 'use strict';
-const http=require('http'), fs=require('fs'), path=require('path');
+const http=require('http'), fs=require('fs'), path=require('path'), zlib=require('zlib');
 const {WebSocketServer}=require('ws');
 const C=require('./core');
 require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu');
@@ -34,6 +34,11 @@ let verAt=0, verVal='';
 function clientVer(){ const t=Date.now(); if(t-verAt<10000) return verVal; verAt=t; let m=0;
   for(const d of ['chande-bootcamp','chande-bootcamp/shared']) for(const f of fs.readdirSync(path.join(ROOT,d))) if(/\.(js|html)$/.test(f)) m=Math.max(m,fs.statSync(path.join(ROOT,d,f)).mtimeMs);
   return verVal=String(Math.floor(m)); }
+// file chữ (js / html / css / json / svg) gửi dạng nén gzip, bản nén giữ trong RAM theo lần sửa file: qua tunnel từ máy nhà, dung lượng gửi đi giảm ~4 lần.
+// Kèm ETag: trình duyệt hỏi lại mà file chưa đổi thì chỉ trả 304 (không gửi lại cả file).
+const ZIP=new Set(['.html','.js','.json','.css','.svg']), GZ=new Map();
+function gzFile(file,st){ const k=st.size+':'+st.mtimeMs, c=GZ.get(file); if(c&&c.k===k) return c.z; const z=zlib.gzipSync(fs.readFileSync(file)); GZ.set(file,{k,z}); return z; }
+const wantGz=req=>/\bgzip\b/.test(String(req.headers['accept-encoding']||''));
 /* ---------- HTTP ---------- */
 function json(res,code,obj){ res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(obj)); }
 function body(req){ return new Promise((ok,bad)=>{ let s=''; req.on('data',c=>{ s+=c; if(s.length>8192){ bad(new Error('quá lớn')); req.destroy(); } }); req.on('end',()=>{ try{ ok(JSON.parse(s||'{}')); }catch(e){ bad(e); } }); }); }
@@ -70,8 +75,14 @@ function serveStatic(req,res,url){
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
       const host=String(req.headers['x-forwarded-host']||req.headers.host||'localhost'), proto=String(req.headers['x-forwarded-proto']||(/^(localhost|127\.|\[::1\])/.test(host)?'http':'https')).split(',')[0];
       const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
-      res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':html.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}); return res.end(html); }
-    res.writeHead(200,{'Content-Type':TYPES[ext]||'application/octet-stream','Content-Length':st.size,'Cache-Control':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff'});
+      const body=wantGz(req)?zlib.gzipSync(html):html, enc=body===html?{}:{'Content-Encoding':'gzip'};
+      res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
+    const tag='"'+st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36)+'"';
+    const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
+    if(String(req.headers['if-none-match']||'').split(',').some(t=>t.trim().replace(/^W\//,'')===tag)){ res.writeHead(304,head); return res.end(); }
+    if(ZIP.has(ext)&&wantGz(req)){ let z; try{ z=gzFile(file,st); }catch(e){ res.writeHead(500); return res.end(); }
+      res.writeHead(200,{...head,'Content-Encoding':'gzip','Content-Length':z.length}); return res.end(req.method==='HEAD'?undefined:z); }
+    res.writeHead(200,{...head,'Content-Length':st.size});
     fs.createReadStream(file).pipe(res); }); }
 const server=http.createServer((req,res)=>{ const url=new URL(req.url,'http://x');
   if(url.pathname.startsWith('/api/')) return api(req,res,url).catch(e=>{ console.error(e); json(res,500,{err:'Lỗi server'}); });
