@@ -82,7 +82,7 @@ MU.RESPAWN.f=pl=>{ const M=matchOf(pl); if(!M||M.st!=='play') return null; const
 // hết trận: thưởng, báo kết quả, 6 giây sau đưa mọi người về Cổng D-Day
 function pickSecret(){ const tot=D.secret.reduce((a,s)=>a+s[1],0); let r=Math.random()*tot; for(const s of D.secret){ if((r-=s[1])<0) return s; } return D.secret[0]; }
 function endMatch(M,win,why){ if(M.st!=='play') return; M.st='end'; const RW=D.reward, F=Object.keys(S.MU.fruits);
-  M.teams.forEach((team,k)=>team.forEach(pid=>{ const q=players.get(pid); if(!q||!q.prof||!q.dday||q.dday.id!==M.id) return; const w=k===win, R=w?RW.win:RW.lose, items={}; let secret='';
+  M.teams.forEach((team,k)=>team.forEach(pid=>{ const q=players.get(pid); if(!q||!q.prof||!q.dday||q.dday.id!==M.id) return; const w=k===win, R=w?RW.win:RW.lose, items={}; let secret=''; if(w) require('./places').stat(q,'ddayW',1);
     if(w){ const [sk,,sn]=pickSecret(); items[sk]=(items[sk]||0)+sn; secret=`${S.ITEMS[sk].name}${sn>1?' ×'+sn:''}`; items.ngoc_ch=RW.win.gems; for(let j=0;j<RW.win.jewels;j++){ const jk=S.MU.jewels[Math.floor(Math.random()*S.MU.jewels.length)]; items[jk]=(items[jk]||0)+1; }
       const fk='taq_'+F[Math.floor(Math.random()*F.length)]; items[fk]=(items[fk]||0)+RW.win.fruit; }
     const got=reward(q,{exp:R.exp,vnd:R.vnd,items},w?`Thắng D-Day ${D.modes[M.mode]}`:win<0?`Hoà D-Day ${D.modes[M.mode]}`:`D-Day ${D.modes[M.mode]}`); MU.gainMu(q,R.mu);

@@ -37,7 +37,7 @@ on('lumen',(pl,m)=>{ const p=pl.prof, r=rec(p), d=today(), inStudio=pl.scene==='
   if(m.op==='do'){ const k=String(m.task||''), t=L.tasks[k]; if(!t) return {err:'?'}; if(!r.hired) return {err:'Chưa là thành viên Lumen. Ứng tuyển ở lễ tân Lumen Studio'};
     if(r.done.includes(k)) return {err:'Hôm nay làm việc này rồi'}; if(r.done.length>=L.daily) return {err:`Hôm nay làm đủ ${L.daily} việc rồi, mai làm tiếp`};
     const atDesk=inStudio&&L.desks.some(([x,y])=>near(pl,x,y,36)); if(!atDesk&&!W.inOwnRoom(pl)) return {err:'Ngồi vào bàn ở Lumen Studio, hoặc mở laptop ở phòng của bạn để làm remote'};
-    return P.startTask(pl,'work',t.dur,()=>{ if(r.done.includes(k)) return {}; r.done.push(k); reward(pl,{exp:t.exp*L.expMul,vnd:L.pay},`Lumen: xong ${t.name} (EXP ×${L.expMul}${atDesk?'':' · remote'})`); markDirty(pl); return {task:k}; },
+    return P.startTask(pl,'work',t.dur,()=>{ if(r.done.includes(k)) return {}; r.done.push(k); if(r.done.length===L.daily) P.stat(pl,'lumen',1); reward(pl,{exp:t.exp*L.expMul,vnd:L.pay},`Lumen: xong ${t.name} (EXP ×${L.expMul}${atDesk?'':' · remote'})`); markDirty(pl); return {task:k}; },
       {anim:'work',name:'Lumen · '+t.name}); }
   if(m.op==='nap'||m.op==='coffee'){ const s=L[m.op]; if(!inStudio||!near(pl,s.x,s.y,40)) return {err:m.op==='nap'?'Vào phòng nghỉ trưa đã':'Lại máy pha cà phê ở pantry'};
     const k='lumen_'+m.op; if(p.daily[k]) return {err:'Hôm nay dùng rồi, mai nhé'}; p.daily[k]=true;

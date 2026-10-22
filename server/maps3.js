@@ -64,7 +64,7 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
   if(op==='buysim'){ if(!atDesk()) return {err:'Ra quầy giao dịch (bốc số trước) để mua SIM'}; const s=V.sims[m.i|0]; if(!s) return {err:'?'};
     if(p.sim&&p.sim.num===s.num) return {err:'Bạn đang dùng số này rồi'}; if(!take(pl,s.price)) return {err:`Số này ${S.fmt(s.price)}, ví không đủ`};
     let num=s.num; if(num==='random'){ const r=()=>Math.floor(Math.random()*10); num=`09${r()}${r()}.${r()}${r()}${r()}.${r()}${r()}${r()}`; }
-    p.sim={num,cat:s.cat,at:t}; markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
+    p.sim={num,cat:s.cat,at:t}; markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); if(s.num!=='random') P.stat(pl,'simVip',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
   if(op==='pack'){ const k=V.packs[m.k]; if(!k) return {err:'?'}; if(!p.sim) return {err:'Cần có SIM VNPT trước (mua ở quầy giao dịch)'}; if(!atDesk()&&!near(pl,V.pack.x,V.pack.y+.9,30)) return {err:'Ra quầy hoặc tới standee gói cước'};
     if(!take(pl,k.price)) return {err:'Không đủ tiền'}; const from=Math.max(t,(p.data&&p.data.until)||0); p.data={name:k.name,until:from+k.h*3600e3}; markDirty(pl);
     return {msg:`Đăng ký ${k.name} thành công! Pin điện thoại hao chậm hơn ${Math.round((1-V.packMul)*100)}% tới ${S.vnTime(p.data.until).day.split('-').reverse().join('/')}`}; }
@@ -87,6 +87,8 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
 function cauan(pl,part){ const p=pl.prof, f=p.flags.cauan=p.flags.cauan||{}; if(!active(p,'mieu_cauan')||f[part]) return; f[part]=1; pr(p).mieu_cauan=Object.keys(f).length; markDirty(pl); }
 on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDay(now());
   if(pl.scene!=='mieu') return {err:'Việc này ở Miếu ông Trường Con (Hải Phòng)'};
+  if(op==='congduc'){ const v=[1e6,5e6,1e7].includes(m.v|0)?m.v|0:0; if(!v) return {err:'?'}; if(!near(pl,M.altar.x,M.altar.y+1,48)) return {err:'Lại gần ban thờ ông Trường Con'}; if(!take(pl,v)) return {err:`Công đức ${S.fmt(v)}, ví không đủ`};   /* hòm công đức (thành tựu item huyền thoại) */
+    P.stat(pl,'donateMieu',v); reward(pl,{exp:Math.round(10+v/50000)},`Công đức ${S.fmt(v)} cho Miếu ông Trường Con 🙏`); markDirty(pl); return {msg:`Đã công đức ${S.fmt(v)}. Tổng công đức: ${S.fmt((p.stats&&p.stats.donateMieu)||v)}`}; }
   if(op==='incense'){ if(!near(pl,M.burner.x,M.burner.y+.9,34)) return {err:'Lại gần lư hương'}; if(d.incense) return {err:'Hôm nay bạn thắp hương rồi, lòng thành là đủ'}; if(!take(pl,M.incense.price)) return {err:'Không đủ tiền mua hương'};
     return P.startTask(pl,'incense',M.incense.dur,()=>{ d.incense=1; const b=holy?M.incense.holy:M.incense; const cur=p.mbuff&&p.mbuff.until>now()?p.mbuff.mul:1; p.mbuff={mul:Math.max(cur,b.mul),until:now()+b.min*60e3}; cauan(pl,'incense'); markDirty(pl);
       return {msg:`Thắp hương xong. Phúc bình an: +${Math.round((b.mul-1)*100)}% EXP trong ${b.min/60} giờ${holy?` (${holy}: phúc gấp đôi)`:''}`}; },{name:'Thắp hương cầu an'}); }

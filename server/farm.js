@@ -47,7 +47,7 @@ on('plant',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), c=S.CROPS[m.crop], 
     if(!L.plots||!L.plots.includes(id)){ const o=ownerOf(id); return {err:o?`Mảnh này ${o.n} đang thuê`:'Ô này không thuộc mảnh đất bạn thuê (xem biển tên)'}; } }
   const used=dl?p.land.plots.filter(x=>PLOTS[x]&&PLOTS[x].o===pl.uid).length:mine(pl.uid,mapOf(id));   // Đà Lạt: chỉ đếm ô trong mảnh đang thuê (cây còn sót ở mảnh cũ không chiếm chỗ)
   if(used>=lim) return {err:dl?`Mảnh đất của bạn chỉ có ${lim} ô. Thuê mảnh lớn hơn ở chỗ bác Trang`:`Đang trồng được ${lim} ô ở vườn Ké. Thuê thêm đất của chú Ba (cạnh vườn rau)`};
-  addItem(pl,'hat_'+m.crop,-1); PLOTS[id]={o:pl.uid,n:p.name,c:m.crop,at:now()}; const dg=!dl&&p.dog&&S.DOGS[p.dog.k]; if(dg&&dg.grace) PLOTS[id].g=dg.grace; push(id); return {}; });
+  addItem(pl,'hat_'+m.crop,-1); if(m.crop==='ca_phe'||m.crop==='mu_cao_su') P.stat(pl,'trees',1); PLOTS[id]={o:pl.uid,n:p.name,c:m.crop,at:now()}; const dg=!dl&&p.dog&&S.DOGS[p.dog.k]; if(dg&&dg.grace) PLOTS[id].g=dg.grace; push(id); return {}; });
 on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=now(); if(!d||!pt) return {err:'Ô trống'};
   if(pl.scene!==mapOf(id)||!near(pl,d.x,d.y,26)) return {err:'Đứng cạnh ô đất'};
   const c=S.CROPS[pt.c], st=state(id,pt,t);
@@ -62,7 +62,7 @@ on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=n
   if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.min(pl.prof.money,S.FARM.trang.comp); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
     if(owner) note(owner,`Bác Trang bắt quả tang ${pl.prof.name} định cướp rau của bạn! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); markDirty(pl); return {err:`Bác Trang quát: "Rau của ${pt.n} mà dám hái trộm à!" Bị bắt đền ${fmt(v)}`}; }
   if(D&&D.block&&Math.random()<D.block){ pt.blk=t+30000; if(owner) note(owner,`${dn} của bạn vừa doạ ${pl.prof.name} chạy mất dép!`,'quest'); return {err:`${dn} của ${pt.n} sủa ầm lên, bạn sợ quá bỏ chạy!`}; }
-  const n=Math.max(1,Math.floor(c.yield*(D&&D.steal||S.FARM.steal))); pt.s=n; pt.th=pl.prof.name; addItem(pl,pt.c,n); P.stat(pl,'harvest',n); const g=C.gainExp(pl,S.FARM.stealExp);
+  const n=Math.max(1,Math.floor(c.yield*(D&&D.steal||S.FARM.steal))); pt.s=n; pt.th=pl.prof.name; addItem(pl,pt.c,n); P.stat(pl,'harvest',n); P.stat(pl,'stolenVeg',n); const g=C.gainExp(pl,S.FARM.stealExp);
   if(D&&D.drain){ pl.prof.needs.energy=Math.max(0,pl.prof.needs.energy-D.drain); extra+=` · ${dn} vờn bạn mệt lả (-${D.drain} năng lượng)`; }
   if(D&&D.bite&&Math.random()<D.bite){ const v=Math.min(pl.prof.money,D.fine); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); extra+=` · bị ${dn} cắn, đền chủ vườn ${fmt(v)}`;
     if(owner) note(owner,`${dn} cắn ${pl.prof.name} khi cướp rau! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); broadcastScene('retreat',{t:'ev',k:'bite',id:pl.pid}); }
@@ -157,9 +157,9 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     addItem(pl,a.feed,-1); an.cyc=t+a.cycle*1000; markDirty(pl); return {cyc:an.cyc}; }
   if(m.op==='collect'){ if(!an.cyc||t<an.cyc) return {err:'Chưa xong lứa'}; an.cyc=0;
     if(a.feeds&&++an.fed<a.feeds){ markDirty(pl); return {msg:`${a.name} ${a.birth?'mang thai':'lớn thêm'} (${an.fed}/${a.feeds} lứa)`}; }
-    if(a.birth){ const n=a.yield+crypto.randomInt(3); an.fed=0; addItem(pl,a.product,n);   // lợn nái đẻ: lợn con vào túi đồ, ra chuồng lợn thả vào nuôi lớn (hoặc giữ bán cho chú Sáu)
+    if(a.birth){ const n=a.yield+crypto.randomInt(3); an.fed=0; addItem(pl,a.product,n); P.stat(pl,'piglets',n);   // lợn nái đẻ: lợn con vào túi đồ, ra chuồng lợn thả vào nuôi lớn (hoặc giữ bán cho chú Sáu)
       const g=C.gainExp(pl,a.exp); markDirty(pl); return {item:a.product,n,exp:g.exp,msg:`${a.name} đẻ ${n} lợn con! Đã vào túi đồ: thả vào chuồng lợn để nuôi lớn, hoặc bán cho chú Sáu (${fmt(S.SELL[a.product])}/con) · +${g.exp} EXP`}; }
-    addItem(pl,a.product,a.yield); const g=C.gainExp(pl,a.exp); if(!a.keep) p.animals.splice(i,1); markDirty(pl); return {item:a.product,n:a.yield,exp:g.exp}; } });
+    addItem(pl,a.product,a.yield); if(an.k==='vit') P.stat(pl,'ducks',1); const g=C.gainExp(pl,a.exp); if(!a.keep) p.animals.splice(i,1); markDirty(pl); return {item:a.product,n:a.yield,exp:g.exp}; } });
 
 /* ---------- ngựa ---------- */
 const hasHorse=pl=>{ const h=pl.prof.horse; return h&&(h.own||h.until>now()); };

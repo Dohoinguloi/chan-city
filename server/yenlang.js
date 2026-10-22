@@ -18,5 +18,5 @@ on('yl',(pl,m)=>{ const p=pl.prof, q=p.qprog=p.qprog||{};
     return {msg:`QNT: "${F.lines[Math.floor(Math.random()*F.lines.length)]}" · +${Math.round((F.buff.mul-1)*100)}% EXP ${F.buff.min} phút, +${F.energy} năng lượng`}; }
   if(m.op==='stream'){ const h=S.vnTime(now()).hf, live=h>=Y.stream.from||h<Y.stream.to; if(!live) return {err:`Anh Độ lên sóng từ ${Y.stream.from}:00 tới ${Y.stream.to}:00, tối quay lại nhé`};
     if(pl.scene!=='yenlang'||!near(pl,Y.guest.x,Y.guest.y,32)) return {err:'Ngồi vào ghế khách cạnh bàn stream đã'}; if(p.daily.ylstream) return {err:'Hôm nay lên sóng rồi, mai quay lại'};
-    return P.startTask(pl,'work',Y.stream.dur,()=>{ p.daily.ylstream=true; reward(pl,{exp:Y.stream.exp,vnd:Y.stream.vnd},'Lên sóng cùng anh Độ: người xem donate'); markDirty(pl); return {}; },{anim:'work',name:'Lên sóng cùng anh Độ'}); }
+    return P.startTask(pl,'work',Y.stream.dur,()=>{ p.daily.ylstream=true; P.stat(pl,'stream',1); reward(pl,{exp:Y.stream.exp,vnd:Y.stream.vnd},'Lên sóng cùng anh Độ: người xem donate'); markDirty(pl); return {}; },{anim:'work',name:'Lên sóng cùng anh Độ'}); }
   return {err:'?'}; });

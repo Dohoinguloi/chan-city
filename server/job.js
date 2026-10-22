@@ -71,7 +71,7 @@ on('job',(pl,m)=>{ const p=pl.prof, j=JOBS[pl.uid], t=now(), d=today();
     else { if(pl.scene!=='everfit') return {err:'Hôm nay làm ở văn phòng Everfit'};
       const at=def.where==='desk'?{x:S.OFFICE.desks[j.desk][0],y:S.OFFICE.desks[j.desk][1]}:S.OFFICE.spots[def.where];
       if(!near(pl,at.x,at.y,36)) return {err:def.where==='desk'?'Về bàn làm việc của bạn':'Ra '+S.OFFICE.spots[def.where].name}; }
-    return P.startTask(pl,'work',def.dur,()=>{ if(rec.done.includes(task)) return {}; rec.done.push(task); j.accrued+=J.wage*(1+dasBoost(pl.prof))/J.tasksPerDay;
+    return P.startTask(pl,'work',def.dur,()=>{ if(rec.done.includes(task)) return {}; rec.done.push(task); if(rec.tasks&&rec.done.length===rec.tasks.length) P.stat(pl,'everfit',1);   /* đủ việc 1 ngày Everfit */ j.accrued+=J.wage*(1+dasBoost(pl.prof))/J.tasksPerDay;
       reward(pl,{exp:def.exp},'Xong: '+def.name);
       if(rec.done.length===rec.tasks.length) reward(pl,{exp:J.bonusExp},'Sếp khen: hôm nay làm tốt lắm!');
       saveJob(pl.uid); markDirty(pl); return {task}; },{anim:'work',name:def.name}); }

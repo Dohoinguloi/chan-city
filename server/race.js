@@ -60,7 +60,7 @@ function finish(){ const order=[...race.riders].sort((a,b)=>b.dist-a.dist||b.per
   // tiền thưởng: phí của mọi ngựa (nhà cái góp phần của bot) ×1,5 khi có bot; cược chia theo tỉ lệ, nhà cái bù thêm 20%
   const prize=withBots?Math.round(fee()*race.riders.length*R.botMul):R.rent*race.riders.length, pool0=race.bets.reduce((a,b)=>a+b.amt,0), pool=withBots?Math.round(pool0*(1+R.houseBonus)):pool0;
   const wins=race.bets.filter(b=>b.on===w.idx), wsum=wins.reduce((a,b)=>a+b.amt,0);
-  if(w.pl&&players.has(w.pl.pid)){ give(w.pl,prize); reward(w.pl,{exp:R.winExp,kind:'game'},`Về nhất trường đua! +${fmt(prize)}`); }
+  if(w.pl&&players.has(w.pl.pid)){ require('./places').stat(w.pl,'raceW',1); give(w.pl,prize); reward(w.pl,{exp:R.winExp,kind:'game'},`Về nhất trường đua! +${fmt(prize)}`); }
   const payTo=(uid,v,msg)=>{ const q=C.byUid.get(uid); if(q){ give(q,v); note(q,msg,'vnd'); } };
   if(wsum>0) for(const b of wins) payTo(b.uid,Math.floor(pool*b.amt/wsum),`Cược trúng ${w.name}: +${fmt(Math.floor(pool*b.amt/wsum))}`);
   else if(!withBots) for(const b of race.bets) payTo(b.uid,b.amt,`Không ai cược trúng, hoàn ${fmt(b.amt)}`);

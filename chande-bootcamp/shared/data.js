@@ -1716,6 +1716,69 @@ MU.statVI={hp:'Máu',mp:'Mana',atk:'Công',def:'Thủ',armor:'Giáp',crit:'Chí 
     lg_king:{aura:.05,cdr:.06,regen:.2,armor:.08},lg_vader:{spell:.15,shred:.1,drain:.05,armor:.05},lg_16typh:{spell:.12,aura:.03,cdr:.05},lg_ranbien:{tdmg:.05,slowp:.1,drain:.03,gw:.25},lg_kth:{crit:.05,spell:.1,aspd:.05},lg_zeus:{chainp:.14,spell:.12,crit:.04}};
   for(const [k,L] of Object.entries(MU.legacy)) if(!L.main) add(L.bonus=L.bonus||{},LG[k]||{crit:.01*(L.tier||1),spell:.03*(L.tier||1)});   /* set đã cân bằng (có L.main) giữ nguyên chỉ số */
   for(const m of HORSE.myth){ const l=m.lv||1; add(m.bonus=m.bonus||{},{aspd:.025*l,regen:.08*l,drain:.005*l,armor:.01*l}); } }
+/* ---------- 3 item huyền thoại (3 ô luôn hiện cạnh thanh đồ): mỗi món ghép từ 15 mảnh, lấy ở các map ngoài MU qua nhiệm vụ (có nhiệm vụ ẩn),
+   câu đố logic (phiến đá cổ, đáp án chỉ server biết) và nhiệm vụ nhóm (đủ n người cùng đứng vòng sáng bấm trong 15 giây). Nhiệm vụ đã làm xong từ trước vẫn tính mảnh ---------- */
+const LEGEND={need:15,
+  items:{pod:{name:'Cái Pod của Kaixa',col:'#b070ff',desc:'Bị động: +150% mọi chỉ số MU (máu, mana, công, thủ)',map:'Ké Retreat · Đà Lạt · Lavi'},
+    but:{name:'Cây Bút của Redtype',col:'#e8302a',key:'6',desc:'Bấm dùng (phím 6): hoá gà quái / boss gần nhất 2 giây (đứng im, không đánh được) và mọi chiêu hồi về 0 giây; 10 giây dùng lại',cd:10,chick:2,range:8,map:'DAS · Everfit · Lumen · Nghiện Motion · Yên Lãng · nhà Diệp · Ké'},
+    airpod:{name:'Airpod của VNPT',col:'#3a8ae8',desc:'Bị động: cứ 10 giây tự bật 3 giây bất tử; sức mạnh chiêu +500%',every:10,dur:3,spell:5,map:'MU · Pickleball · Miếu · VNPT · Yên Lãng'}},
+  tasks:[
+    /* Cái Pod của Kaixa: đời sống Ké / Đà Lạt (nhân viên, poker, CSGT, trồng cây, nuôi lợn vịt, bướm, rau) + nhiệm vụ ẩn + câu đố + nhóm */
+    {id:'pod_a1',it:'pod',t:'ach',st:'kestaff',need:6,label:'Làm nhân viên Ké Retreat 6 ngày (đủ việc mỗi ngày)',where:'Ké Retreat · nhận việc nhân viên',go:{sc:'retreat'}},
+    {id:'pod_a2',it:'pod',t:'ach',st:'pokerWon',need:10000000,money:1,label:'Ăn được 10 triệu tiền chơi Poker',where:'Ké Retreat · Nhà giải trí',go:{sc:'retreat',place:'club'}},
+    {id:'pod_a3',it:'pod',t:'ach',st:'fine',need:10000000,money:1,label:'Nộp phạt cho công an tổng 10 triệu',where:'Ké Retreat · CSGT / đồn công an',go:{sc:'retreat'}},
+    {id:'pod_a4',it:'pod',t:'ach',st:'csgt',need:10,label:'Bị CSGT bắt dừng xe 10 lần',where:'Ké Retreat · đường lớn (đi xe máy)',go:{sc:'retreat'}},
+    {id:'pod_a5',it:'pod',t:'ach',st:'trees',need:50,label:'Trồng 50 cây cà phê hoặc cao su',where:'Đà Lạt · đồi cà phê / rừng cao su',go:{sc:'dalat'}},
+    {id:'pod_a6',it:'pod',t:'ach',st:'piglets',need:20,label:'Nuôi lợn nái đẻ ra 20 lợn con',where:'Đà Lạt · trại chú Sáu (mua lợn nái)',go:{sc:'dalat',npc:'chusau'}},
+    {id:'pod_a7',it:'pod',t:'ach',st:'ducks',need:40,label:'Nuôi thành công 40 lứa vịt',where:'Chuồng vịt (Đà Lạt / Ké)',go:{sc:'dalat',npc:'chusau'}},
+    {id:'pod_a8',it:'pod',t:'ach',st:'bugSold',need:30,label:'Bán cho bác Trang 30 con bướm',where:'Bắt bướm ở Ké · bán ở Đà Lạt',go:{sc:'dalat',npc:'bactrang'}},
+    {id:'pod_a9',it:'pod',t:'ach',st:'vegSold',need:5000000,money:1,label:'Bán được 5 triệu tiền rau',where:'Vườn rau Ké / nông trại Đà Lạt',go:{sc:'dalat',npc:'bactrang'}},
+    {id:'pod_a10',it:'pod',t:'ach',st:'stolenVeg',need:20,label:'Cướp được 20 bó rau từ vườn người khác',where:'Vườn rau người khác (Ké / Đà Lạt)',go:{sc:'dalat'}},
+    {id:'pod_q0',it:'pod',t:'q',q:'sq_bua_khuya'},
+    {id:'pod_q1',it:'pod',t:'q',q:'sq_xuong'},
+    {id:'pod_p1',it:'pod',t:'puz',sc:'retreat',x:38.4,y:92.6,where:'Ké Retreat · cạnh Pháp ở cổng',q:'Cái gì càng lấy đi thì càng to ra?'},
+    {id:'pod_a11',it:'pod',t:'ach',st:'raceW',need:5,label:'Thắng đua ngựa 5 lần',where:'Đà Lạt · trường đua ngựa',go:{sc:'dalat'}},
+    {id:'pod_g1',it:'pod',t:'grp',sc:'retreat',x:23.2,y:43.2,n:2,where:'Ké Retreat · cạnh Kenny',label:'Cùng nhấc tảng đá cổ'},
+    /* Cây Bút của Redtype: học, làm việc, sáng tạo (DAS, Everfit, Lumen, Nghiện Motion, stream anh Độ, nhà Diệp, cờ vua) */
+    {id:'but_a1',it:'but',t:'ach',st:'das',need:Object.keys(DAS.courses).length,label:'Học hết toàn bộ chứng chỉ DAS',where:'DAS (TP.HCM) · thầy Huy Tạ',go:{sc:'das',npc:'huyta'}},
+    {id:'but_a2',it:'but',t:'ach',st:'everfit',need:20,label:'Làm việc ở Everfit 20 ngày (đủ việc mỗi ngày)',where:'Văn phòng Everfit (Hà Nội)',go:{sc:'everfit',npc:'hr'}},
+    {id:'but_a3',it:'but',t:'ach',st:'lumen',need:3,label:'Làm việc ở Lumen Studio 3 ngày (đủ việc mỗi ngày)',where:'Lumen Studio (Hà Nội)',go:{sc:'lumen',npc:'lumen_le'}},
+    {id:'but_a4',it:'but',t:'ach',st:'quests',need:40,label:'Hoàn thành 40 nhiệm vụ',where:'Mọi map (bảng Việc cần làm)'},
+    {id:'but_a5',it:'but',t:'ach',st:'lc40',need:2,label:'Có 2 Lính Cát (pokemon) lên cấp 40',where:'Bắt + luyện Lính Cát ở mọi map'},
+    {id:'but_a6',it:'but',t:'ach',st:'nmWin',need:10,label:'Thắng 10 game ở Group Nghiện Motion',where:'Nghiện Motion · góc game (đấu Eva)',go:{sc:'nghienmotion'}},
+    {id:'but_a7',it:'but',t:'ach',st:'stream',need:2,label:'2 lần lên sóng stream cùng anh Độ Mixi',where:'120 Yên Lãng · ghế khách (buổi tối)',go:{sc:'yenlang',npc:'do'}},
+    {id:'but_a8',it:'but',t:'ach',st:'diepDays',need:6,label:'Qua nhà Diệp ăn đều 2 bữa / ngày trong 6 ngày',where:'Phòng của Diệp (Hà Nội)',go:{sc:'diep',npc:'diep'}},
+    {id:'but_a9',it:'but',t:'ach',st:'chessW',need:20,label:'Thắng 20 ván cờ vua',where:'Ké Retreat · Nhà giải trí',go:{sc:'retreat',place:'club'}},
+    {id:'but_q0',it:'but',t:'q',q:'dv_follow'},
+    {id:'but_q1',it:'but',t:'q',q:'dv_quiz'},
+    {id:'but_p1',it:'but',t:'puz',sc:'das',x:9,y:6.8,where:'DAS · cạnh thầy Huy Tạ',q:'Có 3 quả táo, bạn lấy đi 2 quả. Bạn có mấy quả?'},
+    {id:'but_p3',it:'but',t:'puz',sc:'yenlang',x:15,y:11.2,where:'120 Yên Lãng · cạnh Quang Nịnh Thần',q:'Nếu 1 = 5, 2 = 25, 3 = 125, 4 = 625 thì 5 = ?'},
+    {id:'but_g1',it:'but',t:'grp',sc:'das',x:19.6,y:15.8,n:2,where:'DAS · cạnh thầy Sun Hung',label:'Cùng chấm bài cho học viên'},
+    {id:'but_g2',it:'but',t:'grp',sc:'nghienmotion',x:16,y:11.4,n:2,where:'Nghiện Motion · cạnh Trọng Motion',label:'Cùng render cảnh 3D'},
+    /* Airpod của VNPT: cày MU (quái, Luffy, boss, cấp, D-Day, thần thú) + pickleball, Miếu, VNPT */
+    {id:'ap_a1',it:'airpod',t:'ach',st:'mobs',need:1000,label:'Hạ 1000 quái rừng MU',where:'MU · rừng phía Nam',go:{sc:'mu'}},
+    {id:'ap_a2',it:'airpod',t:'ach',st:'luffy',need:200,label:'Hạ thành công Luffy Gear 5 200 lần',where:'MU · đền phía Bắc',go:{sc:'mu'}},
+    {id:'ap_a3',it:'airpod',t:'ach',st:'boss',need:500,label:'Hạ 500 boss MU',where:'MU · mọi khu boss',go:{sc:'mu'}},
+    {id:'ap_a4',it:'airpod',t:'ach',st:'mulv',need:100,label:'Lên cấp MU 100',where:'MU Online',go:{sc:'mu'}},
+    {id:'ap_a5',it:'airpod',t:'ach',st:'ddayW',need:20,label:'Thắng 20 trận D-Day',where:'MU · Cổng D-Day',go:{sc:'mu'}},
+    {id:'ap_a6',it:'airpod',t:'ach',st:'myth',need:6,label:'Cường hoá thú cưỡi lên bậc 6 (Hắc Long)',where:'MU · Người Thuần Thú',go:{sc:'mu',npc:'mu_tamer'}},
+    {id:'ap_a7',it:'airpod',t:'ach',st:'pickle',need:10,label:'Thắng 10 trận pickleball',where:'Sân pickleball Cầu Giấy',go:{sc:'pickle',npc:'hlv_pickle'}},
+    {id:'ap_a8',it:'airpod',t:'ach',st:'donateMieu',need:20000000,money:1,label:'Công đức cho Miếu ông Trường Con 20 triệu',where:'Miếu (Hải Phòng) · ban thờ',go:{sc:'mieu',npc:'mieu_tu'}},
+    {id:'ap_a9',it:'airpod',t:'ach',st:'simVip',need:2,label:'Mua 2 SIM số đẹp ở VNPT',where:'VNPT · quầy giao dịch (bốc số trước)',go:{sc:'vnpt',npc:'vn_hang'}},
+    {id:'ap_q0',it:'airpod',t:'q',q:'sq_tainghe'},
+    {id:'ap_q1',it:'airpod',t:'q',q:'sq_mix'},
+    {id:'ap_p1',it:'airpod',t:'puz',sc:'vnpt',x:11,y:7.4,where:'VNPT · trước quầy chị Hằng',q:'Số nào khi lộn ngược lại thì tăng thêm 3?'},
+    {id:'ap_p2',it:'airpod',t:'puz',sc:'mieu',x:18.8,y:15.8,where:'Miếu · cạnh Ông Từ',q:'Cái gì đen khi bạn mua, đỏ khi dùng và xám khi vứt đi?'},
+    {id:'ap_g1',it:'airpod',t:'grp',sc:'vnpt',x:31.6,y:18.8,n:2,where:'VNPT · cạnh chị Thu trưởng ca',label:'Cùng nối đường truyền'},
+    {id:'ap_g2',it:'airpod',t:'grp',sc:'pickle',x:6.6,y:21.6,n:2,where:'Sân Pickleball · cạnh HLV Tuấn',label:'Cùng đánh bóng qua lại'}]};
+// thành tựu cày (t:'ach'): giá trị hiện tại theo hồ sơ (MU, DAS, Lính Cát, thú cưỡi, nhiệm vụ đã xong; còn lại đếm ở p.stats qua places.stat)
+const legendAch=(p,k)=>{ if(!p) return 0; const s=p.stats||{}, mu=p.mu||{};
+  switch(k){ case 'mobs': return mu.mobs||0; case 'luffy': return (mu.bossK||{}).luffy||0; case 'boss': return mu.boss||0; case 'mulv': return mu.lv||0; case 'das': return ((p.das||{}).certs||[]).length;
+    case 'quests': return Object.values(p.quests||{}).filter(v=>v==='done').length; case 'myth': return (p.horse&&p.horse.myth)||0;
+    case 'lc40': { const lc=p.lc||{}; return [...(lc.party||[]),...(lc.box||[])].filter(m=>(m.lv||0)>=40).length; } default: return s[k]||0; } };
+const legendDone=(p,t)=>t.t==='q'?!!(p&&p.quests&&p.quests[t.q]==='done'):t.t==='ach'?legendAch(p,t.st)>=t.need:!!(p&&p.legend&&p.legend.f&&p.legend.f[t.id]);
+const legendCount=(p,it)=>LEGEND.tasks.filter(t=>t.it===it&&legendDone(p,t)).length;
+const legendOwn=(p,it)=>!!(p&&p.legend&&p.legend.force&&p.legend.force[it])||legendCount(p,it)>=LEGEND.need;   /* force: chỉ server test (dbgown) */
 /* ---------- MU mở rộng sang trái MU.OX ô: vùng boss mới ở x 0 → OX-1, phần MU cũ (quảng trường, Làng Lá, phía Đông, rừng quái) dời sang phải ----------
    MU.local giữ toạ độ cũ để world7 dựng phần cũ như trước rồi dời cả khối. Vị trí MU đã lưu kiểu cũ: server dời khi vào game (p.muOX). */
 { const OX=MU.OX=64;
@@ -1738,5 +1801,5 @@ MU.nap={x:27.5+MU.OX,y:15.6,price:50000,energy:50,cd:30};
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  MU,muStats,muPower,mythOf,mythIdx,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

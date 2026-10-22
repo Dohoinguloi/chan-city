@@ -20,7 +20,7 @@ const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); if(!here()) return; const ca
     list.push({y,d:()=>{ GAME.shadow(x,y,9); const X0=Math.round(x-cam.x), Y0=Math.round(y-cam.y); ctx.save(); if(face>0){ ctx.translate(X0*2,0); ctx.scale(-1,1); } ctx.drawImage(sp.c,X0-sp.ax,Y0-sp.ay); ctx.restore(); }}); } };
 /* ---------- chỉ đường ---------- */
 const g0=X.go; X.go=id=>{ if(!/^(lv_|sq_xuong|sq_no_bo|sq_bua_khuya|sq_dao)/.test(id)) return g0(id); const q=SD.QUESTS[id]; if(!q) return false;
-  if(!here()){ toast('Việc này ở <b>Lavi Studio (TP.HCM)</b>: bấm G gọi Grab','quest'); UI.grab(); return true; }
+  if(!here()){ GAME.autoGo('lavi',()=>GAME.questGo(id)); return true; }
   if(GAME.canFinish(id)||Q(id)!=='active'){ if(DOGS.includes(q.giver)){ const [x,y]=dogPos(q.giver,GAME.clock); GAME.walkTo(x,y+.8,SD.NPC_LOOKS[q.giver].name); } else GAME.walkToNpc(q.giver); return true; }
   const t=L.tasks[id]; if(t){ const s=L.spots[t.at]; GAME.walkTo(s.x,s.y,s.label); return true; } GAME.walkToNpc(q.giver); return true; };
 /* ---------- bảng hội thoại ---------- */

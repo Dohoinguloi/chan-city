@@ -8,7 +8,7 @@ const done=r=>r&&!r.err;
 const tell=r=>{ if(done(r)&&r.msg) toast(esc(r.msg),'quest'); return r; };
 const Q=id=>(G().quests||{})[id], prog=id=>((G().qprog||{})[id]||0);
 const here=k=>GAME.S&&GAME.S.kind===k;
-const grabTo=(name)=>{ toast(`Việc này ở <b>${name}</b>: bấm G gọi Grab`,'quest'); UI.grab(); };
+let GO_ID=null; const grabTo=(name)=>{ const k=Object.keys(SD.DEST).find(d=>SD.DEST[d].name.startsWith(name.split(' (')[0])); if(k&&GO_ID) return GAME.autoGo(k,()=>GAME.questGo(GO_ID)); toast(`Việc này ở <b>${name}</b>: bấm G gọi Grab`,'quest'); UI.grab(); };   /* tự gọi Grab tới map của việc đang làm */
 const MAPX={tk:null,called:false};
 
 /* ---------- Bearplus ---------- */
@@ -34,6 +34,7 @@ function callAsk(q){ GAME.sfx('blip',.5); GAME.ask(`☎ Cuộc gọi ${q.n}/${q.
 /* ---------- Miếu ông Trường Con ---------- */
 const QUE_SAY={good:'Quẻ tốt đấy cháu. Có lộc nhỏ đầu ngày, cứ chăm chỉ là may mắn theo.',mid:'Quẻ bình thường thôi, không lo. Việc gì cũng từ từ mà làm cho kỹ.',low:'Quẻ hạ cũng chỉ là lời nhắc: đi đứng cẩn thận, nghỉ ngơi cho đủ. Thắp nén hương cho yên tâm cháu nhé.'};
 MAPX.mieu=async(op,it)=>{
+  if(op==='congduc'){ const V=[1e6,5e6,1e7]; GAME.ask('Hòm công đức Miếu ông Trường Con: tuỳ tâm công đức bao nhiêu?','mieu_tu',V.map(v=>fmt(v)).concat(['Thôi']),async i=>{ if(i>=V.length) return; tell(await act({t:'mieu',op:'congduc',v:V[i]})); }); return; }   /* công đức (thành tựu item huyền thoại) */
   if(op==='incense'){ const r=await act({t:'mieu',op:'incense'}); if(done(r)) toast('Thắp hương... (giữ yên 5 giây)','quest'); return; }
   if(op==='que'){ const r=await act({t:'mieu',op:'que'}); if(!done(r)) return; GAME.sfx('blip',.5);
     GAME.say([['me','(Lắc ống xăm... một thẻ rơi ra)'],['mieu_tu',`Quẻ ${r.tier}: "${r.poem}"`],['mieu_tu',QUE_SAY[r.kind]+(r.kind==='good'?' (+50.000đ lộc)':'')]]); return; }
@@ -54,7 +55,7 @@ MAPX.pick=async x=>{ if(x.k==='bear') return UI.place('bpbear',{id:'bp_bear'});
   if(x.k==='fiber') return tell(await act({t:'vn',op:'fiberpt',i:x.i})); };
 
 /* ---------- chỉ đường nhiệm vụ của 3 map ---------- */
-MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; const B=SD.BEARPLUS, V=SD.VNPT, M=SD.MIEU, S=GAME.S, can=GAME.canFinish(id), w=(x,y,l)=>GAME.walkTo(x,y,l);
+MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; GO_ID=id; const B=SD.BEARPLUS, V=SD.VNPT, M=SD.MIEU, S=GAME.S, can=GAME.canFinish(id), w=(x,y,l)=>GAME.walkTo(x,y,l);
   if(id.startsWith('bp_')){ if(id==='bp_head'&&!can&&Q(id)==='active'){ if(S.kind==='das') return w(B.head.x,B.head.y,'Đầu Bé Gấu'),true; grabTo('DAS (TP.HCM)'); return true; }
     if(S.kind!=='bearplus'){ grabTo('Bearplus Studio (TP.HCM)'); return true; }
     if(can) return (q.giver==='bp_bear'?w(B.bear.x,B.bear.y+1.2,'Bé Gấu'):GAME.walkToNpc(q.giver)),true;
@@ -62,7 +63,7 @@ MAPX.go=id=>{ const q=SD.QUESTS[id]; if(!q) return false; const B=SD.BEARPLUS, V
       bp_3d:[B.render.x,B.render.y+.9,'Trạm render'],bp_motion:[B.motion.x,B.motion.y+.9,'Góc motion'],bp_aww:[B.cups.x,B.cups.y+.9,'Tủ giải'],bp_coffee:[B.coffee.x,B.coffee.y+.9,'Quầy cà phê']}[id];
     if(spot) w(...spot); return true; }
   if(id==='vn_fiber'){ if(can){ if(S.kind==='vnpt') GAME.walkToNpc('vn_tuan'); else grabTo('VNPT (Hà Nội)'); return true; }
-    if(S.kind!=='retreat'){ toast('Lên <b>Ké Retreat</b> nối 3 hộp cáp quang (chấm cam trên minimap): bấm G gọi Grab','quest'); UI.grab(); return true; }
+    if(S.kind!=='retreat'){ toast('Lên <b>Ké Retreat</b> nối 3 hộp cáp quang (chấm cam trên minimap)','quest'); GAME.autoGo('retreat',()=>GAME.questGo(id)); return true; }
     const f=(G().flags&&G().flags.fpts)||{}, i=V.fiberPts.findIndex((p,k)=>!f[k]); if(i>=0) w(V.fiberPts[i].x,V.fiberPts[i].y+.6,V.fiberPts[i].name); return true; }
   if(id==='vn_call'){ if(S.kind!=='vnpt'){ grabTo('VNPT (Hà Nội)'); return true; } if(can) GAME.walkToNpc('vn_thu'); else w(V.desks[0][0],V.desks[0][1]+.9,'Bàn tổng đài'); return true; }
   if(id==='tc_antruc'){ if(can) return S.kind==='mieu'?(GAME.walkToNpc('truongcon'),true):(grabTo('Miếu ông Trường Con (Hải Phòng)'),true); if(S.kind==='yenlang') return GAME.walkToNpc('do'),true; grabTo('120 Yên Lãng (nhà anh Độ)'); return true; }

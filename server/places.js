@@ -296,7 +296,7 @@ function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||item i
   if(nearNpc(pl,'quancom')) return item in S.FISH; if(nearNpc(pl,'bactrang')) return item in S.SELL; return false; }
 on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items[item]||0,Math.max(1,m.n|0||p.items[item]||0));
   if(!(item in S.SELL)) return {err:'Món này không ai mua'}; if(!buyerOk(pl,item)) return {err:'Người này không mua món đó'}; if(!n) return {err:'Không có'};
-  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))), v=price*n;   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); return {n,vnd:v}; });
+  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))), v=price*n;   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
 // hạt giống: rau Ké ở tiệm cô Ké, cây Đà Lạt ở bác Trang
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};

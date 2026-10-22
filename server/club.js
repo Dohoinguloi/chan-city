@@ -52,7 +52,7 @@ class Chess extends Table{
     return {err:'?'}; }
   end(w,why){ this.st='end'; const pot=this.bet*2;
     if(w<0){ for(const s of this.seats) if(s){ giveP(s.pl,this.bet); rewardP(s.pl,{exp:CL.chess.drawExp,kind:'game'},'Cờ vua: hoà ('+why+')'); } this.say('Hoà: '+why); }
-    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ giveP(W.pl,pot); rewardP(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
+    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ if(W.pl&&!isBot(W.pl)) require('./places').stat(W.pl,'chessW',1); giveP(W.pl,pot); rewardP(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
       if(L&&L.pl.ws) noteP(L.pl,`Thua cờ vua (${why})${this.bet?' · -'+fmt(this.bet):''}`,'lock'); this.say(`${W?W.name:'?'} thắng: ${why}`); }
     for(const s of this.seats) if(s&&isBot(s.pl)) this.botLeaveAt=now()+4000;
     this.result={w,why}; this.push(); }
@@ -134,7 +134,7 @@ class Poker extends Table{
     this.win([...pays.entries()],true); }
   win(list,show){ const P=CL.poker;
     for(const [s,v] of list){ s.chips+=v; const profit=v-s.tot; this.say(`${s.name} ăn ${fmt(v)}${show&&s.best?' · '+s.best.name:''}`); if(s.name===CL.tuSena.name) this.say(`Tú Sena: "${CL.tuSena.win}"`);
-      if(s.pl&&!isBot(s.pl)&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
+      if(s.pl&&!isBot(s.pl)&&profit>0) require('./places').stat(s.pl,'pokerWon',profit); if(s.pl&&!isBot(s.pl)&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
     this.show=show?this.seats.map(s=>s&&s.inHand&&!s.fold&&s.best?{cards:s.cards,name:s.best.name}:null):null;
     this.st='show'; this.toAct=-1; this.next=now()+(show?6000:3000); this.push(); }
   leave(pl){ const i=this.seatOf(pl); this.watch.delete(pl); if(pl.table===this) pl.table=null;

@@ -39,7 +39,7 @@ hook('tick',()=>{ const t=now();
 hook('leave',(pl,old,to)=>{ if(pl.stunt&&old&&old.startsWith('deo:')&&to&&!to.startsWith('deo:')) pl.stunt=null; });
 // đồn công an: nộp phạt hoặc chờ hết giờ tạm giữ
 on('police',(pl,m)=>{ const p=pl.prof; if(!P.nearNpc(pl,'congan')) return {err:'Gặp chú công an ở bàn'};
-  if(m.op==='fine'){ if(!P.jailed(pl)) return {err:'Bạn không bị tạm giữ'}; if(!take(pl,p.jail.fine)) return {err:`Phạt ${fmt(p.jail.fine)}, không đủ tiền. Đợi hết giờ tạm giữ`};
+  if(m.op==='fine'){ if(!P.jailed(pl)) return {err:'Bạn không bị tạm giữ'}; if(!take(pl,p.jail.fine)) return {err:`Phạt ${fmt(p.jail.fine)}, không đủ tiền. Đợi hết giờ tạm giữ`}; P.stat(pl,'fine',p.jail.fine);
     p.jail=null; markDirty(pl); return {msg:'Đã nộp phạt. Lần sau đi xe cẩn thận, đội mũ bảo hiểm nhé!'}; }
   return {jail:p.jail}; });
 hook('slow',()=>{ const t=now(); for(const pl of players.values()){ const j=pl.prof.jail; if(j&&j.until<=t){ pl.prof.jail=null; markDirty(pl); note(pl,'Hết giờ tạm giữ, được về rồi. Đi đứng cẩn thận nhé!','quest'); } } });

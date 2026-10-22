@@ -40,13 +40,13 @@ const pushPost=()=>C.broadcastScene('retreat',{t:'csgt',post:postView()});
 const stopView=c=>!c?null:c.type==='helmet'||c.type==='speed'?{type:c.type,fine:c.fine,bribe:c.bribe}:{type:'quiz',i:c.i,n:c.qs.length,wrong:c.wrong,q:CG.Q[c.qs[c.i]][0],opts:CG.Q[c.qs[c.i]][1]};
 const sendStop=pl=>send(pl,{t:'csgt',stop:stopView(pl.csgt)});
 // không đủ tiền nộp phạt thì về đồn tạm giữ 1 phút
-function fineOrJail(pl,v){ if(take(pl,v)) return true; const p=pl.prof; p.money=0; p.jail={until:now()+60e3,fine:v}; pl.csgt=null; pl.moto=null; send(pl,{t:'moto',off:true}); markDirty(pl); P.stat(pl,'jail',1); C.moveTo(pl,'doncongan',7,6); return false; }
+function fineOrJail(pl,v){ if(take(pl,v)){ P.stat(pl,'fine',v); return true; } const p=pl.prof; p.money=0; p.jail={until:now()+60e3,fine:v}; pl.csgt=null; pl.moto=null; send(pl,{t:'moto',off:true}); markDirty(pl); P.stat(pl,'jail',1); C.moveTo(pl,'doncongan',7,6); return false; }
 function stopCheck(pl){ const p=pl.prof; pl.csgtAt=now();
-  if(pl.speeding){ pl.speeding=false; pl.csgt={type:'speed',fine:CG.speed.fine,bribe:CG.speed.bribe,at:now()}; send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); return; }
+  if(pl.speeding){ pl.speeding=false; pl.csgt={type:'speed',fine:CG.speed.fine,bribe:CG.speed.bribe,at:now()}; P.stat(pl,'csgt',1); send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); return; }
   if(!p.helmet) pl.csgt={type:'helmet',fine:CG.fine,bribe:CG.bribe,at:now()};
   else if(Math.random()<CG.quiz) pl.csgt={type:'quiz',qs:[...CG.Q.keys()].sort(()=>Math.random()-.5).slice(0,CG.n),i:0,wrong:0,at:now()};
   else { C.note(pl,'CSGT kiểm tra: mũ bảo hiểm đội đúng, giấy tờ đủ. "Mời đi tiếp, chú ý an toàn nhé!"','item'); return; }
-  send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); }
+  P.stat(pl,'csgt',1); send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); }   /* bị CSGT bắt dừng xe (thành tựu) */
 function impound(pl){ const p=pl.prof, md=pl.moto||(p.moto&&p.moto.model)||'wave'; p.impound={model:md,left:Math.max(0,(p.moto&&p.moto.until||0)-now()),fee:CG.impound}; p.moto=null; pl.moto=null;
   send(pl,{t:'moto',off:true}); C.broadcastScene('retreat',{t:'ev',k:'impound',id:pl.pid,x:pl.x,y:pl.y,model:md}); markDirty(pl); }
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'csgt',post:postView()}); });
