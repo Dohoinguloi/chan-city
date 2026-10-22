@@ -430,7 +430,7 @@ UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Mua ngựa & cườn
     return `<div class="mulgc ${m.lv>=5?'wr5':m.lv>=3?'wr4':m.lv?'wr3':''}"><img src="${mountImg(m.k)}" width="128" height="104" alt=""><b>${esc(m.name)}</b>${m.lv?`<small class="star">${'★'.repeat(m.lv)} Bậc ${m.lv}</small>`:''}<small>${esc(m.desc)}</small>
       ${m.lv?`<small class="good">Tốc độ +${Math.round((m.speed-1)*100)}% · Máu +${Math.round(m.bonus.hp*100)}% · Công +${Math.round(m.bonus.atk*100)}%</small>`:''}
       <div class="mulgb">${!h.own?'':open?(cur===m.k?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:m.k},'pri')):next?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('mythup','Cường hoá '+SD.fmt(m.price),{},'pri')}`:'<small class="muted">🔒 Cường hoá bậc trước</small>'}</div></div>`; }).join('')}</div>
-  <p class="muted">Ngọc Ước Nguyện, Ngọc Tâm Linh, Ngọc Hỗn Nguyên rơi từ boss tổng Luffy Gear 5.</p>`; },{wide:true}));
+  ${window.MU9?MU9.gemGuide((()=>{ const nx=SD.HORSE.myth[lv]; const ks=nx?Object.keys(nx.jewels||{}):[]; return ks.length?ks:M.jewels; })()):''}`; },{wide:true}));
 const mythDone=r=>{ if(!r||r.err) return; if(r.horse) GAME.G.horse=r.horse; if(r.look) GAME.G.look=r.look; toast(esc(r.msg),'item'); UI.refresh(); };
 UI.onAct('mythup',async()=>{ const r=await GAME.act({t:'horse',op:'mythup'}); if(r&&!r.err){ GAME.sfx('level_up',.8); const m=SD.mythOf(r.look&&r.look.mount); if(m) GAME.bigText(m.name.toUpperCase()+'!'); } mythDone(r); });
 UI.onAct('mythpick',async d=>mythDone(await GAME.act({t:'horse',op:'mythpick',k:d.k})));
@@ -473,6 +473,6 @@ const o0=X.overlay; X.overlay=(ug,sx,sy,tag)=>{ if(o0) o0(ug,sx,sy,tag); if(!her
   for(const pid of MINS.keys()){ const p=minPos(pid); if(p){ ug.font='14px VT323, monospace'; tag(sx(p[0]),sy(p[1]-38),'Min ♪','','#ff9a3a'); } }
   for(const B of BOSSES){ ug.font='16px VT323, monospace'; tag(sx(B.x*T),sy(B.y*T-(B.big?100:70)),B.name+(B.phase===3?' 🔥':''),'',B.id==='luffy'?'#ffd84a':'#ff6a8a'); }
   const hk=(now-meHitAt)/350; if(hk<1){ const w=innerWidth, h=innerHeight, gr=ug.createRadialGradient(w/2,h/2,Math.min(w,h)*.35,w/2,h/2,Math.max(w,h)*.7); gr.addColorStop(0,'rgba(255,0,0,0)'); gr.addColorStop(1,`rgba(220,20,40,${.45*(1-hk)})`); ug.fillStyle=gr; ug.fillRect(0,0,w,h); } };
-window.MU8={burst,ring,shake,rnd,num:(x,y,v,o={})=>NUM.push({x,y,v,...o,t:performance.now()}),setImg,accImg,wImg,me:()=>ME,here,C_SMOKE,C_SPARK,C_GOLD};
+window.MU8={boss:()=>({list:BOSSES,next:NEXT}),burst,ring,shake,rnd,num:(x,y,v,o={})=>NUM.push({x,y,v,...o,t:performance.now()}),setImg,accImg,wImg,me:()=>ME,here,C_SMOKE,C_SPARK,C_GOLD};
 setInterval(()=>{ if(here()&&(!ME)) NET.req({t:'mu',op:'view'}).then(r=>{ if(r&&r.me){ ME=r.me; MET=performance.now(); if(r.boss){ BOSSES=r.boss.list||[]; NEXT=r.boss.next||{}; } hud(); } }); else hudTick(); },1500);
 })();

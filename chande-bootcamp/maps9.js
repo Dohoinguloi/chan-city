@@ -82,6 +82,21 @@ const mi0=X.mini; X.mini=(dot,k)=>{ if(mi0) mi0(dot,k); if(k!=='mu') return; for
 const a0=X.anim; X.anim=(o,clock)=>{ const a=o.anim; if(a==='muenchant'){ const f=Math.floor(clock*2)%2; return cached('es'+f,()=>A.enchantStall(f)); } if(a==='hellgate'){ const f=Math.floor(clock*3)%2; return cached('hg'+f,()=>A.hellGate(f)); }
   if(a==='bonfire'){ const f=Math.floor(clock*6)%2; return cached('bf'+f,()=>A.bonfire(true,f)); } return a0?a0(o,clock):null; };
 
+/* ======================= nơi tìm ngọc (bảng Phù Thuỷ, Người Thuần Thú) ======================= */
+// mỗi nguồn: [nơi, cách rơi, [x, y] trong MU để tự đi tới | null]
+const GEM_SRC={ngoc_ch:[['Quái rừng phía Nam MU','mỗi con hạ được có tỉ lệ rơi: 1,6% ở Đồi Bí Ngô, càng xuống sâu càng dễ, tới 4,8% ở Cổng Địa Ngục',[21.5,34]],
+    ['Boss MU','Luffy Gear 5: top 1 được 2 viên, người góp sức khác 60% được 1. Boss phụ: top 1 được 1, người khác 35%',[22,9]],
+    ['Nhiệm vụ ẩn ở mọi map','xong mỗi nhiệm vụ ẩn (🔍) tặng thêm 1 viên',null],['Hồ Ké Retreat','thuê kayak chèo trên hồ: 1/4 lần vớt được đồ cổ có kèm 1 viên',null],
+    ['Phù Thuỷ Cường Hoá','mua 1.000.000đ/viên, gói 5 viên 4.700.000đ',[7.5,26.4]]],
+  ngoc_ch_ht:[['Lính Cát huyền thoại','mỗi loài huyền thoại có trong đội / hộp tặng 1 viên (bấm 🎁 ở Phù Thuỷ Cường Hoá)',[7.5,26.4]],['Rừng quái sâu (3 khu dưới cùng)','Mỏ Đá Cổ, Rừng Sọ Hươu, Cổng Địa Ngục: mỗi con 0,15%',[48,61]]]};
+for(const k of M.jewels) GEM_SRC[k]=[['Boss tổng Luffy Gear 5','đền phía Bắc quảng trường MU. Hạ được: top 1 chắc chắn có 1 viên ngọc quý (Ước Nguyện / Tâm Linh / Hỗn Nguyên ngẫu nhiên), người góp sức khác 35%',[22,9]]];
+function luffyLeft(){ const b=U()&&U().boss(); if(!b) return ''; if((b.list||[]).some(x=>x.id==='luffy')) return '<b class="good">đang xuất hiện, tới đánh ngay!</b>'; const t=(b.next||{}).luffy; return t?`ra sau ${Math.max(1,Math.ceil((t-NET.now())/60000))} phút`:''; }
+const gemGuide=keys=>{ const it=G().items||{};
+  return `<div class="gemguide"><h5>Tìm ngọc ở đâu?</h5>${keys.map(k=>`<div class="gg"><img src="${GAME.icon64(k)}" width="28" height="28" alt=""><b>${esc(SD.ITEMS[k].name)}</b> <small>(đang có ${it[k]||0})</small>
+    <ul>${(GEM_SRC[k]||[]).map(([w,how,xy])=>`<li><b>${esc(w)}</b>${w.includes('Luffy')?` · ${luffyLeft()}`:''}: ${esc(how)} ${xy?btn('gemgo','➜ Tới',{x:xy[0],y:xy[1]}):''}</li>`).join('')}</ul></div>`).join('')}</div>`; };
+window.MU9={gemGuide};
+UI.onAct('gemgo',d=>{ if(!here()){ toast('Gọi Grab (phím G) chọn MU Online rồi bấm lại','lock'); return; } UI.closeAll(); GAME.walkTo(+d.x,+d.y,'Tới chỗ tìm ngọc'); });
+
 /* ======================= Phù Thuỷ Cường Hoá ======================= */
 const STAT_VI={hp:'Máu',mp:'Mana',atk:'Công',def:'Thủ',crit:'Chí mạng',regen:'Hồi máu'}, bonusTxt=b=>Object.entries(b||{}).map(([k,v])=>`${STAT_VI[k]||k} +${Math.round(v*100)}%`).join(' · ');
 const shoeImg=k=>cached('sh'+k,()=>{ const c=A.muShoe(k); return c?c.toDataURL():''; });
@@ -106,15 +121,23 @@ UI.defPlace('muenchant',()=>UI.open('Phù Thuỷ Cường Hoá',()=>{ const g=G(
     return `<div class="enrow ${x.on?'on':''}"><img src="${imgOf(x.k,x.kind)}" width="48" height="48" alt=""><div class="enmid"><b>${esc(x.name)} ${L?`<span class="enlv">+${L}</span>`:''}${x.on?' <small class="good">đang dùng</small>':''}</b>${holes(L)}
       <small>${max?'<span class="good">Đã khắc đủ 12 lỗ!</span>':`Lỗ ${L+1}: <b>${Math.round(rate*100)}%</b> · phí ${SD.fmt(E.fee(L))}`}${per?` · đang cộng ${per}`:''}</small></div>
       <div class="enbtn">${max?'':btn('enh','Khắc',{k:x.k},'pri')+(nh?btn('enh','Ngọc HT',{k:x.k,legend:1}):'')}</div></div>`; }).join('')||'<p class="muted">Chưa có đồ nào để cường hoá.</p>'}</div>
+  ${gemGuide(['ngoc_ch','ngoc_ch_ht'])}
   <h5>Thu mua chiến lợi phẩm rừng</h5>${mats.length?`<p>${mats.map(k=>`${esc(SD.ITEMS[k].name)} ×${it[k]} (${SD.fmt(M.matPrice[k])})`).join(' · ')}</p>${btn('mobsell',`Bán tất cả · ${SD.fmt(sum)}`,{},'pri')}`:'<p class="muted">Xuống rừng quái phía Nam đánh quái lấy chiến lợi phẩm rồi mang về đây bán.</p>'}`; },{wide:true}));
 // thẻ kết quả cường hoá: to giữa màn hình, nằm trên cả bảng (thành công: xanh băng + "+N" lớn, lỗ mới sáng lên; thất bại: đỏ, rung); bấm để tắt, tự ẩn sau 2,8 giây
-function enhResult(r,k){ let el=document.getElementById('enhRes'); if(!el){ el=document.createElement('div'); el.id='enhRes'; el.onclick=()=>{ el.hidden=true; }; document.body.appendChild(el); }
+const enhCard=()=>{ let el=document.getElementById('enhRes'); if(!el){ el=document.createElement('div'); el.id='enhRes'; el.onclick=()=>{ el.hidden=true; }; document.body.appendChild(el); } return el; };
+const enhShow=(el,ms)=>{ el.hidden=false; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; clearTimeout(el._t); el._t=setTimeout(()=>{ el.hidden=true; },ms); };
+// thiếu ngọc / tiền / lỗi khác khi khắc: thẻ cam cùng cỡ, chỉ chỗ mua / tìm ngọc
+function enhNeed(gem,err){ const el=enhCard(), ht=gem==='ngoc_ch_ht';
+  el.className='lack'; el.innerHTML=gem?`<small>⚠ KHÔNG ĐỦ NGỌC ⚠</small><b>💎</b><span>Cần 1 ${esc(SD.ITEMS[gem].name)} để khắc lỗ</span><em>${ht?'Lính Cát huyền thoại tặng (bấm 🎁 ở Phù Thuỷ) · rừng quái sâu rơi':`Mua ở Phù Thuỷ: 1 viên ${SD.fmt(SD.gemCost(1))} · gói 5 viên ${SD.fmt(SD.gemCost(5))}<br>hoặc đánh quái rừng, boss MU, làm nhiệm vụ ẩn (xem mục Tìm ngọc ở đâu)`}</em>`
+    :`<small>⚠ CHƯA KHẮC ĐƯỢC ⚠</small><b>!</b><span>${esc(err||'')}</span>`;
+  GAME.sfx('blip',.7); enhShow(el,3200); }
+function enhResult(r,k){ const el=enhCard();
   const name=(M.weapons[k]||M.legacy[k]||M.acc[k]||SD.CLOTHES[k]||{}).name||k, L=r.lv|0, pct=Math.round((r.rate||0)*100);
   el.className=r.ok?'ok':'fail'; el.innerHTML=r.ok?`<small>✨ CƯỜNG HOÁ THÀNH CÔNG ✨</small><b>+${L}</b><span>${esc(name)}</span>${holes(L)}<em>tỉ lệ ${pct}% · ${L>=E.max?'đã khắc đủ 12 lỗ!':`lỗ ${L+1}: ${Math.round(Math.min(.99,E.rate[L]+lcBonus())*100)}%`}</em>`
     :`<small>💥 CƯỜNG HOÁ THẤT BẠI 💥</small><b>×</b><span>${esc(name)} vẫn +${L}</span>${holes(L)}<em>mất 1 ngọc · tỉ lệ lần này ${pct}%</em>`;
-  const last=el.querySelectorAll('.enholes i')[L-1]; if(r.ok&&last) last.classList.add('new');
-  el.hidden=false; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; clearTimeout(el._t); el._t=setTimeout(()=>{ el.hidden=true; },2800); }
-UI.onAct('enh',async d=>{ const r=await GAME.act({t:'mu',op:'enh',k:d.k,legend:d.legend?1:0}); if(!r||r.err) return; const FX=U(), P=GAME.P;
+  const last=el.querySelectorAll('.enholes i')[L-1]; if(r.ok&&last) last.classList.add('new'); enhShow(el,2800); }
+UI.onAct('enh',async d=>{ const gem=d.legend?'ngoc_ch_ht':'ngoc_ch'; if(!(G().items||{})[gem]) return enhNeed(gem);
+  const r=await NET.req({t:'mu',op:'enh',k:d.k,legend:d.legend?1:0}); if(!r) return; if(r.err) return enhNeed(/^Cần Ngọc/.test(r.err)?gem:null,r.err); const FX=U(), P=GAME.P;
   if(r.ok){ GAME.sfx('level_up',.9); if(FX){ FX.burst(P.x,P.y-20,40,{col:['#7fe8ff','#ffffff','#ffd84a'],kind:'star',sp:[40,140],life:[.6,1.2]}); FX.ring(P.x,P.y,6,46,.7,'#7fe8ff',3); FX.shake(3,.2); } }
   else { GAME.sfx('poof',.8); if(FX){ FX.burst(P.x,P.y-20,16,{col:FX.C_SMOKE,kind:'smoke',sp:[10,30],life:[.5,.9],size:[3,5],add:false,up:20}); FX.shake(5,.3); } }
   enhResult(r,d.k); UI.refresh(); });

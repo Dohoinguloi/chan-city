@@ -257,10 +257,13 @@ body:not(.skills) #hudSkills{display:none}
 #enhRes small{font-size:clamp(26px,3.6vw,42px);letter-spacing:1px} #enhRes b{font-weight:400;font-size:clamp(96px,14vw,170px);line-height:.85;text-shadow:5px 5px 0 var(--ink)} #enhRes span{font-size:clamp(24px,3vw,34px);color:var(--cream)} #enhRes em{font-style:normal;font-size:clamp(20px,2.4vw,26px);opacity:.9}
 #enhRes .enholes{justify-content:center;gap:8px;margin:4px 0} #enhRes .enholes i{width:18px;height:18px} #enhRes .enholes i.new{animation:enhnew .8s ease-out 2}
 #enhRes.ok{background:radial-gradient(circle at 50% 30%,#2a5a8a,#0c1a30 75%);border-color:#7fe8ff;color:#c8f4ff} #enhRes.ok b{color:#7fe8ff;text-shadow:4px 4px 0 var(--ink),0 0 24px #7fe8ff}
+#enhRes.lack{background:radial-gradient(circle at 50% 30%,#6a4a10,#241606 75%);border-color:#ffb03a;color:#ffe0a0;animation:enhpop .45s cubic-bezier(.2,1.5,.4,1),enhshake .35s .1s} #enhRes.lack b{color:#ffd84a} #enhRes.lack em{line-height:1.25}
 #enhRes.fail{background:radial-gradient(circle at 50% 30%,#6a1a1a,#200808 75%);border-color:#ff5a4a;color:#ffc8c0;animation:enhpop .45s cubic-bezier(.2,1.5,.4,1),enhshake .45s .1s} #enhRes.fail b{color:#ff5a4a}
 @keyframes enhpop{from{transform:translate(-50%,-50%) scale(.4);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes enhshake{20%,60%{margin-left:-10px}40%,80%{margin-left:10px}}
 @keyframes enhnew{50%{transform:rotate(45deg) scale(1.9);box-shadow:0 0 14px #fff}}
+/* hướng dẫn tìm ngọc (bảng Phù Thuỷ, Người Thuần Thú) */
+.gemguide{margin:8px 0;padding:6px 10px;background:var(--panel2);border:2px solid var(--line)} .gemguide h5{margin:2px 0 6px} .gg{margin:4px 0} .gg img{vertical-align:middle;image-rendering:pixelated} .gg ul{margin:2px 0 6px;padding-left:20px;font-size:17px;line-height:1.2} .gg li{margin:3px 0} .gg li .btn{margin-left:6px}
 /* Phù Thuỷ Cường Hoá: thanh ngọc, mỗi món 1 hàng (ảnh · tên +N · 12 lỗ · tỉ lệ · nút khắc) */
 .enbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:6px 8px;background:var(--panel2);border:2px solid var(--line)} .enbar img{vertical-align:middle;image-rendering:pixelated}
 .enlist{display:grid;gap:6px;margin:8px 0} .enrow{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;padding:6px 8px;background:var(--panel2);border:2px solid var(--line)} .enrow.on{border-color:var(--gold)}
