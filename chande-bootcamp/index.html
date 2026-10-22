@@ -138,6 +138,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 #bossBar>div:not(.vs){display:grid;gap:2px;min-width:min(300px,36vw);background:rgba(20,16,24,.8);border:2px solid var(--ink);box-shadow:0 0 0 2px #5a3a8a;padding:4px 10px} #bossBar .op{box-shadow:0 0 0 2px #2a4ad0}
 #bossBar .bar{height:12px;background:#2a2228;border:1px solid #000} #bossBar .bar i{display:block;height:100%;transition:width .25s} #bossBar .mg .bar i{background:linear-gradient(90deg,#7a3ab0,#c070ff)} #bossBar .op .bar i{background:linear-gradient(90deg,#c4201a,#2a4ad0)}
 #bossBar .vs{font-size:34px;color:var(--gold);text-shadow:2px 2px 0 var(--ink)} #bossBar b{font-weight:400;font-size:16px;color:var(--muted)}
+.dthumb{flex:1 1 100%;width:100%;aspect-ratio:12/7;image-rendering:pixelated;border:2px solid var(--ink);border-radius:6px;display:block;background:#2a2228} .dthumb.load{background:repeating-linear-gradient(90deg,#2a2228 0 10px,#33292f 10px 20px)}
 /* bento: danh sách trong cửa sổ thành lưới thẻ (thêm class rows để giữ dạng hàng: bảng xếp hạng, nài ngựa) */
 .panel .list:not(.rows){grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
 .panel .list:not(.rows)>h5,.panel .list:not(.rows)>h4,.panel .list:not(.rows)>p,.panel .list:not(.rows)>.col{grid-column:1/-1}

@@ -228,9 +228,10 @@ const DEER=['10K 12K 15K 17K','9-10K 12K 15K 17-18K','10-12K 15-17K','11-12K 15-
   '10O 11-12L 13-14C 15-16L 17O','2O 10O 11E 12L 13-14C 15L 16E 17O','2-3O 10O 11E 12L 13-14C 15L 16E 17O','2-3O 10O 11-16L 17O','2O 3L 4-6D 11O 12L 13-14R 15L 16O','2L 3D 4-6O 7-8D 11D 12-14O 15D',
   '2D 3-4O 5C 6-8O 9-10D 11O 12-14L 15D','2D 3-7O 8C 9-11O 12L 13-14C 15L 16D','2D 3C 4-10O 11L 12-15C 16D','1D 2-5O 6-8L 9-10O 11L 12-15C 16D','1D 2-4O 5L 6-8C 9L 10O 11L 12-15C 16D','1D 2-3O 4L 5-7C 8L 9-11O 12L 13-14C 15L 16D',
   '0D 1-2O 3-10D 11-12O 13-14L 15D','0D 1O 2D 4-5R 9-15D 16R','0-1D 4-5R 10-12D 15-17R','0-1D 4-6R 11-13D 16-18R','0-1D 5-7R 12-14D 17-19R','0-1D 6-8R 13-15D 18-20R','0-1D 7R 8-9K 14-16D 19R 20-21K','0D 1-2K 8-9K 15D 16-17K 20-21K','1-2K 16-17K'];
-// bước đi: khung lẻ thì 4 chân co duỗi lệch 1px
-const DEER2=DEER.map((r,y)=>y<21?r:r.split(' ').map(tk=>{ const m=/^(\d+)(?:-(\d+))?(.)$/.exec(tk); if(!m) return tk; const s=y%2?1:-1, a=+m[1]+s, b=m[2]?+m[2]+s:null; return a<0?tk:(b!=null?a+'-'+b:a)+m[3]; }).join(' '));
-const deer=fr=>S(23,29,11,28,(g,P)=>rows(P,fr%2?DEER2:DEER,DEER_PAL,0,0));
+// bước đi: khung lẻ thì cặp chân đỏ (chân gần) bước lên 1px, cặp chân cam sẫm (chân xa) lùi 1px; móng đi theo chân của nó
+const legShift=(c,x)=>c==='R'||(c==='K'&&(x>=8&&x<=9||x>=20))?1:c==='D'||(c==='K'&&(x<=2||x>=15&&x<=17))?-1:0;
+const DEER2=DEER.map((r,y)=>y<21?r:r.split(' ').map(tk=>{ const m=/^(\d+)(?:-(\d+))?(.)$/.exec(tk); if(!m) return tk; const d=legShift(m[3],+m[1]), a=Math.max(0,+m[1]+d), b=m[2]?Math.max(a,+m[2]+d):null; return (b!=null?a+'-'+b:a)+m[3]; }).join(' '));
+const deer=fr=>S(24,29,11,28,(g,P)=>rows(P,fr%2?DEER2:DEER,DEER_PAL,0,0),false);   // không viền đen: gạc mảnh không bị bết lại như ảnh mẫu
 function monkey(fr=0){ const f=fr%4, sw=[0,1,0,-1][f], O='#c8701a', O2='#a85a14', HL='#e0882a', Gy='#6a6a70', Gd='#4a4a50', Wh='#f4f1ea';
   return S(32,25,16,24,(g,P)=>{
     P.rect(6,5,2,5,O); P.rect(5,2,2,4,O); P.rect(6,0,4,2,O); P.rect(10,1,2,2,Gy); P.rect(9,3,2,1,Gy);                     // đuôi cuộn, chóp xám
