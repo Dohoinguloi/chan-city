@@ -15,6 +15,7 @@ function extraOf(p){ const r=rec(p), o={hp:0,mp:0,atk:0,def:0,regen:0,crit:0,dra
   for(const k of Object.values(r.acc||{})){ const a=M.acc[k]; if(a) for(const [s,v] of Object.entries(a.bonus)) o[s]+=v; }
   for(const [k,n] of Object.entries(r.pas||{})){ const P=M.passive[k]; if(P) o[P.stat]+=P.per*n; }
   const w=M.weapons[r.wep]; if(w&&w.bonus) for(const [s,v] of Object.entries(w.bonus)) o[s]+=v;   /* chỉ số phụ của vũ khí Thợ Rèn */
+  const my=S.mythOf(p.look&&p.look.mount); if(my&&p.horse&&p.horse.own) for(const [s,v] of Object.entries(my.bonus)) o[s]+=v;   /* thần thú đang chọn */
   return o; }
 const syncAcc=p=>{ if(p.look) p.look.acc={...(rec(p).acc||{})}; };   // để người khác thấy phụ kiện (gửi kèm ngoại hình)
 const lgOf=p=>{ const k=p.look&&p.look.outfit&&p.look.outfit.top; return k&&M.legacy[k]?k:''; };

@@ -1009,11 +1009,12 @@ Object.assign(CLOTHES,{mu_dk:{name:'Giáp Rồng Đỏ + Kiếm (Chiến Binh)',
   mu_elf:{name:'Áo Tiên Thánh + Song Kiếm (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
   mu_dw:{name:'Giáp Pháp Sư Xanh + Gậy (Phù Thuỷ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dw',opts:{top:'long'},colors:{top:'2a4ab8',pants:'2a3a8a',shoes:'1c1820'}}});
 Object.assign(ITEMS,{ngoc_uoc:{name:'Ngọc Ước Nguyện',icon:'jewel_bless'},ngoc_tam_linh:{name:'Ngọc Tâm Linh',icon:'jewel_soul'},ngoc_hon_nguyen:{name:'Ngọc Hỗn Nguyên',icon:'jewel_chaos'}});
-NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'},{id:'mu_shop',scene:'mu',x:11.5,y:20.6,place:'mushop'},{id:'mu_acc',scene:'mu',x:35.5,y:12.8,place:'muacc'},{id:'mu_smith',scene:'mu',x:6.5,y:15.4,place:'musmith'});
+NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'},{id:'mu_shop',scene:'mu',x:11.5,y:20.6,place:'mushop'},{id:'mu_acc',scene:'mu',x:35.5,y:12.8,place:'muacc'},{id:'mu_smith',scene:'mu',x:6.5,y:15.4,place:'musmith'},{id:'mu_tamer',scene:'mu',x:34.5,y:24.2,place:'mutamer'});
 Object.assign(NPC_LOOKS,{mu_guard:{name:'Vệ binh Lục Địa Cát',look:{gender:'nam',hair:'buzz',hairColor:'3a2a22',skin:'e8b48a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'goatee'}}},
   mu_shop:{name:'Thương nhân Huyền Thoại (Premium Store)',look:{gender:'nam',hair:'swept',hairColor:'2a2026',skin:'e8b48a',outfit:{top:'lg_king',bottom:'kaki',shoes:'giay_den'}}},
   mu_acc:{name:'Thợ Kim Hoàn (cánh · dây chuyền · hộ thân · aura)',look:{gender:'nu',hair:'long',hairColor:'f2c43d',skin:'f3c8a8',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_den'}}},
   mu_min:{name:'Min',look:{gender:'nu',hair:'long',hairColor:'ff7a2a',skin:'f6d2b8',outfit:{top:'mu_min',bottom:'kaki',shoes:'giay_den'}}},
+  mu_tamer:{name:'Người Thuần Thú (cường hoá ngựa)',look:{gender:'nu',hair:'ponytail',hairColor:'3a2a22',skin:'d8a070',outfit:{top:'mu_rongxanh',bottom:'kaki',shoes:'giay_den'}}},
   mu_smith:{name:'Thợ Rèn Huyền Thoại (50 vũ khí)',look:{gender:'nam',hair:'buzz',hairColor:'5a3a22',skin:'c8885a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'full'}}},
   mu_mage:{name:'Pháp sư Cát (cửa hàng)',look:{gender:'nam',hair:'long',hairColor:'e8e4dc',skin:'f0c4a0',outfit:{top:'mu_dw',bottom:'kaki',shoes:'giay_den'},opts:{beard:'mustache'}}}});
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
@@ -1141,6 +1142,18 @@ const COOK={daily:6,steps:3};
 const DL_FISH={ca_ro_phi:{w:55,exp:8,price:15000},ca_chep:{w:30,exp:12,price:40000},ca_tam:{w:15,exp:30,price:150000}};
 // ngựa: thuê theo giờ hoặc mua; cưỡi nhanh hơn, chở được 3 thùng hàng
 const HORSE={rent:150000,rentMin:60,buy:2000000,speed:1.8,carry:3,coats:['Ngựa hồng (nâu đỏ)','Ngựa ô (đen tuyền)','Ngựa vàng kem','Ngựa nâu sẫm'],herd:{dur:20,exp:30,vnd:40000,daily:5}};
+// cường hoá ngựa (ngựa mua, không tính ngựa thuê) thành thần thú, lên lần lượt từng bậc ở Người Thuần Thú (MU) / trại ngựa: tốn tiền + ngọc rơi từ boss MU.
+// Mỗi bậc chạy nhanh hơn và cộng chỉ số MU (lực chiến) khi đang chọn con đó. Đã mở bậc nào thì đổi qua lại con nào cũng được (look.mount, ai cũng thấy).
+HORSE.myth=[{k:'thienma',name:'Thiên Mã',desc:'Ngựa trắng cánh lông vũ, bờm vàng',price:1500000,jewels:{},speed:1.05},
+  {k:'kylan',name:'Kỳ Lân',desc:'Ngựa trắng sừng vàng, bờm đuôi cầu vồng',price:2500000,jewels:{ngoc_uoc:1},speed:1.1},
+  {k:'bacho',name:'Bạch Hổ',desc:'Hổ trắng vằn đen, mắt xanh băng',price:3500000,jewels:{ngoc_tam_linh:1},speed:1.15},
+  {k:'rongxanh',name:'Rồng Xanh',desc:'Rồng xanh lá bụng vàng chanh, sừng ngà, cánh nhỏ',price:5000000,jewels:{ngoc_tam_linh:2},speed:1.2},
+  {k:'phuong',name:'Phượng Hoàng',desc:'Chim lửa cánh rực, đuôi lông vũ dài, bay lơ lửng',price:7000000,jewels:{ngoc_hon_nguyen:1},speed:1.25},
+  {k:'haclong',name:'Hắc Long',desc:'Rồng đen cánh dơi, mắt đỏ, vảy ánh tím',price:10000000,jewels:{ngoc_hon_nguyen:2},speed:1.3}];
+HORSE.myth.forEach((m,i)=>{ m.lv=i+1; m.bonus={hp:.03*(i+1),atk:.02*(i+1)}; });
+const mythOf=k=>HORSE.myth.find(m=>m.k===k)||null;
+// số thứ tự thần thú đang chọn (1…6) nếu ngựa đã mua và đã cường hoá tới bậc đó, không thì 0
+const mythIdx=p=>{ const i=HORSE.myth.findIndex(m=>m.k===(p&&p.look&&p.look.mount)); return i>=0&&p.horse&&p.horse.own&&(p.horse.myth||0)>i?i+1:0; };
 const CRATES={vnd:25000,exp:8,daily:12};
 // trường đua: thuê ngựa đua, cá cược; đua kiểu Audition (gõ đúng chuỗi mũi tên rồi bấm Space đúng nhịp)
 // every: cứ chừng ấy giây chốt danh sách 1 lần, ghế trống bot vào đủ 6 ngựa cho mọi người cược; botMul: trận có bot thì phí thuê + tiền thưởng ×1,5
@@ -1210,7 +1223,7 @@ const MARKET={maxListings:8,fee:.05,maxPrice:50000000};   // phí sàn 5% trên 
 const ACTS=['','noi','quay','gong','hokage','kiss','attack','hurt','fish','sleep','ko','work','phone','shower','cook','herd','wrestle','swim','wheelie','shisha'];
 const ACT_DUR={noi:2,quay:2.4,gong:1.6,hokage:4.4,kiss:2.6,attack:.35,hurt:.4,ko:3};
 // cờ trong gói vị trí
-const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192};   // coat: 2 bit màu ngựa (×8192)
+const FL={kayak:1,fish:2,dirty:4,tired:8,ride:16,moto:32,drunk:64,car:128,incar:256,helmet:512,bike:1024,optimus:2048,otruck:4096,coat:8192,mount:32768};   // coat: 2 bit màu ngựa (×8192) · mount: 3 bit thần thú đang cưỡi (×32768, 0 = ngựa thường)
 // cảnh → điểm đến Grab
 const SCENE_DEST={mu:'mu',lavi:'lavi',nghienmotion:'nghienmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',das:'das',lumen:'lumen',yenlang:'yenlang',pickle:'pickle',diep:'diep',room:'home',everfit:'everfit',retreat:'retreat',nongsan:'retreat',quanao:'retreat',club:'retreat',stay:'retreat',doncongan:'retreat',deo:'retreat',phongbay:'retreat',dalat:'dalat',track:'dalat',sieuthi:'retreat',net:'retreat',cafe2:'retreat',quan_lan:'dalat'};
 const SCENE_SIZE={mu:[96,30],lavi:[32,22],nghienmotion:[34,24],bearplus:[34,22],vnpt:[36,24],mieu:[40,32],das:[30,20],lumen:[38,36],yenlang:[38,18],linhcat:[24,16],pickle:[30,24],diep:[24,18],retreat:[340,124],dalat:[80,70],everfit:[34,21],track:[60,30],nongsan:[14,10],quanao:[14,10],club:[26,17],doncongan:[14,10],deo:[240,14],phongbay:[20,14],sieuthi:[20,14],net:[20,13],cafe2:[18,12],quan_lan:[16,11]};
@@ -1447,5 +1460,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  MU,muStats,muPower,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  MU,muStats,muPower,mythOf,mythIdx,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

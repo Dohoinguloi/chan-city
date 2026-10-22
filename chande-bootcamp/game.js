@@ -721,7 +721,7 @@ function travelAnim(ride){ travelling=true; const tc=$('#travel'); tc.hidden=fal
 let sendT=0, lastSent='', officeT=0, leaving=false;
 function speed(){ if(P.kayak) return 95; if(S.kind==='retreat'&&tileAt(P.x,P.y)==='L') return 45;   // lội nước chậm
   if(P.opt) return SD.RULES.run*SD.OPTIMUS[P.opt];
-  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding) return SD.RULES.run*SD.HORSE.speed; if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level);
+  if(P.pcar) return SD.RULES.run*SD.PCAR.speed; if(P.riding){ const mi=SD.mythIdx(G); return SD.RULES.run*SD.HORSE.speed*(mi?SD.HORSE.myth[mi-1].speed:1); }   /* thần thú chạy nhanh hơn */ if(P.moto) return SD.RULES.run*SD.MOTO.models[P.moto].speed*(P.speeding?SD.CSGT.speed.mul:1); const h=SD.hunger(G.meals,NET.now()); let s=SD.RULES.hungrySpeed[h]*(G.needs.energy<20?.8:1)*SD.lvSpeed(G.level);
   return ((down('shift')&&G.skills.run)?SD.RULES.run:SD.RULES.walk)*s; }
 // trạng thái gửi sang ambient.js (thời tiết, chim, lá rơi, đom đóm, nắng trong phòng)
 let AMB_ST=null; const TREES=[], AMB_NO=new Set(['deo']);
@@ -1005,13 +1005,13 @@ function line(g,x0,y0,x1,y1,w,col){ g.fillStyle=col; const n=Math.max(Math.abs(x
 function drawMounted(av,x,y,face,kind,o){ const AX=40, AY=66, g=CG; g.clearRect(0,0,80,72);
   const spr=o.spr; g.drawImage(spr.c,AX-spr.ax,AY-spr.ay);
   const fr=av&&av.anims&&av.anims.idle&&av.anims.idle.frames[0];
-  if(fr&&o.mode!=='fallen'){ const M=kind==='horse'?A.horse:o.model==='xedap'?A.bicycle:A.motorbike, sx=AX+M.seat.dx, sy=AY+M.seat.dy-(o.bob||0), col=riderCols(fr);
+  if(fr&&o.mode!=='fallen'){ const M=kind==='horse'?A.horse:kind==='myth'?o.M:o.model==='xedap'?A.bicycle:A.motorbike, sx=AX+M.seat.dx, sy=AY+M.seat.dy-(o.bob||0), col=riderCols(fr);
     g.drawImage(fr,0,0,32,41,sx-16,sy-41,32,41);                                    // thân trên tới hông
     if(o.helmet) helmetOn(g,fr,sx-16,sy-41);
-    if(kind==='horse'){ line(g,sx-1,sy,sx+2,sy+3,2,col.pants); line(g,sx+2,sy+3,sx+1,sy+8,2,col.pants); g.fillStyle=col.shoe; g.fillRect(sx,sy+9,4,2);
+    if(kind==='horse'||kind==='myth'){ line(g,sx-1,sy,sx+2,sy+3,2,col.pants); line(g,sx+2,sy+3,sx+1,sy+8,2,col.pants); g.fillStyle=col.shoe; g.fillRect(sx,sy+9,4,2);
       g.fillStyle='#9aa0a8'; g.fillRect(sx,sy+11,4,1);                                 // bàn đạp
       line(g,sx+3,sy-9,sx+6,sy-5,1,col.shirt); g.fillStyle='#f3b194'; g.fillRect(sx+6,sy-5,2,2);
-      line(g,sx+7,sy-4,AX+A.horse.mouth.dx,AY+A.horse.mouth.dy-(o.bob||0),1,'#5a3422'); }        // dây cương
+      if(M.mouth) line(g,sx+7,sy-4,AX+M.mouth.dx,AY+M.mouth.dy-(o.bob||0),1,'#5a3422'); }        // dây cương
     else { const pg=o.model==='xedap'?{dx:A.bicycle.peg.dx+(o.pedal?2:-1),dy:A.bicycle.peg.dy+(o.pedal?1:-1)}:A.motorbike.peg, br=M.bar, sc=o.model==='sh';
       line(g,sx-1,sy,sx+6,sy+(sc?2:0),2,col.pants); line(g,sx+6,sy+(sc?2:0),AX+pg.dx+(sc?2:0),AY+pg.dy+(sc?-1:0),2,col.pants); g.fillStyle=col.shoe; g.fillRect(AX+pg.dx+(sc?2:0),AY+pg.dy+1+(sc?-1:0),4,2);
       line(g,sx+3,sy-9,AX+br.dx-1,AY+br.dy+2,1,col.shirt); g.fillStyle='#f3b194'; g.fillRect(AX+br.dx-1,AY+br.dy+1,2,2); } }
@@ -1058,7 +1058,9 @@ function drawChar(c,av,x,y,face,view,anim,act,t,actT,fl){ const anims=av.anims;
   if(act&&anims[act==='gong'?'gong':act]){ an=anims[act==='gong'?'gong':act]; k=Math.max(0,Math.floor(actT*an.fps)); fr=an.loop?an.frames[k%an.frames.length]:an.frames[Math.min(an.frames.length-1,k)]; }
   else { an=anims[anim]||anims[anim&&anim.split('_')[0]]||anims.idle; fr=an.frames[Math.floor(t*an.fps)%an.frames.length]; }
   const flip=face<0&&(!!act||view==='side'||!anims[anim]);
-  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4; drawMounted(av,x,y,face,'horse',{spr:saddled(Math.floor((fl||0)/SD.FL.coat)&3,f,moving),bob:moving&&f%2?1:0}); return; }   // màu ngựa theo loại người cưỡi chọn
+  if(riding){ const moving=anim.startsWith('run')||anim.startsWith('walk'), f=Math.floor(t*(moving?12:3))%4, mi=Math.floor((fl||0)/SD.FL.mount)&7, mk=mi&&SD.HORSE.myth[mi-1]?SD.HORSE.myth[mi-1].k:'', my=mk&&A.mythMount?A.mythMount(mk,f,moving):null;
+    if(my){ drawMounted(av,x,y,face,'myth',{spr:my,M:A.mythMount.M[mk],bob:0}); return; }   /* thần thú (cường hoá ngựa) */
+    drawMounted(av,x,y,face,'horse',{spr:saddled(Math.floor((fl||0)/SD.FL.coat)&3,f,moving),bob:moving&&f%2?1:0}); return; }   // màu ngựa theo loại người cưỡi chọn
   if(fl&(SD.FL.optimus|SD.FL.otruck)){ const tr=!!(fl&SD.FL.otruck), moving=anim.startsWith('run')||anim.startsWith('walk'), v=view==='side'?'side':view==='up'?'up':'down', f=Math.floor(t*(moving?(tr?12:7):1));
     const pun=!tr&&act==='attack', s=pun?optSpr('robot','punch',0):optSpr(tr?'truck':'robot',v,f%2); shadow(x,y,tr?(v==='side'?46:20):14); drawFlip(s.c,x,y+(tr?4:2),s.ax,s.ay,(pun||v==='side')&&face<0); return; }
   if(fl&SD.FL.incar) return;   /* ngồi trong ô tô: không vẽ người */
@@ -1161,7 +1163,7 @@ function draw(){
     const dm=!STUNT.pick&&Math.sin(clock*1.3)>.6?'wheelie':'', bk=STUNT.bike||STUNT.preview||'wave';
     list.push({y:P.y+19,d:()=>{ shadow(dx,P.y+18,14); drawMounted(dc,dx,P.y+18,1,'bike',{spr:bikeOf(Math.floor(clock*12),'exciter',dm),model:'exciter',mode:dm}); }});
     list.push({y:P.y+8,d:()=>{ shadow(P.x,P.y+8,14); drawMounted(P.av,P.x,P.y+8,1,'bike',{spr:bikeOf(Math.floor(clock*12),bk,mode),model:bk,mode}); }}); }
-  else if(P.av) list.push({y:P.y,d:()=>drawChar(ctx,P.av,P.x,P.y,P.face,P.view,P.anim,P.act||(TASK&&TASK.anim)||(k==='phongbay'&&DANCE&&DANCE.st==='play'&&DANCE.me>=0?'quay':''),P.act?P.t:P.t,P.act?P.actT:P.t,(P.riding?SD.FL.ride+((G.horseCoat||0)&3)*SD.FL.coat:0)|(P.pcar?SD.FL.car:0)|(P.incar?SD.FL.incar:0)|(P.moto?SD.FL.moto:0)|(P.moto&&G.helmet&&P.moto!=='xedap'?SD.FL.helmet:0)|(P.opt==='robot'?SD.FL.optimus:0)|(P.opt==='truck'?SD.FL.otruck:0)|(P.kayak?SD.FL.kayak:0)|(FISH?SD.FL.fish:0)|(G.needs.clean<20?SD.FL.dirty:0))});
+  else if(P.av) list.push({y:P.y,d:()=>drawChar(ctx,P.av,P.x,P.y,P.face,P.view,P.anim,P.act||(TASK&&TASK.anim)||(k==='phongbay'&&DANCE&&DANCE.st==='play'&&DANCE.me>=0?'quay':''),P.act?P.t:P.t,P.act?P.actT:P.t,(P.riding?SD.FL.ride+((G.horseCoat||0)&3)*SD.FL.coat+SD.mythIdx(G)*SD.FL.mount:0)|(P.pcar?SD.FL.car:0)|(P.incar?SD.FL.incar:0)|(P.moto?SD.FL.moto:0)|(P.moto&&G.helmet&&P.moto!=='xedap'?SD.FL.helmet:0)|(P.opt==='robot'?SD.FL.optimus:0)|(P.opt==='truck'?SD.FL.otruck:0)|(P.kayak?SD.FL.kayak:0)|(FISH?SD.FL.fish:0)|(G.needs.clean<20?SD.FL.dirty:0))});
   for(const f of fx) if(f.ground) drawFx(f,cx,cy);                       // vệt dưới chân (nước vàng loang...)
   if(window.AMB&&AMB_ST){ AMB.list(list,ctx,cx,cy); AMB.decor(list,ctx,cx,cy,AMB_ST); }
   const hp=plotTarget(); if(hp){ ctx.fillStyle=`rgba(255,216,74,${.16+.08*Math.sin(clock*6)})`; ctx.fillRect(hp.X-cx,hp.Y-cy,T,T); }   // ô đất đang chọn: tô nền

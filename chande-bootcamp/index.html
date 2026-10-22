@@ -184,10 +184,9 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 #hudItems{display:flex;gap:4px;padding:5px}
 /* MU Online: HUD máu / mana / chiêu, thanh boss, bảng chọn class */
 #muHud{pointer-events:auto;padding:5px 7px;display:grid;gap:4px} #muHud[hidden],#muBoss[hidden]{display:none!important} body:not(.playing) #muBoss{display:none!important}
-#muBoss{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(340px,58vw);padding:3px 8px;z-index:3;font-size:14px;display:grid;gap:3px;pointer-events:none}
+#muBoss{pointer-events:none;padding:4px 8px;font-size:14px;display:grid;gap:3px}   /* thanh boss: góc dưới trái, ngay trên khung MU */
 .mucdl{display:block;text-align:center;color:var(--muted);line-height:1.15} .mucdl b{font-weight:400;color:var(--gold)}
 .mub{display:grid;grid-template-columns:minmax(0,150px) 1fr 38px;gap:6px;align-items:center;line-height:1} .mub b{font-weight:400;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mub em{font-style:normal;color:#ff7a5a} .mub small{text-align:right}
-body.inmu #toasts{top:calc(16px + var(--mubh,0px))!important;bottom:auto!important}
 #muHud b{font-weight:400} .mubar{position:relative;display:block;height:12px;background:#2a1a1e;border:1px solid var(--ink)} .mubar i{display:block;height:100%} .mubar em{position:absolute;inset:0;font-style:normal;font-size:13px;line-height:12px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
 .mubar.hp i{background:#e8302a} .mubar.mp i{background:#3a6ad8} .mubar.boss i{background:linear-gradient(90deg,#8a1a5a,#e8302a)} #muSk{display:flex;gap:6px}
 .musk{position:relative;width:58px;height:58px;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);cursor:var(--cur-hand),pointer;overflow:hidden} .musk:hover{border-color:var(--gold)}
@@ -565,6 +564,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art14.js"></script>
 <script src="art15.js"></script>
 <script src="art16.js"></script>
+<script src="art17.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>

@@ -157,7 +157,16 @@ on('horse',(pl,m)=>{ const p=pl.prof, t=now();
   if(m.op==='coat'){ const c=m.c|0; if(c<0||c>=S.HORSE.coats.length) return {err:'?'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại ngựa'}; p.horseCoat=c; markDirty(pl); return {coat:c}; }   // chọn loại ngựa
   if(m.op==='mount'){ if(pl.scene!=='dalat'&&pl.scene!=='retreat'&&pl.scene!=='mu') return {err:'Chỉ cưỡi ngựa ngoài trời (Ké, thị trấn, Đà Lạt, MU Online)'}; if(!hasHorse(pl)) return {err:'Chưa có ngựa. Thuê hoặc mua ở trại anh Phong'};
     if(pl.kayak||pl.fishing) return {err:'Đang bận'}; pl.riding=true; return {}; }
-  if(m.op==='dismount'){ pl.riding=false; return {}; } });
+  if(m.op==='dismount'){ pl.riding=false; return {}; }
+  // cường hoá ngựa lên bậc thần thú kế tiếp (chỉ ngựa đã mua), chọn con đang cưỡi trong số đã mở ('' = ngựa thường)
+  if(m.op==='mythup'||m.op==='mythpick'){ if(!P.nearNpc(pl,'mu_tamer')&&!P.nearNpc(pl,'anhphong')&&!P.nearNpc(pl,'chuongngua')) return {err:'Gặp Người Thuần Thú (MU) hoặc trại ngựa'};
+    if(!(p.horse&&p.horse.own)) return {err:'Chỉ cường hoá được ngựa đã mua (không phải ngựa thuê)'}; const lv=p.horse.myth||0;
+    if(m.op==='mythup'){ const nx=S.HORSE.myth[lv]; if(!nx) return {err:'Đã cường hoá tới bậc cao nhất'};
+      for(const [k,n] of Object.entries(nx.jewels)) if((p.items[k]||0)<n) return {err:`Cần ${n} ${S.ITEMS[k].name} (rơi từ boss MU)`};
+      if(!take(pl,nx.price)) return {err:`Cần ${fmt(nx.price)} để cường hoá thành ${nx.name}`}; for(const [k,n] of Object.entries(nx.jewels)) addItem(pl,k,-n);
+      p.horse.myth=lv+1; if(p.look) p.look.mount=nx.k; markDirty(pl); C.refreshInfo(pl); return {msg:`Cường hoá thành công! Ngựa đã hoá ${nx.name}`,horse:p.horse,look:p.look}; }
+    const k=String(m.k||''), my=k&&S.mythOf(k); if(k&&(!my||my.lv>lv)) return {err:'Chưa mở bậc này'}; if(p.look) p.look.mount=k; markDirty(pl); C.refreshInfo(pl);
+    return {msg:k?`Đổi sang cưỡi ${my.name}`:'Cưỡi ngựa thường',look:p.look}; } });
 hook('tick',()=>{ for(const pl of players.values()) if(pl.riding&&!hasHorse(pl)){ pl.riding=false; note(pl,'Hết giờ thuê ngựa'); } });
 hook('leave',pl=>{ pl.riding=false; pl.herd=null; });
 // chăn ngựa: nhận đàn ở chuồng → dắt ra đồng cỏ → cho ăn cỏ 20 giây → dắt về

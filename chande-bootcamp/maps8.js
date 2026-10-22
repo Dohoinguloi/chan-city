@@ -308,7 +308,7 @@ function lgsIcon(k){ const set=Object.keys(M.legacy).find(s=>M.legacy[s].skill.k
   return c; }
 const skIcon=k=>cached('ski'+k+(k.startsWith('lgs_')?JSON.stringify(GAME.G.look.outfit):''),()=>skDraw(k).toDataURL());
 function ensureHud(){ let h=$('#muHud'); if(h) return h; h=document.createElement('div'); h.id='muHud'; h.className='panel'; h.innerHTML='<div id="muMe"></div><div id="muSk"></div>';
-  const box=$('#chatBox'); if(box) box.prepend(h); else document.body.appendChild(h); const bb=document.createElement('div'); bb.id='muBoss'; bb.className='panel'; document.body.appendChild(bb);
+  const box=$('#chatBox'), bb=document.createElement('div'); bb.id='muBoss'; bb.className='panel'; if(box){ box.prepend(h); box.prepend(bb); } else { document.body.appendChild(bb); document.body.appendChild(h); }   /* thanh boss nằm trên khung MU, trên ô chat */
   h.addEventListener('click',e=>{ if(e.target.closest('[data-mupas]')){ e.preventDefault(); openPas(); return; } const b=e.target.closest('[data-musk]'); if(b){ e.preventDefault(); skill(+b.dataset.musk); } }); return h; }
 const fmtLeft=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
 function hud(){ const h=ensureHud(), b=$('#muBoss'), on=here(); h.hidden=!on; b.hidden=!on; document.body.classList.toggle('inmu',on); if(!on) return; const me=$('#muMe'), sk=$('#muSk');
@@ -316,7 +316,7 @@ function hud(){ const h=ensureHud(), b=$('#muBoss'), on=here(); h.hidden=!on; b.
   const cdh=cdl.length?`<small class="mucdl" id="muCdl">${cdl.map(id=>`${id==='luffy'?'👑':'⏳'} ${esc(BS[id].name.split(' ')[0])} <b data-id="${id}">${fmtLeft(NEXT[id]-NET.now())}</b>`).join(' · ')}</small>`:'';
   if(BOSSES.length) b.innerHTML=cdh+BOSSES.map(x=>`<div class="mub"><b>${x.id==='luffy'?'👑':'⚔'} ${esc(x.name)}${x.phase>1?` <em>${x.phase===3?'🔥 nổi giận':'GĐ 2'}</em>`:''}</b><span class="mubar boss"><i style="width:${Math.max(0,100*x.hp/x.max)}%"></i></span><small>${Math.max(0,Math.round(x.hp))}</small></div>`).join('');
   else b.innerHTML=cdh;
-  document.documentElement.style.setProperty('--mubh',(b.innerHTML?b.offsetHeight:0)+'px');
+  b.hidden=!b.innerHTML;
   if(!ME||!ME.cls){ me.innerHTML='<small>Gặp <b>Vệ binh</b> ở cổng thành để chọn class, nhận free giáp + vũ khí</small>'; sk.innerHTML=''; return; }
   const c=M.cls[ME.cls]; me.innerHTML=`<b style="color:${c.col}">${esc(c.name)}</b> <small>Lv${ME.lv} · ⚔ Lực chiến <b>${ME.cp||0}</b> · EXP ${ME.exp}/${ME.next}${ME.fruit?` · 🍇 ${esc(F[ME.fruit].name.split(' (')[0])}`:''}${ME.wep?` · 🗡 ${esc(M.weapons[ME.wep].name)}`:''}${ME.duel?' · ⚔ đang thách đấu':''}${ME.buff?' · 🛡 gồng giáp':''}</small>
     <span class="mubar hp"><i style="width:${100*ME.hp/ME.max}%"></i><em>${ME.hp}/${ME.max}</em></span><span class="mubar mp"><i style="width:${100*ME.mp/ME.mmax}%"></i><em>${ME.mp}/${ME.mmax}</em></span>${ME.dead?'<small class="bad">💀 Đang gục, chờ hồi sinh...</small>':''}`;
@@ -333,7 +333,7 @@ UI.defPlace('muguard',()=>UI.open('Vệ binh Lục Địa Cát',()=>{ const cur=
     ${cur===k?'<small class="good">✔ Class hiện tại</small>':btn('mucls',cur?'Đổi sang (300.000đ)':'Chọn class này',{k},'pri')}</div>`).join('')}</div>
   <h5>🍇 Trái Ác Quỷ ${ME&&ME.fruit?`· đã ăn: ${esc(F[ME.fruit].name)}`:''}</h5>${fr.length?`<div class="list">${fr.map(k=>`<div class="row">${UI.ico('fruit_'+k)}<span><b>${esc(F[k].name)}</b><br><small class="muted">Phím 4: ${esc(F[k].skill.name)} · ${esc(F[k].desc)}</small></span>${ME&&ME.fruit?'':btn('mueat','Ăn',{k},'pri')}</div>`).join('')}</div>`:`<p class="muted">Hạ boss tổng Luffy Gear 5 có cơ hội rơi Trái Ác Quỷ (1/10 số người góp sức). Ăn vào được chiêu thứ 4 + chỉ số. Mỗi người chỉ ăn được 1 trái.</p>`}
   <h5>🗡 Vũ khí</h5>${ws.length?`<div class="list">${ws.map(k=>`<div class="row">${UI.ico(SD.ITEMS[k].icon)}<span><b>${esc(M.weapons[k].name)}</b><br><small class="muted">${esc(M.weapons[k].desc)}</small></span>${ME&&ME.wep===k?'<small class="good">Đang cầm</small>':btn('muwep','Cầm',{k})}</div>`).join('')}</div>`:'<p class="muted">Boss phụ (Naruto, Quỷ Cưa, Dươngg Vũ, Rồng Dải Xanh) có tỉ lệ rơi vũ khí và trang phục riêng.</p>'}
-  <p class="muted">🛍 Set legacy (thêm chiêu phím 5) bán ở <b>Thương nhân Huyền Thoại</b> (quầy Premium bên trái quảng trường) · cánh, dây chuyền, vật hộ thân, aura ở <b>Thợ Kim Hoàn</b> (bên phải) · 50 vũ khí ở <b>Thợ Rèn Huyền Thoại</b> (bên trái) · bấm ⭐ cạnh ô chiêu để cộng điểm nội tại.</p>
+  <p class="muted">🛍 Set legacy (thêm chiêu phím 5) bán ở <b>Thương nhân Huyền Thoại</b> (quầy Premium bên trái quảng trường) · cánh, dây chuyền, vật hộ thân, aura ở <b>Thợ Kim Hoàn</b> (bên phải) · 50 vũ khí ở <b>Thợ Rèn Huyền Thoại</b> (bên trái) · cường hoá ngựa thành thần thú ở <b>Người Thuần Thú</b> (góc dưới phải) · bấm ⭐ cạnh ô chiêu để cộng điểm nội tại.</p>
   ${qs.length?`<h5>🔍 Nhiệm vụ ẩn</h5>${qs.map(UI.qRow).join('')}`:''}
   <p class="muted">Boss tổng Luffy Gear 5 ở đền phía Bắc, hạ xong 20 phút sau mới ra lại (boss phụ 10–18 phút); boss phụ ở rừng Làng Lá, Đầm Rồng, nghĩa địa, bãi phế liệu phía Đông. Đòn boss đều có vòng cảnh báo đỏ: chạy ra khỏi vòng trước khi vòng vàng thu hết là né được!</p>`; },{wide:true,static:true}));
 UI.onAct('mucls',async d=>{ const r=await GAME.act({t:'mu',op:'class',cls:d.k}); if(r&&!r.err){ UI.closeAll(); GAME.sfx('level_up',.7); GAME.bigText(M.cls[d.k].name.toUpperCase()); toast(esc(r.msg),'item'); } });
@@ -393,10 +393,10 @@ function openPas(){ UI.open('⭐ Nội tại',()=>{ if(!ME||!ME.cls) return '<p>
 UI.onAct('mupas',async d=>{ const r=await GAME.act({t:'mu',op:'pas',k:d.k}); if(r&&!r.err) GAME.sfx('level_up',.4); UI.refresh(); });
 UI.onAct('mupasreset',async()=>{ const r=await GAME.act({t:'mu',op:'pasreset'}); if(r&&!r.err) toast(esc(r.msg),'item'); UI.refresh(); });
 // vẽ phụ kiện trên người (mình + người khác, mọi map): aura dưới chân, cánh sau lưng (đi lên thì cánh ở trước), vật hộ thân bay cạnh vai, dây chuyền trên ngực
-function accPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look&&GAME.G.look.acc; if(me&&Object.keys(me).length&&!P.incar) out.push({x:P.x,y:P.y,face:P.face,view:P.view,acc:me,mv:P.moving,rd:!!P.riding,k:'me'});
-  for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; if(r._lk!==r.look){ r._lk=r.look; try{ r._acc=JSON.parse(r.look).acc||null; }catch(e){ r._acc=null; } } if(r._acc&&Object.keys(r._acc).length) out.push({x:r.x,y:r.y,face:r.face,view:r.view,acc:r._acc,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!((r.fl||0)&SD.FL.ride),k:r.id}); }
+function accPeople(){ const out=[], P=GAME.P, me=GAME.G&&GAME.G.look&&GAME.G.look.acc; if(me&&Object.keys(me).length&&!P.incar) out.push({x:P.x,y:P.y,face:P.face,view:P.view,acc:me,mv:P.moving,rd:!!P.riding,mi:P.riding?SD.mythIdx(GAME.G):0,k:'me'});
+  for(const r of (GAME.REM||new Map()).values()){ if(!r.look) continue; if(r._lk!==r.look){ r._lk=r.look; try{ r._acc=JSON.parse(r.look).acc||null; }catch(e){ r._acc=null; } } if(r._acc&&Object.keys(r._acc).length) out.push({x:r.x,y:r.y,face:r.face,view:r.view,acc:r._acc,mv:(r.anim||'').startsWith('walk')||(r.anim||'').startsWith('run'),rd:!!((r.fl||0)&SD.FL.ride),mi:Math.floor((r.fl||0)/SD.FL.mount)&7,k:r.id}); }
   return out; }
-function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, Xg=Math.round(o.x-cam.x), Yg=Math.round(o.y-cam.y), X0=Xg+(o.rd?-4*o.face:0), Y0=Yg-(o.rd?8:0),   /* đang cưỡi ngựa: người ngồi cao hơn 8px, lùi 4px */ side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
+function drawAcc(list,ctx,cam,clock){ for(const o of accPeople()){ const a=o.acc, Xg=Math.round(o.x-cam.x), Yg=Math.round(o.y-cam.y), st=o.rd?(o.mi&&SD.HORSE.myth[o.mi-1]&&A.mythMount?A.mythMount.M[SD.HORSE.myth[o.mi-1].k].seat:{dx:-4,dy:-15}):null, X0=Xg+(st?st.dx*o.face:0), Y0=Yg+(st?st.dy+7:0),   /* đang cưỡi: dời theo yên ngựa / thần thú */ side=o.view==='side', back=o.view==='up', bob=Math.round(Math.sin(clock*3+(o.k==='me'?0:o.k))*1.5);
   if(a.aura&&AC[a.aura]){ const col=AC[a.aura].col; list.push({y:o.y-.6,d:()=>{ const g=ctx, cy=Yg-1, X0=Xg; g.save(); g.globalCompositeOperation='lighter';
       const gr=g.createRadialGradient(X0,cy,0,X0,cy,19); gr.addColorStop(0,col+'66'); gr.addColorStop(1,col+'00'); g.fillStyle=gr; g.beginPath(); g.ellipse(X0,cy,19,7.5,0,0,7); g.fill();
       g.strokeStyle=col; g.lineWidth=1; g.globalAlpha=.85; g.beginPath(); g.ellipse(X0,cy,16,6,0,0,7); g.stroke();
@@ -416,6 +416,20 @@ UI.defPlace('musmith',()=>UI.open('Thợ Rèn Huyền Thoại · 50 vũ khí',()
     return `<div class="mulgc wr${w.star}"><img src="${wImg(k)}" width="48" height="48" alt=""><b>${esc(w.name)}</b><small class="star">${'★'.repeat(w.star)} ${esc(M.wrank[w.star])}</small><small>Công +${Math.round(w.atk*100)}%</small>${up>0?`<small class="good">+${up} lực chiến</small>`:''}
       <div class="mulgb">${it[k]?(cur===k?'<small class="good">✔ Đang cầm</small>':btn('musmithbuy','Cầm',{k},'pri')):btn('musmithbuy','Mua '+SD.fmt(w.price),{k},'pri')}</div></div>`; }).join('')}</div>`).join('')}`; },{wide:true}));
 UI.onAct('musmithbuy',async d=>{ const r=await GAME.act({t:'mu',op:'smithbuy',k:d.k}); if(r&&!r.err){ GAME.sfx('item_pickup',.7); toast(esc(r.msg),'item'); } UI.refresh(); });
+// Người Thuần Thú: cường hoá ngựa đã mua lần lượt 6 bậc thần thú, cưỡi con nào cũng được trong số đã mở
+const mountImg=k=>cached('mimg'+k+(k?'':(G().horseCoat||0)),()=>{ const s=k?A.mythMount(k,0,false):A.horse(0,G().horseCoat||0,false,true), c=A.cv(128,104), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
+  g.drawImage(s.c,64-s.ax*2,100-s.ay*2,s.c.width*2,s.c.height*2); return c.toDataURL(); });
+UI.defPlace('mutamer',()=>UI.open('Người Thuần Thú · Cường hoá ngựa',()=>{ const g=G(), h=g.horse||{}, lv=h.myth||0, cur=(g.look&&g.look.mount)||'', it=g.items||{};
+  return `<p>"Mang ngựa đã mua tới đây, ta cường hoá thành thần thú! Mỗi bậc chạy nhanh hơn, cộng máu + công MU. Đã mở bậc nào thì cưỡi con nào cũng được, ai cũng thấy."</p>
+  ${h.own?`<p class="muted">Ngựa của bạn: <b>bậc ${lv}/${SD.HORSE.myth.length}</b> · bấm H để lên ngựa</p>`:'<p class="bad">Chưa có ngựa riêng: mua ngựa ở trại anh Phong (Đà Lạt) hoặc chú Hải (thị trấn Đà Bắc) trước (ngựa thuê không cường hoá được).</p>'}
+  <div class="mulg">${[{k:'',name:'Ngựa thường',desc:'Ngựa mua ở trại',lv:0}].concat(SD.HORSE.myth).map(m=>{ const open=m.lv<=lv, next=m.lv===lv+1, need=Object.entries(m.jewels||{}).map(([k,n])=>`${n} ${SD.ITEMS[k].name} (có ${it[k]||0})`).join(', ');
+    return `<div class="mulgc ${m.lv>=5?'wr5':m.lv>=3?'wr4':m.lv?'wr3':''}"><img src="${mountImg(m.k)}" width="128" height="104" alt=""><b>${esc(m.name)}</b>${m.lv?`<small class="star">${'★'.repeat(m.lv)} Bậc ${m.lv}</small>`:''}<small>${esc(m.desc)}</small>
+      ${m.lv?`<small class="good">Tốc độ +${Math.round((m.speed-1)*100)}% · Máu +${Math.round(m.bonus.hp*100)}% · Công +${Math.round(m.bonus.atk*100)}%</small>`:''}
+      <div class="mulgb">${!h.own?'':open?(cur===m.k?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:m.k},'pri')):next?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('mythup','Cường hoá '+SD.fmt(m.price),{},'pri')}`:'<small class="muted">🔒 Cường hoá bậc trước</small>'}</div></div>`; }).join('')}</div>
+  <p class="muted">Ngọc Ước Nguyện, Ngọc Tâm Linh, Ngọc Hỗn Nguyên rơi từ boss tổng Luffy Gear 5.</p>`; },{wide:true}));
+const mythDone=r=>{ if(!r||r.err) return; if(r.horse) GAME.G.horse=r.horse; if(r.look) GAME.G.look=r.look; toast(esc(r.msg),'item'); UI.refresh(); };
+UI.onAct('mythup',async()=>{ const r=await GAME.act({t:'horse',op:'mythup'}); if(r&&!r.err){ GAME.sfx('level_up',.8); const m=SD.mythOf(r.look&&r.look.mount); if(m) GAME.bigText(m.name.toUpperCase()+'!'); } mythDone(r); });
+UI.onAct('mythpick',async d=>mythDone(await GAME.act({t:'horse',op:'mythpick',k:d.k})));
 /* ======================= thách đấu + nhặt đồ nhiệm vụ ẩn ======================= */
 const HID_Q={cuon_truc:'mu_cuontruc',banh_mut:'mu_banhmut',lua_ma:'mu_lua_ma',vay_rong:'mu_vayrong'};
 const nightNow=()=>{ const h=SD.vnTime(NET.now()).hf; return h>=19||h<5; };
