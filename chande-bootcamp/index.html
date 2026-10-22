@@ -293,6 +293,12 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 .panel .list:not(.rows)>.row:hover{border-color:rgba(255,255,255,.28)}
 .panel .list:not(.rows)>.row.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
 .panel .list:not(.rows)>.row>span:first-of-type{flex:1 1 calc(100% - 64px);min-width:0}
+/* thumbnail thẻ cửa sổ: khung vuông nền màu toả sáng, icon pixel to */
+.rth{flex:none;font-style:normal;width:54px;height:54px;display:grid;place-items:center;background:radial-gradient(circle at 50% 38%,hsl(var(--h) 75% 74%),hsl(var(--h) 55% 30%) 78%);border:2px solid #120c16;box-shadow:0 0 0 1px rgba(255,255,255,.2),inset 0 0 0 1px rgba(255,255,255,.28),0 2px 0 #0a0810;position:relative;overflow:hidden}
+.rth::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 40%)} .rth img,.rth .ico{width:42px!important;height:42px!important;image-rendering:pixelated;position:relative;z-index:1;filter:drop-shadow(1px 2px 0 rgba(0,0,0,.35))}
+.rth.wide{width:64px} .rth.wide img{width:56px!important;height:42px!important}
+.panel .list:not(.rows)>.row>.rth+span{flex:1 1 calc(100% - 132px)} .panel .list:not(.rows)>.row>span:first-of-type>b:first-child,.panel .list:not(.rows)>.row>span:first-of-type{font-size:19px}
+.panel .list:not(.rows)>.row{min-height:96px}
 .panel .list:not(.rows)>.row>span:first-of-type small{display:block;margin-top:3px;line-height:1.25}
 .panel .list:not(.rows)>.row>span:nth-of-type(2){flex:1 1 auto}
 .panel .list:not(.rows)>.row>.btn:first-of-type{margin-left:auto}
