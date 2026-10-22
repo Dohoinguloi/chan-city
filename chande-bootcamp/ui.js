@@ -135,6 +135,7 @@ function menuHtml(pc){ const ms=SD.mealStatus(G().meals,NET.now()), now=NET.now(
     if(!f.meal&&left>0) return `<button class="btn sm" disabled>Đã ${f.buff?'uống':'ăn'} · còn ${Math.ceil(left/60e3)} phút</button>`; return btn('eat',f.meal||f.snack?'Ăn':'Uống',{p:pc.key,id},'pri'); };
   return money()+`<p>Bữa: ${ms.map(m=>`<span class="meal ${m.st}">${m.name.replace('Bữa ','')}</span>`).join(' ')} <span class="muted">· trễ giờ thì ăn bù được</span></p><div class="list">`+
     pc.menu.map(id=>{ const f=SD.FOOD[id]; return `<div class="row"><span>${esc(f.name)} <small class="muted">${f.meal?'no 1 bữa':f.buff?'+'+Math.round((f.buff.mul-1)*100)+'% EXP '+f.buff.min+' phút':'ăn vặt, không tính bữa'} · +${f.exp} EXP</small></span><span>${fmt(f.price)}</span>${eatBtn(id,f)}</div>`; }).join('')+'</div>'; }
+PLACE.mu_quan=()=>open(SD.PLACES.mu_quan.name,()=>`<p>"Đánh boss mỏi tay thì ghé ăn một bữa cho chắc bụng nhé!"</p>`+menuHtml({...SD.PLACES.mu_quan,key:'mu_quan'}));   // quán ăn ở quảng trường MU
 for(const k of ['quan_com','cafe','nha_an']) PLACE[k]=()=>open(SD.PLACES[k].name,()=>menuHtml({...SD.PLACES[k],key:k})+(k==='quan_com'?sellHtml(Object.keys(SD.FISH),'Chú Tư mua cá'):''));
 ACT.eat=d=>req({t:'eat',place:d.p,id:d.id});
 function sellHtml(keys,head){ const g=G(), rows=keys.filter(k=>g.items[k]).map(k=>`<div class="row">${ico(k)}<span>${esc(SD.ITEMS[k].name)} ×${g.items[k]}</span><span>${fmt(SD.SELL[k]*(g.skills.damphan?1.1:1))}/cái</span>${btn('sell','Bán hết',{k},'pri')}</div>`);

@@ -117,6 +117,22 @@ const C={
     if(f&&!U.nowep){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
     if(s&&!U.nowep){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
     if(v==='back'){ U.rows(17,32,(x,y)=>U.put(x,y,(x===5||x===14)?'&':'*')); } },
+  // MU Online · Đại Tượng: giáp voi chiến thép xám viền vàng, mũ đầu voi (vòi giữa trán, 2 tai lớn trong hồng, ngà trắng), giáp vai to, khiên tháp tay trái, chuỳ gai tay phải
+  mu_dt(U,v){ const s=v==='side', f=v==='front';
+    U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)) U.put(x,y,(y===19||y===22)?'%':'_'); }); U.rows(26,26,(x,y,c)=>{ if(c==='U'||BODY_T.includes(c)) U.put(x,y,'$'); });
+    U.rows(27,33,(x,y,c)=>{ if(LEG.includes(c)&&(y===29||y===33)) U.put(x,y,'_'); });
+    if(f){ U.rect(3,-1,16,3,'_'); U.rect(5,-2,14,-2,'_'); U.rect(3,3,16,3,'$'); U.rect(8,-1,11,-1,'%');   /* mũ đầu voi */
+      U.rect(-1,3,2,12,'_'); U.rect(0,5,1,10,'!'); U.rect(17,3,20,12,'_'); U.rect(18,5,19,10,'!');   /* 2 tai voi */
+      U.rect(9,4,10,8,'_'); U.put(9,9,'_'); U.put(10,9,'%'); U.put(4,13,'/'); U.put(3,14,'/'); U.put(15,13,'/'); U.put(16,14,'/');   /* vòi + ngà */
+      U.rect(-2,17,4,21,'_'); U.rect(15,17,21,21,'_'); U.rect(-2,21,4,21,'$'); U.rect(15,21,21,21,'$'); U.rect(-1,17,3,17,'%'); U.rect(16,17,20,17,'%');   /* giáp vai */
+      U.rect(-5,15,-1,31,'_'); U.rect(-5,15,-1,15,'$'); U.rect(-5,31,-1,31,'$'); U.rect(-5,15,-5,31,'$'); U.rect(-1,15,-1,31,'$'); U.rect(-3,20,-3,25,'/'); U.rect(-4,21,-2,22,'%');   /* khiên tháp */
+      if(!U.nowep){ U.rect(21,14,21,30,'>'); U.rect(19,9,23,13,'%'); U.rect(19,9,23,9,'_'); U.put(18,11,'_'); U.put(24,11,'_'); U.put(21,8,'_'); U.rect(19,11,23,11,'$'); } }   /* chuỳ gai */
+    if(s){ U.rect(4,-1,16,3,'_'); U.rect(6,-2,14,-2,'_'); U.rect(4,3,16,3,'$'); U.rect(3,3,6,12,'_'); U.rect(4,5,5,10,'!');   /* mũ + tai voi phía sau */
+      U.rect(17,3,18,9,'_'); U.rect(18,10,19,12,'_'); U.put(19,13,'%'); U.put(16,13,'/'); U.put(17,14,'/'); U.put(18,14,'/');   /* vòi cong xuống trước mặt + ngà */
+      U.rect(8,17,14,21,'_'); U.rect(8,21,14,21,'$'); U.rect(9,17,13,17,'%');   /* giáp vai */
+      U.rect(16,15,20,31,'_'); U.rect(16,15,20,15,'$'); U.rect(16,31,20,31,'$'); U.rect(20,15,20,31,'$'); U.rect(18,20,18,25,'/'); }   /* khiên tháp đưa ra trước */
+    if(v==='back'){ U.rect(3,-1,16,3,'_'); U.rect(5,-2,14,-2,'_'); U.rect(-1,3,2,12,'_'); U.rect(17,3,20,12,'_'); U.rect(-2,17,4,21,'_'); U.rect(15,17,21,21,'_'); U.rect(-2,21,4,21,'$'); U.rect(15,21,21,21,'$');
+      U.rows(19,26,(x,y)=>{ if(x>=6&&x<=13&&(y===20||y===24)) U.put(x,y,'$'); }); } },
   // đồ ninja cam: vai + hông đen, băng đeo trán xanh có tấm kim loại, khoá kéo trắng
   mu_naruto(U,v){ const s=v==='side'; U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y<=20||y>=25)) U.put(x,y,'@'); });
     if(v==='front'){ U.rect(9,21,10,26,'#'); U.rect(3,8,16,9,'?'); U.rect(7,8,12,9,'%'); U.rect(8,8,11,8,'_'); U.rect(0,8,2,9,'?'); }

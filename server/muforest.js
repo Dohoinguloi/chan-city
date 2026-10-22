@@ -17,17 +17,19 @@ const dOf=(o,q)=>Math.hypot(q.x/T-o.x,q.y/T-o.y);
 // hiệu ứng quái chỉ gửi cho người ở gần (trong khung nhìn rộng)
 const nearB=(x,y,obj)=>{ for(const q of MU.inScene()) if(Math.abs(q.x/T-x)<26&&Math.abs(q.y/T-y)<20) send(q,obj); };
 function step(o,tx,ty,v,dt){ if(o.slow>now()) v*=.45; const dx=tx-o.x,   /* bị làm chậm (Băng Phong của Lính Cát huyền thoại): đi chậm hơn hẳn */  dy=ty-o.y, d=Math.hypot(dx,dy); if(d<.05) return true; const s=Math.min(d,v*dt); o.x+=dx/d*s; o.y+=dy/d*s; if(Math.abs(dx)>.05) o.face=dx>0?1:-1; return s>=d; }
+const wk=(o,t)=>o.weak&&o.weak.until>t?1-o.weak.mul:1;   /* bị Phun Lửa: đánh yếu đi */
 let lastT=now();
 function tick(){ const t=now(), dt=Math.min(.5,(t-lastT)/1000); lastT=t; if(!MU.inScene().length) return; const live=MU.alive();
   for(const o of MOBS.values()){ const m=F.mobs[o.k];
     if(o.dead){ if(t>=o.dead){ Object.assign(o,make(o.k,o.pi,o.i),{id:o.id}); } continue; }
+    if(o.stun>t){ o.st=ST.idle; continue; }   /* bị choáng: đứng im, bỏ đòn đang vung */
     const home=Math.hypot(o.x-o.hx,o.y-o.hy);
     if(o.back){ o.st=ST.back; if(step(o,o.hx,o.hy,m.spd*1.6,dt)){ o.back=false; o.hp=o.max; o.dmg.clear(); o.st=ST.idle; } continue; }
     if(home>F.leash){ o.back=true; o.tgt=0; o.wind=0; continue; }
     // đang vung đòn: tới giờ thì ra đòn
     if(o.wind){ o.st=ST.wind; if(t<o.wind) continue; o.wind=0; o.cd=t+m.every*1000; const q=C.players.get(o.tgt);
-      if(q&&live.includes(q)){ if(m.kind==='ranged'||m.kind==='float'&&m.range>2){ const d=Math.hypot(o.ax-o.x,o.ay-o.y); SHOTS.push({o,q,x:o.ax,y:o.ay,at:t+d/9*1000,dmg:m.atk}); nearB(o.x,o.y,{t:'mufx',k:'mobshot',id:o.id,mk:o.k,x0:o.x,y0:o.y,x:o.ax,y:o.ay,dur:d/9}); }
-        else if(dOf(o,q)<=m.range+.6) MU.hurtP(q,m.atk,`Bị ${m.name} hạ gục`,{mob:o.id}); else nearB(o.x,o.y,{t:'mufx',k:'mobmiss',id:o.id}); }
+      if(q&&live.includes(q)){ if(m.kind==='ranged'||m.kind==='float'&&m.range>2){ const d=Math.hypot(o.ax-o.x,o.ay-o.y); SHOTS.push({o,q,x:o.ax,y:o.ay,at:t+d/9*1000,dmg:m.atk*wk(o,t)}); nearB(o.x,o.y,{t:'mufx',k:'mobshot',id:o.id,mk:o.k,x0:o.x,y0:o.y,x:o.ax,y:o.ay,dur:d/9}); }
+        else if(dOf(o,q)<=m.range+.6) MU.hurtP(q,m.atk*wk(o,t),`Bị ${m.name} hạ gục`,{mob:o.id}); else nearB(o.x,o.y,{t:'mufx',k:'mobmiss',id:o.id}); }
       o.st=ST.idle; continue; }
     // chọn mục tiêu: người đang đánh mình / gần nhất trong tầm aggro, không ra quá xa ổ
     let q=o.tgt&&C.players.get(o.tgt); if(q&&(!live.includes(q)||Math.hypot(q.x/T-o.hx,q.y/T-o.hy)>F.leash+2)) q=null;
@@ -68,7 +70,7 @@ MU.EXTRA.push({kind:'mob',nearest:pl=>{ const px=pl.x/T, py=pl.y/T; if(pl.scene!
   // các con quái khác quanh 1 điểm (giật lan): n con gần nhất trong r ô, trừ con đang nhắm
   byId:(id,pl)=>{ const o=MOBS.get(id); return o&&!o.dead&&pl.scene==='mu'?asTarget(o,Math.hypot(pl.x/T-o.x,pl.y/T-o.y)):null; },
   around:(x,y,r,n,skip,sc)=>sc&&sc!=='mu'?[]:[...MOBS.values()].filter(o=>!o.dead&&o.id!==skip&&Math.hypot(o.x-x,o.y-y)<=r).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y)).slice(0,n).map(o=>asTarget(o,0))});
-function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; }}; }
+function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; },stun:sec=>{ o.stun=now()+sec*1000; o.wind=0; },weak:(mul,sec)=>{ o.weak={until:now()+sec*1000,mul}; }}; }
 // thu mua chiến lợi phẩm rừng (Phù Thuỷ Cường Hoá): bán 1 loại hoặc tất cả
 on('mobsell',(pl,m)=>{ if(pl.scene!=='mu'||!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const it=pl.prof.items, ks=m.k?[String(m.k)]:Object.keys(S.MU.matPrice);
   let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=S.MU.matPrice[k]; if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }

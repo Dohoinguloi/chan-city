@@ -1,7 +1,7 @@
 // Vùng boss phía Tây của map MU (x 0–63): Làng Meme trên cùng có tường kín. Mua vé ở quầy ngay dưới cổng làng (mỗi ngày 3 vé, 1 triệu / vé)
 // thì được đưa vào đánh Pepe; ra bằng cổng cầu vồng trong làng, gục thì hồi sinh ở cổng thành MU như thường.
 'use strict';
-const C=require('./core'), MU=require('./mu');
+const C=require('./core'), MU=require('./mu'), {shopPay}=require('./perks');   // ngủ trưa: giảm 20% cho học viên / nhân viên
 const {S,T,on,take,markDirty}=C, ME=S.MU.west.meme;
 const near=(pl,x,y,r)=>Math.hypot(pl.x/T-x,pl.y/T-y)<=r;
 const inMeme=(x,y)=>x>=ME.x0-1&&x<=ME.x1+1&&y>=ME.y0-1&&y<=ME.y1+1;
@@ -13,4 +13,9 @@ on('muw',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const op=m.op, tk=t
     tk.n++; markDirty(pl); C.moveTo(pl,'mu',ME.inside.x,ME.inside.y); return {ok:1,left:ME.perDay-tk.n,msg:`Vào Làng Meme! Hôm nay còn ${ME.perDay-tk.n} vé`}; }
   if(op==='out'){ if(pl.scene!=='mu'||!inMeme(pl.x/T,pl.y/T)||!near(pl,ME.exit.x,ME.exit.y,2.6)) return {err:'Tới cổng ra của làng'}; C.moveTo(pl,'mu',ME.booth.x+1.5,ME.booth.y+1.4); return {ok:1}; }
   return {err:'?'}; });
+// Phòng Nghỉ Trưa ở quảng trường MU: trả tiền, nằm nghỉ là hồi năng lượng ngay, 30 phút mới nghỉ tiếp được
+on('munap',pl=>{ const p=pl.prof, N=S.MU.nap, t=C.now(); if(!p) return {err:'?'}; if(pl.scene!=='mu'||!near(pl,N.x,N.y,2.8)) return {err:'Vào Phòng Nghỉ Trưa ở quảng trường MU'};
+  if((p.muNapAt||0)>t) return {err:`Vừa ngủ trưa xong, ${Math.ceil((p.muNapAt-t)/60e3)} phút nữa mới nghỉ tiếp được`}; if(p.needs.energy>=99) return {err:'Đang đầy năng lượng rồi'};
+  if(!shopPay(pl,N.price)) return {err:`Ngủ trưa ${S.fmt(N.price)}, không đủ tiền`}; p.muNapAt=t+N.cd*60e3; const before=p.needs.energy; p.needs.energy=Math.min(100,p.needs.energy+N.energy); markDirty(pl);
+  C.send(pl,{t:'nd',n:{energy:+p.needs.energy.toFixed(1)}}); return {msg:`Ngủ trưa một giấc: +${Math.round(p.needs.energy-before)} năng lượng`}; });
 module.exports={inMeme,ticketOf};

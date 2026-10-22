@@ -83,6 +83,18 @@ B19.yeunu={w:48,h:66,ax:24,ay:64,anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose(f
   const hy=bob+(atk?-1:0); V.ell(23,13+hy,7.4,8.4,Pl,{g:'head'}); V.ell(23,7+hy,8.6,5.4,Hr,{g:'hair'}); V.poly([[15,8+hy],[19,7+hy],[17,18+hy],[15,16+hy]],Hr,{g:'bangL'}); V.poly([[31,8+hy],[27,7+hy],[29,18+hy],[31,16+hy]],Hr,{g:'bangR'});
   V.rect(19,12+hy,3,2,'#ff2a4a').rect(24,12+hy,3,2,'#ff2a4a'); V.px(19,12+hy,'#ffd0d8').px(24,12+hy,'#ffd0d8'); V.line(19,11+hy,22,11.5+hy,K).line(24,11.5+hy,27,11+hy,K);
   V.ell(23,17.6+hy,atk?2.6:1.2,atk?3.2:.9,R('#3a0a1a'),{g:'mouth'}); V.px(22,16+hy,'#e8a8b8'); }};
+// Cửu Vĩ Hồ Ly (Naruto hoá): cáo lửa cam to, 9 đuôi xoè sau lưng phấp phới, mắt đỏ, vân đen quanh mắt, hào quang lửa; ra đòn: há miệng gầm, chân trước vồ tới
+B19.cuuvi={w:96,h:84,ax:48,ay:80,glow:'rgba(255,120,40,.35)',anim:ANIM5,draw(V,f){ const {st,bob,atk}=pose(f), Or=R('#ff7a1a'), Od=R('#c84a10'), Bl=R('#2a1408'), Rd='#ff2a1a';
+  for(let i=0;i<9;i++){ const a=-2.6+i*.4+Math.sin(i+st)*.06, L=34+(i%3)*5, x0=48, y0=46+bob, x1=x0+Math.cos(a)*L*.55, y1=y0+Math.sin(a)*L*.55, x2=x0+Math.cos(a+(i%2?.15:-.15))*L, y2=y0+Math.sin(a+(i%2?.15:-.15))*L;
+    V.tube([[x0,y0],[x1,y1],[x2,y2]],[5,4.2,2.4],i%2?Or:Od,{g:'tail'+i}); V.ell(x2,y2,2.4,2.4,R('#ffd0a0'),{g:'tip'+i}); }
+  leg(V,36,62+bob,79,-st,4.4,Or,Bl,'BL'); leg(V,60,62+bob,79,st,4.4,Or,Bl,'BR');
+  V.ell(48,56+bob,20,12,Or,{g:'body'}); V.ell(48,60+bob,13,7,R('#ffc890'),{g:'belly',lift:.1});
+  const fr=atk?6:0; leg(V,30-fr,56+bob,79,st,4,Or,Bl,'FL'); leg(V,66+fr,56+bob,79,-st,4,Or,Bl,'FR');
+  const hy=bob-(atk?3:0); V.ell(48,36+hy,15,12,Or,{g:'head'}); V.poly([[36,30+hy],[32,14+hy],[42,26+hy]],Or,{g:'earL'}); V.poly([[60,30+hy],[64,14+hy],[54,26+hy]],Or,{g:'earR'});
+  V.poly([[34,30+hy],[33,18+hy],[39,27+hy]],Bl,{g:'earLi'}); V.poly([[62,30+hy],[63,18+hy],[57,27+hy]],Bl,{g:'earRi'});
+  V.ell(48,42+hy,8,5,R('#ffc890'),{g:'muzzle',lift:.1}); V.rect(39,32+hy,5,3,Rd).rect(52,32+hy,5,3,Rd); V.line(37,31+hy,44,33+hy,K).line(52,33+hy,59,31+hy,K); V.px(40,32+hy,'#ffffff').px(53,32+hy,'#ffffff');
+  if(atk){ V.rect(42,44+hy,12,5,'#3a0a0a'); for(let x=42;x<54;x+=2){ V.rect(x,44+hy,1,2,'#ffffff'); V.rect(x,47+hy,1,2,'#ffffff'); } } else V.line(44,45+hy,52,45+hy,K);
+  for(let i=0;i<6;i++) V.px(30+i*7,6+(i%2)*3,'#ffb050'); }};
 // Pepe chú hề: đầu ếch to tóc giả 7 màu, mũi đỏ, mắt lim dim, môi nâu; vest xanh nơ chấm bi, quần xanh đậm, giày chú hề đỏ to; tay trái cầm súng lục.
 // khung: 0 / 4 đứng thở · 2 / 3 bước đi (chân so le, tay đánh theo) · 1 bắn (tay súng giơ thẳng, giật nòng, chớp lửa, tay kia giơ lên)
 B19.pepe={w:66,h:80,ax:33,ay:78,anim:{idle:[0,4],walk:[2,3],atk:1},draw(V,f){ const Gn=R('#5aa83a'), Gd=R('#3a7a2a'), Su=R('#1e4ad8'), Sd=R('#16348a'), Pt=R('#1a2a6a'), Sh=R('#e8302a'), Lp=R('#a8583a'), Bw=R('#a8d8ff'), Gu=R('#5a5a66');

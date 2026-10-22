@@ -11,7 +11,7 @@ on('mv',(pl,m)=>{
   const [W,H]=sizeOf(pl); if(x<0||y<0||x>W*T||y>H*T) return;
   const t=now(), el=Math.min(1,(t-pl.mvAt)/1000); pl.mvAt=t;
   const p=pl.prof, base=pl.kayak?95:pl.riding?S.RULES.run*S.HORSE.speed*((S.mythOf(p.look&&p.look.mount)||{}).speed||1):pl.optimus==='truck'?S.RULES.run*S.OPTIMUS.truck:pl.optimus==='robot'?S.RULES.run*S.OPTIMUS.robot:pl.pcar?S.RULES.run*S.PCAR.speed:pl.moto?S.RULES.run*S.MOTO.models[pl.moto].speed:pl.link?135:(p.skills.run?S.RULES.run:S.RULES.walk);
-  const max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl)*(pl.kayak?1:S.shoeSpeed(p)))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1);
+  const mc=(pl.scene==='mu'||pl.scene==='muw'||String(pl.scene).startsWith('dday:'))&&p.mu&&S.MU.cls[p.mu.cls], max=base*(pl.riding||pl.moto||pl.pcar||pl.optimus?1:C.speedMul(pl)*(pl.kayak?1:S.shoeSpeed(p)))*(pl.moto&&pl.speeding?S.CSGT.speed.mul:1)*((mc&&mc.move)||1);   /* MU: Tiên Nữ chạy nhanh ×2 */
   pl.budget=Math.min(pl.budget+max*el*1.35,max*.9+60+(p.skills.dash?50:0));
   const d=Math.hypot(x-pl.x,y-pl.y);
   if(d>pl.budget+2){ send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }                   // đi nhanh quá: kéo về chỗ cũ

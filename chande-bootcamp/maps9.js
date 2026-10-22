@@ -92,8 +92,8 @@ const GEM_SRC={ngoc_ch:[['Quái rừng phía Nam MU','mỗi con hạ được c�
     ['Boss MU','Luffy Gear 5: top 1 được 2 viên, người góp sức khác 60% được 1. Boss phụ: top 1 được 1, người khác 35%',[22,9]],
     ['Nhiệm vụ ẩn ở mọi map','xong mỗi nhiệm vụ ẩn (🔍) tặng thêm 1 viên',null],['Hồ Ké Retreat','thuê kayak chèo trên hồ: 1/4 lần vớt được đồ cổ có kèm 1 viên',null],
     ['Phù Thuỷ Cường Hoá','mua 1.000.000đ/viên, gói 5 viên 4.700.000đ',[7.5,26.4]]],
-  ngoc_ch_ht:[['Lính Cát huyền thoại','mỗi loài huyền thoại có trong đội / hộp tặng 1 viên (bấm 🎁 ở Phù Thuỷ Cường Hoá)',[7.5,26.4]],['Rừng quái sâu (3 khu dưới cùng)','Mỏ Đá Cổ, Rừng Sọ Hươu, Cổng Địa Ngục: mỗi con 0,15%',[48,61]]]};
-for(const k of M.jewels) GEM_SRC[k]=[['Boss tổng Luffy Gear 5','đền phía Bắc quảng trường MU. Hạ được: top 1 chắc chắn có 1 viên ngọc quý (Ước Nguyện / Tâm Linh / Hỗn Nguyên ngẫu nhiên), người góp sức khác 35%',[22,9]]];
+  ngoc_ch_ht:[['Mọi boss MU','người nhiều sát thương nhất có 15% được 1 viên',[22,9]],['Lính Cát huyền thoại','mỗi loài huyền thoại có trong đội / hộp tặng 1 viên (bấm 🎁 ở Phù Thuỷ Cường Hoá)',[7.5,26.4]],['Rừng quái sâu (3 khu dưới cùng)','Mỏ Đá Cổ, Rừng Sọ Hươu, Cổng Địa Ngục: mỗi con 0,15%',[48,61]]]};
+for(const k of M.jewels) GEM_SRC[k]=[['Mọi boss MU (Luffy, boss phụ, vùng boss phía Tây, Pepe)','Hạ được: người nhiều sát thương nhất chắc chắn có ngọc quý (Ước Nguyện / Tâm Linh / Hỗn Nguyên ngẫu nhiên); nếu người đó đã nâng thú cưỡi đủ bậc thì nhường cho top 2, top 3. Thêm 20% cho 1 người bất kỳ tham gia đánh',[22,9]]];
 function luffyLeft(){ const b=U()&&U().boss(); if(!b) return ''; if((b.list||[]).some(x=>x.id==='luffy')) return '<b class="good">đang xuất hiện, tới đánh ngay!</b>'; const t=(b.next||{}).luffy; return t?`ra sau ${Math.max(1,Math.ceil((t-NET.now())/60000))} phút`:''; }
 const gemGuide=keys=>{ const it=G().items||{};
   return `<div class="gemguide"><h5>Tìm ngọc ở đâu?</h5>${keys.map(k=>`<div class="gg"><img src="${GAME.icon64(k)}" width="28" height="28" alt=""><b>${esc(SD.ITEMS[k].name)}</b> <small>(đang có ${it[k]||0})</small>

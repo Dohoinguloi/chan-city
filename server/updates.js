@@ -4,6 +4,14 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-23m',title:'23/10 · Cổng D-Day + class Đại Tượng + Songoku',items:[
+    'Cổng D-Day ở quảng trường MU: đấu 1-1 / 2-2 / 3-3, mỗi đội 1 nhà chính + quái ra theo đợt, phá nhà chính đội kia là thắng. Mỗi ngày 2 trận; thắng được item bí mật huyền thoại, EXP, tiền, ngọc, Trái Ác Quỷ',
+    'Class mới Đại Tượng (tank, đổi ở Vệ binh): máu gấp 10, giáp gấp 5 Chiến Binh, đánh chậm 3 lần. Chiêu: Đập Choáng, Bật Giáp (giáp dày + phản 40% đòn), Hồi Máu',
+    'Tiên Nữ thành đánh xa: tầm gấp đôi, trừ giáp cao, thi thoảng bắn choáng quái, chạy nhanh gấp 2, phát bắn nào cũng làm chậm + giảm hồi máu. Chiêu 3 đổi thành Phun Lửa: giảm hồi máu, giảm sát thương của quái',
+    'Rồng Dải Xanh còn 50% máu gọi Songoku ra (Songoku còn 50% hoá Siêu Saiyan, có Kamehameha); dưới 25% rồng lặn xuống nước 2 giây. Đầm Rồng giờ lội ra được tận chỗ rồng tắm',
+    'Boss MU: thưởng gấp 20, mỗi ngày hạ mỗi boss tối đa 5 lần, boss nào cũng rơi đủ loại ngọc; ngọc quý chắc chắn cho người top sát thương còn cần ngọc (đủ rồi thì nhường top 2, 3) + 20% cho 1 người bất kỳ',
+    'Eren tầm +5 ô, đánh nhanh gấp 40 · Naruto hoá Cửu Vĩ (tầm ×3, đánh nhanh ×20) · Dươngg Vũ cứ 5 giây hoá bóng ma (không đánh được, toả độc 3 ô) · Luffy tạo hình + animation mới, tầm +5, thi thoảng đánh xa 10 ô, chí mạng 75% · Conan giảm nửa sát thương chiêu',
+    'Đồ MU có thêm hiệu ứng Giảm hồi máu · MU có Quán Ăn và Phòng Nghỉ Trưa (hồi năng lượng) · bảng chỉ số và danh sách boss có nút thu gọn / ẩn']},
   {v:'2026-10-23l',title:'23/10 (boss)',items:['Máu mọi boss tăng lên gấp 40 so với gốc (trước gấp 15), đòn vẫn gấp 15: Luffy ~140.000 máu / 1 người, Pepe 7.000.000 máu, MCK, Megatron cũng trâu hơn. Rủ thêm người đánh cùng nhé!']},
   {v:'2026-10-23k',title:'23/10 · Vùng boss phía Tây MU + Pepe + chỉ số mới',items:[
     'MU mở rộng sang trái (đi lối mở tường Tây quảng trường): Làng Meme của Pepe ở trên cùng, 4 khu boss có tường thành: Bãi đất trống Phố Nobita (Doraemon + Nobita, ngồi được trên ống cống), Phố Beika (Conan), Tường Maria (Eren hoá Titan Tiến Công), Rừng Tiếng Hét (Nữ Yêu Tiếng Hét)',

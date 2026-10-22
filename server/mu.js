@@ -8,13 +8,13 @@ const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên D
 const {S,T,on,now,markDirty,send,note,addItem,take,give,reward,players}=C;
 const M=S.MU, fmt=S.fmt, BS=M.bosses, RW=M.reward, F=M.fruits;
 const rec=p=>{ const r=p.mu=p.mu||{cls:'',lv:1,exp:0,w:0,l:0,boss:0}; return r; };
-const MS=new Set(['mu','muw']), inMu=pl=>MS.has(pl.scene)&&pl.prof;   /* MU + Đất Phía Tây */
+const MS=new Set(['mu','muw']), EXTRA_SCENES=new Set(), inMu=pl=>(MS.has(pl.scene)||EXTRA_SCENES.has(pl.scene))&&pl.prof;   /* MU + cảnh trận D-Day (dday.js thêm / bớt EXTRA_SCENES) */
 // set legacy đang mặc (áo), không mặc thì ''
 // phụ kiện đang đeo + nội tại đã cộng → thuộc tính cộng thêm
 // điểm nội tại: cứ 3 cấp MU được 1 điểm (trước là mỗi cấp 1 điểm)
 const pasTotal=lv=>Math.floor((lv-1)/3), pasUsed=r=>Object.values(r.pas||{}).reduce((a,v)=>a+v,0), pasPts=r=>Math.max(0,pasTotal(r.lv)-pasUsed(r));
 C.hook('login',pl=>{ const r=pl.prof&&pl.prof.mu; if(!r||!r.pas||pasUsed(r)<=pasTotal(r.lv)) return; r.pas={}; markDirty(pl); setTimeout(()=>{ if(pl.prof) note(pl,`⭐ Điểm nội tại tính lại: cứ 3 cấp MU được 1 điểm. Đã hoàn lại hết, bấm ⭐ Nội tại cộng lại ${pasTotal(r.lv)} điểm nhé`,'quest'); },3600); });
-function extraOf(p){ const r=rec(p), o={hp:0,mp:0,atk:0,def:0,armor:0,regen:0,crit:0,drain:0,aspd:0,slowp:0,chainp:0,aura:0,shred:0,tdmg:0,cdr:0,spell:0};
+function extraOf(p){ const r=rec(p), o={hp:0,mp:0,atk:0,def:0,armor:0,gw:0,regen:0,crit:0,drain:0,aspd:0,slowp:0,chainp:0,aura:0,shred:0,tdmg:0,cdr:0,spell:0};
   { const lg=lgOf(p), LB=lg&&M.legacy[lg].bonus; if(LB) for(const [s,v] of Object.entries(LB)) if(!['hp','mp','atk','def'].includes(s)) o[s]+=v; }   /* chỉ số phụ của set legacy (máu / mana / công / thủ đã tính trong muStats) */
   for(const k of Object.values(r.acc||{})){ const a=M.acc[k]; if(a) for(const [s,v] of Object.entries(a.bonus)) o[s]+=v; }
   for(const pp of [r.pas||{},r.pasB||{}]) for(const [k,n] of Object.entries(pp)){ const P=M.passive[k]; if(P) o[P.stat]+=P.per*n; }   /* điểm nội tại + cấp đọc sách */
@@ -28,39 +28,39 @@ const syncAcc=p=>{ if(p.look) p.look.acc={...(rec(p).acc||{})}; };   // để ng
 // vũ khí Thợ Rèn đang cầm (+ cấp cường hoá) gửi kèm ngoại hình: ai cũng thấy trên tay, bộ đồ bỏ vũ khí vẽ sẵn
 const syncWep=p=>{ if(!p.look) return; const r=rec(p), w=M.weapons[r.wep]; if(w&&w.store){ p.look.wep=r.wep; p.look.wl=(r.enh||{})[r.wep]||0; } else { delete p.look.wep; delete p.look.wl; } };
 const lgOf=p=>{ const k=p.look&&p.look.outfit&&p.look.outfit.top; return k&&M.legacy[k]?k:''; };
-function st(pl){ const r=rec(pl.prof); if(!r.cls) return null; const ex=extraOf(pl.prof), s=S.muStats(r.cls,r.lv,r.fruit,r.wep,lgOf(pl.prof),ex); if(!pl.mus) pl.mus={hp:s.hp,mp:s.mp,cd:{},buff:{},dead:0};
-  const m=pl.mus; m.crit=Math.min(.75,.1+ex.crit); m.drain=Math.min(.5,ex.drain); m.shred=Math.min(.6,ex.shred); m.tdmg=Math.min(1,ex.tdmg); m.cdr=Math.min(.4,ex.cdr); m.spell=Math.min(2,ex.spell); m.slowp=Math.min(.6,ex.slowp); m.chainp=Math.min(.6,ex.chainp); m.aura=Math.min(.3,ex.aura); m.armor=Math.min(.6,ex.armor+(M.cls[r.cls].armor||0));   /* chỉ số phụ đồ MU, có trần */
-   m.regen=(1+ex.regen)*(M.cls[r.cls].regen||1);   /* đánh gần hồi máu nhanh hơn */ m.max=s.hp; m.mmax=s.mp; m.atk=s.atk; m.aspd=s.aspd; m.def=s.def*((m.buff.def||0)>now()?2:1); m.hp=Math.min(m.hp,m.max); m.mp=Math.min(m.mp,m.mmax); return m; }
+function st(pl){ const r=rec(pl.prof); if(!r.cls) return null; const C0=M.cls[r.cls], ex=extraOf(pl.prof), s=S.muStats(r.cls,r.lv,r.fruit,r.wep,lgOf(pl.prof),ex); if(!pl.mus) pl.mus={hp:s.hp,mp:s.mp,cd:{},buff:{},dead:0};
+  const m=pl.mus; m.crit=Math.min(.75,.1+ex.crit); m.drain=Math.min(.5,ex.drain); m.shred=Math.min(C0.shred?.8:.6,ex.shred+(C0.shred||0)); m.tdmg=Math.min(1,ex.tdmg); m.cdr=Math.min(.4,ex.cdr); m.spell=Math.min(2,ex.spell); m.slowp=Math.min(C0.slowp?1:.6,ex.slowp+(C0.slowp||0)); m.chainp=Math.min(.6,ex.chainp); m.aura=Math.min(.3,ex.aura); m.armor=Math.min(C0.armorCap||.6,ex.armor+(C0.armor||0)+((m.buff.giap||0)>now()?.2:0)); m.gw=Math.min(.6,ex.gw+(C0.gw||0));   /* chỉ số phụ đồ MU + của class, có trần; Bật Giáp +20% giáp */
+   m.regen=(1+ex.regen)*(C0.regen||1);   /* đánh gần hồi máu nhanh hơn */ m.max=s.hp; m.mmax=s.mp; m.atk=s.atk; m.aspd=s.aspd; m.def=s.def*((m.buff.def||0)>now()?2:1); m.hp=Math.min(m.hp,m.max); m.mp=Math.min(m.mp,m.mmax); return m; }
 // chiêu: 1–3 theo class, 4 Trái Ác Quỷ (nếu đã ăn), 5 chiêu riêng của set legacy đang mặc
 const skillsOf=(r,p)=>{ const L=[...(M.skills[r.cls]||[])]; L[3]=r.fruit&&F[r.fruit]?F[r.fruit].skill:null; const lg=p&&lgOf(p); L[4]=lg?M.legacy[lg].skill:null; return L; };
 function view(pl){ const r=rec(pl.prof), m=st(pl); if(!m) return {cls:''}; const t=now();
-  return {cls:r.cls,lv:r.lv,exp:r.exp,next:M.lvExp(r.lv),aspd:m.aspd,fx:fxOf(m,t),sub:{regen:+(M.regen.hp*(m.regen||1)).toFixed(4),armor:m.armor,crit:m.crit,drain:m.drain,shred:m.shred,tdmg:m.tdmg,cdr:m.cdr,spell:m.spell,slowp:m.slowp,chainp:m.chainp,aura:m.aura},hp:Math.round(m.hp),max:m.max,mp:Math.round(m.mp),mmax:m.mmax,cd:Object.fromEntries(Object.entries(m.cd).map(([k,v])=>[k,Math.max(0,v-t)])),
+  return {cls:r.cls,lv:r.lv,exp:r.exp,next:M.lvExp(r.lv),aspd:m.aspd,fx:fxOf(m,t),sub:{regen:+(M.regen.hp*(m.regen||1)).toFixed(4),gw:m.gw,armor:m.armor,crit:m.crit,drain:m.drain,shred:m.shred,tdmg:m.tdmg,cdr:m.cdr,spell:m.spell,slowp:m.slowp,chainp:m.chainp,aura:m.aura},hp:Math.round(m.hp),max:m.max,mp:Math.round(m.mp),mmax:m.mmax,cd:Object.fromEntries(Object.entries(m.cd).map(([k,v])=>[k,Math.max(0,v-t)])),
     buff:(m.buff.def||0)>t?m.buff.def-t:0,dead:m.dead>t?m.dead-t:0,duel:pl.muDuel?pl.muDuel.other:0,w:r.w,l:r.l,fruit:r.fruit||'',wep:r.wep||'',lg:lgOf(pl.prof),enh:r.enh||{},acc:r.acc||{},accOwned:r.accOwned||{},pas:r.pas||{},pasB:r.pasB||{},sp:pasPts(r),crit:m.crit,cp:S.muPower({hp:m.max,mp:m.mmax,atk:m.atk,def:m.def/((m.buff.def||0)>t?2:1)}),atk:m.atk,def:m.def}; }
 const push=pl=>send(pl,{t:'mume',v:view(pl)});
-const inScene=()=>[...C.sceneOf('mu'),...C.sceneOf('muw')];
+const inScene=()=>{ const out=[...C.sceneOf('mu'),...C.sceneOf('muw')]; for(const id of EXTRA_SCENES) out.push(...C.sceneOf(id)); return out; };
 const bcast=obj=>{ for(const q of inScene()) send(q,obj); };
 const dist=(pl,x,y)=>Math.hypot(pl.x/T-x,pl.y/T-y);
 function gainMu(pl,n){ const r=rec(pl.prof); r.exp+=n; let up=0; while(r.lv<M.maxLv&&r.exp>=M.lvExp(r.lv)){ r.exp-=M.lvExp(r.lv); r.lv++; up++; } if(up){ const m=st(pl); if(m){ m.hp=m.max; m.mp=m.mmax; } note(pl,`⬆ MU lên cấp ${r.lv}! Máu, công, thủ tăng · +${pasTotal(r.lv)-pasTotal(r.lv-up)} điểm nội tại (bấm ⭐ Nội tại ở góc chiêu)`,'quest'); } markDirty(pl); }
 function down(pl,why){ const m=pl.mus; if(!m||m.dead>now()) return; m.hp=0; m.fx={}; m.dead=now()+M.respawn*1000; bcast({t:'mufx',k:'down',to:pl.pid}); note(pl,`💀 ${why}. Hồi sinh ở cổng thành sau ${M.respawn} giây`,'lock'); if(pl.muDuel) duelEnd(players.get(pl.muDuel.other),pl); push(pl); }
 
 /* ---------- boss: lịch xuất hiện, bảng đòn, giai đoạn ---------- */
-const LIVE=new Map(), NEXT={}; let SEQ=1;
+const LIVE=new Map(), NEXT={}, RESPAWN={f:null}; let SEQ=1;   // RESPAWN.f(pl) → [cảnh, x, y] hồi sinh riêng (D-Day)
 const nextAt=(b,t)=>b.perma?t+4000:Math.ceil((t-(b.offset||0)+1)/b.every)*b.every+(b.offset||0);
-for(const [id,b] of Object.entries(BS)) NEXT[id]=nextAt(b,now());   /* lần đầu ra theo lịch lệch nhau; sau đó hạ xong / bỏ đi thì hồi lại đủ b.every mới ra tiếp */
+for(const [id,b] of Object.entries(BS)) NEXT[id]=b.summon?null:nextAt(b,now());   /* boss được gọi ra (Songoku) không có lịch riêng */   /* lần đầu ra theo lịch lệch nhau; sau đó hạ xong / bỏ đi thì hồi lại đủ b.every mới ra tiếp */
 const radius=(b,B)=>(b.big?2.2:1.6)*Math.min(2.4,(B&&formOf(B).size)||1);
 const formOf=B=>(B.form&&(BS[B.id].forms||[]).find(f=>f.k===B.form))||{};   /* dạng đang hoá (Titan, Hung Thủ Áo Đen, Bạch Yêu) */
 const scOf=B=>BS[B.id].scene||'mu';
 function phaseOf(B){ const k=B.hp/B.max, P=BS[B.id].phases; return k<P[1]?3:k<P[0]?2:1; }
-function bossView(B){ const b=BS[B.id], F=formOf(B), t=now(); return {id:B.id,name:b.name,sprite:F.sprite||b.sprite,big:b.big||0,scene:scOf(B),form:B.form||'',fname:F.name||'',tint:F.tint||'',size:F.size||1,fly:B.buffU>t&&B.fly?1:0,say:B.say&&t-B.say.t<3500?B.say.txt:'',ts:t,
+function bossView(B){ const b=BS[B.id], F=formOf(B), t=now(); return {id:B.id,name:b.name,sprite:F.sprite||b.sprite,big:b.big||0,scene:scOf(B),form:B.form||'',fname:F.name||'',tint:F.tint||'',size:F.size||1,fly:B.buffU>t&&B.fly?1:0,ghost:B.ghostU>t?(B.ghostA.r||3):0,stun:B.stunU>t?B.stunU-t:0,dive:B.diveU>t?B.diveU-t:0,say:B.say&&t-B.say.t<3500?B.say.txt:'',ts:t,
   mins:(B.mins||[]).map(m=>[m.id,m.k,+m.x.toFixed(2),+m.y.toFixed(2),Math.round(m.hp/m.max*100)]),shots:(B.shots||[]).map(o=>[+o.x.toFixed(2),+o.y.toFixed(2),o.vx,o.vy]),hp:Math.round(B.hp),max:B.max,x:B.x,y:B.y,phase:B.phase,anim:B.anim,until:B.until,slow:B.slow>now()?1:0,
   tele:B.tele.map(z=>({id:z.id,k:z.k,kind:z.kind,x:+z.x.toFixed(2),y:+z.y.toFixed(2),r:z.r,r0:z.r0,ang:z.ang,range:z.range,cone:z.cone,w:z.w,dash:z.dash,lock:z.lock,at:z.at,end:z.end||0}))}; }
 const allView=()=>({list:[...LIVE.values()].map(bossView),next:NEXT});
 const pushBoss=()=>bcast({t:'muboss',v:allView()});
 const HARD=M.bossHard||{hp:1,dmg:1,warn:1,r:1,cd:1};
-function spawn(id){ const b=BS[id], n=inScene().filter(q=>q.scene===(b.scene||'mu')&&rec(q.prof).cls).length, max=Math.round((b.hp+b.perPlayer*Math.max(0,n-1))*HARD.hp), t=now();
+function spawn(id,quiet){ const b=BS[id], n=inScene().filter(q=>q.scene===(b.scene||'mu')&&rec(q.prof).cls).length, max=Math.round((b.hp+b.perPlayer*Math.max(0,n-1))*HARD.hp), t=now();
   const B={id,hp:max,max,x:b.home.x,y:b.home.y,until:b.perma?t+3e10:t+b.life,dmg:new Map(),cd:{},tele:[],anim:{k:'spawn',t},phase:1,slow:0,mins:[],shots:[],fightAt:0,form:''};
   b.attacks.forEach((a,i)=>B.cd[a.k]=t+(a.first?a.first*1000:2500+i*1500)); LIVE.set(id,B);
-  if(b.perma){ bcast({t:'note',msg:`⚔ ${b.name} đã xuất hiện ở ${S.MU.west.zones[Object.keys(S.MU.west.zones).find(k=>{ const z=S.MU.west.zones[k]; return b.home.x>=z.x0&&b.home.x<=z.x1&&b.home.y>=z.y0&&b.home.y<=z.y1; })]?.name||'Đất Phía Tây'}!`,kind:'quest'}); pushBoss(); return; }
+  if(quiet) return; if(b.perma){ bcast({t:'note',msg:`⚔ ${b.name} đã xuất hiện ở ${S.MU.west.zones[Object.keys(S.MU.west.zones).find(k=>{ const z=S.MU.west.zones[k]; return b.home.x>=z.x0&&b.home.x<=z.x1&&b.home.y>=z.y0&&b.home.y<=z.y1; })]?.name||'Đất Phía Tây'}!`,kind:'quest'}); pushBoss(); return; }
   C.broadcastAll({t:'note',msg:id==='luffy'?`👑 Boss tổng ${b.name} vừa xuất hiện ở MU Online! Gọi Grab "vào game" đánh boss, hạ được rơi Trái Ác Quỷ`:`⚔ Boss phụ ${b.name} vừa xuất hiện ở MU Online!`,kind:'quest'}); pushBoss(); }
 const alive=sc=>{ const t=now(); return inScene().filter(q=>(!sc||q.scene===sc)&&q.mus&&q.mus.dead<=t&&!(q.mus.safe>t)&&rec(q.prof).cls); };   /* safe: vừa hồi sinh, boss chưa đánh */
 // chọn mục tiêu trong khu của boss
@@ -73,20 +73,21 @@ const clampA=(b,x,y)=>[Math.max(b.area.x0+.5,Math.min(b.area.x1-.5,x)),Math.max(
 const lead=(B,q,sec)=>{ const v=q.bv||{vx:0,vy:0}, k=Math.min(sec,1.4)*.8; return clampA(BS[B.id],q.x/T+v.vx*k,q.y/T+v.vy*k); };
 function startAttack(B,a,t,mul){ const b=BS[B.id], F=formOf(B), warn=(a.warn||0)*HARD.warn*(B.slow>t?1.5:1), r=(a.r||0)*HARD.r, z={id:SEQ++,k:a.k,kind:a.kind,dmg:(a.dmg||0)*mul*HARD.dmg,at:t+warn*1000,then:a.then,fx:F.dot?{...(a.fx||{}),dot:F.dot}:a.fx,sw:a.swallow};
   if(a.say) B.say={txt:a.say[Math.floor(Math.random()*a.say.length)],t};
-  const near=rg=>targets(B,rg).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0], any=()=>{ const L=targets(B,14); return L[Math.floor(Math.random()*L.length)]; };
+  const RC=a.far||b.reach||0, RM=F.rangeMul||1, near=rg=>targets(B,rg*RM+RC).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0], any=()=>{ const L=targets(B,14); return L[Math.floor(Math.random()*L.length)]; };
   if(a.kind==='single'){ const q=near(a.range); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); }
   else if(a.kind==='circle'||a.kind==='jump'){ const q=any(); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); }
   else if(a.kind==='chase'){ const q=any(); if(!q) return false; Object.assign(z,{x:q.x/T,y:q.y/T,r,tgt:q.pid,lock:z.at-a.lock*1000}); B.tele.push(z); }   /* bám theo người tới sát giờ nổ */
   else if(a.kind==='multi'){ const L=targets(B,14); if(!L.length) return false; for(let i=0;i<a.n;i++){ const q=L[i%L.length], [px,py]=lead(B,q,warn), j=i>=L.length; B.tele.push({...z,id:SEQ++,x:px+(j?(Math.random()-.5)*5:0),y:py+(j?(Math.random()-.5)*3:0),r}); } }
   else if(a.kind==='trail'){ const q=near(14); if(!q) return false; const [tx,ty]=lead(B,q,warn+a.n*a.step/2000), ang=Math.atan2(ty-B.y,tx-B.x), d=Math.max(3,Math.hypot(tx-B.x,ty-B.y)+2);
     for(let i=0;i<a.n;i++){ const [x,y]=clampA(b,B.x+Math.cos(ang)*d*(i+1)/a.n,B.y+Math.sin(ang)*d*(i+1)/a.n); B.tele.push({...z,id:SEQ++,kind:'circle',x,y,r,at:z.at+i*a.step}); } }
-  else if(a.kind==='line'){ const q=near(a.range+2); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range,w:a.w*HARD.r,dash:a.dash?1:0}); B.tele.push(z); }
+  else if(a.kind==='line'){ const q=near(a.range+2); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range*RM+RC,w:a.w*HARD.r,dash:a.dash?1:0}); B.tele.push(z); }
   else if(a.kind==='cross'){ const q=near(a.range+2); if(!q) return false; const n=a.n||4, a0=Math.atan2(q.y/T-B.y,q.x/T-B.x);
     for(let w=0;w<(a.waves||1);w++) for(let i=0;i<n;i++) B.tele.push({...z,id:SEQ++,kind:'line',x:B.x,y:B.y,ang:a0+i*2*Math.PI/n+w*Math.PI/n,range:a.range,w:a.w*HARD.r,at:z.at+w*(a.gap||600)}); }
   else if(a.kind==='donut'){ if(!targets(B,a.r+3).length) return false; Object.assign(z,{x:B.x,y:B.y,r,r0:a.r0}); B.tele.push(z); }
-  else if(a.kind==='cone'){ const q=near(a.range); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range,cone:a.cone,hits:a.hits,tick:a.tick*1000,end:z.at+a.hits*a.tick*1000}); B.tele.push(z); }
-  else if(a.kind==='ring'){ if(!targets(B,a.r+3).length) return false; Object.assign(z,{x:B.x,y:B.y,r}); B.tele.push(z); }
+  else if(a.kind==='cone'){ const q=near(a.range); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range*RM+RC,cone:a.cone,hits:a.hits,tick:a.tick*1000,end:z.at+a.hits*a.tick*1000}); B.tele.push(z); }
+  else if(a.kind==='ring'){ const rr=r*(1+(RM-1)*.5)+RC; if(!targets(B,rr+3).length) return false; Object.assign(z,{x:B.x,y:B.y,r:rr}); B.tele.push(z); }
   else if(a.kind==='blink'){ const q=any(); if(!q) return false; const ox=B.x, oy=B.y, dx=q.x/T-B.x, dy=q.y/T-B.y, d=Math.hypot(dx,dy)||1; [B.x,B.y]=clampA(b,q.x/T+dx/d*1.3,q.y/T+dy/d*1.3); Object.assign(z,{x:q.x/T,y:q.y/T,r}); B.tele.push(z); bcast({t:'mufx',k:'blink',boss:B.id,x:B.x,y:B.y,ox,oy}); }   /* mở cửa ra ngay sau lưng */
+  else if(a.kind==='ghost'){ if(!targets(B,12).length) return false; B.ghostU=t+a.dur*1000; B.ghostA={r:r||a.r,dmg:a.dmg*mul*HARD.dmg,fx:a.fx,tick:a.tick*1000,next:t}; B.anim={k:a.k,t,at:t+300}; return true; }   /* bóng ma: miễn sát thương + toả độc */
   else if(a.kind==='buff'){ if(!targets(B,12).length) return false; B.buffU=t+a.dur*1000; B.dodgeB=a.dodge||0; B.fly=a.fly?1:0; B.anim={k:a.k,t,at:t+300}; return true; }
   else if(a.kind==='grab'){ const q=near(6); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); }
   else if(a.kind==='flood'){ if(!targets(B,a.r).length) return false; Object.assign(z,{x:B.x,y:B.y,r}); B.tele.push(z); }
@@ -104,19 +105,40 @@ function applyFx(q,fx,t,B){ const m=st(q); if(!m||m.dead>t) return; const F=m.fx
   if(fx.dot){ const on=F.dot&&F.dot.until>t; F.dot={until:Math.max(t+fx.dot.dur*1000,on?F.dot.until:0),pct:fx.dot.pct,k:fx.dot.k,hits:on?F.dot.hits||0:0}; }
   bcast({t:'mufx',k:'pfx',to:q.pid,...fxOf(m,t)}); push(q); }
 const fxOf=(m,t)=>{ const F=(m&&m.fx)||{}; return {stun:F.stun>t?F.stun-t:0,slow:F.slow&&F.slow.until>t?F.slow.mul:1,slowMs:F.slow&&F.slow.until>t?F.slow.until-t:0,aslow:F.aslow&&F.aslow.until>t?F.aslow.mul:1,dot:F.dot&&F.dot.until>t?F.dot.k:'',dotMs:F.dot&&F.dot.until>t?F.dot.until-t:0}; };
+const gwOf=(m,t)=>m&&m.fx&&m.fx.gw&&m.fx.gw.until>t?m.fx.gw.mul:0;   // người chơi đang bị giảm hồi máu
 const aslowOf=(m,t)=>m.fx&&m.fx.aslow&&m.fx.aslow.until>t?m.fx.aslow.mul:1, stunned=(m,t)=>!!(m.fx&&m.fx.stun>t);
 function dotTick(pl,m,t){ const D=m.fx&&m.fx.dot; if(!D||D.until<=t) return false; const d=Math.max(1,Math.round(m.max*D.pct*.5)); m.hp-=d; bcast({t:'mufx',k:'hurt',to:pl.pid,dmg:d,dot:D.k});
   if(m.hp<=0){ down(pl,D.k==='doc'?'Trúng độc':'Bị thiêu đốt'); return true; } push(pl); return false; }
 // Titan bắt người nuốt chửng: rơi mất tiền + gục
 function swallow(B,q,z){ const p=q.prof, [a0,a1]=z.sw||[200000,500000], loss=Math.min(p.money,Math.round((a0+Math.random()*(a1-a0))/1000)*1000); if(loss>0) take(q,loss);
   bcast({t:'mufx',k:'swallow',boss:B.id,to:q.pid,loss}); down(q,`Bị ${formOf(B).name||BS[B.id].name} bắt nuốt chửng${loss?`, rơi mất ${fmt(loss)}`:''}`); markDirty(q); }
+// choáng mục tiêu (Đập Choáng của Đại Tượng, phát bắn Tiên Nữ): boss đứng im, thôi ra đòn mới, hết choáng thì miễn choáng 4 giây; quái / lính / người đội kia qua X0.stun.
+// mobOnly: chỉ choáng quái, không choáng người (D-Day)
+function stunT(B,X0,sec,t,mobOnly){ if(B){ if(B.stunImm>t||B.ghostU>t||B.diveU>t) return false; B.stunU=t+sec*1000; B.stunImm=B.stunU+4000; pushBoss(); }
+  else if(X0&&X0.stun&&!(mobOnly&&X0.pvp)) X0.stun(sec); else return false;
+  bcast({t:'mufx',k:'pstun',x:B?B.x:X0.x,y:B?B.y:X0.y,dur:sec,boss:B?B.id:'',to:B?'boss:'+B.id:''}); return true; }
+// Phun Lửa (Tiên Nữ): mục tiêu giảm hồi máu sk.gw + quái / boss đánh yếu đi sk.weak trong sk.wdur giây
+function debuff(B,X0,sk,t){ const u=t+(sk.wdur||5)*1000; if(B){ if(sk.gw) B.gw={until:u,mul:Math.max(sk.gw,B.gw&&B.gw.until>t?B.gw.mul:0)}; if(sk.weak) B.weak={until:u,mul:sk.weak}; }
+  else if(X0){ if(sk.gw&&X0.wound) X0.wound(sk.gw); if(sk.weak&&X0.weak) X0.weak(sk.weak,sk.wdur||5); } }
+const weakOf=(o,t)=>o&&o.weak&&o.weak.until>t?1-o.weak.mul:1;
+// chiêu lan (Phun Lửa): quái / boss khác trong sk.aoe ô quanh mục tiêu dính 60% sát thương + cùng hiệu ứng
+function splash(pl,sk,cx,cy,B0,X0,d,t){ const pts=[], dd=Math.max(1,Math.round(d*.6));
+  for(const src of EXTRA) if(src.around) for(const o of src.around(cx,cy,sk.aoe,6,X0&&X0.id,pl.scene)){ o.hit(dd,pl,sk); debuff(null,o,sk,t); pts.push([o.x,o.y,dd]); }
+  for(const b2 of [...LIVE.values()]) if(b2!==B0&&scOf(b2)===pl.scene&&Math.hypot(b2.x-cx,b2.y-cy)<=sk.aoe+radius(BS[b2.id],b2)){ const x=dmgBoss(b2,pl,dd,t); if(x>0){ debuff(b2,null,sk,t); pts.push([b2.x,b2.y,x]); } }
+  if(pts.length) bcast({t:'mufx',k:'psplash',from:pl.pid,x:cx,y:cy,r:sk.aoe,pts}); }
+// Bật Giáp (Đại Tượng): phản lại boss / quái rừng một phần sát thương gốc vừa đánh vào mình (quái con của boss, lính D-Day, người thì không)
+function reflect(q,rd,fx){ if(rd<1||!fx) return; const t=now();
+  if(fx.boss&&fx.ak!=='bm'){ const B=LIVE.get(fx.boss); if(!B||scOf(B)!==q.scene) return; const x=dmgBoss(B,q,rd,t); if(x>0){ bcast({t:'mufx',k:'refl',from:q.pid,to:'boss:'+B.id,boss:B.id,dmg:x}); if(LIVE.has(B.id)) pushBoss(); } return; }
+  if(fx.mob) for(const src of EXTRA) if(src.kind==='mob'&&src.byId){ const o=src.byId(fx.mob,q); if(o){ const to=o.hit(rd,q,{}); bcast({t:'mufx',k:'refl',from:q.pid,to,dmg:rd}); } } }
 // hiệu ứng đồ MU khi đánh trúng: làm chậm mục tiêu 2 giây, giật sét lan 3 mục tiêu gần (60% sát thương), hào quang: đồng đội trong 6 ô hồi máu theo sát thương
 function procs(pl,s,B,X0,d,t){ if(!(d>0)||!(B||X0)) return; const sc=pl.scene, cx=B?B.x:X0.x, cy=B?B.y:X0.y;
   if(s.slowp&&Math.random()<s.slowp){ if(B) B.slow=t+2000; else if(X0.slow) X0.slow(2); bcast({t:'mufx',k:'pslow',x:cx,y:cy}); }
+  if(s.gw){ if(B) B.gw={until:t+3000,mul:Math.max(s.gw,B.gw&&B.gw.until>t?B.gw.mul:0)}; else if(X0.wound) X0.wound(s.gw); }   /* giảm hồi máu 3 giây */
   if(s.chainp&&Math.random()<s.chainp){ const pts=[], dd=Math.max(1,Math.round(d*.6)); for(const src of EXTRA) if(src.around) for(const o of src.around(cx,cy,4,3,X0&&X0.id,sc)){ if(pts.length>=3) break; o.hit(dd,pl,{}); pts.push([o.x,o.y,dd]); }
     for(const b2 of [...LIVE.values()]) if(pts.length<3&&b2!==B&&scOf(b2)===sc&&Math.hypot(b2.x-cx,b2.y-cy)<=4+radius(BS[b2.id],b2)){ const x=dmgBoss(b2,pl,dd,t); if(x>0) pts.push([b2.x,b2.y,x]); }
     if(pts.length) bcast({t:'mufx',k:'pchain',from:pl.pid,x:cx,y:cy,pts}); }
-  if(s.aura) for(const q of inScene()) if(q!==pl&&q.scene===sc&&q.mus&&q.mus.dead<=t&&q.mus.hp<q.mus.max&&dist(q,pl.x/T,pl.y/T)<=6){ q.mus.hp=Math.min(q.mus.max,q.mus.hp+Math.max(1,Math.round(d*s.aura))); push(q); } }
+  if(s.aura) for(const q of inScene()) if(q!==pl&&q.scene===sc&&q.mus&&q.mus.dead<=t&&q.mus.hp<q.mus.max&&dist(q,pl.x/T,pl.y/T)<=6){ q.mus.hp=Math.min(q.mus.max,q.mus.hp+Math.max(1,Math.round(d*s.aura))); push(q); }
+  const C0=M.cls[rec(pl.prof).cls]||{}; if(C0.stunp&&Math.random()<C0.stunp) stunT(B,X0,C0.stunDur||.8,t,true); }   /* Tiên Nữ: thi thoảng bắn choáng quái */
 // đọc sách nội tại: +1 cấp nội tại mỗi quyển, tới mức trần của nội tại đó; trả về số quyển đã đọc
 function readBooks(pl,k,n){ const B=M.pasBook[k]; if(!B||!n) return 0; const r=rec(pl.prof), pb=r.pasB=r.pasB||{}, Pd=M.passive[B.pas], rd=Math.max(0,Math.min(n,Pd.max-(pb[B.pas]||0))); if(!rd) return 0;
   pb[B.pas]=(pb[B.pas]||0)+rd; if(pl.mus) st(pl); push(pl); return rd; }
@@ -124,12 +146,19 @@ function readBooks(pl,k,n){ const B=M.pasBook[k]; if(!B||!n) return 0; const r=r
 C.hook('login',pl=>{ const p=pl.prof; if(!p||!p.mu||!p.items) return; let tot=0; for(const k of Object.keys(M.pasBook)){ const n=p.items[k]|0; if(!n) continue; const rd=readBooks(pl,k,n); if(rd){ addItem(pl,k,-rd); tot+=rd; } }
   if(tot){ markDirty(pl); setTimeout(()=>{ if(pl.prof) note(pl,`📚 Đã đọc ${tot} sách nội tại còn trong túi: lực chiến tăng`,'quest'); },3200); } });
 // sát thương vào boss (mọi nguồn): né theo chong chóng tre / dạng hoá đen; trả về sát thương thật (0 = né)
-const dodgeOf=(B,t)=>Math.max(B.buffU>t?B.dodgeB||0:0,formOf(B).dodge||0);
-function bossTurn(pl,B){ if(B.dmg.has(pl.uid)) return true; const p=pl.prof, day=S.realTime().day, L=p.bossDay&&p.bossDay.day===day?p.bossDay:(p.bossDay={day,n:{}}), n=L.n[B.id]||0, name=BS[B.id].name;
-  if(n>=M.bossPerDay){ if(!pl.capWarn||now()-pl.capWarn>8000){ pl.capWarn=now(); note(pl,`🚫 Hôm nay bạn đã đánh ${name} đủ ${M.bossPerDay} lần: không gây sát thương, không nhận thưởng nữa. Mai quay lại nhé`,'lock'); } return false; }
-  L.n[B.id]=n+1; markDirty(pl); note(pl,`⚔ Lượt đánh ${name} hôm nay: ${n+1}/${M.bossPerDay}`,'quest'); return true; }
-// trả về sát thương thật: 0 = boss né, -1 = hết lượt đánh boss này hôm nay
-function dmgBoss(B,pl,d,t){ if(!bossTurn(pl,B)) return -1; if(Math.random()<dodgeOf(B,t)) return 0; B.hp-=d; B.dmg.set(pl.uid,(B.dmg.get(pl.uid)||0)+d); if(B.hp<=0) bossDie(B,pl); return d; }
+const dodgeOf=(B,t)=>B.ghostU>t?1:Math.max(B.buffU>t?B.dodgeB||0:0,formOf(B).dodge||0);
+// số lần đã hạ từng boss hôm nay (giờ Việt Nam thật)
+const bossDay=p=>{ const day=S.realTime().day; if(!p.bossDay||p.bossDay.day!==day||p.bossDay.v!==2) p.bossDay={day,v:2,n:{}}; return p.bossDay; };
+function bossTurn(pl,B){ if(B.dmg.has(pl.uid)) return true; const n=bossDay(pl.prof).n[B.id]||0, name=BS[B.id].name;
+  if(n>=M.bossPerDay){ if(!pl.capWarn||now()-pl.capWarn>8000){ pl.capWarn=now(); note(pl,`🚫 Hôm nay bạn đã hạ ${name} đủ ${M.bossPerDay} lần: không gây sát thương, không nhận thưởng nữa. Mai quay lại nhé`,'lock'); } return false; }
+  return true; }
+// mã hiện chữ khi đánh trượt: 1 né, 2 hết lượt hôm nay, 3 bóng ma (miễn sát thương)
+const missOf=d=>d>0?0:d===-1?2:d===-3?3:d===-4?4:1;
+// trả về sát thương thật: 0 = boss né, -1 = hết lượt đánh boss này hôm nay, -3 = đang hoá bóng ma
+function dmgBoss(B,pl,d,t){ if(!bossTurn(pl,B)) return -1; if(B.ghostU>t) return -3; if(B.diveU>t) return -4;   /* -4: đang lặn dưới nước */ if(Math.random()<dodgeOf(B,t)) return 0;   /* -3: đang là bóng ma */ B.hp-=d; B.dmg.set(pl.uid,(B.dmg.get(pl.uid)||0)+d); if(B.hp<=0) bossDie(B,pl); return d; }
+// boss gọi boss khác ra đánh cùng (Rồng Dải Xanh → Songoku): đứng cạnh boss gọi, ở lại ít nhất bằng boss gọi
+function callBoss(B,k,t){ const c=BS[k]; if(!c||LIVE.has(k)) return; spawn(k,true); const G=LIVE.get(k); if(!G) return; [G.x,G.y]=clampA(c,B.x+2.4,B.y-1.2); G.until=Math.max(G.until,B.until); G.anim={k:'spawn',t};
+  bcast({t:'mufx',k:'bcall',boss:k,from:B.id,x:G.x,y:G.y}); for(const q of inScene()) if(q.scene===scOf(B)) note(q,`⚠ ${BS[B.id].name} gọi ${c.name} ra trợ chiến!`,'lock'); pushBoss(); }
 // đổi dạng: máu ×hpMul (giữ % máu), nói câu thoại, gọi quái con
 function transform(B,f,t){ const b=BS[B.id]; B.form=f.k; if(f.hpMul){ B.max=Math.round(B.max*f.hpMul); B.hp=Math.round(B.hp*f.hpMul); } if(f.say) B.say={txt:f.say,t}; B.anim={k:'form',t,at:t+900};
   for(const a of b.attacks) B.cd[a.k]=Math.min(B.cd[a.k]||t,t+1200); if(f.summon) summonMin(B,f.summon.k,f.summon.n,t); bcast({t:'mufx',k:'bform',boss:B.id,name:f.name,x:B.x,y:B.y});
@@ -140,13 +169,13 @@ function summonMin(B,k,n,t){ const D=M.minions[k], b=BS[B.id]; const room=Math.m
   for(let i=0;i<Math.min(n,room);i++){ const an=i*2*Math.PI/n, [x,y]=clampA(b,B.x+Math.cos(an)*2.8,B.y+Math.sin(an)*2), hp=Math.max(50,Math.round(B.max*D.hpFrac)); B.mins.push({id:MSEQ++,k,x,y,hp,max:hp,next:t+900+i*120}); }
   bcast({t:'mufx',k:'summon',boss:B.id,mk:k,n}); }
 function minionTick(B,t,dt){ const b=BS[B.id]; if(!B.mins.length) return false; const L=targets(B,30); let moved=false;
-  for(const m of B.mins){ const D=M.minions[m.k], q=L.slice().sort((u,v)=>dist(u,m.x,m.y)-dist(v,m.x,m.y))[0]; if(!q) continue; const dx=q.x/T-m.x, dy=q.y/T-m.y, d=Math.hypot(dx,dy)||1;
+  for(const m of B.mins){ if(m.stun>t) continue; const D=M.minions[m.k], q=L.slice().sort((u,v)=>dist(u,m.x,m.y)-dist(v,m.x,m.y))[0]; if(!q) continue; const dx=q.x/T-m.x, dy=q.y/T-m.y, d=Math.hypot(dx,dy)||1;
     if(D.spd){ const an=m.id*2.39996, tx=q.x/T+Math.cos(an)*1.15, ty=q.y/T+Math.sin(an)*.85; let vx=tx-m.x, vy=ty-m.y;   /* mỗi con vây 1 hướng quanh người + đẩy nhau ra, không chồng lên nhau */
       for(const o of B.mins){ if(o===m) continue; const ox=m.x-o.x, oy=m.y-o.y, od=Math.hypot(ox,oy); if(od<1&&od>.001){ vx+=ox/od*(1-od)*4; vy+=oy/od*(1-od)*4; } }
       const vd=Math.hypot(vx,vy); if(vd>.12){ const sp=Math.min(vd,D.spd*dt); [m.x,m.y]=clampA(b,m.x+vx/vd*sp,m.y+vy/vd*sp); moved=true; } }
     if(t<m.next) continue;
     if(D.laser){ if(d>D.laser.range) continue; m.next=t+D.laser.every*1000; const [tx,ty]=lead(B,q,D.laser.warn); B.tele.push({id:SEQ++,k:'laser',kind:'line',x:m.x,y:m.y,ang:Math.atan2(ty-m.y,tx-m.x),range:D.laser.range,w:D.laser.w,dmg:D.laser.dmg*HARD.dmg,at:t+D.laser.warn*1000,mob:1}); moved=true; }
-    else if(d<=D.range+BODY){ m.next=t+D.every*1000; hurtP(q,D.dmg*HARD.dmg,`Bị ${D.name} cắn`,{ak:'bm',boss:B.id}); bcast({t:'mufx',k:'bmhit',boss:B.id,id:m.id,to:q.pid}); } }
+    else if(d<=D.range+BODY){ m.next=t+D.every*1000; hurtP(q,D.dmg*HARD.dmg*weakOf(B,t),`Bị ${D.name} cắn`,{ak:'bm',boss:B.id}); bcast({t:'mufx',k:'bmhit',boss:B.id,id:m.id,to:q.pid}); } }
   return moved; }
 // đạn toả vòng tròn: bay thẳng, trúng người (tính cả thân) thì nổ
 function shotTick(B,t,dt){ if(!B.shots.length) return false; const b=BS[B.id], L=alive(scOf(B));
@@ -155,12 +184,13 @@ function shotTick(B,t,dt){ if(!B.shots.length) return false; const b=BS[B.id], L
   return true; }
 // quái con cũng là mục tiêu đánh được (đánh thường / chiêu / Lính Cát) như quái rừng
 const minHit=(B,m)=>(d,pl)=>{ if(m.hp<=0) return 'bm:'+m.id; m.hp-=d; B.dmg.set(pl.uid,(B.dmg.get(pl.uid)||0)+Math.round(d*.25)); if(m.hp<=0){ B.mins=B.mins.filter(x=>x!==m); bcast({t:'mufx',k:'bmdie',boss:B.id,id:m.id,x:m.x,y:m.y}); gainMu(pl,8); } return 'bm:'+m.id; };
-const asMin=(B,m,d)=>({id:m.id,x:m.x,y:m.y,d,def:M.minions[m.k].def||5,rad:.5,hit:minHit(B,m),slow:()=>{}});
+const asMin=(B,m,d)=>({id:m.id,x:m.x,y:m.y,d,def:M.minions[m.k].def||5,rad:.5,hit:minHit(B,m),slow:()=>{},stun:sec=>{ m.stun=now()+sec*1000; m.next=Math.max(m.next,m.stun); }});
 // trừ máu người chơi (đã trừ thủ), báo hiệu ứng trúng đòn; hết máu thì gục với lý do why
 function hurtP(q,d,why,fx){ const m=st(q); if(!m||m.dead>now()||m.safe>now()) return 0; const dd=Math.max(1,Math.round((d*(.9+Math.random()*.2)-m.def*.4)*(1-(m.armor||0)))); if(!q.muGod) m.hp-=dd;   /* giáp: giảm % sát thương quái / boss */   /* muGod: chỉ server test (dbggod) */ bcast({t:'mufx',k:'hurt',...fx,to:q.pid,dmg:dd});
+  if(m.reflect&&(m.buff.giap||0)>now()) reflect(q,Math.round(d*m.reflect),fx);
   if(m.hp<=0) down(q,why); else push(q); return dd; }
 const hurt=(B,q,d,k)=>{ const ps=BS[B.id].poisonStack, D=q.mus&&q.mus.fx&&q.mus.fx.dot; if(ps&&D&&D.until>now()&&(D.hits=(D.hits||0)+1)>=ps.hits){ D.hits=0; D.until+=ps.add*1000; }   /* trúng 3 đòn lúc đang độc: độc kéo dài thêm */
-  return hurtP(q,d,`Dính ${(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'} của ${BS[B.id].name}`,{ak:k,boss:B.id}); };
+  const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit; return hurtP(q,(cr?d*1.5:d)*weakOf(B,now()),`Dính ${(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0}); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
 // mục tiêu khác ngoài boss (quái rừng ở muforest.js): mỗi nguồn có nearest(pl) → {x,y,d,def,rad,hit(d,pl,sk) → mã mục tiêu} hoặc null
 const EXTRA=[];
 EXTRA.push({kind:'bm',nearest:pl=>{ let best=null, bd=1e9; for(const B of LIVE.values()) if(scOf(B)===pl.scene) for(const m of B.mins||[]){ const d=dist(pl,m.x,m.y); if(d<bd){ bd=d; best=[B,m]; } } return best&&bd<=14?asMin(best[0],best[1],bd):null; },
@@ -188,31 +218,40 @@ const LEASH=7;
 function walk(B,dt,speed){ speed*=formOf(B).move||1; const b=BS[B.id]; if(!b.move||B.tele.some(z=>SELF.has(z.kind))) return false; const q=targets(B,18).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0];
   let tx=b.home.x, ty=b.home.y, stop=.2; if(q){ const hx=q.x/T-b.home.x, hy=q.y/T-b.home.y, hd=Math.hypot(hx,hy), k=hd>LEASH?LEASH/hd:1; tx=b.home.x+hx*k; ty=b.home.y+hy*k; stop=hd>LEASH?.2:1.6; }
   const dx=tx-B.x, dy=ty-B.y, d=Math.hypot(dx,dy); if(d<=stop+.05) return false; const st=Math.min(d-stop,b.move*speed*dt*(q?1:.6)); [B.x,B.y]=clampA(b,B.x+dx/d*st,B.y+dy/d*st); return true; }
-function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!LIVE.has(id)&&t>=NEXT[id]){ NEXT[id]=t+b.life+b.every; spawn(id); }
+function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!b.summon&&!LIVE.has(id)&&t>=NEXT[id]){ NEXT[id]=t+b.life+b.every; spawn(id); }
   if(LIVE.size) track(t);
   let dirty=false;
   for(const B of [...LIVE.values()]){ const b=BS[B.id];
-    if(t>=B.until){ LIVE.delete(B.id); NEXT[B.id]=t+b.every; bcast({t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }
+    if(t>=B.until){ LIVE.delete(B.id); NEXT[B.id]=b.summon?null:t+b.every; bcast({t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }
     const ph=phaseOf(B); if(ph!==B.phase){ B.phase=ph; dirty=true; bcast({t:'mufx',k:'phase',boss:B.id,phase:ph}); if(ph===3) bcast({t:'note',msg:`🔥 ${b.name} nổi giận! Đánh mạnh và nhanh hơn`,kind:'lock'}); }
     if(!B.fightAt&&targets(B,16).length) B.fightAt=t;
     if(b.forms&&!B.form) for(const f of b.forms) if((f.when.hp&&B.hp/B.max<=f.when.hp)||(f.when.t&&B.fightAt&&t-B.fightAt>=f.when.t*1000)){ transform(B,f,t); dirty=true; break; }
-    const F=formOf(B); if(F.regen&&B.hp<B.max){ B.hp=Math.min(B.max,B.hp+B.max*F.regen*.2); dirty=true; }   /* Titan hồi máu mỗi giây */
-    const en=ph===3?b.enrage:{mul:1,speed:1}, speed=en.speed*(B.slow>t?.6:1), aspd=speed*(F.spd||1), cap=[0,4,7,10][ph], own=B.tele.filter(z=>!z.mob);   /* giai đoạn sau nhiều đòn chồng lên nhau hơn; tia của trứng không tính */
-    for(const a of b.attacks){ if((a.phase||1)>ph||(a.form&&B.form!==a.form)||t<(B.cd[a.k]||0)||own.length>=cap) continue; if(ph<2&&a.kind!=='single'&&own.some(z=>z.kind!=='single'&&z.at>t)) continue;
-      B.cd[a.k]=t+a.every*(b.exact?1:HARD.cd)*1000/aspd; if(startAttack(B,a,t,en.mul)){ dirty=true; own.push(1); } }
+    if(b.call&&!B.called&&B.hp/B.max<=b.call.hp){ B.called=1; callBoss(B,b.call.k,t); dirty=true; }
+    if(b.dive&&B.hp/B.max<b.dive.hp&&t>=(B.diveNext||0)){ B.diveU=t+b.dive.dur*1000; B.diveNext=t+b.dive.every*1000; B.tele=B.tele.filter(z=>z.mob); bcast({t:'mufx',k:'dive',boss:B.id,x:B.x,y:B.y,dur:b.dive.dur}); dirty=true; }   /* lặn: bỏ đòn đang gồng */
+    const F=formOf(B); if(F.regen&&B.hp<B.max){ B.hp=Math.min(B.max,B.hp+B.max*F.regen*.2*(B.gw&&B.gw.until>t?1-B.gw.mul:1)); dirty=true; }   /* bị giảm hồi máu thì hồi ít đi */   /* Titan hồi máu mỗi giây */
+    const en=ph===3?b.enrage:{mul:1,speed:1}, speed=en.speed*(B.slow>t?.6:1), aspd=speed*(F.spd||1)*(b.spd||1), cap=[0,4,7,10][ph], own=B.tele.filter(z=>!z.mob);   /* giai đoạn sau nhiều đòn chồng lên nhau hơn; tia của trứng không tính */
+    const stn=B.stunU>t||B.diveU>t;   /* bị choáng / đang lặn: không ra đòn mới, không đi */
+    if(!stn) for(const a of b.attacks){ if((a.phase||1)>ph||(a.form&&B.form!==a.form)||t<(B.cd[a.k]||0)||own.length>=cap) continue; if(ph<2&&a.kind!=='single'&&own.some(z=>z.kind!=='single'&&z.at>t)) continue;
+      B.cd[a.k]=t+a.every*(b.exact||a.exact?1:HARD.cd)*1000/aspd; if(startAttack(B,a,t,en.mul)){ dirty=true; own.push(1); } }
     if(minionTick(B,t,.2)) dirty=true; if(shotTick(B,t,.2)) dirty=true;
+    if(B.ghostU>t&&t>=B.ghostA.next){ const G=B.ghostA; G.next=t+G.tick; for(const q of alive(scOf(B))) if(dist(q,B.x,B.y)<=G.r+BODY){ hurt(B,q,G.dmg,'bongma'); if(G.fx) applyFx(q,G.fx,t,B); } bcast({t:'mufx',k:'gpulse',boss:B.id,x:B.x,y:B.y,r:G.r}); }
     for(const z of B.tele) if(z.tgt&&t<z.lock){ const q=players.get(z.tgt); if(q&&inMu(q)&&inArea(b.area,q.x/T,q.y/T)){ z.x+=(q.x/T-z.x)*.7; z.y+=(q.y/T-z.y)*.7; dirty=true; } }   /* vùng đuổi theo người */
-    if(walk(B,.2,speed)) dirty=true;
+    if(!stn&&walk(B,.2,speed)) dirty=true;
     const before=B.tele.length; B.tele=B.tele.filter(z=>!resolve(B,z,t)); if(B.tele.length!==before) dirty=true; }
   if(dirty) pushBoss(); }
 // hạ boss: chia thưởng theo phần sát thương
-function bossDie(B,killer){ if(!LIVE.has(B.id)) return; const b=BS[B.id], R=RW[b.drops]||{}; LIVE.delete(B.id); NEXT[B.id]=now()+(b.perma?b.perma*1000:b.every);   /* hồi lại đủ thời gian mới ra tiếp */
+function bossDie(B,killer){ if(!LIVE.has(B.id)) return; const b=BS[B.id], R=RW[b.drops]||{}; LIVE.delete(B.id); NEXT[B.id]=b.summon?null:now()+(b.perma?b.perma*1000:b.every);   /* hồi lại đủ thời gian mới ra tiếp */
   const total=[...B.dmg.values()].reduce((a,v)=>a+v,0)||1, top=[...B.dmg.entries()].sort((a,c)=>c[1]-a[1]).filter(([u])=>C.byUid.get(u)), lines=[];
   // Trái Ác Quỷ (chỉ Luffy): số trái = 1/10 số người góp sức, tối thiểu 1; ai góp nhiều sát thương thì dễ được hơn
   const fruitTo=new Set(); if(B.id==='luffy'){ const n=Math.max(1,Math.ceil(top.length/(R.fruitPer||10))), pool=top.map(([u,d])=>({u,w:d})); for(let i=0;i<n&&pool.length;i++){ const sum=pool.reduce((a,x)=>a+x.w,0); let r=Math.random()*sum, k=0; while(k<pool.length-1&&(r-=pool[k].w)>0) k++; fruitTo.add(pool[k].u); pool.splice(k,1); } }
+  // ngọc quý (mọi boss): chắc chắn cho người nhiều sát thương nhất còn cần ngọc (thú cưỡi chưa lên hết bậc thần thú), không thì nhường top 2, top 3; thêm 20% cho 1 người bất kỳ góp sức
+  const needJ=p=>!(p.horse&&(p.horse.myth||0)>=S.HORSE.myth.length); let jewelTo=null; for(const [u] of top.slice(0,3)){ const q=C.byUid.get(u); if(q&&q.prof&&needJ(q.prof)){ jewelTo=u; break; } }
+  const luckyTo=top.length&&Math.random()<.2?top[Math.floor(Math.random()*top.length)][0]:null;
   top.forEach(([uid,d],rank)=>{ const pl=C.byUid.get(uid); if(!pl||!pl.prof) return; const p=pl.prof, sh=d/total, items={}, extra=[], hadCos=!!(R.costume&&p.owned[R.costume]);
+    { const BD=bossDay(p), n=BD.n[B.id]=(BD.n[B.id]||0)+1; setTimeout(()=>{ if(pl.prof) note(pl,`⚔ Đã hạ ${b.name} ${n}/${M.bossPerDay} lần hôm nay${n>=M.bossPerDay?': đủ lượt, mai đánh tiếp':''}`,'quest'); },1500); }   /* giới hạn tính theo lần hạ */
     { const gc=B.id==='luffy'?(rank===0?2:Math.random()<.6?1:0):(rank===0?1:Math.random()<.35?1:0); if(gc) items.ngoc_ch=(items.ngoc_ch||0)+gc; }   /* ngọc cường hoá */
-    if(B.id==='luffy'&&(rank===0||Math.random()<R.jewel)){ const j=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[j]=1; }
+    if(rank===0&&Math.random()<.15) items.ngoc_ch_ht=(items.ngoc_ch_ht||0)+1;   /* top 1: 15% Ngọc Cường Hoá Huyền Thoại */
+    for(const got of [uid===jewelTo,uid===luckyTo]) if(got){ const j=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[j]=(items[j]||0)+1; if(uid===luckyTo&&got===(uid===luckyTo)&&uid!==jewelTo) extra.push('🍀 may mắn được ngọc quý'); }
     if(R.gems&&(rank===0||Math.random()<.5)) items.ngoc_ch=(items.ngoc_ch||0)+R.gems;
     if(R.jewels) for(let j=0;j<(rank===0?R.jewels:Math.random()<.5?1:0);j++){ const jk=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[jk]=(items[jk]||0)+1; }
     if(R.badge&&(rank<3||Math.random()<R.badgeChance)){ items[R.badge]=(items[R.badge]||0)+1; extra.push(`🏅 ${S.ITEMS[R.badge].name} (đổi 1 trong 3 thần thú ở Trung tâm Lính Cát)`); }
@@ -221,7 +260,8 @@ function bossDie(B,killer){ if(!LIVE.has(B.id)) return; const b=BS[B.id], R=RW[b
     let cos='', sec=''; if(R.costume&&!p.owned[R.costume]&&(rank===0||Math.random()<R.chance)){ p.owned[R.costume]=1; cos=R.costume; extra.push(`trang phục ${S.CLOTHES[R.costume].name}`); }
     if(R.weapon&&!C.has(pl,R.weapon)&&(rank===0&&hadCos||Math.random()<R.chance)){ items[R.weapon]=1; const r=rec(p), cur=(M.weapons[r.wep]||{}).atk||0; if(M.weapons[R.weapon].atk>cur) r.wep=R.weapon; extra.push(`vũ khí ${M.weapons[R.weapon].name}`); }
     if(R.secret&&!p.quests[R.secret]){ p.quests[R.secret]='active'; sec=R.secret; extra.push(`nhiệm vụ ẩn "${S.QUESTS[R.secret].title.replace('🔍 ','')}"`); }
-    const got=reward(pl,{exp:R.exp+Math.round(300*sh),vnd:R.vnd+Math.round((B.id==='luffy'?600000:300000)*sh),items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}`), mu=R.mu+Math.round(200*sh); gainMu(pl,mu); rec(p).boss++;
+    const RX=M.bossRewardX||1; for(const k of ['ngoc_ch',...M.jewels]) if(items[k]) items[k]*=RX;   /* thưởng ×bossRewardX (20): ngọc nhân lên, đồ độc nhất giữ nguyên */
+    const got=reward(pl,{exp:(R.exp+Math.round(300*sh))*RX,vnd:(R.vnd+Math.round((B.id==='luffy'?600000:300000)*sh))*RX,items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}`), mu=(R.mu+Math.round(200*sh))*RX; gainMu(pl,mu); rec(p).boss++;
     send(pl,{t:'muloot',boss:B.id,name:b.name,rank:rank+1,n:top.length,share:Math.round(sh*100),exp:got.exp||0,vnd:got.vnd||0,mu,items:got.items||{},cos,sec});   // bảng tổng kết chiến lợi phẩm
     if(extra.length) note(pl,'🎁 Rơi ra: '+extra.join(', '),'item'); if(pl.mus) st(pl); push(pl); markDirty(pl); if(rank<3) lines.push(`${rank+1}. ${p.name} ${Math.round(sh*100)}%`); });
   C.broadcastAll({t:'note',msg:`🏆 ${b.name} đã bị hạ${killer?` bởi ${killer.prof.name}`:''}! ${lines.join(' · ')}${fruitTo.size?` · rơi ${fruitTo.size} Trái Ác Quỷ`:''}`,kind:'quest'});
@@ -233,7 +273,7 @@ function minTick(t){ for(const pl of inScene()){ const mm=pl.muMin; if(!mm) cont
     if(X0&&X0.d<=9&&(!B||X0.d<dist(pl,B.x,B.y))){ const d=Math.max(1,Math.round(m.atk*1.1*(.9+Math.random()*.2)-X0.def*.3)), to=X0.hit(d,pl,{}); bcast({t:'mufx',k:'minhit',from:pl.pid,to,dmg:d}); continue; }
     if(!B) continue;
     const d=dmgBoss(B,pl,Math.max(1,Math.round(m.atk*1.1*(.9+Math.random()*.2)-BS[B.id].def*.3)),t);
-    bcast({t:'mufx',k:'minhit',from:pl.pid,to:'boss:'+B.id,boss:B.id,dmg:Math.max(0,d),miss:d>0?0:d<0?2:1}); } }
+    bcast({t:'mufx',k:'minhit',from:pl.pid,to:'boss:'+B.id,boss:B.id,dmg:Math.max(0,d),miss:missOf(d)}); } }
 // Lính Cát đầu đội tự đánh boss / quái gần nhất cùng chủ (trong 8 ô). Dạng huyền thoại (myth): đánh nhanh hơn, mạnh theo hệ + hiệu ứng (S.LINHCAT.mythSkill)
 function mythFx(pl,lead,sk,X0,B,d){ const m=pl.mus, LC=S.LINHCAT; if(!sk) return; let healed=0;
   if(sk.heal){ healed=Math.round(m.max*sk.heal); m.hp=Math.min(m.max,m.hp+healed); } if(sk.mp) m.mp=Math.min(m.mmax,m.mp+m.mmax*sk.mp); if(sk.drain){ const n=Math.round(d*sk.drain); healed+=n; m.hp=Math.min(m.max,m.hp+n); }
@@ -249,7 +289,7 @@ function petTick(t){ for(const pl of inScene()){ const m=pl.mus, lead=pl.prof.lc
     if(X0&&X0.d<=8&&(!B||X0.d<dist(pl,B.x,B.y))){ pl.muPetAt=t+cd; const d=Math.max(1,Math.round(atk*1.3*mul*(.9+Math.random()*.2)-X0.def*.3)), to=X0.hit(d,pl,{}); bcast({t:'mufx',k:'pet',from:pl.pid,to,dmg:d,sp:lead.sp}); mythFx(pl,lead,sk,X0,null,d); continue; }
     if(!B) continue;
     pl.muPetAt=t+cd; const a=atk*mul, d0=Math.max(1,Math.round(a*1.3*(.9+Math.random()*.2)-BS[B.id].def*.3)), d=dmgBoss(B,pl,d0,t);
-    bcast({t:'mufx',k:'pet',from:pl.pid,to:'boss',boss:B.id,dmg:Math.max(0,d),miss:d>0?0:d<0?2:1,sp:lead.sp}); if(d>0) mythFx(pl,lead,sk,null,B,d); } }
+    bcast({t:'mufx',k:'pet',from:pl.pid,to:'boss',boss:B.id,dmg:Math.max(0,d),miss:missOf(d),sp:lead.sp}); if(d>0) mythFx(pl,lead,sk,null,B,d); } }
 /* ---------- thách đấu ---------- */
 // hết trận (1 người hết máu, gục vì quái / boss, hoặc rời MU): cả 2 hồi đầy máu + mana, báo thắng / thua to giữa màn hình
 function duelEnd(win,lose){ for(const q of [win,lose]) if(q) q.muDuel=null;
@@ -327,19 +367,19 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
   // đánh thường (client tự gửi khi đứng gần quái / boss): ưu tiên mục tiêu client chỉ (to = 'boss:id' / 'mob:id') nếu trong tầm, không thì con gần nhất; nhịp theo tốc đánh
   if(op==='basic'){ if(s.dead>t||pl.muDuel) return {}; if(stunned(s,t)) return {next:300}; const gap=1000/(s.aspd||1)*aslowOf(s,t); if(t-(s.basicAt||0)<gap*.85) return {next:gap-(t-(s.basicAt||0))};
     const R=M.cls[r.cls].reach||M.basic.range, want=String(m.to||''); let B=null, X0=null;
-    if(want.startsWith('boss:')){ const b=LIVE.get(want.slice(5)); if(b&&scOf(b)===pl.scene&&dist(pl,b.x,b.y)<=R+radius(BS[b.id],b)) B=b; }
+    if(want.startsWith('boss:')){ const b=LIVE.get(want.slice(5)); if(b&&scOf(b)===pl.scene&&!(b.diveU>t)&&dist(pl,b.x,b.y)<=R+radius(BS[b.id],b)) B=b; }
     else if(want.includes(':')){ const [pk,pi]=want.split(':'); for(const src of EXTRA) if((src.kind||'mob')===pk){ const o=src.byId&&src.byId(+pi,pl); if(o&&o.d<=R+o.rad){ X0=o; break; } } }
-    if(!B&&!X0){ const nb=[...LIVE.values()].filter(b=>scOf(b)===pl.scene).map(b=>[b,dist(pl,b.x,b.y)-radius(BS[b.id],b)]).filter(([,d])=>d<=R).sort((a,c)=>a[1]-c[1])[0], nx=nearestExtra(pl);
+    if(!B&&!X0){ const nb=[...LIVE.values()].filter(b=>scOf(b)===pl.scene&&!(b.diveU>t)).map(b=>[b,dist(pl,b.x,b.y)-radius(BS[b.id],b)]).filter(([,d])=>d<=R).sort((a,c)=>a[1]-c[1])[0], nx=nearestExtra(pl);
       if(nx&&nx.d-nx.rad<=R&&(!nb||nx.d-nx.rad<nb[1])) X0=nx; else if(nb) B=nb[0]; }
     if(!B&&!X0) return {};
     s.basicAt=t; const crit=Math.random()<s.crit, raw=s.atk*M.basic.mul*(.9+Math.random()*.2), def=B?BS[B.id].def:X0.def, d=Math.max(1,Math.round((raw-def*.5*(1-s.shred))*(crit?1.5:1)+s.atk*s.tdmg*.5));
-    let to, miss=0; if(B){ const dd=dmgBoss(B,pl,d,t); miss=dd>0?0:dd<0?2:1; to='boss:'+B.id; } else to=X0.hit(d,pl,{k:'basic'});
-    if(s.drain) s.hp=Math.min(s.max,s.hp+Math.round(d*s.drain)); if(!miss) procs(pl,s,B,X0,d,t); W.setAct(pl,'attack',.25);
+    let to, miss=0; if(B){ const dd=dmgBoss(B,pl,d,t); miss=missOf(dd); to='boss:'+B.id; } else to=X0.hit(d,pl,{k:'basic'});
+    if(s.drain) s.hp=Math.min(s.max,s.hp+Math.round(d*s.drain*(1-gwOf(s,t)))); if(!miss) procs(pl,s,B,X0,d,t); W.setAct(pl,'attack',.25);
     const wv=M.weapons[r.wep]; bcast({t:'mufx',k:M.skills[r.cls][0].k,basic:1,from:pl.pid,to,dmg:miss?0:d,miss,crit,w:wv&&wv.store?r.wep:'',wl:(r.enh||{})[r.wep]||0}); return {ok:1,to,next:gap}; }   /* hiệu ứng = chiêu 1 của class */
   if(op==='skill'){ if(s.dead>t) return {err:'Đang gục, chờ hồi sinh'}; const sk=skillsOf(r,p)[m.i|0]; if(!sk) return {err:'Chưa có chiêu này'}; if(stunned(s,t)) return {err:'Đang bị choáng!'}; if((s.cd[sk.k]||0)>t) return {err:'Chiêu đang hồi'}; if(s.mp<sk.mp) return {err:'Không đủ mana'};
     if(sk.buff||sk.heal&&!sk.mul){ s.mp-=sk.mp; s.cd[sk.k]=t+sk.cd*1000*aslowOf(s,t)*(1-s.cdr); const healed=[]; W.setAct(pl,'attack',.35);
-      if(sk.buff==='def') s.buff.def=t+sk.dur*1000; const tgs=sk.team?inScene().filter(q=>q.mus&&q.mus.dead<=t&&(q===pl||(!pl.muDuel&&dist(q,pl.x/T,pl.y/T)<=sk.team))):[pl];
-      for(const q of tgs){ const qs=st(q); if(!qs) continue; const n=Math.round(qs.max*sk.heal); qs.hp=Math.min(qs.max,qs.hp+n); healed.push(q.pid); if(q!==pl) push(q); }
+      if(sk.buff==='def') s.buff.def=t+sk.dur*1000; if(sk.buff==='giap'){ s.buff.def=s.buff.giap=t+sk.dur*1000; s.reflect=sk.reflect||0; } if(sk.cleanse&&s.fx){ delete s.fx.dot; delete s.fx.slow; delete s.fx.aslow; } const tgs=sk.team?inScene().filter(q=>q.mus&&q.mus.dead<=t&&(q===pl||(!pl.muDuel&&dist(q,pl.x/T,pl.y/T)<=sk.team))):[pl];
+      if(sk.heal) for(const q of tgs){ const qs=st(q); if(!qs) continue; const n=Math.round(qs.max*sk.heal); qs.hp=Math.min(qs.max,qs.hp+n); healed.push(q.pid); if(q!==pl) push(q); }
       const lg=lgOf(p); bcast({t:'mufx',k:sk.k,from:pl.pid,heal:healed,lg:lg&&M.legacy[lg].fx}); push(pl); return {me:view(pl)}; }
     // chiêu Gọi Min (set 16Typh): chưa có boss / boss ngoài tầm vẫn gọi được, Min tự hát đánh boss trong 9 ô quanh chủ
     const near0=!pl.muDuel&&([...LIVE.values()].find(B=>scOf(B)===pl.scene&&Math.hypot(pl.x/T-B.x,pl.y/T-B.y)<=sk.range+radius(BS[B.id],B))||(()=>{ const X0=nearestExtra(pl); return X0&&X0.d<=sk.range+X0.rad; })());
@@ -348,14 +388,14 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     // chiêu đánh: thách đấu thì đánh đối thủ, không thì đánh boss / quái rừng gần nhất trong tầm
     const opp=pl.muDuel&&players.get(pl.muDuel.other); let tx,ty,tdef,onHit,rad=0,miss=0,tgB=null,tgX=null;
     if(opp&&inMu(opp)){ const os=st(opp); tx=opp.x/T; ty=opp.y/T; tdef=os.def; onHit=d=>{ os.hp-=d; if(os.hp<=0){ os.hp=0; duelEnd(pl,opp); } else push(opp); return opp.pid; }; }
-    else { const B=[...LIVE.values()].filter(b=>scOf(b)===pl.scene).sort((u,v)=>dist(pl,u.x,u.y)-dist(pl,v.x,v.y))[0], X0=nearestExtra(pl);
-      if(!B&&!X0){ const ids=Object.keys(BS).sort((a,c)=>NEXT[a]-NEXT[c]); return {err:`Chưa có boss nào. ${BS[ids[0]].name} xuất hiện sau ${Math.max(1,Math.ceil((NEXT[ids[0]]-t)/60000))} phút. Xuống rừng phía Nam đánh quái, hoặc thách đấu ai đó`}; }
+    else { const B=[...LIVE.values()].filter(b=>scOf(b)===pl.scene&&!(b.diveU>t)).sort((u,v)=>dist(pl,u.x,u.y)-dist(pl,v.x,v.y))[0], X0=nearestExtra(pl);
+      if(!B&&!X0){ const ids=Object.keys(BS).filter(k=>!BS[k].summon).sort((a,c)=>NEXT[a]-NEXT[c]); return {err:`Chưa có boss nào. ${BS[ids[0]].name} xuất hiện sau ${Math.max(1,Math.ceil((NEXT[ids[0]]-t)/60000))} phút. Xuống rừng phía Nam đánh quái, hoặc thách đấu ai đó`}; }
       if(X0&&(!B||X0.d-X0.rad<dist(pl,B.x,B.y)-radius(BS[B.id],B))){ tx=X0.x; ty=X0.y; tdef=X0.def; rad=X0.rad; tgX=X0; onHit=d=>X0.hit(d,pl,sk); }
       else { tx=B.x; ty=B.y; tdef=BS[B.id].def; rad=radius(BS[B.id],B); tgB=B;
-        onHit=d=>{ const dd=dmgBoss(B,pl,d,t); if(dd<=0){ miss=dd<0?2:1; return 'boss:'+B.id; } if(sk.slow) B.slow=t+sk.slow*1000; if(LIVE.has(B.id)) pushBoss(); return 'boss:'+B.id; }; } }
+        onHit=d=>{ const dd=dmgBoss(B,pl,d,t); if(dd<=0){ miss=missOf(dd); return 'boss:'+B.id; } if(sk.slow) B.slow=t+sk.slow*1000; if(LIVE.has(B.id)) pushBoss(); return 'boss:'+B.id; }; } }
     if(Math.hypot(pl.x/T-tx,pl.y/T-ty)>sk.range+rad) return {err:`Xa quá, tầm chiêu ${sk.range} ô`};
     s.mp-=sk.mp; s.cd[sk.k]=t+sk.cd*1000*aslowOf(s,t)*(1-s.cdr); W.setAct(pl,'attack',.35); const crit=Math.random()<s.crit, d=Math.max(1,Math.round((s.atk*sk.mul*(1+s.spell)*(.9+Math.random()*.2)-tdef*.5*(1-s.shred))*(crit?1.5:1)+s.atk*s.tdmg));
-    if(sk.drain||s.drain) s.hp=Math.min(s.max,s.hp+Math.round(d*((sk.drain||0)+s.drain))); if(sk.heal) s.hp=Math.min(s.max,s.hp+Math.round(s.max*sk.heal));   /* chiêu đánh kèm hồi máu (set Yoshi, King Knight) */ const to=onHit(d); if(!miss){ if(opp){ if(s.slowp&&Math.random()<s.slowp) applyFx(opp,{slow:.6,dur:2},t); } else procs(pl,s,tgB,tgX,d,t); }
+    { const gk=1-gwOf(s,t); if(sk.drain||s.drain) s.hp=Math.min(s.max,s.hp+Math.round(d*((sk.drain||0)+s.drain)*gk)); if(sk.heal) s.hp=Math.min(s.max,s.hp+Math.round(s.max*sk.heal*gk)); }   /* chiêu đánh kèm hồi máu (set Yoshi, King Knight) */ const to=onHit(d); if(!miss){ if(opp){ if(s.slowp&&Math.random()<s.slowp) applyFx(opp,{slow:.6,dur:2},t); if(s.gw&&opp.mus){ const F=opp.mus.fx||(opp.mus.fx={}); F.gw={until:t+3000,mul:s.gw}; } } else procs(pl,s,tgB,tgX,d,t); if(sk.stun){ if(opp) applyFx(opp,{stun:sk.stun},t); else stunT(tgB,tgX,sk.stun,t); } if(!opp){ if(sk.gw||sk.weak) debuff(tgB,tgX,sk,t); if(sk.aoe) splash(pl,sk,tx,ty,tgB,tgX,d,t); } }
     const lg=lgOf(p), wv=M.weapons[r.wep]; bcast({t:'mufx',k:sk.k,from:pl.pid,to,dmg:miss?0:d,miss,crit,lg:lg&&M.legacy[lg].fx,w:wv&&wv.store?r.wep:'',wl:(r.enh||{})[r.wep]||0});
     if(sk.summon){ pl.muMin={until:t+sk.summon*1000,next:t+700}; bcast({t:'mufx',k:'minup',from:pl.pid,until:pl.muMin.until}); }   // set 16Typh: Min ra đánh cùng
     push(pl); return {me:view(pl)}; }
@@ -364,8 +404,8 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
 let regenT=0;
 setInterval(()=>{ try{ const t=now(); bossTick(t); petTick(t); minTick(t); if(t<regenT) return; regenT=t+500;
   for(const pl of inScene()){ const m=pl.mus; if(!m||!rec(pl.prof).cls) continue;
-    if(m.dead&&m.dead<=t){ m.dead=0; m.safe=t+4000; m.hp=m.max; m.mp=m.mmax; C.moveTo(pl,'mu',M.spawn.x,M.spawn.y); push(pl); continue; }
-    if(m.dead>t||dotTick(pl,m,t)) continue; const h=m.hp, mp=m.mp; m.hp=Math.min(m.max,m.hp+m.max*M.regen.hp*.5*(m.regen||1)); m.mp=Math.min(m.mmax,m.mp+m.mmax*M.regen.mp*.5*(m.regen||1)); if((Math.round(h)!==Math.round(m.hp)||Math.round(mp)!==Math.round(m.mp))&&Math.random()<.5) push(pl); }
+    if(m.dead&&m.dead<=t){ m.dead=0; m.safe=t+4000; m.hp=m.max; m.mp=m.mmax; const sp=RESPAWN.f&&RESPAWN.f(pl); if(sp) C.moveTo(pl,sp[0],sp[1],sp[2]); else C.moveTo(pl,'mu',M.spawn.x,M.spawn.y);   /* D-Day: hồi sinh cạnh nhà mình */ push(pl); continue; }
+    if(m.dead>t||dotTick(pl,m,t)) continue; const h=m.hp, mp=m.mp; m.hp=Math.min(m.max,m.hp+m.max*M.regen.hp*.5*(m.regen||1)*(1-gwOf(m,t))); m.mp=Math.min(m.mmax,m.mp+m.mmax*M.regen.mp*.5*(m.regen||1)); if((Math.round(h)!==Math.round(m.hp)||Math.round(mp)!==Math.round(m.mp))&&Math.random()<.5) push(pl); }
   for(const pl of players.values()) if(pl.muDuel){ const q=players.get(pl.muDuel.other); if(!q||!inMu(q)||!inMu(pl)){ pl.muDuel=null; if(q) q.muDuel=null; push(pl); } }
   if(LIVE.size) pushBoss(); }catch(e){ console.error('[mu]',e); } },200);
 C.hook('login',pl=>{ if(pl.prof&&pl.prof.mu){ syncAcc(pl.prof); syncWep(pl.prof); } });
@@ -377,7 +417,7 @@ on('gear',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const r=rec(p), k=
   else return {err:'?'};
   syncWep(p); if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); if(inMu(pl)) push(pl); return {ok:true,look:p.look}; });
 C.hook('enter',pl=>{ if(pl.scene==='mu'&&pl.prof) pl.prof.muOX=S.MU.OX;   /* đánh dấu vị trí MU theo toạ độ mới */
-  if(MS.has(pl.scene)) setTimeout(()=>{ if(pl.prof){ send(pl,{t:'muboss',v:allView()}); push(pl); } },600); });
+  if(MS.has(pl.scene)||EXTRA_SCENES.has(pl.scene)) setTimeout(()=>{ if(pl.prof){ send(pl,{t:'muboss',v:allView()}); push(pl); } },600); });
 // lực chiến của 1 hồ sơ (bảng xếp hạng Lực chiến): chỉ người đã chọn class MU
 const powerOf=p=>{ const r=p&&p.mu; if(!r||!r.cls) return 0; const ex=extraOf(p); return S.muPower(S.muStats(r.cls,r.lv,r.fruit,r.wep,lgOf(p),ex),{...ex,armor:ex.armor+(M.cls[r.cls].armor||0)}); };
-module.exports={rec,st,push,view,inScene,bcast,alive,gainMu,hurtP,dist,EXTRA,powerOf};
+module.exports={rec,st,push,view,inScene,bcast,alive,gainMu,hurtP,dist,EXTRA,powerOf,EXTRA_SCENES,RESPAWN,down,applyFx};

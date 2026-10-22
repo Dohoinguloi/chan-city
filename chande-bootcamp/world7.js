@@ -18,7 +18,7 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
     if(y===H0-1) return x>=19&&x<=24?'9':x>=Z.gapF[0]&&x<=Z.gapF[1]?'G':x>=Z.gapE[0]&&x<=Z.gapE[1]?'&':'0';   // tường Nam: 3 lối xuống rừng
     if(x===42||x===43||x===70||x===71) return (y>=Z.gateN.y0&&y<=Z.gateN.y1)||(y>=Z.gateS.y0&&y<=Z.gateS.y1)?'9':'0';
     if(x<42) return (x<5||x>38||y>H0-5)?'G':'9';
-    if(x<70){ if(y===Z.split||y===Z.split+1) return x>=Z.gapF[0]&&x<=Z.gapF[1]?'G':'0'; const L=Z.lake; if(y>Z.split&&((x-L.x)/L.rx)**2+((y-L.y)/L.ry)**2<=1) return 'W'; return y<Z.split&&(x+y)%7===0?'P':'G'; }
+    if(x<70){ if(y===Z.split||y===Z.split+1) return x>=Z.gapF[0]&&x<=Z.gapF[1]?'G':'0'; const L=Z.lake; if(y>Z.split&&((x-L.x)/L.rx)**2+((y-L.y)/L.ry)**2<=1) return '~';   /* Đầm Rồng: nước nông lội ra được tới chỗ rồng tắm */ return y<Z.split&&(x+y)%7===0?'P':'G'; }
     if(y===Z.split||y===Z.split+1) return x>=Z.gapE[0]&&x<=Z.gapE[1]?(y===Z.split?'%':'&'):'0';
     return y<Z.split?'%':'&'; }));
   /* --- quảng trường: đền Luffy, đuốc, đài phun nước, cờ, quầy Pháp sư, cây --- */
@@ -37,7 +37,10 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
   put(A.lcTemple(0),29,25.8,{anim:'lctemple'}); block(27,24,31,25);   // Đền Lính Cát Huyền Thoại (đập 3 ngọc quý → dạng huyền thoại)   // Tiệm Giày Lướt Gió (ô Giày: đi nhanh hơn + chỉ số MU)   // quầy Thợ Kim Hoàn (phụ kiện: cánh, dây chuyền, hộ thân, aura)   // quầy Premium Store (Thương nhân Huyền Thoại đứng trước)
   const tree=(x,y)=>{ put(A.tree((x*7+y)|0,.9),x,y,{tree:true}); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); };
   for(const [x,y] of [[3,6],[3,12],[3,18],[40,6],[40,18],[3,24]]) tree(x,y);
-  put(A.label('← VUNG BOSS · LANG MEME','#2a2026','#ffd84a'),7,18.4,{flat:true});   // lối mở trên tường Tây (y 19–22) sang vùng boss phía Tây
+  put(A.label('← VUNG BOSS · LANG MEME','#2a2026','#ffd84a'),7,18.4,{flat:true});
+  put(A.stall('#d8742a',['#f4ead8','#e8b860','#5fae46']),15.5,15.6); block(14,13,16,14); put(A.label('QUAN AN','#5a2a10','#ffd84a'),15.5,13.2,{flat:true});   // Quán Ăn Lục Địa Cát (Bác Bếp Cát đứng trước quầy)
+  put(A.tent({w:44,flag:'#3a8ae8'}),27.5,15.2); block(26,13,29,14); put(A.label('PHONG NGHI TRUA','#1e4a9a','#ffffff'),27.5,11.6,{flat:true});   // Phòng Nghỉ Trưa: hồi năng lượng (maps10)
+  { const G=SD.MU.dday.gate, gx=G.x-SD.MU.OX; put(A.ddayGate(0),gx,G.y+.6,{anim:'ddgate'}); block(Math.floor(gx)-1,Math.floor(G.y)-1,Math.floor(gx)+1,Math.floor(G.y)-1); }   // nhà sự kiện Cổng D-Day (toạ độ cũ = gate.x - OX)   // lối mở trên tường Tây (y 19–22) sang vùng boss phía Tây
   put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,26.4,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26);
   put(A.label('→ LANG LA · DAM RONG','#2a2026','#ff9a3a'),37,13.2,{flat:true});
   /* --- rừng Làng Lá phía Bắc: cổng torii, cọc tập, quán ramen, bia đá --- */

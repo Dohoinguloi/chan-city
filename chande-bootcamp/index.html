@@ -192,7 +192,7 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 .musk{position:relative;width:58px;height:58px;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);cursor:var(--cur-hand),pointer;overflow:hidden} .musk:hover{border-color:var(--gold)}
 .musk img{image-rendering:pixelated;margin-top:-8px} .musk b{position:absolute;left:3px;top:1px;font-weight:400;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000} .musk small{position:absolute;right:3px;top:1px;font-size:12px;color:#7fb8ff;text-shadow:1px 1px 0 #000}
 .musk span{position:absolute;left:0;right:0;bottom:1px;font-size:11px;line-height:11px;color:var(--cream);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mucd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
-.mucls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .mucl{display:grid;justify-items:center;gap:3px;padding:6px;background:var(--panel2);border:2px solid var(--cc);text-align:center} .mucl img{image-rendering:pixelated} .mucl p{font-size:15px;margin:2px 0} .mucl ul{text-align:left;font-size:14px;margin:2px 0;padding-left:16px}
+.mucls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px} .mucl{display:grid;justify-items:center;gap:3px;padding:6px;background:var(--panel2);border:2px solid var(--cc);text-align:center} .mucl img{image-rendering:pixelated} .mucl p{font-size:15px;margin:2px 0} .mucl ul{text-align:left;font-size:14px;margin:2px 0;padding-left:16px}
 @media (max-width:620px){ .mucls{grid-template-columns:1fr} }
 .mulg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px} .mulgc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;background:var(--panel2);border:2px solid var(--line);text-align:center} .mulgc img{image-rendering:pixelated} .mulgc p{font-size:14px;margin:2px 0} .mulgc .star{color:var(--gold)} .mulgc.t3{border-color:#7fb8ff} .mulgc.t4{border-color:#c86aff} .mulgc.t5{border-color:var(--gold)} #muLoot{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;width:min(340px,86vw);padding:10px 14px;display:grid;gap:4px;border-color:var(--gold);animation:lootin .35s ease-out} #muLoot[hidden]{display:none} #muLoot h4{margin:0;font-weight:400;font-size:24px;color:var(--gold)} #muLoot .x{position:absolute;right:6px;top:4px;font:16px var(--f);background:none;border:0;color:var(--cream);cursor:pointer} .ll{display:grid;gap:3px;margin-top:4px} .lr{display:flex;gap:8px;align-items:center;font-size:17px} .lr b{font-weight:400;color:#8ae88a} @keyframes lootin{from{transform:translate(-50%,12px) scale(.9);opacity:0}}
 .musk.lgsk{border-color:var(--gold)} .musk.pas{width:44px} .musk.pas .pasi{position:static;font-size:20px;color:var(--gold);margin-top:-8px} .musk.pas.has{border-color:#8ae88a;animation:qauto 1.2s steps(2) infinite}
@@ -487,6 +487,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 @media (max-width:700px){ #minimap{display:none!important} #hudSkills{display:none} #hudQuests{width:52vw;font-size:16px} #hudLvlBox,#hudNeeds{width:170px} .chess{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .toast,#banner,#evBanner,#enhRes,#bigtext,#fade{animation:none!important;transition:none!important} }
 #muMe .musub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 8px;margin:3px 0 2px;font-size:12px;line-height:1.2;color:#d8d0e8}#muMe .musub b{color:#ffd84a}#muMe .musub .z{opacity:.45}
+#muHud .mutg,#muBoss .mutg{display:block;background:none;border:0;padding:0 0 2px;color:#a8a0c0;font:inherit;font-size:12px;cursor:pointer;text-align:left;pointer-events:auto}#muHud .mutg:hover,#muBoss .mutg:hover{color:#ffd84a}
 </style>
 <link rel="stylesheet" href="/pixel.css">
 </head>
@@ -596,6 +597,8 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art17.js"></script>
 <script src="art18.js"></script>
 <script src="art19.js"></script>
+<script src="art20.js"></script>
+<script src="art21.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
@@ -604,6 +607,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world6.js"></script>
 <script src="world7.js"></script>
 <script src="world8.js"></script>
+<script src="world9.js"></script>
 <script src="avatar.js?v=8"></script>
 <script src="hw.js"></script>
 <script src="net.js?v=7"></script>
@@ -622,6 +626,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="maps8.js"></script>
 <script src="maps9.js"></script>
 <script src="maps10.js"></script>
+<script src="maps11.js"></script>
 <script src="auto.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>
