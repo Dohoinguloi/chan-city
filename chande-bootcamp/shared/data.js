@@ -980,6 +980,19 @@ const muStats=(cls,lv,fruit,wep,lg,ex)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, f
 // lực chiến: 1 con số gộp chỉ số MU (hiện trên HUD, so set legacy)
 const muPower=s=>Math.round(s.atk*10+s.def*8+s.hp*1.5+s.mp*.6);
 for(const [k,f] of Object.entries(MU.fruits)) ITEMS['taq_'+k]={name:f.name,icon:'fruit_'+k};
+// Thợ Rèn Huyền Thoại (store vũ khí MU): 50 vũ khí = 10 loại × 5 hệ. Loại quyết định kiểu vung khi ra chiêu + 1 chỉ số phụ, hệ quyết định hiệu ứng nổ ở mục tiêu.
+// Công +8%…+24% theo bậc hệ + bậc loại; sao 1–5 (5 sao = Huyền Thoại). Mua xong vào túi và cầm luôn, đổi vũ khí ở Thợ Rèn hoặc Vệ binh.
+MU.wtypes={dagger:{name:'Dao Găm',tier:0,bonus:{crit:.04},swing:'stab',desc:'đâm nhanh 2 nhát'},sword:{name:'Kiếm',tier:0,bonus:{hp:.03},swing:'slash',desc:'chém vòng cung'},
+  bow:{name:'Cung',tier:0,bonus:{mp:.05},swing:'shoot',desc:'bắn tên'},spear:{name:'Giáo',tier:1,bonus:{def:.03},swing:'thrust',desc:'đâm thẳng'},
+  axe:{name:'Rìu Chiến',tier:1,bonus:{hp:.04},swing:'chop',desc:'bổ từ trên xuống'},hammer:{name:'Búa Tạ',tier:1,bonus:{def:.05},swing:'slam',desc:'nện đất toả sóng'},
+  katana:{name:'Katana',tier:2,bonus:{crit:.06},swing:'iai',desc:'rút đao chém chớp nhoáng'},scythe:{name:'Lưỡi Hái',tier:2,bonus:{drain:.04},swing:'sweep',desc:'quét vòng rộng'},
+  staff:{name:'Gậy Phép',tier:2,bonus:{mp:.1},swing:'cast',desc:'phóng cầu phép'},greatsword:{name:'Đại Kiếm',tier:2,bonus:{hp:.06},swing:'cleave',desc:'chém nặng toé đá'}};
+MU.welems={poison:{name:'Kịch Độc',tier:1,col:'#7ae05a',desc:'bọt độc'},ice:{name:'Băng Giá',tier:2,col:'#7fd8ff',desc:'băng vỡ'},fire:{name:'Hoả Ngục',tier:3,col:'#ff8a2a',desc:'lửa nổ'},
+  thunder:{name:'Lôi Thần',tier:4,col:'#ffe066',desc:'sét giật'},void:{name:'Hư Không',tier:5,col:'#c86aff',desc:'khe nứt hư không'}};
+MU.wrank=['','Thường','Thường','Hiếm','Sử thi','Huyền thoại'];
+for(const [tk,ty] of Object.entries(MU.wtypes)) for(const [ek,el] of Object.entries(MU.welems)){ const atk=Math.round((.05+el.tier*.03+ty.tier*.015)*100)/100, sc=el.tier+ty.tier, star=sc<=2?1:sc<=3?2:sc<=5?3:sc===6?4:5;
+  MU.weapons['vw_'+tk+'_'+ek]={name:ty.name+' '+el.name,atk,bonus:ty.bonus,type:tk,el:ek,star,price:Math.round((400000+atk*28e6)/10000)*10000,store:true,desc:`${MU.wrank[star]} · công MU +${Math.round(atk*100)}% · ra chiêu ${ty.desc}, ${el.desc}`};
+  ITEMS['vw_'+tk+'_'+ek]={name:ty.name+' '+el.name,icon:'wpn_'+tk+'_'+ek}; }
 ITEMS.vk_kunai={name:'Kunai Phi Lôi Thần',icon:'kunai'}; ITEMS.vk_cua={name:'Cưa Máy Quỷ',icon:'chainsaw'}; ITEMS.vk_luoihai={name:'Lưỡi Hái Bóng Đêm',icon:'scythe'}; ITEMS.vk_vayrong={name:'Thương Vảy Rồng',icon:'spear'}; ITEMS.vay_rong={name:'Vảy Rồng Dải Xanh',icon:'scale'};
 ITEMS.cuon_truc={name:'Cuộn trục Hokage',icon:'scroll'}; ITEMS.banh_mut={name:'Bánh mì phết mứt',icon:'jambread'}; ITEMS.lua_ma={name:'Đốm lửa ma',icon:'ghostfire'};
 Object.assign(CLOTHES,{mu_naruto:{name:'Đồ ninja cam (Naruto)',slot:'top',price:0,hidden:true,mu:true,set:'mu_naruto',opts:{top:'jacket',hair:'messy'},colors:{top:'f2802a',inner:'1c1820',pants:'f2802a',shoes:'2a4ab8',hair:'ffd84a'}},
@@ -996,11 +1009,12 @@ Object.assign(CLOTHES,{mu_dk:{name:'Giáp Rồng Đỏ + Kiếm (Chiến Binh)',
   mu_elf:{name:'Áo Tiên Thánh + Song Kiếm (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
   mu_dw:{name:'Giáp Pháp Sư Xanh + Gậy (Phù Thuỷ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dw',opts:{top:'long'},colors:{top:'2a4ab8',pants:'2a3a8a',shoes:'1c1820'}}});
 Object.assign(ITEMS,{ngoc_uoc:{name:'Ngọc Ước Nguyện',icon:'jewel_bless'},ngoc_tam_linh:{name:'Ngọc Tâm Linh',icon:'jewel_soul'},ngoc_hon_nguyen:{name:'Ngọc Hỗn Nguyên',icon:'jewel_chaos'}});
-NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'},{id:'mu_shop',scene:'mu',x:11.5,y:20.6,place:'mushop'},{id:'mu_acc',scene:'mu',x:35.5,y:12.8,place:'muacc'});
+NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'},{id:'mu_shop',scene:'mu',x:11.5,y:20.6,place:'mushop'},{id:'mu_acc',scene:'mu',x:35.5,y:12.8,place:'muacc'},{id:'mu_smith',scene:'mu',x:6.5,y:15.4,place:'musmith'});
 Object.assign(NPC_LOOKS,{mu_guard:{name:'Vệ binh Lục Địa Cát',look:{gender:'nam',hair:'buzz',hairColor:'3a2a22',skin:'e8b48a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'goatee'}}},
   mu_shop:{name:'Thương nhân Huyền Thoại (Premium Store)',look:{gender:'nam',hair:'swept',hairColor:'2a2026',skin:'e8b48a',outfit:{top:'lg_king',bottom:'kaki',shoes:'giay_den'}}},
   mu_acc:{name:'Thợ Kim Hoàn (cánh · dây chuyền · hộ thân · aura)',look:{gender:'nu',hair:'long',hairColor:'f2c43d',skin:'f3c8a8',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_den'}}},
   mu_min:{name:'Min',look:{gender:'nu',hair:'long',hairColor:'ff7a2a',skin:'f6d2b8',outfit:{top:'mu_min',bottom:'kaki',shoes:'giay_den'}}},
+  mu_smith:{name:'Thợ Rèn Huyền Thoại (50 vũ khí)',look:{gender:'nam',hair:'buzz',hairColor:'5a3a22',skin:'c8885a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'full'}}},
   mu_mage:{name:'Pháp sư Cát (cửa hàng)',look:{gender:'nam',hair:'long',hairColor:'e8e4dc',skin:'f0c4a0',outfit:{top:'mu_dw',bottom:'kaki',shoes:'giay_den'},opts:{beard:'mustache'}}}});
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần

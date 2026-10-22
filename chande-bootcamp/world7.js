@@ -24,6 +24,7 @@ function buildMU(){ const M=SD.MU, W=M.W, H=M.H, Z=M.zones, K=kit(), {put,block,
   [['#c8302a',9],['#f2c43d',22],['#3a6ad8',35]].forEach(([c,x])=>put(A.muBanner(c),x,3.2,{flat:true}));
   put(A.muStall(),30.6,19.2); block(29,17,32,18);
   put(A.muPremium(),11.5,19.4); block(10,17,13,18);
+  put(A.muSmithStall(),6.5,14.2); block(5,12,8,13);   // quầy Thợ Rèn Huyền Thoại (50 vũ khí)
   put(A.muJewelStall(),35.5,11.6); block(34,9,37,10);   // quầy Thợ Kim Hoàn (phụ kiện: cánh, dây chuyền, hộ thân, aura)   // quầy Premium Store (Thương nhân Huyền Thoại đứng trước)
   const tree=(x,y)=>{ put(A.tree((x*7+y)|0,.9),x,y,{tree:true}); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); };
   for(const [x,y] of [[3,6],[3,12],[3,18],[40,6],[40,18],[3,24]]) tree(x,y);

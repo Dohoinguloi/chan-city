@@ -13,7 +13,9 @@ const inMu=pl=>pl.scene==='mu'&&pl.prof;
 const pasPts=r=>Math.max(0,(r.lv-1)-Object.values(r.pas||{}).reduce((a,v)=>a+v,0));
 function extraOf(p){ const r=rec(p), o={hp:0,mp:0,atk:0,def:0,regen:0,crit:0,drain:0};
   for(const k of Object.values(r.acc||{})){ const a=M.acc[k]; if(a) for(const [s,v] of Object.entries(a.bonus)) o[s]+=v; }
-  for(const [k,n] of Object.entries(r.pas||{})){ const P=M.passive[k]; if(P) o[P.stat]+=P.per*n; } return o; }
+  for(const [k,n] of Object.entries(r.pas||{})){ const P=M.passive[k]; if(P) o[P.stat]+=P.per*n; }
+  const w=M.weapons[r.wep]; if(w&&w.bonus) for(const [s,v] of Object.entries(w.bonus)) o[s]+=v;   /* chỉ số phụ của vũ khí Thợ Rèn */
+  return o; }
 const syncAcc=p=>{ if(p.look) p.look.acc={...(rec(p).acc||{})}; };   // để người khác thấy phụ kiện (gửi kèm ngoại hình)
 const lgOf=p=>{ const k=p.look&&p.look.outfit&&p.look.outfit.top; return k&&M.legacy[k]?k:''; };
 function st(pl){ const r=rec(pl.prof); if(!r.cls) return null; const ex=extraOf(pl.prof), s=S.muStats(r.cls,r.lv,r.fruit,r.wep,lgOf(pl.prof),ex); if(!pl.mus) pl.mus={hp:s.hp,mp:s.mp,cd:{},buff:{},dead:0};
@@ -124,6 +126,10 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     else if(k&&(!L||!p.owned[k])) return {err:'Chưa có set này'};
     const top=k||(r.cls?M.cls[r.cls].set:''); if(!top) return {err:'Chọn class ở Vệ binh trước'}; if(p.look&&p.look.outfit) p.look.outfit.top=top; if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); push(pl);
     return {msg:op==='buy'?`Đã mua và mặc Set Legacy ${L.name}! Lực chiến tăng, đòn đánh có hiệu ứng riêng`:k?`Đã mặc ${L.name}`:'Đã mặc lại giáp class',look:p.look}; }
+  // Thợ Rèn Huyền Thoại: mua vũ khí (vào túi, cầm luôn); đã có thì cầm
+  if(op==='smithbuy'){ if(!P.nearNpc(pl,'mu_smith')) return {err:'Gặp Thợ Rèn Huyền Thoại ở quảng trường'}; const k=String(m.k||''), w=M.weapons[k]; if(!w||!w.store) return {err:'?'};
+    if(!C.has(pl,k)){ if(!take(pl,w.price)) return {err:`Cần ${fmt(w.price)} để mua ${w.name}`}; addItem(pl,k,1); }
+    r.wep=k; if(pl.mus) st(pl); markDirty(pl); push(pl); return {msg:`Đã cầm ${w.name}! ${w.desc}`}; }
   // Thợ Kim Hoàn: mua phụ kiện (giữ mãi, đeo luôn), đeo / tháo theo ô
   if(op==='accbuy'||op==='accwear'){ if(!P.nearNpc(pl,'mu_acc')) return {err:'Gặp Thợ Kim Hoàn ở quảng trường'}; const k=String(m.k||''), a=M.acc[k], slot=a?a.slot:String(m.slot||'');
     if(!M.slots[slot]) return {err:'?'}; const own=r.accOwned=r.accOwned||{}, eq=r.acc=r.acc||{};
@@ -163,7 +169,7 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     if(Math.hypot(pl.x/T-tx,pl.y/T-ty)>sk.range+rad) return {err:`Xa quá, tầm chiêu ${sk.range} ô`};
     s.mp-=sk.mp; s.cd[sk.k]=t+sk.cd*1000; W.setAct(pl,'attack',.35); const crit=Math.random()<s.crit, d=Math.max(1,Math.round((s.atk*sk.mul*(.9+Math.random()*.2)-tdef*.5)*(crit?1.5:1)));
     if(sk.drain||s.drain) s.hp=Math.min(s.max,s.hp+Math.round(d*((sk.drain||0)+s.drain))); if(sk.heal) s.hp=Math.min(s.max,s.hp+Math.round(s.max*sk.heal));   /* chiêu đánh kèm hồi máu (set Yoshi, King Knight) */ const to=onHit(d);
-    const lg=lgOf(p); bcast({t:'mufx',k:sk.k,from:pl.pid,to,dmg:d,crit,lg:lg&&M.legacy[lg].fx});
+    const lg=lgOf(p), wv=M.weapons[r.wep]; bcast({t:'mufx',k:sk.k,from:pl.pid,to,dmg:d,crit,lg:lg&&M.legacy[lg].fx,w:wv&&wv.store?r.wep:''});
     if(sk.summon){ pl.muMin={until:t+sk.summon*1000,next:t+700}; bcast({t:'mufx',k:'minup',from:pl.pid,until:pl.muMin.until}); }   // set 16Typh: Min ra đánh cùng
     push(pl); return {me:view(pl)}; }
   return {err:'?'}; });
