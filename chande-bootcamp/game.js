@@ -1232,9 +1232,9 @@ function drawFx(f,cx,cy){ const k=f.t/f.life, X=Math.round(f.x-cx), Y=Math.round
 // tên, khung chat, thanh máu/vật tay vẽ ở độ phân giải màn hình
 /* danh hiệu top 10 đại gia: khung tối viền màu + chữ óng ánh, mỗi hạng 1 hiệu ứng (vàng quét sáng, bạc, đồng, sấm tím, cầu vồng,
    kiếm khí xanh, GOAT nhiễu sóng, bát quái đen trắng, mây trời bồng bềnh, lửa vĩ thú bốc tàn) */
-function drawTitle(x,y,rk,t){ const D=SD.TOP_TITLES[rk-1]; if(!D) return; const g=ug, txt=(rk===1?'♛ ':rk===7?'🐐 ':'')+D.name; g.save(); g.font='15px VT323, monospace'; g.textAlign='left'; g.textBaseline='alphabetic';
+function drawTitle(x,y,rk,t){ const D=SD.TOP_TITLES[rk-1]; if(!D) return; const g=ug, txt=(rk===1?'♛ ':rk===7?'🐐 ':'')+D.name; g.save(); g.font='17px VT323, monospace'; g.textAlign='left'; g.textBaseline='alphabetic';
   const w=g.measureText(txt).width, x0=Math.round(x-w/2), by=Math.round(y), L=x0-6, R=x0+w+6, chars=[...txt];
-  g.fillStyle='rgba(14,10,20,.86)'; g.fillRect(L,by-14,R-L,17); g.strokeStyle=D.edge; g.globalAlpha=.55+.35*Math.sin(t/300); g.lineWidth=1; g.strokeRect(L+.5,by-13.5,R-L-1,16); g.globalAlpha=1;
+  g.fillStyle='rgba(14,10,20,.86)'; g.fillRect(L,by-15,R-L,19); g.strokeStyle=D.edge; g.globalAlpha=.55+.35*Math.sin(t/300); g.lineWidth=1; g.strokeRect(L+.5,by-14.5,R-L-1,18); g.globalAlpha=1;
   const each=(fn)=>{ let cx=x0; chars.forEach((ch,i)=>{ const cw=g.measureText(ch).width; fn(ch,cx,i,cw); cx+=cw; }); };
   const sweep=(c0,c1,c2,speed)=>{ const p=((t/speed)%1.6)-.3, gr=g.createLinearGradient(x0,0,x0+w,0); gr.addColorStop(0,c0); gr.addColorStop(Math.max(0,Math.min(1,p-.15)),c1); gr.addColorStop(Math.max(0,Math.min(1,p)),c2); gr.addColorStop(Math.max(0,Math.min(1,p+.15)),c1); gr.addColorStop(1,c0); return gr; };
   const out=()=>{ g.lineWidth=3; g.strokeStyle='#120c16'; g.strokeText(txt,x0,by); };

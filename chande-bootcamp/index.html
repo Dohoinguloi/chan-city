@@ -113,6 +113,8 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 .dchest{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#2c2418;border:2px solid var(--gold);font-size:18px} .dchest .ico{width:44px;height:44px} .dchest .ico+div .ico{width:22px;height:22px;vertical-align:middle}
 .pop{animation:dpop .45s cubic-bezier(.3,1.6,.5,1)} @keyframes dpop{from{transform:scale(.6);opacity:0}}
 @media (max-width:760px),(max-height:540px){ .d7{grid-template-columns:repeat(4,1fr)} .dday{min-height:104px} .dqrow b{font-size:16px} }
+/* bảng xếp hạng: ảnh mặt người chơi */
+.lbn{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap} .lbf{width:30px;height:30px;image-rendering:pixelated;background:#f3ecdc;border:2px solid #1c1516;box-shadow:0 0 0 1px var(--line);display:inline-block;flex:none} .row.tt1 .lbf{box-shadow:0 0 0 2px #ffd84a,0 0 8px rgba(255,216,74,.6)} .row.tt2 .lbf{box-shadow:0 0 0 2px #cfe6ff} .row.tt3 .lbf{box-shadow:0 0 0 2px #f0a060}
 /* danh hiệu top 10 đại gia: 10 hiệu ứng óng ánh */
 .ttl{display:inline-block;position:relative;margin-left:8px;padding:0 7px;border:1px solid;background:rgba(14,10,20,.86);font:16px/1.25 var(--f);vertical-align:1px;overflow:hidden}
 .ttl i{font-style:normal;display:inline-block}

@@ -726,12 +726,14 @@ UI.danceOverlay=g=>{ const v=GAME.DANCE; if(!v||v.st!=='play') return; const W=i
 /* ---------- bảng xếp hạng toàn game ---------- */
 let lbTab='exp', LB=null;
 // chip danh hiệu top 10 đại gia trong bảng xếp hạng (hiệu ứng CSS khớp với chữ trên đầu nhân vật)
+// ảnh mặt người chơi trong bảng xếp hạng (dựng từ dáng người, nhớ theo dáng)
+const LBFACE={}; const lbFace=l=>{ if(!l) return ''; const k=JSON.stringify(l); if(LBFACE[k]!==undefined) return LBFACE[k]; let u=''; try{ const av=AVATAR.build(l); u=av&&av.portrait?av.portrait.toDataURL():''; }catch(e){} return LBFACE[k]=u; };
 const ttl=rk=>{ const D=SD.TOP_TITLES[rk-1]; return D?`<span class="ttl ttl${rk}" data-t="${esc(D.name)}"><i>${rk===1?'♛ ':rk===7?'🐐 ':''}${esc(D.name)}</i></span>`:''; };
 const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)]];
 UI.leaderboard=async()=>{ open('Bảng xếp hạng',()=>lbHtml(),{wide:true}); const r=await NET.req({t:'lb'}); if(r.lb){ LB=r.lb; UI.refresh(); } };
 function lbHtml(){ const tab=LB_TABS.find(t=>t[0]===lbTab), rows=LB&&LB[lbTab]||[], me=G().name;
   return `<div class="tabs">${LB_TABS.map(([k,n])=>`<button class="tab ${k===lbTab?'on':''}" data-a="lbtab" data-k="${k}">${n}</button>`).join('')}</div>
-    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b> ${esc(r.n)} <small class="muted">cấp ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span></div>`).join('')||'<p class="muted">Chưa có ai</p>'}</div><p class="muted">${LB.total} người chơi · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
+    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span class="lbn"><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b>${(f=>f?`<img class="lbf" src="${f}" alt="">`:'<i class="lbf"></i>')(lbFace(r.l))} ${esc(r.n)} <small class="muted">cấp ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span></div>`).join('')||'<p class="muted">Chưa có ai</p>'}</div><p class="muted">${LB.total} người chơi · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
 ACT.lbtab=d=>{ lbTab=d.k; draw(); };
 /* ---------- câu cá kiểu Dota 2: chọn bóng cá → phao chìm bấm nhanh → giữ vùng xanh bám cá ---------- */
 let FS=null;

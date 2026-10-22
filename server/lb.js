@@ -8,7 +8,7 @@ const all=db.allProfiles||(()=>[]);
 function build(){ const rows=new Map();
   for(const r of all()) if(r.look) rows.set(r._uid,r);
   for(const pl of players.values()) if(pl.prof.look) rows.set(pl.uid,{...pl.prof,_uid:pl.uid});
-  const out={}; for(const [k,f] of Object.entries(CATS)) out[k]=[...rows.values()].map(p=>({n:p.name,lv:p.level||1,v:f(p)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,20);
+  const out={}; for(const [k,f] of Object.entries(CATS)) out[k]=[...rows.values()].map(p=>({n:p.name,lv:p.level||1,v:f(p),l:p.look})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,20);   // l: dáng người để vẽ ảnh mặt
   out.total=rows.size; return out; }
 // top 10 đại gia có danh hiệu óng ánh trên đầu: tính lại 30 giây/lần, ai đổi hạng thì báo người đó + làm mới thẻ tên cho người xung quanh
 let RANK=new Map();
