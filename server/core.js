@@ -100,6 +100,9 @@ function reward(pl,r,msg){ const out={t:'rw',msg:msg||''};
   if(r.skill){ pl.prof.skills[r.skill]=true; out.skill=r.skill; markDirty(pl); }
   send(pl,out); return out; }
 function levelUp(pl){ for(const q of nearby(pl,400)) send(q,{t:'ev',k:'lvl',id:pl.pid,lv:pl.prof.level}); refreshInfo(pl); }
+// độ lệch nhịp (ms) của 1 lần bấm: server đo theo lúc nhận tin trừ nửa ping; client gửi độ lệch tự đo (mượt hơn khi mạng giật)
+// nhưng chỉ được lệch khỏi số server đo tối đa ±100ms (trước đây ±450ms: gửi off:0 là lần nào cũng PERFECT)
+function beatOff(pl,t,beat,claim){ const srv=t-beat-(pl.rtt||80)/2, c=+claim; return Number.isFinite(c)?Math.max(srv-100,Math.min(srv+100,c)):srv; }
 function note(pl,msg,kind){ send(pl,{t:'note',msg,kind:kind||''}); }
 
 /* ---------- cảnh ---------- */
@@ -120,5 +123,5 @@ function moveTo(pl,id,x,y,extra={}){
 function runHook(f,...a){ try{ f(...a); }catch(e){ console.error('[hook]',e); } }
 
 module.exports={stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  simPerk,defaults,fixProfile,runHook,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,info,refreshInfo,moveTo,
+  simPerk,defaults,fixProfile,runHook,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};

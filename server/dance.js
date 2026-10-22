@@ -22,7 +22,7 @@ on('dance',(pl,m)=>{ if(pl.scene!=='phongbay') return {err:'Vào Phòng Bay đã
     room.dancers.push({pl,uid:pl.uid,name:pl.prof.name,score:0,perfect:0,combo:0,hit:-1}); pl.dancing=true; push(); return {}; }
   if(m.op==='leave'){ const i=di(pl); if(i<0) return {}; if(room.st==='lobby'){ room.dancers.splice(i,1); if(!room.dancers.length) room.st='idle'; } else room.dancers[i].pl=null; pl.dancing=false; push(); return {}; }
   if(m.op==='hit'){ const i=di(pl), d=room.dancers[i]; if(room.st!=='play'||!d||(m.r|0)!==room.round||d.hit===room.round) return {};
-    d.hit=room.round; const beat=room.roundStart+room.beatAt, srv=t-beat-(pl.rtt||80)/2; let off=Number.isFinite(+m.off)?+m.off:srv; if(Math.abs(off-srv)>450) off=srv;
+    d.hit=room.round; const beat=room.roundStart+room.beatAt, off=C.beatOff(pl,t,beat,m.off);
     const ok=Array.isArray(m.keys)&&m.keys.length===room.seq.length&&m.keys.every((k,n)=>k===room.seq[n]);
     let j='MISS', pts=0; if(ok) for(const [ms,name,p] of D.judge) if(Math.abs(off)<=ms){ j=name; pts=p; break; }
     if(j==='PERFECT'){ d.combo++; d.perfect++; pts+=D.combo*(d.combo-1); } else if(j!=='GREAT') d.combo=0;

@@ -106,7 +106,7 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
   markDirty(pl); return {meal:meal&&meal.id,exp:r.exp}; });
 
 /* ---------- shop quần áo ---------- */
-on('buy',(pl,m)=>{ const it=S.CLOTHES[m.id], p=pl.prof; if(!it) return {err:'Không có món này'}; if(pl.scene!=='quanao') return {err:'Vào Shop Chande để mua'};
+on('buy',(pl,m)=>{ const it=Object.hasOwn(S.CLOTHES,m.id)&&S.CLOTHES[m.id], p=pl.prof; if(!it||it.hidden) return {err:'Không có món này'};   // đồ ẩn (thưởng nhiệm vụ, set MU, đồ riêng) không bán ở shop if(pl.scene!=='quanao') return {err:'Vào Shop Chande để mua'};
   if(p.owned[m.id]) return {err:'Đã có rồi'}; if(!take(pl,it.price)) return {err:`${it.name} giá ${fmt(it.price)}, không đủ tiền`};
   p.owned[m.id]=1; markDirty(pl); return {}; });
 on('equip',(pl,m)=>{ const p=pl.prof, slot=String(m.slot||''); if(!S.SLOTS.some(s=>s[0]===slot)) return {err:'?'};

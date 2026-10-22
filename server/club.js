@@ -107,7 +107,7 @@ class Poker extends Table{
     else if(m.op==='check'){ if(need>0) return {err:'Phải theo hoặc bỏ'}; this.say(`${s.name} xem bài`); }
     else if(m.op==='call'){ if(need<=0) return {err:'Không có gì để theo'}; this.put(s,need); this.say(`${s.name} theo ${fmt(Math.min(need,s.bet))}`); }
     else if(m.op==='raise'||m.op==='allin'){ const max=s.bet+s.chips, to=m.op==='allin'?max:Math.round(m.to||0);
-      if(to>max) return {err:'Không đủ chip'}; if(to<=this.cur){ if(m.op==='allin'){ this.put(s,s.chips); this.say(`${s.name} all-in`); } else return {err:'Phải tố cao hơn mức hiện tại'}; }
+      if(!Number.isFinite(to)) return {err:'Số chip không hợp lệ'}; if(to>max) return {err:'Không đủ chip'}; if(to<=this.cur){ if(m.op==='allin'){ this.put(s,s.chips); this.say(`${s.name} all-in`); } else return {err:'Phải tố cao hơn mức hiện tại'}; }
       else { if(to<this.cur+this.minRaise&&to<max) return {err:`Tố ít nhất tới ${fmt(this.cur+this.minRaise)}`};
         if(to-this.cur>=this.minRaise) this.minRaise=to-this.cur; this.cur=to; this.put(s,to-s.bet);
         for(const o of this.seats) if(o&&o!==s&&o.inHand&&!o.fold&&!o.allin) o.acted=false; this.say(`${s.name} ${s.allin?'all-in':'tố lên'} ${fmt(to)}`); } }

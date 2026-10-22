@@ -43,8 +43,7 @@ on('race',(pl,m)=>{ if(pl.scene!=='track') return {err:'Vào trường đua đã
     if(!race.riders[on_]) return {err:'Chọn kỵ sĩ'}; if(amt<R.betMin||amt>R.betMax) return {err:`Cược từ ${fmt(R.betMin)} tới ${fmt(R.betMax)}`};
     if(!take(pl,amt)) return {err:'Không đủ tiền'}; race.bets.push({uid:pl.uid,pid:pl.pid,name:pl.prof.name,on:on_,amt}); pushAll(); return {}; }
   if(m.op==='hit'){ const i=riderOf(pl), r=race.riders[i]; if(race.st!=='run'||!r) return {}; if((m.r|0)!==race.round||r.hit===race.round) return {};
-    r.hit=race.round; const beat=race.roundStart+R.beatAt, srv=t-beat-(pl.rtt||80)/2;
-    let off=Number.isFinite(+m.off)?+m.off:srv; if(Math.abs(off-srv)>450) off=srv;          // lệch quá xa so với lúc server nhận → dùng giờ server
+    r.hit=race.round; const beat=race.roundStart+R.beatAt, off=C.beatOff(pl,t,beat,m.off);
     const keysOk=Array.isArray(m.keys)&&m.keys.length===race.seq.length&&m.keys.every((k,n)=>k===race.seq[n]);
     let j='MISS', gain=0; if(keysOk) for(const [ms,name,g] of R.judge) if(Math.abs(off)<=ms){ j=name; gain=g; break; }
     if(j==='PERFECT'){ r.combo++; r.perfect++; gain+=Math.min(6,(r.combo-1)*2); } else r.combo=0;

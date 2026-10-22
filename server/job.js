@@ -37,7 +37,7 @@ let lastDay=today(); hook('slow',()=>{ const d=today(); if(d!==lastDay){ lastDay
 const interviews=new Map();
 on('job',(pl,m)=>{ const p=pl.prof, j=JOBS[pl.uid], t=now(), d=today();
   if(m.op==='view') return {job:jobView(pl)};
-  if(m.op==='apply'){ if(!officeOpen(pl)) return {err:'Ngoài giờ làm việc, chị Vy về rồi. Ngày thường 8:00–20:00 quay lại nhé'}; if(!P.nearNpc(pl,'hr')) return {err:'Gặp chị Vy ở quầy lễ tân Everfit'}; if(j) return {err:'Bạn đang làm ở Everfit rồi'};
+  if(m.op==='apply'){ if(!officeOpen(pl)) return {err:'Ngoài giờ làm việc, chị Vy về rồi. Ngày thường 8:00–20:00 quay lại nhé'}; if(!P.nearNpc(pl,'hr')) return {err:'Gặp chị Vy ở quầy lễ tân Everfit'}; if(j) return {err:'Bạn đang làm ở Everfit rồi'}; if(p.flags.jobQuit===d) return {err:'Hôm nay bạn vừa nghỉ việc, mai quay lại nộp hồ sơ nhé'};   // nghỉ rồi xin lại trong ngày thì việc hôm nay làm lại được → lãnh lương mãi
     if(Object.keys(JOBS).length>=J.max) return {err:`Everfit đã tuyển đủ ${J.max} người. Đợi có người nghỉ nhé`};
     if(t-(p.flags.applyAt||0)<10*60e3) return {err:'Vừa trượt phỏng vấn, 10 phút nữa nộp lại'};
     if(dasCerts(p)>=S.DAS.skipInterview){ const used=new Set(Object.values(JOBS).map(x=>x.desk)); let desk=0; while(used.has(desk)) desk++;
@@ -57,7 +57,7 @@ on('job',(pl,m)=>{ const p=pl.prof, j=JOBS[pl.uid], t=now(), d=today();
   if(m.op==='remote'){ if(!P.nearNpc(pl,'hr')) return {err:'Đổi lịch remote ở quầy HR'};
     const days=[...new Set((m.days||[]).map(x=>x|0))].filter(x=>x>=1&&x<=5); if(days.length!==2) return {err:'Chọn đúng 2 ngày từ Thứ Hai tới Thứ Sáu'};
     j.remote=days.sort(); const rec=j.days[d]; if(rec&&!rec.done.length) delete j.days[d]; saveJob(pl.uid); markDirty(pl); return {job:jobView(pl)}; }
-  if(m.op==='quit'){ if(j.accrued>0) give(pl,Math.round(j.accrued)); delete JOBS[pl.uid]; saveJob(pl.uid); C.refreshInfo(pl); markDirty(pl); return {msg:'Đã nghỉ việc ở Everfit'}; }
+  if(m.op==='quit'){ p.flags.jobQuit=d; if(j.accrued>0) give(pl,Math.round(j.accrued)); delete JOBS[pl.uid]; saveJob(pl.uid); C.refreshInfo(pl); markDirty(pl); return {msg:'Đã nghỉ việc ở Everfit'}; }
   if(m.op==='do'){ const task=String(m.task||''), def=S.WORK_TASKS[task], rec=workday(d)?dayRec(pl.uid,d):null, ot=S.otTask(pl.uid,d);
     // task OT buổi tối: làm ở văn phòng, lương ×1,5
     if(m.ot){ if(!ot||task!==ot) return {err:'Tối nay bạn không có lịch OT'}; if(!otHours()) return {err:`OT từ ${J.ot.from}:00 tới ${J.ot.to}:00`}; if(rec.ot) return {err:'Xong OT rồi, về nghỉ đi'};

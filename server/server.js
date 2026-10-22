@@ -123,7 +123,8 @@ handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nh
   const outfit={...(g==='nu'&&st.nu?st.nu:st.items)};
   NAMES.set(nk,pl.uid); p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
   markDirty(pl); save(pl); place(pl); return {prof:publicProfile(pl)}; };
-handlers.pong=(pl,m)=>{ if(m.s) pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); };
+// ping đo bằng giờ server gửi đi (client chỉ được gửi lại đúng số đó), không tin số client tự khai
+handlers.pong=(pl,m)=>{ if(m.s&&m.s===pl.pngAt){ pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); pl.pngAt=0; } };
 // chỉ dùng khi chạy thử tự động (CHAN_TEST=1): dịch chuyển, cho tiền/đồ/skill
 // giới hạn mỗi ngày game (6 tiếng thật): đổi ngày lúc đang online cũng reset luôn, khỏi phải vào lại
 const freshDaily=d=>({day:d,done:{},buoys:{},gameExp:0,tiktok:0,posts:0,herd:0,crates:0,cook:0,slept:false});
@@ -184,7 +185,7 @@ if(process.env.CHAN_STATS==='1') setInterval(()=>{ const st=C.stats, mem=process
 setInterval(()=>{ const d=today();
   if(d!==lastDay){ lastDay=d; for(const pl of players.values()){ pl.prof.daily={day:d,done:{},buoys:{},gameExp:0,tiktok:0,posts:0,herd:0,crates:0,cook:0,slept:false}; markDirty(pl); } }
   for(const f of hooks.slow) try{ f(); }catch(e){ console.error(e); } },1000);
-setInterval(()=>{ for(const pl of players.values()) send(pl,{t:'png',s:now()}); },5000);
+setInterval(()=>{ const t=now(); for(const pl of players.values()){ pl.pngAt=t; send(pl,{t:'png',s:t}); } },5000);
 function shutdown(){ console.log('Đang lưu…'); for(const pl of players.values()) save(pl); process.exit(0); }
 process.on('SIGINT',shutdown); process.on('SIGTERM',shutdown);
 // lỗi chưa bắt được ở đâu đó (hook, timer...): ghi log rồi chạy tiếp, không để 1 người chơi làm mọi người rớt mạng

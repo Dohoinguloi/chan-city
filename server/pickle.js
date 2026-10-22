@@ -70,6 +70,6 @@ on('pk',(pl,m)=>{ const p=pl.prof; if(pl.scene!=='pickle') return {err:'Tới s�
   if(m.op==='water'){ const t=now(); if(pl.waterAt&&t-pl.waterAt<60e3) return {err:'Vừa uống rồi, nghỉ chút'}; pl.waterAt=t; p.needs.energy=Math.min(100,p.needs.energy+5); markDirty(pl); return {msg:'Ực ực, mát! +5 năng lượng'}; }
   if(m.op==='hit'){ const i=seatOf(pl), b=M.ball; if(M.st!=='play'||!b||i<0||teamOf(i)!==b.team||b.hit) return {ok:false}; const d=now()-b.at, W=SH[b.shot].win;   // phải đứng trong tầm vợt của điểm rơi và bấm đúng lúc
     const far=Math.hypot(pl.x/T-b.tx,pl.y/T-b.ty)>K.reach+.4, early=d<-W, late=d>W*.6; if(far||early||late) return {ok:false,why:far?'xa':early?'sớm':'muộn'};
-    b.hit={seat:i,shot:SH[m.shot]&&m.shot!=='serve'?m.shot:'drive'}; return {ok:true}; }
+    b.hit={seat:i,shot:Object.hasOwn(SH,m.shot)&&m.shot!=='serve'?m.shot:'drive'}; return {ok:true}; }
   return {err:'?'}; });
 module.exports={M};

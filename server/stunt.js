@@ -18,7 +18,7 @@ on('stunt',(pl,m)=>{ const p=pl.prof, t=now();
   if(m.op==='quit'){ if(!st.pick) return {err:'Đang chạy rồi'}; pl.stunt=null; back(pl); return {}; }
   if(st.pick) return {err:'Chọn xe đã'};
   if(m.op==='hit'){ const i=m.i|0, cue=st.cues[i]; if(cue===undefined||st.res[i]!==null) return {};
-    const srv=t-cue-(pl.rtt||80)/2; let off=Number.isFinite(+m.off)?+m.off:srv; if(Math.abs(off-srv)>450) off=srv;
+    const off=C.beatOff(pl,t,cue,m.off);
     if(Math.abs(off)<=S.BIKES[st.bike].window){ st.res[i]='ok'; st.ok++; send(pl,{t:'stunt',k:'ok',i}); } else fail(pl,i,'trượt'); return {}; } });
 function fail(pl,i,why){ const st=pl.stunt, n=pl.prof.needs; st.res[i]='fail';
   if(Math.random()<S.BIKES[st.bike].fall){ st.falls++; n.energy=Math.max(0,n.energy-W.energy); n.clean=Math.max(0,n.clean-W.clean); markDirty(pl); send(pl,{t:'stunt',k:'fall',i,why}); }
