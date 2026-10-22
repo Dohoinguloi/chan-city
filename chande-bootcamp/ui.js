@@ -56,8 +56,8 @@ chatIn.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'){
 chatIn.addEventListener('blur',()=>{ chatIn.hidden=true; $('#chatBox').classList.remove('typing'); });
 // kênh chat tổng: tin của cả server hiện trên thanh đồ, phím T để gõ
 const wcLog=$('#wcLog'), wcIn=$('#wcIn'), wcBox=$('#wchat');
-function wcAdd(e){ const d=document.createElement('div'), hm=SD.realTime(e.at), mine=e.n===G().name; if(mine) d.className='me';
-  d.innerHTML=`<small>${String(hm.h).padStart(2,'0')}:${String(hm.m).padStart(2,'0')}</small> <b>${esc(e.n)}</b> <small>Lv${e.lv|0}</small>: ${esc(e.m)}`; d.title=e.n+': '+e.m;
+function wcAdd(e){ const d=document.createElement('div'), hm=SD.realTime(e.at), mine=!e.sys&&e.n===G().name; if(mine) d.className='me'; if(e.sys) d.className='sys';
+  d.innerHTML=`<small>${String(hm.h).padStart(2,'0')}:${String(hm.m).padStart(2,'0')}</small> <b>${esc(e.n)}</b>${e.sys?'':` <small>Lv${e.lv|0}</small>`}: ${esc(e.m)}`; d.title=e.n+': '+e.m;
   const atEnd=wcLog.scrollHeight-wcLog.scrollTop-wcLog.clientHeight<8; wcLog.appendChild(d); while(wcLog.children.length>40) wcLog.firstChild.remove(); if(atEnd||mine) wcLog.scrollTop=wcLog.scrollHeight; }
 let wcUnread=0; const wcShow=$('#wcShow'), wcMark=()=>{ $('#wcNew').textContent=wcUnread?`(${wcUnread} mới)`:''; };
 NET.listen('wchat',e=>{ wcAdd(e); if(e.n!==G().name){ if(wcBox.hidden){ wcUnread++; wcMark(); } wcBox.classList.add('flash'); setTimeout(()=>wcBox.classList.remove('flash'),700); } });

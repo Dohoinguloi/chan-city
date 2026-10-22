@@ -55,6 +55,8 @@ const WCHAT=[];
 on('wchat',(pl,m)=>{ const msg=clean(m.m); if(!msg) return {}; const t=now(); if(t-(pl.lastW||0)<2000) return {err:'Chat chậm thôi, 2 giây 1 tin'}; pl.lastW=t;
   const e={n:pl.prof.name,lv:pl.prof.level,m:msg,at:t}; WCHAT.push(e); if(WCHAT.length>40) WCHAT.shift(); C.broadcastAll({t:'wchat',...e}); broadcastNear(pl,{t:'chat',id:pl.pid,m:msg,w:1},360); return {}; });   // kèm bong bóng trên đầu cho người ở gần
 hook('login',pl=>setTimeout(()=>{ if(pl.prof) send(pl,{t:'wchatlog',list:WCHAT}); },900));
+// tin hệ thống trên kênh tổng (thông báo bản cập nhật...): quiet thì chỉ nằm trong lịch sử kênh cho người vào sau, không gửi ngay
+const sysChat=(m,quiet)=>{ const e={n:'📢 Chan City',sys:1,m,at:now()}; WCHAT.push(e); if(WCHAT.length>40) WCHAT.shift(); if(!quiet) C.broadcastAll({t:'wchat',...e}); };
 on('chat',(pl,m)=>{ const msg=clean(m.m); if(!msg) return; const t=now(); if(t-pl.lastChat<700) return; pl.lastChat=t;
   broadcastNear(pl,{t:'chat',id:pl.pid,m:msg},360); });
 // chat online: chỉ gửi được khi đang ở phòng riêng (laptop); nhận ở mọi nơi
@@ -156,4 +158,4 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   p.needs.battery=Math.max(0,p.needs.battery-2);
   const [id,sp]=destSpawn(pl,to); moveTo(pl,id,sp.x,sp.y,{ride:{from,to,fare,free}}); C.track(pl,'grab'); return {fare,free}; });
 
-module.exports={setAct,hasBed,inOwnRoom,clean,destSpawn,endSoc};
+module.exports={setAct,hasBed,inOwnRoom,clean,destSpawn,endSoc,sysChat};

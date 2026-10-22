@@ -139,6 +139,23 @@ const CROPS={
   ngo:{name:'Ngô',seed:3000,grow:1320,yield:4,sell:7000,exp:6,col:'f2c43d'},
   bi_do:{name:'Bí đỏ',seed:8000,grow:3900,yield:2,sell:40000,exp:14,col:'e88a2e'},
   dua_hau:{name:'Dưa hấu',seed:10000,grow:5400,yield:2,sell:55000,exp:20,col:'3f8a3a'},
+  // thêm rau củ quả cho vườn Ké (giá hạt / thời gian lớn / giá bán tăng dần)
+  hanh_la:{name:'Hành lá',seed:2000,grow:1200,yield:3,sell:8500,exp:5,col:'6cc04a'},
+  cu_cai_do:{name:'Củ cải đỏ',seed:2500,grow:1500,yield:3,sell:10000,exp:6,col:'d8304a'},
+  dau_que:{name:'Đậu que',seed:3000,grow:1800,yield:3,sell:11000,exp:7,col:'4aa83a'},
+  dua_leo:{name:'Dưa leo',seed:3000,grow:1800,yield:4,sell:9000,exp:7,col:'2f8a3a'},
+  can_tay:{name:'Cần tây',seed:3000,grow:2100,yield:3,sell:12000,exp:8,col:'9ad46a'},
+  toi:{name:'Tỏi',seed:4000,grow:2400,yield:3,sell:15000,exp:9,col:'f0ece0'},
+  hanh_tay:{name:'Hành tây',seed:4000,grow:2400,yield:3,sell:14000,exp:9,col:'c8783a'},
+  cu_den:{name:'Củ dền',seed:4000,grow:2700,yield:3,sell:16000,exp:10,col:'9a1a3a'},
+  khoai_tay:{name:'Khoai tây',seed:4000,grow:3000,yield:4,sell:13000,exp:10,col:'c89a5a'},
+  ot:{name:'Ớt',seed:5000,grow:3000,yield:4,sell:15000,exp:11,col:'e2302a'},
+  dau_ha_lan:{name:'Đậu Hà Lan',seed:5000,grow:3300,yield:4,sell:16000,exp:12,col:'7ac84a'},
+  ca_tim:{name:'Cà tím',seed:6000,grow:3600,yield:3,sell:22000,exp:13,col:'7a3a9a'},
+  bong_cai:{name:'Bông cải xanh',seed:6000,grow:3900,yield:2,sell:32000,exp:14,col:'3a8a3a'},
+  sup_lo:{name:'Súp lơ trắng',seed:6000,grow:3900,yield:2,sell:32000,exp:14,col:'f4f0dc'},
+  ot_chuong:{name:'Ớt chuông',seed:7000,grow:4200,yield:3,sell:26000,exp:15,col:'f2a020'},
+  bi_ngoi:{name:'Bí ngòi vàng',seed:7000,grow:4500,yield:2,sell:38000,exp:16,col:'f2d030'},
 };
 // vườn Ké: không thuê trồng được free ô; thuê đất của chú Ba (trả theo ngày) thì được nhiều ô hơn
 const KE_LAND=[{id:'luong',name:'Vài luống',plots:6,price:40000},{id:'vuon',name:'Mảnh vườn',plots:10,price:70000},{id:'trai',name:'Cả khu vườn',plots:16,price:120000}];
@@ -850,37 +867,38 @@ NPC_LOOKS.duongvu={name:'Dương Vũ (Zen Design System)',look:{gender:'nam',hai
 ITEMS.zen_token={name:'Zen Token',icon:'zentoken'};
 /* ---------- MU Online · Lục Địa Cát: thế giới game MU trong Chan City ----------
    Gặp Vệ binh chọn 1 trong 3 class, được tặng free 1 bộ giáp + vũ khí (mặc như trang phục). Đánh nhau theo thời gian thực: phím 1 / 2 / 3 dùng chiêu
-   (tốn mana, có hồi chiêu, phải đứng trong tầm). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút boss Luffy Gear 5 xuất hiện ở đền phía Bắc,
+   (tốn mana, có hồi chiêu; mọi class đều đánh gần: phải áp sát mục tiêu 2–3 ô). Thách đấu 1 vs 1 với người chơi khác; cứ 20 phút boss Luffy Gear 5 xuất hiện ở đền phía Bắc,
    cả server cùng đánh, ai gây sát thương đều có thưởng (EXP, tiền, ngọc). Gục thì 8 giây sau hồi sinh ở cổng thành. Máu / mana / cấp MU riêng. */
 const MU={W:96,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:32,y1:12},fountain:{x:22,y:16},
   cls:{dk:{name:'Chiến Binh Bóng Tối',en:'Dark Knight',hp:160,mp:40,atk:20,def:12,col:'#c8302a',set:'mu_dk',desc:'Giáp đỏ, kiếm lớn, cận chiến. Máu trâu, giáp dày, chém xoáy cực mạnh.'},
-    elf:{name:'Tiên Nữ',en:'Fairy Elf',hp:115,mp:90,atk:15,def:8,col:'#f2c43d',set:'mu_elf',desc:'Áo trắng viền vàng, cung tên, đánh xa. Hồi máu cho cả đội, rất được việc khi đánh boss.'},
-    dw:{name:'Phù Thuỷ Bóng Tối',en:'Dark Wizard',hp:95,mp:130,atk:25,def:6,col:'#3a6ad8',set:'mu_dw',desc:'Giáp xanh, gậy phép, phép thuật. Máu giấy nhưng sát thương phép to nhất.'}},
+    elf:{name:'Tiên Nữ',en:'Fairy Elf',hp:115,mp:90,atk:15,def:8,col:'#f2c43d',set:'mu_elf',desc:'Áo trắng viền vàng, song kiếm tiên, cận chiến nhanh nhẹn. Hồi máu cho cả đội, rất được việc khi đánh boss.'},
+    dw:{name:'Phù Thuỷ Bóng Tối',en:'Dark Wizard',hp:95,mp:130,atk:25,def:6,col:'#3a6ad8',set:'mu_dw',desc:'Giáp xanh, gậy phép, chưởng lửa chưởng sét áp sát. Máu giấy nhưng sát thương phép to nhất.'}},
   skills:{dk:[{k:'chem',name:'Chém',mp:0,cd:.8,mul:1,range:2.4},{k:'xoay',name:'Chém Xoáy',mp:12,cd:5,mul:2.1,range:2.8},{k:'gong',name:'Gồng Giáp',mp:20,cd:18,buff:'def',dur:8,heal:.15}],
-    elf:[{k:'ban',name:'Bắn Tên',mp:0,cd:1,mul:.95,range:7},{k:'tamtien',name:'Tam Tiễn',mp:10,cd:4,mul:1.9,range:7},{k:'hoi',name:'Hồi Máu',mp:25,cd:12,heal:.35,team:6}],
-    dw:[{k:'caulua',name:'Cầu Lửa',mp:4,cd:1.3,mul:1.25,range:6},{k:'set',name:'Sấm Sét',mp:14,cd:5,mul:2.4,range:6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:6}]},
+    elf:[{k:'dam',name:'Đâm Kiếm Tiên',mp:0,cd:.8,mul:.95,range:2.4},{k:'tamlien',name:'Tam Liên Trảm',mp:10,cd:4,mul:1.9,range:2.6},{k:'hoi',name:'Hồi Máu',mp:25,cd:12,heal:.35,team:6}],
+    dw:[{k:'hoachuong',name:'Hoả Chưởng',mp:4,cd:1.2,mul:1.25,range:2.4},{k:'loichuong',name:'Lôi Chưởng',mp:14,cd:5,mul:2.4,range:2.6},{k:'thienthach',name:'Mưa Thiên Thạch',mp:30,cd:14,mul:3.6,range:3}]},
   // boss tổng Luffy Gear 5 + boss phụ Naruto Cửu Vĩ (rừng Làng Lá phía Đông). Đòn của boss: single (đánh 1 người), circle (vùng tròn ở chỗ 1 người), multi (n vùng cùng lúc),
-  // cone (hình nón trước mặt, nhiều nhát), jump (nhảy tới chỗ 1 người, đáp xuống gây sát thương), ring (sóng quanh boss). Mọi đòn có cảnh báo (warn giây), né được:
+  // cone (hình nón trước mặt, nhiều nhát), jump (nhảy tới chỗ 1 người, đáp xuống gây sát thương), ring (sóng quanh boss). area: khu của boss,
+  // boss chỉ nhắm người đứng trong khu và nhảy cũng không ra khỏi khu (không sang khu boss khác). Mọi đòn có cảnh báo (warn giây), né được:
   // tới lúc nổ mà đã ra khỏi vùng thì không mất máu. phase: chỉ dùng khi máu boss xuống dưới mốc (2: <60%, 3: <30%); giai đoạn 3 boss nổi giận (đánh mạnh + nhanh hơn).
   bosses:{
-    luffy:{name:'Luffy Gear 5',sprite:'luffy',every:20*60e3,offset:0,life:10*60e3,hp:3500,perPlayer:2200,def:12,home:{x:22,y:6.6},area:{x0:4,x1:40},big:1,
+    luffy:{name:'Luffy Gear 5',sprite:'luffy',every:20*60e3,offset:0,life:10*60e3,hp:3500,perPlayer:2200,def:12,home:{x:22,y:6.6},area:{x0:4,x1:40,y0:3,y1:27},big:1,
       attacks:[{k:'pistol',kind:'single',name:'Gomu Gomu Pistol',every:3.2,warn:.7,range:7,r:1.4,dmg:24},{k:'gatling',kind:'cone',name:'Gomu Gomu Gatling',every:9,warn:1,hits:5,tick:.25,range:6,cone:.55,dmg:9,phase:2},
         {k:'gigant',kind:'circle',name:'Gomu Gomu Gigant',every:11,warn:1.8,r:3,dmg:58},{k:'rocket',kind:'jump',name:'Gomu Gomu Rocket',every:19,warn:1.3,r:2.2,dmg:36},
         {k:'drum',kind:'ring',name:'Trống Giải Phóng',every:15,warn:1.6,r:7.5,dmg:34,phase:3}],
       phases:[.6,.3],enrage:{mul:1.5,speed:1.35},drops:'luffy'},
-    naruto:{name:'Naruto Cửu Vĩ',sprite:'naruto',every:10*60e3,offset:5*60e3,life:7*60e3,hp:1800,perPlayer:1000,def:8,home:{x:57,y:8},area:{x0:45,x1:69},
+    naruto:{name:'Naruto Cửu Vĩ',sprite:'naruto',every:10*60e3,offset:5*60e3,life:7*60e3,hp:1800,perPlayer:1000,def:8,home:{x:57,y:8},area:{x0:45,x1:69,y0:3,y1:14},
       attacks:[{k:'shuriken',kind:'single',name:'Phi Tiêu Gió',every:2.6,warn:.6,range:8,r:1.2,dmg:16},{k:'rasengan',kind:'jump',name:'Rasengan',every:8,warn:1.1,r:1.8,dmg:34},
         {k:'bunshin',kind:'multi',name:'Ảnh Phân Thân Chi Thuật',every:12,warn:1.4,n:3,r:1.8,dmg:22,phase:2},{k:'roar',kind:'ring',name:'Cửu Vĩ Gầm',every:14,warn:1.5,r:6,dmg:28,phase:3}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'naruto'},
-    cuamay:{name:'Quỷ Cưa',sprite:'cuamay',every:12*60e3,offset:3*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:23},area:{x0:72,x1:95},
+    cuamay:{name:'Quỷ Cưa',sprite:'cuamay',every:12*60e3,offset:3*60e3,life:7*60e3,hp:1700,perPlayer:950,def:9,home:{x:84,y:23},area:{x0:72,x1:94,y0:17,y1:27},
       attacks:[{k:'cua',kind:'single',name:'Cưa Xé',every:2.4,warn:.6,range:5,r:1.4,dmg:18},{k:'lao',kind:'jump',name:'Lao Cưa',every:8,warn:1,r:2,dmg:32},
         {k:'xoaycua',kind:'ring',name:'Bão Cưa Xoay',every:12,warn:1.4,r:4.5,dmg:30,phase:2},{k:'manh',kind:'multi',name:'Mưa Mảnh Kim Loại',every:11,warn:1.5,n:4,r:1.6,dmg:20,phase:3}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'cuamay'},
-    duongvu_ma:{name:'Dươngg Vũ',sprite:'gengar',every:15*60e3,offset:8*60e3,life:7*60e3,hp:1900,perPlayer:1050,def:8,home:{x:84,y:8},area:{x0:72,x1:95},
+    duongvu_ma:{name:'Dươngg Vũ',sprite:'gengar',every:15*60e3,offset:8*60e3,life:7*60e3,hp:1900,perPlayer:1050,def:8,home:{x:84,y:8},area:{x0:72,x1:94,y0:3,y1:14},
       attacks:[{k:'bongden',kind:'single',name:'Cầu Bóng Đêm',every:2.8,warn:.7,range:8,r:1.4,dmg:18},{k:'xuyen',kind:'jump',name:'Xuyên Tường',every:9,warn:1.2,r:2,dmg:30},
         {k:'thoimien',kind:'multi',name:'Thôi Miên',every:11,warn:1.5,n:3,r:1.8,dmg:22,phase:2},{k:'nguyenrua',kind:'ring',name:'Lời Nguyền Zen',every:14,warn:1.6,r:6,dmg:30,phase:3}],
       phases:[.6,.3],enrage:{mul:1.4,speed:1.3},drops:'duongvu_ma'},
-    rongxanh:{name:'Rồng Dải Xanh',sprite:'rong',every:18*60e3,offset:11*60e3,life:7*60e3,hp:2300,perPlayer:1200,def:10,home:{x:57,y:23},area:{x0:45,x1:69},big:1,
+    rongxanh:{name:'Rồng Dải Xanh',sprite:'rong',every:18*60e3,offset:11*60e3,life:7*60e3,hp:2300,perPlayer:1200,def:10,home:{x:57,y:23},area:{x0:45,x1:69,y0:17,y1:27},big:1,
       attacks:[{k:'longkich',kind:'single',name:'Long Kích',every:3,warn:.8,range:8,r:1.5,dmg:20},{k:'hoithorong',kind:'cone',name:'Hơi Thở Rồng',every:9,warn:1.1,hits:5,tick:.25,range:7,cone:.5,dmg:9},
         {k:'bonhao',kind:'jump',name:'Bổ Nhào',every:12,warn:1.3,r:2.4,dmg:34},{k:'loc',kind:'ring',name:'Lốc Xoáy Thiên Không',every:14,warn:1.6,r:6.5,dmg:30,phase:2},
         {k:'thienthachrong',kind:'multi',name:'Thiên Thạch Rồng',every:12,warn:1.6,n:4,r:1.8,dmg:24,phase:3}],
@@ -895,21 +913,74 @@ const MU={W:96,H:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,y0:2,x1:
   hidden:{vay_rong:[[47.5,19.5],[67.5,19.5],[48.5,27.5],[66.5,27.5]],cuon_truc:[[48.5,4.5],[66.5,11.5],[52.5,12.5]],banh_mut:[[75.5,19.5],[92.5,20.5],[78.5,27.5],[90.5,27.5],[86.5,19.5]],lua_ma:[[76.5,4.5],[92.5,5.5],[80.5,13.5]]},
   weapons:{vk_kunai:{name:'Kunai Phi Lôi Thần',atk:.12,desc:'Rơi từ Naruto: công MU +12%'},vk_cua:{name:'Cưa Máy Quỷ',atk:.15,desc:'Rơi từ Quỷ Cưa: công MU +15%'},vk_luoihai:{name:'Lưỡi Hái Bóng Đêm',atk:.14,desc:'Rơi từ Dươngg Vũ: công MU +14%'},vk_vayrong:{name:'Thương Vảy Rồng',atk:.16,desc:'Rơi từ Rồng Dải Xanh: công MU +16%'}},
   // Trái Ác Quỷ: hạ Luffy rơi ra (số trái = 1/10 số người góp sức, tối thiểu 1). Ăn vào được chiêu thứ 4 (phím 4) + chỉ số cộng thêm, mỗi người chỉ ăn được 1 trái
-  fruits:{mera:{name:'Trái Lửa (Mera Mera)',col:'#ff6a2a',skill:{k:'hoaquyen',name:'Hoả Quyền',mp:18,cd:9,mul:3.2,range:5},bonus:{atk:.12},desc:'Hoá thân lửa: tung nắm đấm lửa khổng lồ. Công +12%'},
-    hie:{name:'Trái Băng (Hie Hie)',col:'#7fd8f0',skill:{k:'kybanghao',name:'Kỷ Băng Hà',mp:18,cd:11,mul:2.6,range:6,slow:3},bonus:{def:.15},desc:'Đóng băng đất trời, làm boss ra đòn chậm lại 3 giây. Thủ +15%'},
-    goro:{name:'Trái Sấm (Goro Goro)',col:'#ffd84a',skill:{k:'loithan',name:'Lôi Thần',mp:22,cd:12,mul:3.6,range:7},bonus:{atk:.08,mp:.15},desc:'Gọi sấm sét thần linh giáng xuống. Công +8%, mana +15%'},
-    gomu:{name:'Trái Cao Su (Gomu Gomu)',col:'#c8402a',skill:{k:'gomupistol',name:'Gomu Gomu Pistol',mp:10,cd:5,mul:2.6,range:8},bonus:{hp:.2},desc:'Người cao su: tay dài ra đấm cực xa. Máu +20%'},
-    yami:{name:'Trái Bóng Tối (Yami Yami)',col:'#5a2a8a',skill:{k:'hoden',name:'Hố Đen',mp:20,cd:12,mul:2.8,range:6,drain:.35},bonus:{hp:.08,atk:.06},desc:'Mở hố đen nuốt chửng kẻ địch, hút 35% sát thương thành máu. Máu +8%, công +6%'},
+  fruits:{mera:{name:'Trái Lửa (Mera Mera)',col:'#ff6a2a',skill:{k:'hoaquyen',name:'Hoả Quyền',mp:18,cd:9,mul:3.2,range:3},bonus:{atk:.12},desc:'Hoá thân lửa: tung nắm đấm lửa khổng lồ. Công +12%'},
+    hie:{name:'Trái Băng (Hie Hie)',col:'#7fd8f0',skill:{k:'kybanghao',name:'Kỷ Băng Hà',mp:18,cd:11,mul:2.6,range:3,slow:3},bonus:{def:.15},desc:'Đóng băng đất trời, làm boss ra đòn chậm lại 3 giây. Thủ +15%'},
+    goro:{name:'Trái Sấm (Goro Goro)',col:'#ffd84a',skill:{k:'loithan',name:'Lôi Thần',mp:22,cd:12,mul:3.6,range:3},bonus:{atk:.08,mp:.15},desc:'Gọi sấm sét thần linh giáng xuống. Công +8%, mana +15%'},
+    gomu:{name:'Trái Cao Su (Gomu Gomu)',col:'#c8402a',skill:{k:'gomupistol',name:'Gomu Gomu Pistol',mp:10,cd:5,mul:2.6,range:4},bonus:{hp:.2},desc:'Người cao su: tay dài ra đấm cực xa. Máu +20%'},
+    yami:{name:'Trái Bóng Tối (Yami Yami)',col:'#5a2a8a',skill:{k:'hoden',name:'Hố Đen',mp:20,cd:12,mul:2.8,range:3,drain:.35},bonus:{hp:.08,atk:.06},desc:'Mở hố đen nuốt chửng kẻ địch, hút 35% sát thương thành máu. Máu +8%, công +6%'},
     chiyu:{name:'Trái Chữa Lành (Chiyu Chiyu)',col:'#5fe06a',skill:{k:'chualanh',name:'Chữa Lành Vạn Vật',mp:24,cd:14,heal:.5,team:8},bonus:{mp:.2},desc:'Hồi 50% máu cho mình và đồng đội quanh 8 ô. Mana +20%'}},
   respawn:8,regen:{hp:.02,mp:.04},duel:{range:14,exp:40,mu:60},lvExp:lv=>60+lv*40,maxLv:50};
 // tương thích code cũ: MU.boss = boss tổng Luffy (đánh thường + chưởng vùng kiểu cũ)
 MU.boss={...MU.bosses.luffy,hit:{every:2.5,dmg:20,range:5},aoe:{every:10,warn:1.8,r:3,dmg:55},reward:MU.reward.luffy,jewels:MU.jewels};
-const muStats=(cls,lv,fruit,wep)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, b=(fruit&&MU.fruits[fruit]&&MU.fruits[fruit].bonus)||{}, w=(wep&&MU.weapons[wep])||{};
-  return {hp:Math.round(c.hp*k*(1+(b.hp||0))),mp:Math.round(c.mp*(1+(lv-1)*.05)*(1+(b.mp||0))),atk:Math.round(c.atk*k*(1+(b.atk||0))*(1+(w.atk||0))),def:Math.round(c.def*(1+(lv-1)*.06)*(1+(b.def||0)))}; };
+// Premium Store (Thương nhân Huyền Thoại ở quảng trường MU): set legacy mua 1 lần giữ mãi, mặc vào (áo) thì tăng chỉ số MU = lực chiến, mỗi set có hiệu ứng đòn riêng khi ra chiêu.
+// Chỉ set đang mặc có tác dụng; cởi ra mặc lại giáp class ở Thương nhân. tier: 1–5 sao (giá + chỉ số tăng dần; đã giảm giá 60%)
+MU.legacy={lg_shovel:{name:'Shovel Knight',tier:1,price:1200000,bonus:{def:.14,hp:.08},fx:'shovel',desc:'Giáp xanh sừng ngà, xẻng thép. Mỗi đòn hất tung đất đá, toé ngọc xanh'},
+  lg_boxer:{name:'Quyền Vương',tier:1,price:1200000,bonus:{atk:.12,hp:.04},fx:'pow',desc:'Găng đỏ, quần đùi đỏ. Đấm trúng là nổ chữ POW!'},
+  lg_yoshi:{name:'Yoshi',tier:1,price:1400000,bonus:{hp:.15,mp:.06},fx:'egg',desc:'Bộ khủng long xanh mõm trắng. Ném trứng đốm xanh nổ ra sao'},
+  lg_aang:{name:'Aang Tiết Khí Sư',tier:2,price:2000000,bonus:{mp:.15,atk:.08,def:.05},fx:'air',desc:'Áo cam vàng, gậy lượn. Mỗi đòn cuốn lốc khí xoáy'},
+  lg_chainsaw:{name:'Chainsaw Man',tier:2,price:2400000,bonus:{atk:.16},fx:'chainsaw',desc:'Đầu cưa máy, 2 tay mọc cưa. Đòn cưa toé lửa, toé máu'},
+  lg_sparta:{name:'Sparta Sư Tử',tier:2,price:2400000,bonus:{atk:.1,def:.1},fx:'lion',desc:'Mũ chùm lông đỏ, găng đầu sư tử vàng. Đòn ra kèm sóng gầm vàng'},
+  lg_anubis:{name:'Nasus Thần Cát',tier:3,price:3200000,bonus:{hp:.12,atk:.1},fx:'sand',desc:'Đầu chó rừng khăn vàng, quyền trượng. Đòn cuốn bão cát, chữ thần vàng bay lên'},
+  lg_samurai:{name:'Samurai Quỷ Đỏ',tier:3,price:3200000,bonus:{atk:.18,def:.04},fx:'oni',desc:'Mặt nạ quỷ, giáp lá đỏ đen, katana. Chém ra vầng trăng đỏ'},
+  lg_piccolo:{name:'Piccolo',tier:3,price:3600000,bonus:{hp:.1,mp:.1,atk:.08},fx:'beam',desc:'Áo choàng trắng vai độn, khăn turban. Đòn bắn tia xoáy Makankosappo'},
+  lg_megax:{name:'Mega Man X',tier:3,price:3600000,bonus:{def:.12,atk:.1},fx:'buster',desc:'Giáp xanh, súng tay X-Buster. Tích lực rồi bắn cầu plasma'},
+  lg_zero:{name:'Zero Kiếm Đỏ',tier:4,price:4800000,bonus:{atk:.2,def:.06},fx:'zsaber',desc:'Giáp đỏ, tóc vàng dài, Z-Saber. Chém vầng trăng xanh lá'},
+  lg_king:{name:'King Knight',tier:4,price:4800000,bonus:{hp:.15,def:.12,atk:.04},fx:'king',desc:'Giáp vàng vương miện, áo choàng lông. Đòn tung mưa vàng, vương miện loé sáng'},
+  lg_vader:{name:'Darth Vader',tier:5,price:8000000,bonus:{atk:.18,def:.12,hp:.08},fx:'force',desc:'Mũ giáp đen, kiếm ánh sáng đỏ. Đòn kèm sóng Thần Lực bóp nghẹt'},
+  lg_16typh:{name:'16Typh',tier:4,price:5000000,bonus:{atk:.14,mp:.1},fx:'note',desc:'Tóc bạch kim xanh, blazer đen, sơ mi hoạ tiết, chuỗi ngọc trai. Chiêu 5 gọi Min ra hát đánh cùng 12 giây'},
+  lg_zeus:{name:'Zeus Thần Sấm',tier:5,price:8000000,bonus:{atk:.2,mp:.12,hp:.06},fx:'zeus',desc:'Râu tóc bạc, áo choàng thần. Mỗi đòn gọi sét vàng giáng xuống'}};
+// chiêu riêng của set legacy (phím 5, chỉ khi đang mặc set đó): hiệu ứng theo kiểu ra đòn của set, đánh 3 nhịp
+const LG_SKILL={shovel:['Xẻng Bổ Đất',3,{}],pow:['Liên Hoàn Quyền',3.2,{}],egg:['Mưa Trứng Yoshi',2.8,{heal:.1}],air:['Lốc Xoáy Khí Thần',2.6,{slow:2}],chainsaw:['Cưa Xé Toạc',3.4,{}],
+  lion:['Sư Tử Gầm Vang',3,{}],sand:['Bão Cát Sa Mạc',3,{drain:.2}],oni:['Nhất Đao Quỷ Trảm',3.6,{}],beam:['Makankosappo',3.6,{range:4}],buster:['X-Buster Tích Lực',3.4,{range:4}],
+  zsaber:['Z-Saber Liên Trảm',3.8,{}],note:['Gọi Min',2,{summon:12}],king:['Vương Quyền Hoàng Kim',3,{heal:.15}],force:['Thần Lực Bóp Nghẹt',4,{slow:2}],zeus:['Thiên Lôi Zeus',4.2,{}]};
+for(const L of Object.values(MU.legacy)){ const [name,mul,o]=LG_SKILL[L.fx]; L.skill={k:'lgs_'+L.fx,name,mp:16+L.tier*3,cd:o.summon?22:9+L.tier,mul,range:3,...o}; }
+// Min: nhân vật được set 16Typh gọi ra đánh cùng (không bán, chỉ để vẽ)
+CLOTHES.mu_min={name:'Đồ của Min',slot:'top',price:0,hidden:true,set:'mu_min',opts:{top:'long'},colors:{top:'e8d0a8',pants:'d8a040',shoes:'8a5a32'}};
+for(const [k,L] of Object.entries(MU.legacy)) CLOTHES[k]={name:'Set Legacy · '+L.name,slot:'top',price:0,hidden:true,mu:true,legacy:true,set:k,opts:{top:'long'},colors:{top:'2a2a34',pants:'2a2a34',shoes:'1c1820'}};
+// Thợ Kim Hoàn (shop phụ kiện MU): ngoài bộ trang phục chính còn 4 ô phụ kiện tăng lực chiến: cánh (sau lưng), dây chuyền, vật hộ thân (bay lơ lửng cạnh người),
+// aura (vòng phép dưới chân kiểu Warcraft, mỗi aura tăng 1 thuộc tính). Mua 1 lần giữ mãi, mỗi ô đeo 1 món, ai cũng thấy phụ kiện của nhau. (đã giảm giá còn 1/3)
+// bonus: hp / mp / atk / def (+%), regen (hồi máu mana nhanh thêm), crit (tỉ lệ chí mạng), drain (hút % sát thương thành máu)
+MU.slots={wing:'Cánh',neck:'Dây chuyền',charm:'Vật hộ thân',aura:'Aura'};
+MU.acc={w_angel:{slot:'wing',name:'Cánh Thiên Thần',price:1330000,bonus:{hp:.06,def:.04}},w_pinkbat:{slot:'wing',name:'Cánh Dơi Hồng',price:1330000,bonus:{mp:.08,atk:.02}},
+  w_bat:{slot:'wing',name:'Cánh Dơi Huyết',price:1500000,bonus:{atk:.06,hp:.02}},w_fairy:{slot:'wing',name:'Cánh Tiên Hồng',price:1670000,bonus:{mp:.06,def:.04}},
+  w_monarch:{slot:'wing',name:'Cánh Bướm Chúa',price:2000000,bonus:{atk:.05,mp:.05}},w_sky:{slot:'wing',name:'Cánh Thiên Thanh',price:2670000,bonus:{hp:.08,def:.06}},
+  w_demon:{slot:'wing',name:'Cánh Quỷ Vương',price:3330000,bonus:{atk:.1,hp:.04}},
+  n_bead:{slot:'neck',name:'Chuỗi Ngọc Tím',price:670000,bonus:{mp:.08}},n_ruby:{slot:'neck',name:'Mặt Hồng Ngọc',price:830000,bonus:{hp:.06}},
+  n_amethyst:{slot:'neck',name:'Mặt Thạch Anh',price:1000000,bonus:{mp:.06,def:.03}},n_gold:{slot:'neck',name:'Dây Chuyền Vàng Hiphop',price:1330000,bonus:{atk:.06}},
+  n_pharaoh:{slot:'neck',name:'Kiềng Vàng Pharaoh',price:1670000,bonus:{def:.06,hp:.04}},n_star:{slot:'neck',name:'Chuỗi Sao Hoàng Gia',price:2000000,bonus:{atk:.05,mp:.05,hp:.03}},
+  c_fire:{slot:'charm',name:'Thiên Thạch Lửa',price:1000000,bonus:{atk:.05}},c_comet:{slot:'charm',name:'Sao Chổi Băng',price:1000000,bonus:{def:.05}},
+  c_bolt:{slot:'charm',name:'Tia Sét Vàng',price:1000000,bonus:{mp:.07}},c_cat:{slot:'charm',name:'Mèo Mây',price:1170000,bonus:{hp:.06}},
+  c_pad:{slot:'charm',name:'Tay Cầm Game',price:1170000,bonus:{atk:.03,mp:.03}},c_tv:{slot:'charm',name:'Robot TV',price:1330000,bonus:{def:.04,mp:.03}},
+  c_code:{slot:'charm',name:'Bạch Tuộc Code',price:1330000,bonus:{mp:.05,atk:.02}},c_eye:{slot:'charm',name:'Mắt Bí Ẩn',price:1670000,bonus:{atk:.04,def:.03}},
+  c_walle:{slot:'charm',name:'Robot Wall-E',price:1670000,bonus:{hp:.05,def:.03}},c_sonic:{slot:'charm',name:'Nhím Xanh Tốc Độ',price:2000000,bonus:{atk:.06,hp:.02}},
+  c_ghost:{slot:'charm',name:'Bóng Ma Hồng',price:2000000,bonus:{atk:.05,mp:.04}},c_tank:{slot:'charm',name:'Khủng Long Lái Tăng',price:2330000,bonus:{def:.06,hp:.04}},
+  c_crown:{slot:'charm',name:'Vương Miện Tím',price:2670000,bonus:{hp:.04,mp:.04,atk:.04}},
+  a_devotion:{slot:'aura',name:'Hào quang Thủ Hộ',price:1670000,bonus:{def:.15},col:'#ffd84a'},a_endurance:{slot:'aura',name:'Hào quang Bền Bỉ',price:1670000,bonus:{hp:.15},col:'#5fe06a'},
+  a_brilliance:{slot:'aura',name:'Hào quang Trí Tuệ',price:1670000,bonus:{mp:.25},col:'#5aa0ff'},a_command:{slot:'aura',name:'Hào quang Chiến Ý',price:2000000,bonus:{atk:.12},col:'#ff4a4a'},
+  a_unholy:{slot:'aura',name:'Hào quang Hắc Ám',price:2330000,bonus:{regen:1},col:'#b070ff'},a_vampiric:{slot:'aura',name:'Hào quang Huyết Tộc',price:3000000,bonus:{drain:.08},col:'#e8203a'},
+  a_crit:{slot:'aura',name:'Hào quang Sát Thủ',price:3000000,bonus:{crit:.08},col:'#ff9a2a'}};
+// nội tại: mỗi lần lên cấp MU được 1 điểm nội tại, cộng vào để tăng chỉ số (mỗi nội tại tối đa max cấp)
+MU.passive={cuongluc:{name:'Cường Lực',stat:'atk',per:.03,max:10,desc:'Công'},thietbi:{name:'Thiết Bì',stat:'def',per:.04,max:10,desc:'Thủ'},sinhluc:{name:'Sinh Lực',stat:'hp',per:.04,max:10,desc:'Máu'},
+  linhluc:{name:'Linh Lực',stat:'mp',per:.05,max:10,desc:'Mana'},hoiphuc:{name:'Hồi Phục',stat:'regen',per:.2,max:5,desc:'Tốc độ hồi máu / mana'},chimang:{name:'Chí Mạng',stat:'crit',per:.02,max:5,desc:'Tỉ lệ chí mạng'},
+  hutmau:{name:'Hút Máu',stat:'drain',per:.02,max:5,desc:'Hút sát thương thành máu'}};
+const muStats=(cls,lv,fruit,wep,lg,ex)=>{ const c=MU.cls[cls], k=1+(lv-1)*.08, f=(fruit&&MU.fruits[fruit]&&MU.fruits[fruit].bonus)||{}, w=(wep&&MU.weapons[wep])||{}, L=(lg&&MU.legacy[lg]&&MU.legacy[lg].bonus)||{}, X=ex||{}, b={hp:(f.hp||0)+(L.hp||0)+(X.hp||0),mp:(f.mp||0)+(L.mp||0)+(X.mp||0),atk:(f.atk||0)+(L.atk||0)+(X.atk||0),def:(f.def||0)+(L.def||0)+(X.def||0)};
+  return {hp:Math.round(c.hp*k*(1+b.hp)),mp:Math.round(c.mp*(1+(lv-1)*.05)*(1+b.mp)),atk:Math.round(c.atk*k*(1+b.atk)*(1+(w.atk||0))),def:Math.round(c.def*(1+(lv-1)*.06)*(1+b.def))}; };
+// lực chiến: 1 con số gộp chỉ số MU (hiện trên HUD, so set legacy)
+const muPower=s=>Math.round(s.atk*10+s.def*8+s.hp*1.5+s.mp*.6);
 for(const [k,f] of Object.entries(MU.fruits)) ITEMS['taq_'+k]={name:f.name,icon:'fruit_'+k};
 ITEMS.vk_kunai={name:'Kunai Phi Lôi Thần',icon:'kunai'}; ITEMS.vk_cua={name:'Cưa Máy Quỷ',icon:'chainsaw'}; ITEMS.vk_luoihai={name:'Lưỡi Hái Bóng Đêm',icon:'scythe'}; ITEMS.vk_vayrong={name:'Thương Vảy Rồng',icon:'spear'}; ITEMS.vay_rong={name:'Vảy Rồng Dải Xanh',icon:'scale'};
 ITEMS.cuon_truc={name:'Cuộn trục Hokage',icon:'scroll'}; ITEMS.banh_mut={name:'Bánh mì phết mứt',icon:'jambread'}; ITEMS.lua_ma={name:'Đốm lửa ma',icon:'ghostfire'};
-Object.assign(CLOTHES,{mu_naruto:{name:'Đồ ninja cam (Naruto)',slot:'top',price:0,hidden:true,mu:true,set:'mu_naruto',opts:{top:'jacket'},colors:{top:'f2802a',inner:'1c1820',pants:'f2802a',shoes:'2a4ab8'}},
+Object.assign(CLOTHES,{mu_naruto:{name:'Đồ ninja cam (Naruto)',slot:'top',price:0,hidden:true,mu:true,set:'mu_naruto',opts:{top:'jacket',hair:'messy'},colors:{top:'f2802a',inner:'1c1820',pants:'f2802a',shoes:'2a4ab8',hair:'ffd84a'}},
   mu_hokage:{name:'Áo choàng Hokage',slot:'top',price:0,hidden:true,mu:true,set:'mu_hokage',opts:{top:'long'},colors:{top:'f4f2ec',pants:'2a2a34',shoes:'2a4ab8'}},
   mu_cuamay:{name:'Đồ thợ săn quỷ (Quỷ Cưa)',slot:'top',price:0,hidden:true,mu:true,set:'mu_cuamay',opts:{top:'suit'},colors:{top:'1c1820',shirt:'f4f2ec',tie:'1c1820',pants:'1c1820',shoes:'1c1820'}},
   mu_bongma:{name:'Áo choàng bóng ma tím (Dươngg Vũ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_bongma',opts:{top:'long'},colors:{top:'6a4ab0',pants:'4a2a8a',shoes:'2a1a4a'}},
@@ -920,11 +991,14 @@ Object.assign(QUESTS,{mu_cuontruc:{giver:'mu_guard',secret:true,title:'🔍 3 cu
   mu_vayrong:{giver:'mu_guard',secret:true,title:'🔍 4 vảy Rồng Dải Xanh',desc:'Rồng Dải Xanh rụng 4 chiếc vảy quanh Đầm Rồng. Nhặt đủ 4 vảy mang về cho Vệ binh.',need:{vay_rong:4},reward:{exp:450,vnd:600000}},
   mu_lua_ma:{giver:'mu_guard',secret:true,title:'🔍 Đốm lửa của Dươngg Vũ',desc:'Nửa đêm nghĩa địa có 3 đốm lửa ma lập loè. Gom đủ 3 đốm (chỉ hiện ban đêm giờ game) mang về cho Vệ binh.',need:{lua_ma:3},reward:{exp:420,vnd:550000}}});
 Object.assign(CLOTHES,{mu_dk:{name:'Giáp Rồng Đỏ + Kiếm (Chiến Binh)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dk',opts:{top:'long'},colors:{top:'a8282a',pants:'7a1a1e',shoes:'3a3a44'}},
-  mu_elf:{name:'Áo Tiên Thánh + Cung (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
+  mu_elf:{name:'Áo Tiên Thánh + Song Kiếm (Tiên Nữ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_elf',opts:{top:'long',bottom:'skirt'},colors:{top:'f4f2ec',pants:'f4f2ec',shoes:'c8a23a'}},
   mu_dw:{name:'Giáp Pháp Sư Xanh + Gậy (Phù Thuỷ)',slot:'top',price:0,hidden:true,mu:true,set:'mu_dw',opts:{top:'long'},colors:{top:'2a4ab8',pants:'2a3a8a',shoes:'1c1820'}}});
 Object.assign(ITEMS,{ngoc_uoc:{name:'Ngọc Ước Nguyện',icon:'jewel_bless'},ngoc_tam_linh:{name:'Ngọc Tâm Linh',icon:'jewel_soul'},ngoc_hon_nguyen:{name:'Ngọc Hỗn Nguyên',icon:'jewel_chaos'}});
-NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'});
+NPCS.push({id:'mu_guard',scene:'mu',x:19.4,y:23.4,place:'muguard'},{id:'mu_mage',scene:'mu',x:30.6,y:20.6,place:'mumage'},{id:'mu_shop',scene:'mu',x:11.5,y:20.6,place:'mushop'},{id:'mu_acc',scene:'mu',x:35.5,y:12.8,place:'muacc'});
 Object.assign(NPC_LOOKS,{mu_guard:{name:'Vệ binh Lục Địa Cát',look:{gender:'nam',hair:'buzz',hairColor:'3a2a22',skin:'e8b48a',outfit:{top:'mu_dk',bottom:'kaki',shoes:'giay_den'},opts:{beard:'goatee'}}},
+  mu_shop:{name:'Thương nhân Huyền Thoại (Premium Store)',look:{gender:'nam',hair:'swept',hairColor:'2a2026',skin:'e8b48a',outfit:{top:'lg_king',bottom:'kaki',shoes:'giay_den'}}},
+  mu_acc:{name:'Thợ Kim Hoàn (cánh · dây chuyền · hộ thân · aura)',look:{gender:'nu',hair:'long',hairColor:'f2c43d',skin:'f3c8a8',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_den'}}},
+  mu_min:{name:'Min',look:{gender:'nu',hair:'long',hairColor:'ff7a2a',skin:'f6d2b8',outfit:{top:'mu_min',bottom:'kaki',shoes:'giay_den'}}},
   mu_mage:{name:'Pháp sư Cát (cửa hàng)',look:{gender:'nam',hair:'long',hairColor:'e8e4dc',skin:'f0c4a0',outfit:{top:'mu_dw',bottom:'kaki',shoes:'giay_den'},opts:{beard:'mustache'}}}});
 // Phòng của Diệp (Hà Nội): Diệp nấu ăn cho khách sang chơi. Chỉ tiếp người cấp ≥4 và trong người từ 1 triệu; đang ở mà tiền tụt dưới 1 triệu là Diệp đuổi về.
 // Ăn đồ Diệp nấu: EXP theo tiền đang có (30 × √số triệu, tối đa 400), +năng lượng, tính là 1 bữa; mỗi ngày Diệp nấu tối đa 2 lần
@@ -1357,5 +1431,5 @@ NPC_LOOKS.bingo={name:'Cô Bí Ngô (Lễ hội Halloween)',look:{gender:'nu',ha
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  MU,muStats,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  MU,muStats,muPower,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

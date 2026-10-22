@@ -28,6 +28,7 @@ kbd{font:16px var(--f);background:#f3ecdc;color:var(--ink);border-bottom:2px sol
 .hud{display:none} body.playing .hud{display:block} body.playing #hudRight{display:grid} body.playing #hudBottom{display:grid}
 #hudQuests{position:fixed;left:12px;top:12px;width:min(300px,40vw);padding:8px 12px;max-height:46vh;overflow:auto}
 #hudQuests h4{margin:0 0 4px;font-weight:400;font-size:22px;color:var(--gold);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qbtns{display:flex;gap:4px;align-items:center} #qAuto{font:15px var(--f);background:var(--panel2);border:1px solid var(--line);color:var(--cream);cursor:pointer;padding:1px 6px;pointer-events:auto} #qAuto:hover{border-color:var(--gold)} #qAuto.on{background:#2f8a4a;border-color:#8ae88a;color:#fff;animation:qauto 1.2s steps(2) infinite} @keyframes qauto{50%{border-color:var(--gold)}}
 #qToggle{font:20px var(--f);background:none;border:1px solid var(--line);color:var(--cream);cursor:pointer;padding:0 6px} #qToggle:hover{border-color:var(--gold)}
 body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #hudQuests small{color:var(--muted);font-size:18px}
@@ -183,14 +184,19 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 #hudItems{display:flex;gap:4px;padding:5px}
 /* MU Online: HUD máu / mana / chiêu, thanh boss, bảng chọn class */
 #muHud{pointer-events:auto;padding:5px 7px;display:grid;gap:4px} #muHud[hidden],#muBoss[hidden]{display:none!important} body:not(.playing) #muBoss{display:none!important}
-#muBoss{position:fixed;left:50%;top:52px;transform:translateX(-50%);width:min(320px,70vw);padding:3px 8px;z-index:3;font-size:15px}
+#muBoss{position:fixed;left:50%;top:8px;transform:translateX(-50%);width:min(340px,58vw);padding:3px 8px;z-index:3;font-size:14px;display:grid;gap:3px;pointer-events:none}
+.mub{display:grid;grid-template-columns:minmax(0,150px) 1fr 38px;gap:6px;align-items:center;line-height:1} .mub b{font-weight:400;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mub em{font-style:normal;color:#ff7a5a} .mub small{text-align:right}
+body.inmu #toasts{top:calc(16px + var(--mubh,0px))!important;bottom:auto!important}
 #muHud b{font-weight:400} .mubar{position:relative;display:block;height:12px;background:#2a1a1e;border:1px solid var(--ink)} .mubar i{display:block;height:100%} .mubar em{position:absolute;inset:0;font-style:normal;font-size:13px;line-height:12px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
-.mubar.hp i{background:#e8302a} .mubar.mp i{background:#3a6ad8} .mubar.boss i{background:linear-gradient(90deg,#8a1a5a,#e8302a)} #muBoss{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center} #muSk{display:flex;gap:6px}
+.mubar.hp i{background:#e8302a} .mubar.mp i{background:#3a6ad8} .mubar.boss i{background:linear-gradient(90deg,#8a1a5a,#e8302a)} #muSk{display:flex;gap:6px}
 .musk{position:relative;width:58px;height:58px;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);cursor:var(--cur-hand),pointer;overflow:hidden} .musk:hover{border-color:var(--gold)}
 .musk img{image-rendering:pixelated;margin-top:-8px} .musk b{position:absolute;left:3px;top:1px;font-weight:400;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000} .musk small{position:absolute;right:3px;top:1px;font-size:12px;color:#7fb8ff;text-shadow:1px 1px 0 #000}
 .musk span{position:absolute;left:0;right:0;bottom:1px;font-size:11px;line-height:11px;color:var(--cream);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mucd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
 .mucls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .mucl{display:grid;justify-items:center;gap:3px;padding:6px;background:var(--panel2);border:2px solid var(--cc);text-align:center} .mucl img{image-rendering:pixelated} .mucl p{font-size:15px;margin:2px 0} .mucl ul{text-align:left;font-size:14px;margin:2px 0;padding-left:16px}
 @media (max-width:620px){ .mucls{grid-template-columns:1fr} }
+.mulg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px} .mulgc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;background:var(--panel2);border:2px solid var(--line);text-align:center} .mulgc img{image-rendering:pixelated} .mulgc p{font-size:14px;margin:2px 0} .mulgc .star{color:var(--gold)} .mulgc.t3{border-color:#7fb8ff} .mulgc.t4{border-color:#c86aff} .mulgc.t5{border-color:var(--gold)} #muLoot{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;width:min(340px,86vw);padding:10px 14px;display:grid;gap:4px;border-color:var(--gold);animation:lootin .35s ease-out} #muLoot[hidden]{display:none} #muLoot h4{margin:0;font-weight:400;font-size:24px;color:var(--gold)} #muLoot .x{position:absolute;right:6px;top:4px;font:16px var(--f);background:none;border:0;color:var(--cream);cursor:pointer} .ll{display:grid;gap:3px;margin-top:4px} .lr{display:flex;gap:8px;align-items:center;font-size:17px} .lr b{font-weight:400;color:#8ae88a} @keyframes lootin{from{transform:translate(-50%,12px) scale(.9);opacity:0}}
+.musk.lgsk{border-color:var(--gold)} .musk.pas{width:44px} .musk.pas .pasi{position:static;font-size:20px;color:var(--gold);margin-top:-8px} .musk.pas.has{border-color:#8ae88a;animation:qauto 1.2s steps(2) infinite}
+.mulgb{margin-top:auto;padding-top:4px;display:grid;justify-items:center;gap:3px}
 /* quà Halloween: lưới 15 bộ trang phục */
 .hwgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px} .hwc{display:grid;justify-items:center;gap:3px;padding:5px 3px;background:var(--panel2);border:2px solid var(--line);text-align:center} .hwc img{image-rendering:pixelated} .hwc b{font-weight:400;color:var(--gold);font-size:16px}
 @media (max-width:620px){ .hwgrid{grid-template-columns:repeat(3,1fr)} }
@@ -210,7 +216,7 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 .fgPad .btn{padding:8px 2px;font-size:15px;touch-action:none;user-select:none} .fgPad .btn.on{background:var(--gold);color:var(--ink)}
 /* kênh chat tổng ngay trên thanh đồ */
 #wchat{pointer-events:auto;min-width:0;padding:3px 6px 4px;display:grid;gap:3px;background:rgba(28,21,22,.78)} #wcLog{max-height:81px;overflow-y:auto;font-size:16px;line-height:1.15;scrollbar-width:thin}
-#wcLog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #wcLog b{font-weight:400;color:var(--gold)} #wcLog small{color:var(--muted);font-size:13px} #wcLog .me b{color:#7fe0ff} #wcLog:empty::before{content:'Kênh tổng: chưa ai nói gì, chào cả server đi!';color:var(--muted)}
+#wcLog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #wcLog b{font-weight:400;color:var(--gold)} #wcLog small{color:var(--muted);font-size:13px} #wcLog .me b{color:#7fe0ff} #wcLog .sys{white-space:normal;color:#ffe9a0} #wcLog .sys b{color:#ff9a3a} #wcLog:empty::before{content:'Kênh tổng: chưa ai nói gì, chào cả server đi!';color:var(--muted)}
 #wchat.big #wcLog{max-height:247px} #wchat.big #wcLog div{white-space:normal} #wcRow{display:flex;gap:4px} #wcIn{flex:1;min-width:0;font:17px var(--f);background:var(--panel2);color:var(--cream);border:1px solid var(--line);padding:2px 6px} #wcIn:focus{border-color:var(--gold);outline:none}
 #wcFold,#wcHide{font:16px/1 var(--f);padding:0 7px;background:var(--panel2);color:var(--gold);border:1px solid var(--line);cursor:var(--cur-hand),pointer} #wchat.flash{border-color:var(--gold)}
 #wcShow{pointer-events:auto;justify-self:start} #wcNew{font-weight:400;color:#ff7a5a} #wchat[hidden]{display:none}
@@ -553,6 +559,9 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art10.js"></script>
 <script src="art11.js"></script>
 <script src="art12.js"></script>
+<script src="art13.js"></script>
+<script src="art14.js"></script>
+<script src="art15.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
@@ -576,6 +585,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="maps6.js"></script>
 <script src="maps7.js"></script>
 <script src="maps8.js"></script>
+<script src="auto.js"></script>
 <script src="lobby.js?v=7"></script>
 <script src="title.js"></script>
 </body>

@@ -34,6 +34,7 @@ on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Khô
   if(m.op==='finish'){ if(p.quests[m.id]!=='active') return {err:'Chưa nhận'}; if(!canFinish(pl,m.id)) return {err:'Chưa xong'};
     for(const [k,n] of Object.entries(q.need||{})) addItem(pl,k,-n);
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
+    if(q.cloth&&S.CLOTHES[q.cloth]){ p.owned[q.cloth]=1; C.note(pl,`Nhận trang phục ${S.CLOTHES[q.cloth].name}! Mở Tủ đồ (U) để mặc`,'item'); }   // nhiệm vụ thưởng trang phục
     p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title); markDirty(pl); return {}; }
   return {err:'?'}; });
 // hết pin ở ngoài (không gọi được Grab về phòng): xin cắm sạc nhờ người gần đó: chủ quán, nhân viên, người quen. Map không có ai thì nhờ người qua đường

@@ -25,6 +25,25 @@ const TR={
   tense:  {name:'Đồn công an',bpm:84,root:50,scale:MIN,prog:[0,0,5,4],lead:'p12',arp:'tri',bass:'saw',drums:'tick',seed:149,sparse:true},
   race:   {name:'Trường đua',bpm:144,root:60,scale:MAJ,prog:[0,4,5,3],lead:'p25',arp:'p12',bass:'tri',drums:'gallop',seed:151},
   battle: {name:'Optimus đấu Megatron',bpm:152,root:52,scale:MIN,prog:[0,6,5,4],lead:'saw',arp:'p25',bass:'saw',drums:'battle',seed:163},
+  // bài riêng cho từng map
+  lavi:    {name:'Lavi Studio Sài Gòn',bpm:96,root:63,scale:MAJ,prog:[0,5,3,4],lead:'flute',arp:'pluck',bass:'tri',drums:'lofi',seed:201,pad:true},
+  nmotion: {name:'Nghiện Motion · arcade',bpm:132,root:60,scale:MAJ,prog:[0,4,5,3],lead:'p25',arp:'p12',bass:'p50',drums:'pop',seed:211},
+  bearplus:{name:'bear+ pastel',bpm:100,root:65,scale:PENTA,prog:[0,3,4,0],lead:'sine',arp:'pluck',bass:'tri',drums:'soft',seed:221,vib:true},
+  lumen:   {name:'Lumen Studio',bpm:88,root:62,scale:LYD,prog:[0,1,4,5],lead:'tri',arp:'sine',bass:'sine',drums:'lofi',seed:231,pad:true},
+  yenlang: {name:'120 Yên Lãng · Refund Gaming',bpm:128,root:57,scale:MIN,prog:[0,5,6,4],lead:'p25',arp:'p12',bass:'saw',drums:'dance',seed:241},
+  pickle:  {name:'Sân Pickleball',bpm:120,root:62,scale:MAJ,prog:[0,3,4,4],lead:'p50',arp:'tri',bass:'tri',drums:'funk',seed:251},
+  diep:    {name:'Quán ramen của Diệp',bpm:80,root:60,scale:[0,1,5,7,8],prog:[0,3,4,0],lead:'flute',arp:'pluck',bass:'sine',drums:'soft',seed:261,vib:true},
+  das:     {name:'DAS · giờ học',bpm:94,root:64,scale:MAJ,prog:[0,4,1,5],lead:'tri',arp:'p12',bass:'tri',drums:'soft',seed:271},
+  net:     {name:'Quán net 2007',bpm:140,root:57,scale:MIN,prog:[0,5,3,4],lead:'p12',arp:'p25',bass:'p50',drums:'battle',seed:281},
+  deo:     {name:'Đèo cao gió hú',bpm:110,root:55,scale:DOR,prog:[0,6,5,6],lead:'saw',arp:'p25',bass:'tri',drums:'gallop',seed:291},
+  linhcat: {name:'Trung tâm Lính Cát',bpm:116,root:65,scale:MAJ,prog:[0,4,3,4],lead:'p25',arp:'p12',bass:'tri',drums:'pop',seed:301},
+  // MU Online: mỗi khu 1 bài, đứng gần boss đang ra thì chuyển nhạc đánh boss
+  mu_plaza:{name:'Lục Địa Cát · quảng trường',bpm:104,root:57,scale:MIN,prog:[0,5,3,4],lead:'saw',arp:'p25',bass:'tri',drums:'march',seed:311},
+  mu_forest:{name:'Rừng Làng Lá',bpm:96,root:62,scale:[0,2,3,7,8],prog:[0,3,4,0],lead:'flute',arp:'pluck',bass:'tri',drums:'gong',seed:321,vib:true},
+  mu_lake: {name:'Đầm Rồng',bpm:72,root:60,scale:LYD,prog:[0,1,4,0],lead:'sine',arp:'tri',bass:'sine',drums:'',seed:331,sparse:true,pad:true},
+  mu_grave:{name:'Nghĩa địa Bóng Ma',bpm:66,root:50,scale:[0,1,3,6,7,10],prog:[0,1,0,5],lead:'tri',arp:'sine',bass:'saw',drums:'tick',seed:341,sparse:true,pad:true,vib:true},
+  mu_junk: {name:'Bãi Phế Liệu',bpm:118,root:52,scale:MINP,prog:[0,0,3,4],lead:'p12',arp:'saw',bass:'saw',drums:'funk',seed:351},
+  mu_boss: {name:'Đại chiến boss MU',bpm:160,root:50,scale:[0,1,3,5,7,8,10],prog:[0,1,5,4],lead:'saw',arp:'p25',bass:'saw',drums:'battle',seed:361},
 };
 const DRUMS={ // 16 ô / ô nhịp: K trống cái, S trống lẫy, H hi-hat
   pop:   {K:'1000000010100000',S:'0000100000001000',H:'1010101010101010'},
