@@ -39,10 +39,10 @@ async function req(m,ok){ const r=await GAME.act(m,ok); UI.refresh(); return r; 
 
 /* ---------- menu Esc ---------- */
 UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
-  ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
+  ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('qlog','📖 Sổ nhiệm vụ')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
-ACT.phone=()=>UI.phone(); ACT.ach=()=>UI.ach(); ACT.close=()=>UI.closeAll(); ACT.mute=()=>{ GAME.setMute(!GAME.AUD.muted); draw(); }; ACT.bag=()=>UI.bag();
+ACT.phone=()=>UI.phone(); ACT.ach=()=>UI.ach(); ACT.qlog=()=>UI.qlog(); ACT.close=()=>UI.closeAll(); ACT.mute=()=>{ GAME.setMute(!GAME.AUD.muted); draw(); }; ACT.bag=()=>UI.bag();
 ACT.nosoc=async()=>{ await NET.req({t:'opt',noSocial:!G().opts.noSocial}); setTimeout(draw,200); };
 ACT.logout=async()=>{ try{ await NET.api('logout',{token:NET.token}); localStorage.removeItem('chan-token'); sessionStorage.removeItem('chan-token'); }catch(e){} location.reload(); };
 
@@ -172,6 +172,25 @@ UI.peeSeen=m=>{ GAME.sfx('blip',.4); quickAsk(`<b>${esc(m.name)}</b> vừa tè v
 UI.ach=()=>open('Thành tích',()=>{ const a=G().ach||{}, s=G().stats||{};
   return `<div class="list">${Object.entries(SD.ACH).map(([k,A])=>{ const ok=a[k], v=A.stat==='money'?G().money:s[A.stat]||0;
     return `<div class="row"><span><b>${ok||!A.hidden?esc(A.name):'??? (thành tích ẩn)'}</b><br><small class="muted">${ok||!A.hidden?esc(A.desc):'Tự khám phá nhé'}</small></span><span>${ok?'đã mở':A.hidden?'':Math.min(v,A.n).toLocaleString('vi-VN')+'/'+A.n.toLocaleString('vi-VN')}</span><span>+${A.exp} EXP</span></div>`; }).join('')}</div>`; });
+/* ---------- sổ nhiệm vụ: đủ mọi việc, chia theo trạng thái rồi theo map ---------- */
+let qlTab='now';
+UI.qlog=tab=>{ const g=G(), Q=SD.QUESTS; qlTab=tab||(Object.keys(Q).some(id=>g.quests[id]==='active')?'now':'free');
+  open('Sổ nhiệm vụ',()=>{ const g=G(), ids=Object.keys(Q), st=id=>g.quests[id], here=GAME.S&&GAME.S.kind;
+    const sc=id=>Q[id].giver==='oii'?'oii':GAME.npcScene(Q[id].giver)||'retreat', mp=k=>k==='oii'?'Lang thang mọi map':GAME.sceneName(k);
+    const L={now:ids.filter(id=>st(id)==='active'),free:ids.filter(id=>!st(id)&&!Q[id].secret&&(!Q[id].after||st(Q[id].after)==='done')),
+      wait:ids.filter(id=>!st(id)&&!Q[id].secret&&Q[id].after&&st(Q[id].after)!=='done'),hid:ids.filter(id=>!st(id)&&Q[id].secret),done:ids.filter(id=>st(id)==='done')};
+    const TAB={now:'Đang làm',free:'Nhận được',wait:'Chờ việc trước',hid:'Ẩn',done:'Đã xong'};
+    const byMap=list=>{ const m=new Map(); for(const id of list){ const k=sc(id); if(!m.has(k)) m.set(k,[]); m.get(k).push(id); }
+      return [...m].sort((a,b)=>(a[0]===here?0:a[0]==='retreat'?1:2)-(b[0]===here?0:b[0]==='retreat'?1:2)); };
+    const row=(id,right)=>{ const q=Q[id]; return `<div class="row tall"><span><b>${esc(q.title)}</b><br><small class="muted">Gặp ${esc(GAME.speakerName(q.giver).split(' (')[0])} · ${esc(q.desc)}</small><br><small>+${q.reward.exp} EXP · ${fmt(q.reward.vnd)}</small></span>${right}</div>`; };
+    const right=id=>qlTab==='now'?(GAME.canFinish(id)?`<button class="btn sm pri qgo" data-go="${id}">➜ Về báo cáo</button>`:`<span><small>${esc(GAME.questProgress(id))}</small><br><button class="btn sm qgo" data-go="${id}">➜ Đi làm</button></span>`)
+      :qlTab==='free'?`<button class="btn sm pri qgo" data-go="${id}">➜ Tới nhận</button>`:qlTab==='wait'?`<small class="muted">Làm trước:<br>${esc(Q[Q[id].after].title)}</small>`:'<em>✔ xong</em>';
+    const body=qlTab==='hid'?`<div class="list">${byMap(L.hid).map(([k,a])=>`<div class="row"><span><b>??? ×${a.length}</b><br><small class="muted">${esc(mp(k))}: tự lục lọi, nói chuyện với mọi người để tìm ra</small></span><span>+1 Ngọc Cường Hoá mỗi việc</span></div>`).join('')}</div>`
+      :L[qlTab].length?byMap(L[qlTab]).map(([k,a])=>`<h5>${esc(mp(k))}${k===here?' · map đang ở':''} (${a.length})</h5><div class="list">${a.map(id=>row(id,right(id))).join('')}</div>`).join('')
+      :`<p class="muted">${qlTab==='now'?'Chưa nhận việc nào. Sang tab Nhận được, bấm ➜ để tự đi tới người giao.':qlTab==='free'?'Hết việc nhận được ngay: làm xong việc đang dở để mở việc tiếp theo.':'Trống.'}</p>`;
+    return `<p>Đã xong <b>${L.done.length}/${ids.length}</b> nhiệm vụ. Bảng Việc cần làm chỉ hiện việc <b>đang nhận</b>; việc mới phải tới gặp người giao để nhận.</p>
+      <div class="tabs">${Object.entries(TAB).map(([k,n])=>`<button class="tab ${k===qlTab?'on':''}" data-a="qltab" data-k="${k}">${n} (${L[k].length})</button>`).join('')}</div>${body}`; },{wide:true}); };
+ACT.qltab=d=>{ qlTab=d.k; draw(); };
 PLACE.quanao=()=>{ open('Shop Chande · Chị Mai',()=>money()+outfitHtml(true),{wide:true}); startPreview(); };
 PLACE.letan=()=>open('Lễ tân 24h · Nhà Rếch 2',()=>{ const g=G(), st=g.stay, d=SD.vnTime(NET.now()).day;
   return money()+`<p>${st?`Bạn đang thuê <b>${SD.ROOMS[st.room].name}</b> ${st.paid===d?'· đã trả hôm nay':'· chưa trả hôm nay'}. Mỗi ngày tự trừ tiền khi sang ngày mới.`:'Bạn chưa thuê phòng. Mỗi người thuê 1 phòng, tiền trả theo ngày.'}${g.flags.rented?'':' <b>Ngày đầu Pháp bao 100.000đ.</b>'}</p>
