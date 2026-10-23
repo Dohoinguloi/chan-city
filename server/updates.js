@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24w',title:'24/10 (cân bằng)',items:['Mọi boss giảm 40% máu (trừ Pepe): Luffy và các boss MU, 5 anh em Siêu Nhân, Megazord, Đỉnh Bắc, MCK ở Ké, Megatron. Boss đang sống giữ máu cũ tới lần xuất hiện sau']},
   {v:'2026-10-24v',title:'24/10 · Lính Cát 200 loài, võ đài, rồng thần, Ngoại Hạng Anh',items:[
     '🐾 Lính Cát lên 200 loài: 41 họ tiến hoá mới, nhiều loài mang 2 hệ (khắc hệ nhân cả 2). Lính Cát hoang ra nhiều hơn ở Ké (thêm 40 điểm, vùng 4 sâu trong vườn quốc gia Lv20–32) và trang trại bác Trang (16 điểm + ao). Trên tên con hoang có nhãn hệ',
     '👑 Đủ Lv50 mọi loài (trừ huyền thoại) thức tỉnh dạng Huyền Thoại: to hơn, ánh hologram, vòng aura dưới chân, chỉ số ×1,2 và bộ chỉ số phụ theo lối 1 tướng Dota (hút máu, trừ giáp, trói, giảm sát thương, đánh lan; cho chủ: giảm hồi chiêu, mana, sát thương, hút máu, tốc đánh, kháng phép 2 giây, chạy nhanh, thêm % tiền)',
