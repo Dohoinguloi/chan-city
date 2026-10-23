@@ -55,9 +55,16 @@ function homeFloor(P,X,Y,tx,ty,F){ const c=F.col;
   if(F.style==='tile'){ P.rect(X,Y,T,T,c[0]); P.rect(X,Y,T,1,c[1]); P.rect(X,Y,1,T,c[1]); P.rect(X+2,Y+2,4,1,c[2]); P.px(X+2,Y+3,c[2]); }
   else if(F.style==='check'){ P.rect(X,Y,T,T,(tx+ty)%2?c[2]:c[0]); P.rect(X,Y,T,1,c[1]); P.rect(X,Y,1,T,c[1]); P.px(X+3,Y+3,(tx+ty)%2?c[3]:'#ffffff'); }
   else if(F.style==='marble'){ P.rect(X,Y,T,T,c[0]); for(let i=0;i<3;i++){ const sx=Math.floor(hash(tx,ty*3+i,81)*16), sy=Math.floor(hash(tx*3+i,ty,82)*16); for(let k=0;k<6;k++) P.px(X+((sx+k)&15),Y+((sy+(k>>1))&15),k%2?c[1]:c[3]); } P.rect(X,Y,T,1,c[2]); P.rect(X,Y,1,T,c[1]); }
+  else if(F.style==='plank2'){ P.rect(X,Y,T,T,c[0]); for(let y=0;y<T;y+=8){ P.rect(X,Y+y+7,T,1,c[3]); P.rect(X,Y+y,T,1,c[2]); const off=(((ty*2+y/8)%3)*6+tx*16)%24; for(const sx of [off%16,(off+11)%16]) if(sx<T) P.rect(X+sx,Y+y,1,7,c[1]); P.px(X+(tx*5+y)%14+1,Y+y+3,c[1]); } }   /* ván gỗ to so le */
+  else if(F.style==='diamond'){ P.rect(X,Y,T,T,c[0]); for(let i=0;i<T;i++){ P.px(X+i,Y+((i+8)%16),c[1]); P.px(X+i,Y+((24-i)%16),c[1]); } P.rect(X+7,Y+7,2,2,c[2]); P.px(X,Y,c[2]); P.px(X+15,Y,c[2]); }   /* gạch trắng kẻ chéo, chấm đen ở mắt lưới */
   else if(F.style==='carpet'){ P.rect(X,Y,T,T,c[0]); for(let i=0;i<10;i++) P.px(X+Math.floor(hash(tx*7+i,ty,83)*16),Y+Math.floor(hash(tx,ty*7+i,84)*16),i%2?c[1]:c[2]); }
   else { P.rect(X,Y,T,T,c[0]); for(let y=0;y<T;y+=4){ P.rect(X,Y+y+3,T,1,c[1]); const s=Math.floor(hash(tx,ty*4+y,60)*16); P.rect(X+s,Y+y,1,3,c[3]); P.px(X+(s+5)%16,Y+y+1,c[2]); } } }
-function homeWall(P,X,Y,W){ const c=W.col; P.rect(X,Y,T,T,c[0]);
+// up: hàng tường phía trên (tường nhà riêng cao 2 ô); wains: ván ngang phía trên + nẹp + ốp gỗ chân tường; vplank: ván dọc
+function homeWall(P,X,Y,W,up){ const c=W.col; P.rect(X,Y,T,T,c[0]);
+  if(W.style==='wains'){ if(up){ P.rect(X,Y,T,2,c[4]||c[2]); P.rect(X,Y+2,T,1,c[3]); for(let y=6;y<T;y+=5) P.rect(X,Y+y,T,1,c[1]); P.px(X+(X*3)%13+1,Y+9,c[1]); return; }
+    for(let y=3;y<6;y+=5) P.rect(X,Y+y,T,1,c[1]); P.rect(X,Y+5,T,2,c[4]||c[2]); P.rect(X,Y+7,T,9,c[2]); P.rect(X+2,Y+9,T-4,4,c[4]||c[1]); P.rect(X+2,Y+9,T-4,1,'#c08a5a'); P.rect(X,Y+T-2,T,2,c[4]||c[3]); return; }
+  if(W.style==='vplank'){ for(let x=0;x<T;x+=4){ P.rect(X+x,Y,1,T,c[1]); P.px(X+x+2,Y+((X+x)*7)%14,c[2]); } if(up){ P.rect(X,Y,T,2,c[3]); return; } P.rect(X,Y+T-3,T,3,c[3]); P.rect(X,Y+T-3,T,1,c[2]); return; }
+  if(up){ if(W.style==='brick'){ for(let y=0;y<T;y+=4){ P.rect(X,Y+y,T,1,c[1]); for(let x=(y/4)%2?4:0;x<T;x+=8) P.rect(X+x,Y+y,1,4,c[1]); } } else if(W.style==='stripe'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,2,T,c[1]); } else if(W.style==='panel'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,1,T,c[1]); } else for(let x=0;x<T;x+=8) P.rect(X+x,Y,1,T,c[1]); P.rect(X,Y,T,2,c[3]); return; }
   if(W.style==='brick'){ for(let y=0;y<T-4;y+=4){ P.rect(X,Y+y,T,1,c[1]); for(let x=(y/4)%2?4:0;x<T;x+=8) P.rect(X+x,Y+y,1,4,c[1]); } }
   else if(W.style==='stripe'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,2,T-4,c[1]); }
   else if(W.style==='panel'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,1,T-4,c[1]); P.rect(X,Y+3,T,1,c[2]); }
@@ -151,7 +158,7 @@ function drawTile(g,t,tx,ty,nb,frame=0){
     break; }
   case 'H': { // tường phòng: mặt tường trước nếu ô dưới là sàn, còn lại là đỉnh tường tối
     const below=nb(0,1);
-    if((below==='O'||below==='M')&&HT.w){ homeWall(P,X,Y,HT.w); break; } if(HT.w){ P.rect(X,Y,T,T,HT.w.col[3]); P.rect(X,Y,T,1,'#62524a'); break; }
+    if(HT.w){ const fl=b=>b==='O'||b==='M'||b==='I'; if(fl(below)){ homeWall(P,X,Y,HT.w,0); break; } if(below==='H'&&fl(nb(0,2))&&ty<=1){ homeWall(P,X,Y,HT.w,1); break; } P.rect(X,Y,T,T,HT.w.col[3]); P.rect(X,Y,T,1,'#62524a'); break; }   /* nhà riêng: tường trên cùng cao 2 ô */
     if(below==='O'||below==='M'){ P.rect(X,Y,T,T,C.wall[0]); for(let x=0;x<T;x+=8) P.rect(X+x,Y,1,T-4,C.wall[1]); P.rect(X,Y+T-4,T,4,C.wall[2]); P.rect(X,Y+T-4,T,1,'#a8865f'); }
     else { P.rect(X,Y,T,T,C.wall[3]); P.rect(X,Y,T,1,'#62524a'); }
     break; }

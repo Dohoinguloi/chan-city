@@ -44,7 +44,7 @@ const offOf=p=>{ const k=rec(p).acc&&rec(p).acc.shield; return (k&&M.acc[k])||nu
 const skillsOf=(r,p)=>{ const L=[...(M.skills[r.cls]||[])]; L[3]=r.fruit&&F[r.fruit]?F[r.fruit].skill:null; const lg=p&&lgOf(p); L[4]=lg?M.legacy[lg].skill:null; return L; };
 function view(pl){ const r=rec(pl.prof), m=st(pl); if(!m) return {cls:''}; const t=now();
   return {cls:r.cls,lv:r.lv,exp:r.exp,next:M.lvExp(r.lv),aspd:m.aspd,fx:fxOf(m,t),sub:{regen:+(M.regen.hp*(m.regen||1)).toFixed(4),gw:m.gw,armor:m.armor,crit:m.crit,drain:m.drain,shred:m.shred,tdmg:m.tdmg,cdr:m.cdr,spell:m.spell,slowp:m.slowp,chainp:m.chainp,aura:m.aura},hp:Math.round(m.hp),max:m.max,mp:Math.round(m.mp),mmax:m.mmax,cd:Object.fromEntries(Object.entries(m.cd).map(([k,v])=>[k,Math.max(0,v-t)])),
-    buff:(m.buff.def||0)>t?m.buff.def-t:0,dead:m.dead>t?m.dead-t:0,duel:pl.muDuel?pl.muDuel.other:0,w:r.w,l:r.l,fruit:r.fruit||'',wep:r.wep||'',lg:lgOf(pl.prof),enh:r.enh||{},acc:r.acc||{},accOwned:r.accOwned||{},pas:r.pas||{},pasB:r.pasB||{},sp:pasPts(r),crit:m.crit,cp:S.muPower({hp:m.max,mp:m.mmax,atk:m.atk,def:m.def/((m.buff.def||0)>t?2:1)}),atk:m.atk,def:m.def}; }
+    buff:(m.buff.def||0)>t?m.buff.def-t:0,dead:m.dead>t?m.dead-t:0,duel:pl.muDuel?pl.muDuel.other:0,w:r.w,l:r.l,fruit:r.fruit||'',wep:r.wep||'',lg:lgOf(pl.prof),enh:r.enh||{},acc:r.acc||{},accOwned:r.accOwned||{},pas:r.pas||{},pasB:r.pasB||{},sp:pasPts(r),crit:m.crit,cp:powerOf(pl.prof),atk:m.atk,def:m.def}; }   /* lực chiến tính 1 kiểu với bảng xếp hạng (powerOf) */
 const push=pl=>send(pl,{t:'mume',v:view(pl)});
 const inScene=()=>{ const out=[...C.sceneOf('mu'),...C.sceneOf('muw')]; for(const id of EXTRA_SCENES) out.push(...C.sceneOf(id)); return out; };
 const bcast=obj=>{ for(const q of inScene()) send(q,obj); };
@@ -229,7 +229,7 @@ function hurtP(q,d,why,fx){ const m=st(q); if(!m||m.dead>now()||m.safe>now()) re
 // đòn trừ theo % máu tối đa (Mưa Bom Vĩ Thú): xuyên thủ + giáp
 function hurtPct(B,q,pct,k){ const m=st(q); if(!m||m.dead>now()||m.safe>now()||q.muGod) return 0; const dd=Math.max(1,Math.round(m.max*pct)); if(!q.muGod) m.hp-=dd; bcast({t:'mufx',k:'hurt',ak:k,boss:B.id,to:q.pid,dmg:dd});
   if(m.hp<=0) down(q,`Dính ${(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'} của ${BS[B.id].name}`); else push(q); return dd; }
-const AK_NAME={hhshot:'đạn của Phạm Hoàng Hà',spin:'Cưa Xoay Vòng Tròn',nuke:'Bom Hạt Nhân'};   /* tên đòn không nằm trong bảng attacks */
+const AK_NAME={hhshot:'đạn của Anh tóc dài kakaka',spin:'Cưa Xoay Vòng Tròn',nuke:'Bom Hạt Nhân'};   /* tên đòn không nằm trong bảng attacks */
 const hurt=(B,q,d,k)=>{ const ps=BS[B.id].poisonStack, D=q.mus&&q.mus.fx&&q.mus.fx.dot; if(ps&&D&&D.until>now()&&(D.hits=(D.hits||0)+1)>=ps.hits){ D.hits=0; D.until+=ps.add*1000; }   /* trúng 3 đòn lúc đang độc: độc kéo dài thêm */
   const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit, sm=B.spinU>now()?BS[B.id].spin.mul:1; return hurtP(q,(cr?d*1.5:d)*weakOf(B,now())*sm,`Dính ${AK_NAME[k]||(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0}); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
 // mục tiêu khác ngoài boss (quái rừng ở muforest.js): mỗi nguồn có nearest(pl) → {x,y,d,def,rad,hit(d,pl,sk) → mã mục tiêu} hoặc null

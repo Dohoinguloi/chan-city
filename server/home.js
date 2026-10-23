@@ -20,6 +20,9 @@ on('home',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const op=m.op, h=h
   if(op==='state') return {home:view(h,p.name),mine:mine(h),score:S.homeScore(h)};
   // mua món vào kho (đặt sau ở chế độ Sửa nhà); giảm giá học viên / hảo sảng như mọi cửa hàng
   if(op==='buy'){ const d=D[m.k], n=Math.max(1,Math.min(5,m.n|0||1)); if(!d) return {err:'?'}; if(!shopPay(pl,d.price*n)) return {err:`Cần ${fmt(d.price*n)}`}; h.inv[m.k]=(h.inv[m.k]||0)+n; h.edited=1; markDirty(pl); push(pl); return {msg:`Đã mua ${n} ${d.name}: vào kho nội thất, bấm 🛠 Sửa nhà để đặt`}; }
+  // mua cả bộ sưu tập: các món chưa có (chưa đặt, chưa trong kho), giảm 10%
+  if(op==='buyset'){ const st=H.sets[m.s]; if(!st) return {err:'?'}; const placed=new Set(h.items.map(o=>o.k)), miss=st.items.filter(k=>!placed.has(k)&&!(h.inv[k]>0)); if(!miss.length) return {err:'Bạn đã có đủ bộ này rồi, đặt hết vào nhà để nhận thưởng'};
+    const v=Math.round(miss.reduce((a,k)=>a+D[k].price,0)*.9/1000)*1000; if(!shopPay(pl,v)) return {err:`Cả bộ còn thiếu ${miss.length} món: ${fmt(v)}`}; for(const k of miss) h.inv[k]=(h.inv[k]||0)+1; h.edited=1; markDirty(pl); push(pl); return {msg:`Đã mua ${miss.length} món bộ ${st.name}: vào kho, đặt đủ cả bộ để +${st.bonus} ấm cúng`}; }
   if(op==='sell'){ const d=D[m.k]; if(!d||!(h.inv[m.k]>0)) return {err:'Trong kho không có món này'}; const v=Math.round(d.price*H.sellBack); h.inv[m.k]--; if(!h.inv[m.k]) delete h.inv[m.k]; give(pl,v); markDirty(pl); push(pl); return {msg:`Bán lại ${d.name} được ${fmt(v)}`}; }
   // đổi sàn / tường: lần đầu mua, đã mua thì đổi qua lại miễn phí
   if(op==='floor'||op==='wall'){ const T0=op==='floor'?H.floors:H.walls, k=String(m.k||''), t=T0[k]; if(!t) return {err:'?'}; const own=h.own[op]=h.own[op]||{};

@@ -8,7 +8,7 @@ const all=db.allProfiles||(()=>[]);
 function build(){ const rows=new Map();
   for(const r of all()) if(r.look) rows.set(r._uid,r);
   for(const pl of players.values()) if(pl.prof.look) rows.set(pl.uid,{...pl.prof,_uid:pl.uid});
-  const out={}; for(const [k,f] of Object.entries(CATS)) out[k]=[...rows.values()].map(p=>({n:p.name,lv:p.level||1,v:f(p),l:p.look})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,20);   // l: dáng người để vẽ ảnh mặt
+  const out={}; for(const [k,f] of Object.entries(CATS)) out[k]=[...rows.values()].map(p=>({n:p.name,lv:k==='power'?((p.mu&&p.mu.lv)||1):(p.level||1),v:f(p),l:p.look})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,20);   // l: dáng người để vẽ ảnh mặt
   // nhà đẹp: điểm ấm cúng + lượt thích (chỉ nhà đã sửa / mua đồ), giữ uid ở server để ghé thăm (home.js op visit)
   const HR=[...rows.entries()].map(([uid,p])=>({uid,n:p.name,lv:p.level||1,v:p.home&&p.home.edited?C.S.homeScore(p.home):0,l:p.look,o:!(p.home&&p.home.open===false)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v).slice(0,20);
   HOMEU=HR.map(x=>[x.uid,x.n]); out.home=HR.map(({uid,...x})=>x);

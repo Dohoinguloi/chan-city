@@ -4,6 +4,13 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24g',title:'24/10 · Bộ nội thất "nhà ấm" + bộ sưu tập',items:[
+    '21 món nội thất mới vẽ kiểu game pixel đồng quê: giường chăn kẻ ô, tủ đầu giường có đèn / đồng hồ, tủ ngăn kéo, đèn tường, tranh đồi núi, tủ bếp gạch ốp, bếp lò + ấm trà, bồn rửa, tủ lạnh xanh bạc hà, tủ bếp treo, bàn ăn 4 ghế đệm xanh, chậu cây lá to, giỏ cây treo, đồng hồ quả lắc, kệ hũ thuỷ tinh, thùng ngô, thảm xám viền chấm, bàn học + ghế đệm',
+    'Tường nhà cao 2 ô: ván xanh / ván kem phía trên + ốp gỗ chân tường, ván gỗ dọc nâu. Sàn mới: ván gỗ to so le, gạch caro kim cương. Đồ đạc có bóng đổ dưới chân',
+    'Bộ sưu tập: đặt đủ cả bộ (Phòng ngủ đồng quê, Bếp đồng quê, Góc ăn ấm áp, Góc học bài) được thêm 6–12 điểm ấm cúng; mua phần còn thiếu của bộ giảm 10%',
+    'Cửa hàng nội thất: tab ✨ Đồ mới, nhãn MỚI, tab 🏆 Bộ sưu tập; thanh ấm cúng có tên bậc: Trống trải → Gọn gàng → Ấm áp → Ấm cúng → Tổ ấm mơ ước',
+    'Đệ tử Dươngg Vũ gọi ra lúc còn 50% máu đổi tên thành Anh tóc dài kakaka',
+    'Sửa: lực chiến ở bảng MU và bảng xếp hạng giờ tính cùng 1 cách; tab Lực chiến hiện cấp MU (trước hiện cấp nhân vật)']},
   {v:'2026-10-24f',title:'24/10 · Trang trí nhà riêng + cổng dịch chuyển MU',items:[
     'Nhà riêng (Hà Nội): vào nhà bấm 🛠 Sửa nhà (hoặc bấm R). Chọn đồ trong kho → bóng mờ xanh là đặt được, đỏ kèm lý do → bấm chuột trái đặt. Bấm vào đồ đã đặt để dời · R xoay · Delete cất vào kho · Esc thôi',
     'Cửa hàng nội thất 75 món (phòng ngủ, phòng khách, bếp, làm việc, phòng tắm, cây hoa, treo tường, thảm, giải trí, sưu tầm), bán lại 50%. 8 loại sàn, 7 loại tường: mua 1 lần, đổi qua lại miễn phí',

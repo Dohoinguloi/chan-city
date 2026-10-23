@@ -56,7 +56,7 @@ function goku(V,f,ssj){ const {st,bob,atk}=pose(f), O=7, Or=R('#f08a24'), Od=R('
 B21.songoku={w:52,h:74,ax:24,ay:72,anim:ANIM5,draw(V,f){ goku(V,f,false); }};
 B21.songoku_ssj={w:52,h:74,ax:24,ay:72,glow:'rgba(255,220,80,.45)',anim:ANIM5,draw(V,f){ goku(V,f,true); }};
 
-// Phạm Hoàng Hà (lính Dươngg Vũ gọi ra): tóc đen buộc chỏm dựng nhọn, áo giáp lưới xanh lá có túi, áo trong đen, quần xám tối quấn ống, dép xanh, mặt lười biếng.
+// Anh tóc dài kakaka (lính Dươngg Vũ gọi ra): tóc đen buộc chỏm dựng nhọn, áo giáp lưới xanh lá có túi, áo trong đen, quần xám tối quấn ống, dép xanh, mặt lười biếng.
 // khung: 0 đứng / 1 bước / 2 bắn (2 tay chụm đẩy tới, quả cầu đỏ hồng)
 B21.hoangha={w:24,h:32,ax:11,ay:31,draw(V,f){ const Gn=R('#4a9a3a'), Gd=R('#2e6a26'), Pt=R('#3a3a44'), Sd=R('#2a4ab8'), Hr=[[70,64,80,255],[30,26,36,255],[18,14,24,255],[10,8,14,255]], st=f===1?1:0, sh=f===2;
   for(const [x,s] of [[8,-1],[13,1]]){ const ax=x+s*st*1.5; V.tube([[x,20],[ax,27]],[2,1.8],Pt,{g:'leg'+x}); V.rect(ax-1,25,3,1,'#d8d4c8'); V.ell(ax+s*.5,29.5,2.4,1.2,Sd,{g:'sd'+x,lift:.15}); }

@@ -11,13 +11,18 @@ const A=ART, T=A.T, SD=SHARED;
 const FLIP=new Map();
 function sprOf(d,f){ const key=d.art+'|'+JSON.stringify(d.args||[]); let s=FLIP.get(key); if(!s){ s=A[d.art](...(d.args||[])); FLIP.set(key,s); } if(!f) return s;
   let m=FLIP.get(key+'|f'); if(!m){ const c=A.cv(s.c.width,s.c.height), g=c.getContext('2d'); g.translate(s.c.width,0); g.scale(-1,1); g.drawImage(s.c,0,0); m={c,ax:s.c.width-s.ax,ay:s.ay}; FLIP.set(key+'|f',m); } return m; }
+// bóng đổ mờ dưới chân đồ đứng (như game pixel đồng quê), theo bề ngang chân đồ
+const SHADOW=new Map(); function shadowOf(fw){ let s=SHADOW.get(fw); if(s) return s; const w=fw*T+4, c=A.cv(w,10), g=c.getContext('2d'); g.fillStyle='rgba(20,12,10,.28)'; g.beginPath(); g.ellipse(w/2,5,w/2,4,0,0,Math.PI*2); g.fill(); s={c,ax:Math.floor(w/2),ay:5}; SHADOW.set(fw,s); return s; }
 function buildRoom(home){
   const h=home||SD.homeDefault(), {W,H,g}=SD.homeGrid(h.lv||0), D=SD.HOME.items, obj=[], solid=[], inter=[]; let ph=null;
   if(A.homeTheme) A.homeTheme({f:SD.HOME.floors[h.floor]||null,w:SD.HOME.walls[h.wall]||null});
   const put=(spr,tx,ty,o={})=>{ const it={spr,x:tx*T,y:ty*T,...o}; obj.push(it); return it; };
   h.items.forEach((it,i)=>{ const d=D[it.k]; if(!d) return; const F=SD.homeFoot(d,it), [ax,ay]=SD.homeAnchor(d,it), fl=it.f?-1:1;
     if(d.rug){ for(let y=F.y0;y<=F.y1;y++) for(let x=F.x0;x<=F.x1;x++) if(g[y]&&g[y][x]==='O') g[y][x]='M'; return; }   /* thảm ô: tô sàn thành thảm */
-    put(sprOf(d,it.f),ax,ay,{flat:!!(d.wall||d.flat),hi:i}); if(SD.homeSolid(d)) solid.push([F.x0,F.y0,F.x1,F.y1]);
+    const sp=sprOf(d,it.f);
+    if(d.flat){ const cx=(F.x0+d.fw/2)*T, cy=(F.y0+(d.fh||1)/2)*T; obj.push({spr:sp,x:Math.round(cx-sp.c.width/2+sp.ax),y:Math.round(cy-sp.c.height/2+sp.ay),flat:true,hi:i}); }   /* đồ trải sàn: căn giữa ô chân */
+    else { if(!d.wall) put(shadowOf(d.fw),ax,ay-.1,{flat:true}); put(sp,ax,ay,{flat:!!d.wall,hi:i}); }
+    if(SD.homeSolid(d)) solid.push([F.x0,F.y0,F.x1,F.y1]);
     for(const [art,args,dx,dy,sk,id] of d.extra||[]){ const o=put(A[art](...args),ax+dx*fl,ay+dy,sk==='flat'?{flat:true}:{sort:(ay+sk)*T,...(id?{id,name:'Điện thoại'}:{})}); if(id==='phone') ph=o; }
     for(const a of [].concat(d.act||[])){ if(a.bed){ inter.push({id:'bed',x:ax*T,y:(ay+.2)*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi',bed:{x:ax,y:ay-1.6}}); continue; }
       inter.push({id:a.id||'hk'+i,x:(ax+(a.dx||0)*fl)*T,y:(ay+(a.dy||0))*T,label:a.label,r:22,...(a.do?{do:a.do}:{}),...(a.act?{act:a.act}:{}),...(a.say?{say:a.say}:{}),...(it.k==='bon_tam'?{bath:1}:{})}); } });

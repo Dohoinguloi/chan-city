@@ -960,7 +960,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
       attacks:[{k:'bongma',kind:'ghost',name:'Hoá Bóng Ma',every:5,exact:1,dur:2.5,r:3,tick:.5,dmg:10,fx:{dot:{pct:.03,dur:4,k:'doc'}}},{k:'nuot',kind:'gulp',name:'Nuốt Chửng',hpBelow:.35,noSpd:1,every:15,dur:7,pct:.04},   /* dưới 35% máu: nuốt 1 người bất kỳ 7 giây (đứng im trong bụng, mất 4% máu / giây), hết giờ nhổ ra */{k:'bongden',kind:'single',name:'Cầu Bóng Đêm',every:2.8,warn:.7,range:8,r:1.4,dmg:18},{k:'xuyen',kind:'jump',name:'Xuyên Tường',every:9,warn:1.2,r:2,dmg:30},{k:'bongtruy',kind:'chase',name:'Bóng Ma Truy Đuổi',every:9,warn:2.2,lock:.4,r:2,dmg:34},
         {k:'vongma',kind:'donut',name:'Vòng Ma Ám',every:13,warn:1.4,r0:2.2,r:6.5,dmg:32,phase:2},{k:'xuyenhon',kind:'trail',name:'Xuyên Hồn',every:12,warn:1,n:6,step:170,r:1.5,dmg:26,phase:3},
         {k:'thoimien',kind:'multi',name:'Thôi Miên',every:11,warn:1.5,n:3,r:1.8,dmg:22,phase:2},{k:'nguyenrua',kind:'ring',name:'Lời Nguyền Zen',every:14,warn:1.6,r:6,dmg:30,phase:3}],
-      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.5,drops:'duongvu_ma',minAt:{hp:.5,k:'hoangha',n:10}},   /* còn 50% máu gọi 10 Phạm Hoàng Hà */
+      phases:[.6,.3],enrage:{mul:1.4,speed:1.3},move:1.5,drops:'duongvu_ma',minAt:{hp:.5,k:'hoangha',n:10}},   /* còn 50% máu gọi 10 Anh tóc dài kakaka */
     rongxanh:{name:'Rồng Dải Xanh',sprite:'rong',every:18*60e3,offset:11*60e3,life:7*60e3,hp:2300,perPlayer:1200,def:10,home:{x:57,y:23},area:{x0:45,x1:69,y0:17,y1:27},big:1,
       attacks:[{k:'longkich',kind:'single',name:'Long Kích',every:3,warn:.8,range:8,r:1.5,dmg:20},{k:'hoithorong',kind:'cone',name:'Hơi Thở Rồng',every:9,warn:1.1,hits:5,tick:.25,range:7,cone:.5,dmg:9},
         {k:'bonhao',kind:'jump',name:'Bổ Nhào',every:12,warn:1.3,r:2.4,dmg:34,then:{kind:'ring',r:3.4,dmg:26,warn:.55,phase:2}},{k:'longtuc',kind:'line',name:'Long Tức Quét',every:10,warn:1.3,range:13,w:1.6,dmg:46},
@@ -1157,7 +1157,7 @@ MU.west={open:{x:[64,65],y:[19,22]},road:{y0:18,y1:23},
   MU.minions={pepe_con:{name:'Pepe Con',hpFrac:1/70,spd:4,range:1.3,every:1.1,dmg:18,def:6,sprite:'pepe_con'},egg:{name:'Trứng Laser',hpFrac:1/90,spd:0,def:8,sprite:'egg',laser:{every:3.2,warn:.9,range:10,w:.45,dmg:26}},
     titannho:{name:'Titan Nhỏ',hpFrac:1/40,spd:2.2,range:1.3,every:1.4,dmg:16,def:8,sprite:'titannho'},
     ngocrong:{name:'Ngọc Rồng',hpFrac:1/60,spd:0,def:10,sprite:'ngocrong',stars:1,orb:{every:2,heal:.01,to:['songoku','rongxanh'],r:2.4,fx:{dot:{pct:.02,dur:3,k:'doc'},gw:.5}}},   /* 7 viên: 2 giây 1 lần hồi 1% máu cho Songoku + Rồng Dải Xanh; đứng gần 2,4 ô dính độc + giảm hồi máu 50%. Đập vỡ để cắt hồi máu */
-    hoangha:{name:'Phạm Hoàng Hà',hpFrac:1/40,spd:2.4,keep:4.5,def:6,sprite:'hoangha',shoot:{every:2.4,range:9,speed:6.5,dmg:14}}};   /* Dươngg Vũ gọi ra: vây quanh người cách 4,5 ô, bắn đạn tròn đỏ hồng */
+    hoangha:{name:'Anh tóc dài kakaka',hpFrac:1/40,spd:2.4,keep:4.5,def:6,sprite:'hoangha',shoot:{every:2.4,range:9,speed:6.5,dmg:14}}};   /* Dươngg Vũ gọi ra: vây quanh người cách 4,5 ô, bắn đạn tròn đỏ hồng */
   // thưởng: như boss phụ; pas: +cấp sách nội tại ngẫu nhiên (buff chỉ số nội tại); badge: Huy Hiệu Pepe (top 3 chắc chắn, còn lại badgeChance)
   Object.assign(MU.reward,{doraemon:{exp:140,vnd:180000,mu:110,gems:1},nobita:{exp:110,vnd:130000,mu:85,gems:1},conan:{exp:140,vnd:180000,mu:110,gems:1},eren:{exp:170,vnd:220000,mu:130,gems:2},
     yeunu:{exp:150,vnd:190000,mu:115,gems:1},pepe:{exp:600,vnd:2000000,mu:400,gems:3,jewels:2,pas:1,badge:'huy_hieu_pepe',badgeChance:.3}}); }
@@ -1877,11 +1877,15 @@ const HOME={levels:[{name:'Căn hộ 1 phòng ngủ',W:26,H:16,cap:36,price:0},{
   floors:{go:{name:'Sàn gỗ sồi',price:0,style:'plank',col:['#b98a5c','#a37548','#c99a6a','#8e6239'],cozy:0},go_oc:{name:'Sàn gỗ óc chó',price:600000,style:'plank',col:['#7a5234','#5e3e26','#93653f','#4a301c'],cozy:4},
     go_trang:{name:'Sàn gỗ sồi trắng',price:800000,style:'plank',col:['#d8c4a0','#c2ab84','#e8d8b8','#a8906a'],cozy:5},gach:{name:'Gạch men trắng',price:400000,style:'tile',col:['#e8e6e0','#c8c4bc','#f8f6f0','#a8a49c'],cozy:2},
     caro:{name:'Gạch caro đen trắng',price:700000,style:'check',col:['#ece8e0','#9a968e','#34303a','#6a6670'],cozy:3},da:{name:'Đá cẩm thạch',price:2000000,style:'marble',col:['#ece8e4','#c8c0b8','#f8f6f4','#a8a098'],cozy:6},
-    tham_xam:{name:'Thảm trải sàn xám',price:1200000,style:'carpet',col:['#8a8a94','#7a7a84','#9a9aa4','#6a6a74'],cozy:7},tham_hong:{name:'Thảm trải sàn hồng',price:1200000,style:'carpet',col:['#e8b4c0','#d8a0b0','#f4c8d2','#c88ea0'],cozy:7}},
+    tham_xam:{name:'Thảm trải sàn xám',price:1200000,style:'carpet',col:['#8a8a94','#7a7a84','#9a9aa4','#6a6a74'],cozy:7},tham_hong:{name:'Thảm trải sàn hồng',price:1200000,style:'carpet',col:['#e8b4c0','#d8a0b0','#f4c8d2','#c88ea0'],cozy:7},
+    van_to:{name:'Sàn ván gỗ to',price:900000,style:'plank2',col:['#a8683e','#8a5030','#c08050','#6a3a20'],cozy:6,isNew:1},kim_cuong:{name:'Gạch caro kim cương',price:1000000,style:'diamond',col:['#f8f6f0','#d8d4cc','#2a2630','#e8e4dc'],cozy:5,isNew:1}},
   walls:{kem:{name:'Sơn kem',price:0,style:'paint',col:['#eadfca','#d7c8ad','#8c6b4a','#4a3c34'],cozy:0},mint:{name:'Sơn xanh mint',price:300000,style:'paint',col:['#cdebdc','#b5d9c6','#5e8a74','#33463e'],cozy:2},
     hong:{name:'Sơn hồng phấn',price:300000,style:'paint',col:['#f2d4d8','#e2bcc2','#8a5e66','#4a343a'],cozy:2},xanh:{name:'Sơn xanh dương',price:300000,style:'paint',col:['#c4d8f0','#a8c0e0','#4a6488','#2a3448'],cozy:2},
     gach_do:{name:'Tường gạch đỏ',price:1000000,style:'brick',col:['#b5523c','#e0c8b0','#6a3428','#3a2a26'],cozy:4},soc:{name:'Giấy dán tường sọc',price:800000,style:'stripe',col:['#efe2c8','#d8c098','#8c6b4a','#4a3c34'],cozy:4},
-    go_op:{name:'Tường ốp gỗ',price:1500000,style:'panel',col:['#9a6a42','#7e5434','#5a3a22','#3a2a20'],cozy:5}},
+    go_op:{name:'Tường ốp gỗ',price:1500000,style:'panel',col:['#9a6a42','#7e5434','#5a3a22','#3a2a20'],cozy:5},
+    go_xanh:{name:'Ván xanh + ốp gỗ chân tường',price:1800000,style:'wains',col:['#4a7ab8','#3a64a0','#9a6440','#2a2630','#7a4a2e'],cozy:7,isNew:1},
+    kem_op:{name:'Ván kem + ốp gỗ chân tường',price:1400000,style:'wains',col:['#efe2c8','#d8c8a8','#9a6440','#4a3c34','#7a4a2e'],cozy:6,isNew:1},
+    van_nau:{name:'Ván gỗ dọc nâu',price:1200000,style:'vplank',col:['#8a5a3a','#6e4428','#a8744c','#3a2a20'],cozy:6,isNew:1}},
   items:{
     giuong:{name:'Giường gỗ',cat:'ngu',price:1200000,art:'bed',fw:2,fh:3,cozy:4,req:1,act:{bed:1}},
     giuong_don:{name:'Giường đơn',cat:'ngu',price:600000,art:'bedSingle',fw:2,fh:2,cozy:3,act:{bed:1}},
@@ -1958,7 +1962,35 @@ const HOME={levels:[{name:'Căn hộ 1 phòng ngủ',W:26,H:16,cap:36,price:0},{
     ke_figure:{name:'Kệ figure',cat:'suu',price:4000000,art:'figShelf',fw:3,fh:2,cozy:6},
     ban_mo_hinh:{name:'Bàn mô hình',cat:'suu',price:2500000,art:'modelTable',fw:3,fh:2,cozy:4},
     den_da:{name:'Đèn đá Nhật',cat:'suu',price:1200000,art:'stoneLantern',fw:1,fh:1,cozy:4},
-    nem_cho:{name:'Nệm cho cún',cat:'suu',price:500000,art:'dogBed',fw:2,fh:1,solid:false,cozy:3}},
+    nem_cho:{name:'Nệm cho cún',cat:'suu',price:500000,art:'dogBed',fw:2,fh:1,solid:false,cozy:3},
+    // bộ "nhà ấm" vẽ theo kiểu game pixel đồng quê (art22.js)
+    giuong_ke:{name:'Giường chăn kẻ ô',cat:'ngu',price:2200000,art:'bedPlaid',fw:2,fh:3,cozy:7,isNew:1,act:{bed:1}},
+    tu_den:{name:'Tủ đầu giường + đèn ngủ',cat:'ngu',price:450000,art:'standLamp',fw:1,fh:2,cozy:3,isNew:1},
+    tu_dong_ho:{name:'Tủ đầu giường + đồng hồ',cat:'ngu',price:400000,art:'standClock',fw:1,fh:2,cozy:3,isNew:1},
+    tu_keo:{name:'Tủ ngăn kéo gỗ',cat:'ngu',price:900000,art:'chest',fw:2,fh:2,cozy:3,isNew:1},
+    den_tuong:{name:'Đèn tường',cat:'tuong',price:350000,art:'sconce',fw:1,wall:1,cozy:3,isNew:1},
+    tranh_nui:{name:'Tranh đồi núi',cat:'tuong',price:1500000,art:'painting',fw:4,wall:1,cozy:5,isNew:1},
+    tu_bep_go:{name:'Tủ bếp gỗ + gạch ốp',cat:'bep',price:900000,art:'kCounter',fw:2,fh:2,cozy:3,isNew:1},
+    bep_lo:{name:'Bếp lò + ấm trà',cat:'bep',price:1400000,art:'kStove',fw:2,fh:2,cozy:4,isNew:1,act:{label:'Đun nước',dy:.6,say:['Ấm nước reo ù ù... pha ấm trà nóng thôi.']}},
+    bon_bep:{name:'Bồn rửa bát',cat:'bep',price:900000,art:'kSink',fw:2,fh:2,cozy:3,isNew:1},
+    tu_lanh_xanh:{name:'Tủ lạnh xanh bạc hà',cat:'bep',price:1800000,art:'fridgeMint',fw:2,fh:2,cozy:4,isNew:1,act:{label:'Mở tủ lạnh',dy:.6,say:['Đầy ắp rau củ, trứng, sữa. Hôm nay nấu bữa ngon ở nhà!']}},
+    tu_bep_treo:{name:'Tủ bếp treo tường',cat:'tuong',price:800000,art:'wallCab',fw:3,wall:1,cozy:3,isNew:1},
+    gio_qua:{name:'Giỏ trái cây',cat:'bep',price:150000,art:'fruits',fw:1,fh:1,cozy:2,isNew:1},
+    ban_an_go:{name:'Bàn ăn gỗ 4 ghế',cat:'bep',price:2500000,art:'dining',fw:4,fh:3,cozy:7,isNew:1},
+    cay_la_to:{name:'Chậu cây lá to',cat:'cay',price:900000,art:'bigPlant',fw:2,fh:1,cozy:5,isNew:1},
+    cay_treo_gio:{name:'Giỏ cây treo',cat:'tuong',price:600000,art:'hangPlant',fw:2,wall:1,cozy:4,isNew:1},
+    dong_ho_lac:{name:'Đồng hồ quả lắc',cat:'khach',price:2000000,art:'grandClock',fw:1,fh:1,cozy:5,isNew:1,act:{label:'Xem giờ',dy:.6,say:['Tích tắc... tích tắc... Boong! Đã đến giờ đi làm rồi.']}},
+    ke_hu:{name:'Kệ hũ thuỷ tinh',cat:'bep',price:1100000,art:'jarShelf',fw:2,fh:2,cozy:4,isNew:1},
+    thung_ngo:{name:'Thùng ngô',cat:'bep',price:250000,art:'cornCrate',fw:2,fh:1,cozy:2,isNew:1},
+    tham_xam_cham:{name:'Thảm xám viền chấm',cat:'tham',price:800000,art:'grayRug',fw:6,fh:4,flat:1,cozy:4,isNew:1},
+    ban_hoc:{name:'Bàn học gỗ',cat:'lam',price:700000,art:'studyDesk',fw:2,fh:2,cozy:3,isNew:1},
+    ghe_dem:{name:'Ghế đệm xanh',cat:'lam',price:250000,art:'cushionChair',fw:1,fh:1,solid:false,cozy:2,isNew:1}},
+  // bộ sưu tập: đặt đủ cả bộ trong nhà thì cộng thêm điểm ấm cúng
+  sets:{ngu_que:{name:'Phòng ngủ đồng quê',items:['giuong_ke','tu_den','tu_dong_ho','tu_keo','den_tuong','tranh_nui','tham_xam_cham'],bonus:12},
+    bep_que:{name:'Bếp đồng quê',items:['tu_bep_go','bep_lo','bon_bep','tu_lanh_xanh','tu_bep_treo','gio_qua'],bonus:12},
+    an_am:{name:'Góc ăn ấm áp',items:['ban_an_go','cay_la_to','dong_ho_lac','ke_hu','thung_ngo','cay_treo_gio'],bonus:12},
+    hoc:{name:'Góc học bài',items:['ban_hoc','ghe_dem','den_tuong','ke_sach'],bonus:6}},
+  tiers:[[0,'Trống trải'],[20,'Gọn gàng'],[40,'Ấm áp'],[60,'Ấm cúng'],[80,'Tổ ấm mơ ước']],
   // bố cục có sẵn (giống căn hộ cũ): [món, x, y]
   base:[['rem',2,2],['lich',7,2],['tu_ho_so',1,3],['ban_lv',4,3],['ghe_xoay',5,4],['cay_2',8,2],['cua_so',11,2],['giuong',10,4],['tu_dau_giuong',13,3],['tu_do',16,3],['poster',14,2],
     ['voi_sen',20,3],['bon_rua',23,3],['khan',22,2],['guong',24,2],['tu_lanh',1,10],['ke_bep',2,10],['cay_nuoc',7,10],['ban_tron',3,13],['tv',18,10],['ke_sach',15,10],['sofa_nau',18,14],
@@ -1985,12 +2017,14 @@ function homeFits(home,it,skip,me){ const d=HOME.items[it.k]; if(!d) return 'Kh�
   return ''; }
 // độ ấm cúng 0–100: cộng điểm từng món (mỗi loại tối đa sameMax món) + sàn + tường
 function homeCozy(home){ if(!home) return 0; const n={}; let c=(HOME.floors[home.floor]||{}).cozy||0; c+=(HOME.walls[home.wall]||{}).cozy||0;
-  for(const o of home.items||[]){ const d=HOME.items[o.k]; if(!d) continue; n[o.k]=(n[o.k]||0)+1; if(n[o.k]<=HOME.sameMax) c+=d.cozy||0; } return Math.min(HOME.cozyMax,c); }
+  for(const o of home.items||[]){ const d=HOME.items[o.k]; if(!d) continue; n[o.k]=(n[o.k]||0)+1; if(n[o.k]<=HOME.sameMax) c+=d.cozy||0; }
+  for(const st of Object.values(HOME.sets)) if(st.items.every(k=>n[k])) c+=st.bonus; return Math.min(HOME.cozyMax,c); }   /* đủ bộ sưu tập: + thưởng */
+const homeTier=c=>{ let t=HOME.tiers[0]; for(const x of HOME.tiers) if(c>=x[0]) t=x; return t[1]; };
 const homeScore=home=>home?homeCozy(home)+Object.keys(home.likes||{}).length*HOME.likePts:0;
 // ngủ ở nhà mình: ấm cúng ≥ 10 thì +EXP (tối đa +15% trong 60 phút, kém phòng Nhà Chiềng thuê 600k/ngày) và hồi thêm năng lượng
 const homeBuff=cozy=>cozy>=10?{mul:1+Math.min(.15,Math.round(cozy*.15)/100),min:Math.min(60,Math.round(20+cozy*.4))}:null;
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  ECON,fineOf,HOME,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });
