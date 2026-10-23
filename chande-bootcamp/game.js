@@ -201,6 +201,7 @@ function enterScene(m){ HOME_NOW=m.s==='room'?(m.home||null):null; if(m.mine) HO
   if(m.s==='room'&&!G.flags.called) ringTimer=2.2;
   if(m.ride) travelAnim(m.ride);
   if(m.xtp) xtArrive(m.xtp); if(m.warp) warpFx(m.warp);   /* cổng dịch chuyển MU */
+  if(LO_AFTER&&String(m.s).startsWith('stay')&&m.own){ LO_AFTER=false; setTimeout(loGo,700); } else if(m.s!=='retreat') LO_AFTER=false;   /* về tới phòng thuê: mở điện thoại giải toả */
   if(LEARN_AFTER&&(m.s==='room'||(String(m.s).startsWith('stay')&&m.own))){ LEARN_AFTER=false; setTimeout(learnGo,600); } else if(m.s!=='retreat') LEARN_AFTER=false;
   AUTO=null; if(NEED_AFTER&&(m.s==='room'||String(m.s).startsWith('stay')||(m.s==='retreat'&&NEED_AFTER==='clean'))){ const k=NEED_AFTER; NEED_AFTER=null; setTimeout(()=>needGo(k),600); } else if(m.s!=='retreat') NEED_AFTER=null;
   if(GOAFTER&&destOf(m.s)===destOf(GOAFTER.scene)&&performance.now()-GOAFTER.at<120000){ const g=GOAFTER; GOAFTER=null; setTimeout(()=>g.then&&g.then(),travelling?2600:900); } else if(GOAFTER&&performance.now()-GOAFTER.at>=120000) GOAFTER=null;   /* tới map rồi: tự đi tiếp */
@@ -480,7 +481,7 @@ async function autoGo(scene,then){ const want=destOf(scene); if(!want||destOf(S.
   GOAFTER={scene,then,at:performance.now()};   /* đặt trước khi gọi: server chuyển map xong mới trả lời lệnh grab, đặt sau là lỡ mất lúc tới nơi */
   const r=await act({t:'grab',to:want,xt:xt?1:0}); if(r&&!r.err){ if(!xt) toast(`🚕 Tự gọi Grab tới <b>${esc(SD.DEST[want].name)}</b>, tới nơi tự đi tiếp`,'quest'); return true; } if(GOAFTER&&GOAFTER.then===then) GOAFTER=null; return false; }
 // nút ➜ ở bảng Việc cần làm: tự đi tới chỗ làm tiếp nhiệm vụ (hoặc về gặp người giao khi đã xong); nhiệm vụ ở map khác thì tự gọi Grab sang rồi đi tiếp
-function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') return scholarGo(); const q=Q[id]; if(!q) return; UI.closeAll&&UI.closeAll();
+function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') return scholarGo(); const q=Q[id]; if(!q) return; UI.closeAll&&UI.closeAll(); if(q.lo&&G.quests[id]==='active'&&!canFinish(id)) return loGo();
   { const sc=q.job?null:npcScene(q.giver); if(sc&&destOf(sc)&&destOf(S.kind)!==destOf(sc)&&!(q.dance&&S.kind==='club')&&(canFinish(id)||G.quests[id]!=='active'||sc==='retreat')){ autoGo(sc,()=>questGo(id)); return; } }   /* về gặp người giao (nhận / trả việc, việc ở Ké); việc đang làm ở map khác để module map tự dẫn */
   if(!G.quests[id]){ if(q.giver!=='oii') return walkToNpc(q.giver);   /* chưa nhận: tới gặp người giao */
     if(OIS.on) return walkTo(OIS.x/T,OIS.y/T+.8,'Ộ i i',()=>{ const x=nearest(); if(x) interact(x); }); toast('Ộ i i đang lang thang ở map khác (buổi tối thì ở nhà anh Độ). Ra Ké, Đà Lạt, DAS... tìm nhé','quest'); return; }
@@ -492,7 +493,6 @@ function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') r
   if(q.eat){ const n=SD.NPCS.find(x=>x.place===Object.keys(SD.PLACES).find(k=>(SD.PLACES[k].menu||[]).includes(q.eat.id))); if(n) return walkToNpc(n.id); }
   if(q.spots){ const s=near(SD.SPOTS.filter(s=>q.spots.includes(s.id)&&!G.flags.spots[s.id])); if(s) return walkTo(s.x,s.y,s.name); }
   if(q.butterflies){ const t=NET.now(), s=near(SD.BUTTERFLY.spots.filter((sp,i)=>((G.buom||{})[i]||0)<t&&!(G.items['buom_'+sp.k]>0)).map(sp=>({...sp}))); if(s) return walkTo(s.x,s.y+1,SD.BUTTERFLY.names[s.k]); }
-  if(q.lo){ if(G.stay&&G.stay.paid===vn().day) return goHome(); toast('Về phòng ở Hà Nội: bấm G gọi Grab · hoặc thuê phòng ở lễ tân Nhà Rếch 2','quest'); return; }
   if(q.need){ if(q.need.chicken&&!(G.items.chicken>0)&&!G.flags.chicken) return walkTo(chick.x/T,chick.y/T,'Gà đồi');
     const p=near(SD.PICKUPS.map((p,i)=>({...p,i})).filter(p=>p.quest===id&&!G.flags.picked[p.i])); if(p) return walkTo(p.x,p.y,SD.ITEMS[p.item].name); }
   toast('Mở bản đồ (M) xem đường nhé','quest'); }
@@ -529,7 +529,16 @@ function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if
   if(k==='battery'&&G.needs.battery<SD.GRAB.minBattery){ toast('Hết pin không gọi được Grab về phòng: xin cắm sạc nhờ người gần đây trước','lock'); return nhoSac(); }
   NEED_AFTER=k; toast(`${H.low}: ${H.how}. Gọi Grab về phòng ở Hà Nội (hoặc phòng đã thuê ở Ké)`,'quest'); UI.grab(); }
 // học kỹ năng: ở phòng Hà Nội thì tới laptop mở tab Học; ở phòng thuê thì mở bằng điện thoại; ở ngoài thì về phòng trước (thuê ở Ké hoặc Grab về Hà Nội)
-let LEARN_AFTER=false;
+let LEARN_AFTER=false, LO_AFTER=false;
+// Giải toả: chỉ làm trong phòng mình (phòng Hà Nội / phòng thuê ở Ké), pin từ 50%; ở ngoài thì tự về phòng (thuê ở Ké hôm nay thì đi bộ, không thì Grab về Hà Nội) rồi mở điện thoại
+function loGo(){ UI.closeAll&&UI.closeAll(); const L=SD.LO;
+  if(S.kind==='room'||(S.kind==='stay'&&S.own)){ if(G.needs.battery>=L.battery) return UI.phone();
+    const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act==='sac'); toast(`Pin dưới ${L.battery}%: cắm sạc cạnh giường trước, sạc xong tự mở điện thoại`,'quest'); if(!it) return needGo('battery');
+    return walkTo(it.x/T,it.y/T,it.label,async()=>{ await interact({type:'obj',it,label:it.label}); const t0=performance.now(), iv=setInterval(()=>{ if(TASK&&performance.now()-t0<30000) return; clearInterval(iv);   /* sạc xong (hết việc đang làm) thì mở điện thoại */
+      if(G.needs.battery>=L.battery&&(S.kind==='room'||(S.kind==='stay'&&S.own))) UI.phone(); },500); }); }
+  if(G.stay&&G.stay.paid===vn().day&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map))){ LO_AFTER=true; return goHome(); }
+  if(G.needs.battery<SD.GRAB.minBattery){ toast('Pin yếu quá không gọi được Grab về phòng: xin cắm sạc nhờ người gần đây trước','lock'); return nhoSac(); }
+  autoGo('room',loGo).then(ok=>{ if(!ok) toast('Chưa gọi được Grab về phòng: bấm G chọn "Phòng của bạn"','lock'); }); }
 function learnGo(){ UI.closeAll&&UI.closeAll(); const today=vn().day, stay=G.stay&&G.stay.paid===today;
   if(S.kind==='room'){ const it=(S.map.inter||[]).find(i=>i.do==='hub'); return it?walkTo(it.x/T,it.y/T,'Laptop',()=>UI.learn()):UI.learn(); }
   if(S.kind==='stay'&&S.own) return UI.learn();

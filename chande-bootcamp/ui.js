@@ -951,6 +951,7 @@ ACT.lo=async()=>{ UI.closeAll(); const r=await GAME.act({t:'lo',op:'start'}); if
   requestAnimationFrame(loLoop); };
 ACT.loquit=()=>loEnd(false);
 function loPump(){ if(LOG&&!LOG.done) LOG.v=Math.min(1.05,LOG.v+.06); }
+UI.loAuto=()=>{ if(!LOG||LOG.done) return false; if(!LOG.auto){ const L=LOG; L.auto=setInterval(()=>{ if(L.done||LOG!==L) return clearInterval(L.auto); if(L.v<.66) loPump(); },120); } return true; };   /* 🤖 Auto: tự bấm giữ thanh trong vùng xanh */
 async function loEnd(ok){ if(!LOG||LOG.done) return; LOG.done=true; const r=await GAME.act({t:'lo',op:'end',ok}); UI.closeAll(); LOG=null; if(!r.err&&r.msg) GAME.toast(esc(r.msg),ok?'exp':'lock'); }
 function loLoop(){ if(!LOG||LOG.done) return; const c=$('#loCv'); if(!c){ loEnd(false); return; } const t=performance.now(), dt=Math.min(.05,(t-LOG.last)/1000); LOG.last=t;
   LOG.v=Math.max(0,LOG.v-dt*.22); const z=LOG.v>=.55&&LOG.v<=.85; if(z) LOG.inZone+=dt;

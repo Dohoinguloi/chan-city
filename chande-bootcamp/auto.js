@@ -64,6 +64,8 @@ async function tick(){ if(!ON||!GAME.started) return; const g=GAME.G, S=GAME.S, 
     if(ch.length){ const ok=ch.findIndex(b=>/Nhận|Đồng ý|Được|OK|Có|Báo cáo|Trả việc|Xong|Đi thôi|Nghe/i.test(b.textContent)&&!/Mua|Nộp|Thuê|Trả tiền|Cược|đ\b|\d\.\d{3}/i.test(b.textContent)); const pick=ch[ok>=0?ok:ch.length-1]; log('chọn: '+pick.textContent.trim()); pick.click(); }
     else dlg.click(); wait=t+350; return; }
   // bảng đang mở (kể cả bảng tự bật giữa đường như quà, hằng ngày: chặn di chuyển): bấm nút nhận / báo cáo việc nếu có, không thì đóng lại
+  if(UI.isOpen()&&UI.loAuto&&UI.loAuto()){ wait=t+1000; return; }   /* đang giải toả: tự giữ thanh, chờ xong */
+  { const lb=UI.isOpen()&&g.quests.lo==='active'&&!GAME.canFinish('lo')&&g.needs.battery>=SD.LO.battery&&(S.kind==='room'||(S.kind==='stay'&&S.own))&&document.querySelector('#panel [data-a="lo"]'); if(lb){ log('giải toả'); lb.click(); wait=t+1500; return; } }
   if(UI.isOpen()){ const b=document.querySelector('#panel [data-a="qfinish"],#panel [data-a="qstart"]'); if(b&&!skipped(b.dataset.id)){ log('bảng: '+b.textContent.trim()); b.click(); wait=t+900; return; }
     // quán ăn: việc cần ăn món nào thì mua món đó; đang đói / tới bữa thì ăn món đầu tiên còn mua được
     const eatQ=Object.keys(Q).find(id=>g.quests[id]==='active'&&Q[id].eat&&document.querySelector(`#panel [data-a="eat"][data-id="${Q[id].eat.id}"]:not([disabled])`));
@@ -94,7 +96,7 @@ async function tick(){ if(!ON||!GAME.started) return; const g=GAME.G, S=GAME.S, 
       if(cd>now){ waitFor(id,cd-now+1500,'vừa ăn món này'); continue; }
       if(f&&f.meal){ const st=SD.mealStatus(g.meals,now); if(!st.some(x=>x.st==='now'||x.st==='missed')){ const nx=st.find(x=>x.st==='later'); if(nx){ waitFor(id,((nx.from-SD.vnTime(now).hf+24)%24)*3600e3/SD.RULES.timeScale+2000,'chưa tới bữa'); continue; } } } }
     if(!attempt(id,q.title)) continue; back(id); CUR=id; log('làm '+id+' ('+GAME.questProgress(id)+')'); GAME.questGo(id); pending=true; dest=GAME.AUTOWALK?GAME.AUTOWALK.dest:[GAME.P.x/T,GAME.P.y/T];   /* đã đứng sẵn ở chỗ làm thì bấm ngay tại đây */ wait=t+1500;
-    if(!GAME.AUTOWALK){ const sc=q.job?q.job.where:sceneOfNpc(q.giver); if(sc&&sc!==S.kind&&await grabTo(sc,'làm '+q.title)) return; }
+    if(!GAME.AUTOWALK){ const sc=q.job?q.job.where:q.lo?null:sceneOfNpc(q.giver);   /* giải toả làm ở phòng mình, không phải map người giao */ if(sc&&sc!==S.kind&&await grabTo(sc,'làm '+q.title)) return; }
     return; }
   // 4. nhận việc mới ở người giao trong map (gần nhất trước)
   const can=(id,q)=>!g.quests[id]&&!q.secret&&!skipped(id)&&(!q.after||g.quests[q.after]==='done');
