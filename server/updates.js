@@ -4,6 +4,13 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24d',title:'24/10 · Hảo sảng: donate, cho vay, mời về nhà',items:[
+    'Chuột phải vào người chơi khác: 🙌 Tương tác · 💸 Donate tiền · 🤝 Cho vay · 🏠 Mời về nhà. Chuột phải vào chính mình: 💛 Hảo sảng của tôi',
+    'Cho vay: tự chọn số tiền, lãi 1–10% / ngày, hạn 1–7 ngày; người vay đồng ý mới chuyển tiền. Quá hạn mà chưa trả thì cứ có tiền là bị tự trừ trả người cho vay (kể cả lúc người cho vay offline)',
+    'Mời về nhà: đồng ý là cả 2 cùng về nhà riêng của người mời; khách không dùng giường, đồ của chủ nhà. Chủ nhà ra ngoài thì khách về nhà mình',
+    'Điểm hảo sảng: donate (cứ 200k cho đi ròng = 1 điểm, 2 người chuyển qua lại không lên điểm) · tiếp khách (1 điểm / người / ngày, tối đa 3 / ngày) · cho vay được trả đủ (1 điểm / 1 triệu gốc)',
+    '5 bậc hảo sảng (10 / 30 / 60 / 100 / 200 điểm): +2% → +10% EXP, mua đồ rẻ hơn, bán đồ được giá hơn. Chip 💛 trên HUD bấm vào xem chi tiết',
+    'Sửa: chủ vườn offline giờ nhận được tiền đền khi bắt được kẻ trộm']},
   {v:'2026-10-24c',title:'24/10 · Cân bằng kinh tế',items:[
     'Cân bằng lại mọi cách kiếm tiền và EXP để không cách nào kiếm quá nhanh: cày liên tục tối đa khoảng 1,5–2 triệu / giờ, việc hằng ngày cộng lại khoảng 3–5 triệu / ngày',
     'Boss MU: tiền ×1,2 (trước ×6,7), EXP ×4 (trước ×20), EXP MU ×6, ngọc quý ×3 (trước ×20). Vẫn đánh không giới hạn, nhưng 10 lần hạ boss đầu mỗi ngày mới được thưởng đủ, sau đó còn 20%',

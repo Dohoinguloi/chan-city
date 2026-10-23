@@ -368,7 +368,7 @@ on('mu',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(); if(!inMu(pl)) ret
     if(r.cls&&!take(pl,300000)) return {err:'Đổi class tốn 300.000đ, không đủ tiền'}; r.cls=k; p.owned[c.set]=1; if(p.look&&p.look.outfit) p.look.outfit.top=c.set; pl.mus=null; st(pl); markDirty(pl); C.refreshInfo(pl); push(pl);
     return {msg:`Bạn trở thành ${c.name}! Đã nhận và mặc ${S.CLOTHES[c.set].name}. Phím 1 / 2 / 3 để ra chiêu`,look:p.look}; }
   if(op==='heal'){ if(!P.nearNpc(pl,'mu_mage')) return {err:'Gặp Pháp sư Cát'}; const s=st(pl); if(!s) return {err:'Chọn class ở Vệ binh trước'}; if(pl.muDuel) return {err:'Đang thách đấu'}; s.hp=s.max; s.mp=s.mmax; push(pl); return {msg:'Pháp sư Cát: "Máu với mana đầy rồi, ra trận đi!"'}; }
-  if(op==='sell'){ if(!P.nearNpc(pl,'mu_mage',140)) return {err:'Lại gần Pháp sư Cát (quầy bên phải đài phun nước) rồi bán'}; const k=String(m.k||''), price=S.MU.jewelSell[k]; if(!price||!C.has(pl,k)) return {err:'Không có ngọc này'};
+  if(op==='sell'){ if(!P.nearNpc(pl,'mu_mage',140)) return {err:'Lại gần Pháp sư Cát (quầy bên phải đài phun nước) rồi bán'}; const k=String(m.k||''), price=Math.round(S.MU.jewelSell[k]*(1+S.hsBonus(p))); if(!price||!C.has(pl,k)) return {err:'Không có ngọc này'};
     const n=m.all?(p.items[k]|0):1; addItem(pl,k,-n); give(pl,price*n); markDirty(pl); return {msg:`Bán ${n} ${S.ITEMS[k].name} được ${fmt(price*n)}`}; }
   // sách nội tại: mua ở Pháp sư Cát, đọc ở đâu cũng được (+1 cấp nội tại, không tốn điểm, tối đa thêm max cấp)
   if(op==='pasbuy'){ if(!P.nearNpc(pl,'mu_mage',140)) return {err:'Lại gần Pháp sư Cát rồi mua'}; const k=String(m.k||''), B=M.pasBook[k], n=Math.max(1,Math.min(5,m.n|0||1)); if(!B) return {err:'?'};

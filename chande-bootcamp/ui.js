@@ -30,7 +30,7 @@ const ACT={};
 const btn=(a,label,data={},cls='')=>`<button class="btn sm ${cls}" data-a="${a}" ${Object.entries(data).map(([k,v])=>`data-${k}="${esc(v)}"`).join(' ')}>${label}</button>`;
 const ico=k=>`<img class="ico" src="${GAME.icon64(k)}" alt="">`;
 // cho module ngoài (lc.js...) dùng chung nút / hành động / bảng theo nơi
-UI.btn=btn; UI.ico=ico; UI.onAct=(k,f)=>{ ACT[k]=f; }; UI.defPlace=(k,f)=>{ PLACE[k]=f; }; UI.qRow=id=>qRow(id);
+UI.btn=btn; UI.ico=ico; UI.ask=(h,cb,sec)=>quickAsk(h,cb,sec); UI.onAct=(k,f)=>{ ACT[k]=f; }; UI.defPlace=(k,f)=>{ PLACE[k]=f; }; UI.qRow=id=>qRow(id);
 const money=()=>`<div class="pmoney">Ví: <b>${fmt(G().money)}</b></div>`;
 // nút tự đi tới 1 người bán/chủ trại trong map hiện tại
 const goBtn=(id,label)=>btn('goto','Đi tới '+label+' ➜',{id},'go');

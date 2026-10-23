@@ -191,7 +191,8 @@ function enterScene(m){ const d=sceneData(m.s,m.room);
     if(G.flags.beagleFollow){ pet.x=P.x-14; pet.y=P.y; } chick.x=chick.tx=SD.CHICKEN_HOME.x*T; chick.y=chick.ty=SD.CHICKEN_HOME.y*T; }
   for(const k of Object.keys(PLOTS)) if((k[0]==='k')!==(m.s==='retreat')||(k[0]==='d')!==(m.s==='dalat')) delete PLOTS[k];
   bgmKey=''; pickBgm();
-  banner(m.s==='stay'?(m.own?'Phòng của bạn · ':'Phòng của '+m.host+' · ')+S.map.name:S.map.name);
+  banner(m.s==='stay'?(m.own?'Phòng của bạn · ':'Phòng của '+m.host+' · ')+S.map.name:m.s==='room'&&m.host?'Nhà của '+m.host:S.map.name);
+  if(m.s==='room'&&m.host) setTimeout(()=>toast(`🏠 Đang chơi ở nhà <b>${esc(m.host)}</b>. Muốn về: chuột phải vào chính mình → Về nhà mình`,'quest'),900);   /* được mời về nhà (haosang.js) */
   if(m.s==='room'&&!G.flags.called) ringTimer=2.2;
   if(m.ride) travelAnim(m.ride);
   if(m.xtp) xtArrive(m.xtp);
@@ -694,10 +695,12 @@ function clickOut(x,y){ if(!S.map.indoor||y<(S.H-1)*T) return false; const ex=(S
   DEST={x:ex.x,y:ex.y,t:performance.now()}; walkTo(ex.x/T,ex.y/T-.4,'',()=>{ if(ex.do==='grab') UI.grab(); else act({t:'exit'}); }); return true; }
 // chuột phải: bấm là đi ngay lúc nhấn xuống; giữ chuột thì nhân vật cứ đi theo con trỏ (như MU), 0,12s tính lại đường 1 lần
 let RHOLD=null, RSEEN=false;
-cvs.addEventListener('mousedown',e=>{ if(e.button!==2||!mouseOk()) return; RSEEN=true; const [x,y]=worldAt(e); if(clickOut(x,y)) return; DEST={x,y,t:performance.now()}; walkPoint(x,y); RHOLD={cx:e.clientX,cy:e.clientY,k:.12}; });
+// chuột phải trúng người chơi khác / chính mình: mở menu hảo sảng (haosang.js) thay vì đi tới
+const rMenu=(e,x,y)=>{ if(!UI.pmenu) return false; const h=pickAt(x,y); if(h&&h.kind==='player'){ UI.pmenu(h.r,e.clientX,e.clientY); return true; } if(Math.abs(x-P.x)<10&&y>P.y-40&&y<P.y+4){ UI.pmenu(null,e.clientX,e.clientY); return true; } return false; };
+cvs.addEventListener('mousedown',e=>{ if(e.button!==2||!mouseOk()) return; RSEEN=true; const [x,y]=worldAt(e); if(rMenu(e,x,y)) return; if(clickOut(x,y)) return; DEST={x,y,t:performance.now()}; walkPoint(x,y); RHOLD={cx:e.clientX,cy:e.clientY,k:.12}; });
 addEventListener('mousemove',e=>{ if(RHOLD){ RHOLD.cx=e.clientX; RHOLD.cy=e.clientY; } });
 addEventListener('mouseup',e=>{ if(e.button===2) RHOLD=null; }); addEventListener('blur',()=>{ RHOLD=null; });
-cvs.addEventListener('contextmenu',e=>{ e.preventDefault(); if(RSEEN){ RSEEN=false; return; } if(!mouseOk()) return; const [x,y]=worldAt(e); if(clickOut(x,y)) return; DEST={x,y,t:performance.now()}; walkPoint(x,y); });   /* Ctrl+bấm trên Mac không có nút phải */
+cvs.addEventListener('contextmenu',e=>{ e.preventDefault(); if(RSEEN){ RSEEN=false; return; } if(!mouseOk()) return; const [x,y]=worldAt(e); if(rMenu(e,x,y)) return; if(clickOut(x,y)) return; DEST={x,y,t:performance.now()}; walkPoint(x,y); });   /* Ctrl+bấm trên Mac không có nút phải */
 $('#btnLb').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.leaderboard(); });
 $('#btnWard').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.wardrobe(); });
 $('#btnFarm').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.farm(); });
@@ -1493,6 +1496,7 @@ function renderHUD(){ if(!G) return; const t=vn(), d=SD.WEEKDAYS[t.wd];
   // ưu đãi học viên DAS / nhân viên Bearplus, Lumen, Everfit: mua đồ giảm 20% (server tính, perks.js)
   { const at=[]; if(G.das&&((G.das.certs||[]).length||Object.keys(G.das.c||{}).length)) at.push('DAS'); if(G.quests.bp_brief==='done') at.push('Bearplus'); if(G.lumen&&G.lumen.hired) at.push('Lumen'); if(G.extra&&G.extra.job&&G.extra.job.hired) at.push('Everfit');
     if(at.length) bf.push(`<span class="good" title="Ưu đãi ${at.join(', ')}">🎓 -20% mua đồ</span>`); }
+  if(window.HSUI){ const c=window.HSUI.chip(); if(c) bf.push(c); }   /* bậc hảo sảng */
   hudEl('#hudBuffs').innerHTML=bf.join('');
   // việc cần làm
   const li=[]; const job=G.extra&&G.extra.job;

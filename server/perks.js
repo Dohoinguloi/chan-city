@@ -10,8 +10,9 @@ function perkOf(pl){ const p=pl.prof, out=[];
   if(p.lumen&&p.lumen.hired) out.push('Lumen');
   if(require('./job').JOBS[pl.uid]) out.push('Everfit');
   return out; }
-const priceFor=(pl,v)=>Math.round(perkOf(pl).length?v*(1-OFF):v);
+// bậc hảo sảng (data.js HAOSANG): giảm thêm, nhân với ưu đãi học viên
+const priceFor=(pl,v)=>Math.round(v*(perkOf(pl).length?1-OFF:1)*(1-C.S.hsBonus(pl.prof)));
 // trừ tiền mua đồ (đã giảm nếu có ưu đãi) và báo số tiền tiết kiệm; false nếu không đủ tiền
 function shopPay(pl,v){ const pay=priceFor(pl,v); if(!C.take(pl,pay)) return false;
-  if(pay<v) C.note(pl,`Ưu đãi ${perkOf(pl).join(' · ')}: giảm ${Math.round(OFF*100)}%, tiết kiệm ${C.S.fmt(v-pay)}`,'vnd'); return true; }
+  if(pay<v){ const at=perkOf(pl), hs=C.S.hsTier(pl.prof); C.note(pl,`Ưu đãi ${[at.length?at.join(' · ')+' -'+Math.round(OFF*100)+'%':'',hs.lv?'hảo sảng '+hs.name+' -'+Math.round(hs.b*100)+'%':''].filter(Boolean).join(', ')}: tiết kiệm ${C.S.fmt(v-pay)}`,'vnd'); } return true; }
 module.exports={shopPay,priceFor,perkOf,OFF};

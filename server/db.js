@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY, uid TEXT, created IN
 CREATE TABLE IF NOT EXISTS profiles(uid TEXT PRIMARY KEY, data TEXT, updated INTEGER);
 CREATE TABLE IF NOT EXISTS plots(i TEXT PRIMARY KEY, data TEXT);
 CREATE TABLE IF NOT EXISTS jobs(uid TEXT PRIMARY KEY, data TEXT);
-CREATE TABLE IF NOT EXISTS market(id INTEGER PRIMARY KEY AUTOINCREMENT, seller TEXT, sname TEXT, item TEXT, n INTEGER, price INTEGER, at INTEGER);`);
+CREATE TABLE IF NOT EXISTS market(id INTEGER PRIMARY KEY AUTOINCREMENT, seller TEXT, sname TEXT, item TEXT, n INTEGER, price INTEGER, at INTEGER);
+CREATE TABLE IF NOT EXISTS loans(id INTEGER PRIMARY KEY AUTOINCREMENT, data TEXT);`);   // loans: người chơi cho nhau vay (haosang.js)
 try{ db.exec('ALTER TABLE users ADD COLUMN pw TEXT'); }catch(e){}   // mật khẩu cho đăng nhập bằng tên
 try{ db.exec('ALTER TABLE users ADD COLUMN alias TEXT'); }catch(e){}   // bí danh: đăng nhập bằng tên này thì vào tài khoản khác (người chơi quên tên đăng nhập, gõ nhầm tên nhân vật)
 
@@ -37,6 +38,10 @@ const st={
   allMarket:db.prepare('SELECT * FROM market ORDER BY id DESC'),
   addMarket:db.prepare('INSERT INTO market(seller,sname,item,n,price,at) VALUES(?,?,?,?,?,?)'),
   delMarket:db.prepare('DELETE FROM market WHERE id=?'),
+  allLoans:db.prepare('SELECT id,data FROM loans'),
+  addLoan:db.prepare('INSERT INTO loans(data) VALUES(?)'),
+  putLoan:db.prepare('UPDATE loans SET data=? WHERE id=?'),
+  delLoan:db.prepare('DELETE FROM loans WHERE id=?'),
 };
 st.oldSessions.run(Date.now()-SESSION_DAYS*864e5);
 
@@ -58,6 +63,11 @@ module.exports={
   market(){ return st.allMarket.all(); },
   addListing(seller,sname,item,n,price){ return Number(st.addMarket.run(seller,sname,item,n,price,Date.now()).lastInsertRowid); },
   delListing(id){ st.delMarket.run(id); },
+  loans(){ return st.allLoans.all().map(r=>({...JSON.parse(r.data),id:Number(r.id)})); },
+  addLoan(L){ return Number(st.addLoan.run(JSON.stringify(L)).lastInsertRowid); },
+  saveLoan(L){ if(L.st==='done') st.delLoan.run(L.id); else st.putLoan.run(JSON.stringify(L),L.id); },
+  // cộng tiền cho người đang offline (sửa thẳng hồ sơ đã lưu): đền tiền chủ vườn, trả nợ cho người cho vay
+  addMoney(uid,v){ const r=st.getProfile.get(uid); if(!r) return false; const p=JSON.parse(r.data); p.money=(p.money||0)+Math.round(v); st.putProfile.run(uid,JSON.stringify(p),Date.now()); return true; },
   // chạy nhiều lệnh trong 1 giao dịch (mua bán chợ online)
   tx(fn){ db.exec('BEGIN'); try{ const r=fn(); db.exec('COMMIT'); return r; }catch(e){ db.exec('ROLLBACK'); throw e; } },
 };

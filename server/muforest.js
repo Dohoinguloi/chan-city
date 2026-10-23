@@ -73,7 +73,7 @@ MU.EXTRA.push({kind:'mob',nearest:pl=>{ const px=pl.x/T, py=pl.y/T; if(pl.scene!
 function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,max:o.max,def:m.def,rad:m.big?.9:.5,hit:(dd,p)=>hit(o,dd,p),slow:sec=>{ o.slow=now()+sec*1000; },stun:sec=>{ o.stun=now()+sec*1000; o.wind=0; },weak:(mul,sec)=>{ o.weak={until:now()+sec*1000,mul}; }}; }
 // thu mua chiến lợi phẩm rừng (Phù Thuỷ Cường Hoá): bán 1 loại hoặc tất cả
 on('mobsell',(pl,m)=>{ if(pl.scene!=='mu'||!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const it=pl.prof.items, ks=m.k?[String(m.k)]:Object.keys(S.MU.matPrice);
-  let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=S.MU.matPrice[k]; if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }
+  let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=Math.round(S.MU.matPrice[k]*(1+S.hsBonus(pl.prof))); if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }
   if(!n) return {err:'Chưa có chiến lợi phẩm rừng để bán'}; give(pl,sum); markDirty(pl); return {msg:`Bán ${n} chiến lợi phẩm được ${S.fmt(sum)}`}; });
 C.hook('enter',pl=>{ pl._mobKey=''; });
 module.exports={MOBS};

@@ -1843,8 +1843,18 @@ for(const q of Object.values(QUESTS)) if(q.reward&&q.reward.vnd) q.reward.vnd=Ma
 // tiền phạt theo ví: phạt gốc + 1% tiền đang có (tối đa gấp 10 phạt gốc), làm tròn chục nghìn
 const fineOf=(base,money)=>base+Math.min(base*ECON.fineMax,Math.round(Math.max(0,money||0)*ECON.fineRate/10000)*10000);
 RULES.expMulCap=2;   /* tổng các buff EXP cộng dồn tối đa ×2 */
+/* ======================= Hảo sảng: chuột phải người chơi khác → donate tiền, cho vay, mời về nhà =======================
+   Điểm = tiền cho đi RÒNG (donate đi trừ donate nhận, cứ 200k là 1 điểm: 2 nick chuyển qua lại không lên điểm) + tiếp khách tới nhà (1 điểm / khách / ngày, tối đa 3 / ngày, tổng 30)
+   + cho vay được trả đủ (1 điểm / 1 triệu gốc, tối đa 3 / ngày, tổng 30). Bậc càng cao: +EXP, mua đồ rẻ hơn, bán đồ được giá hơn (tối đa 10%, cân với ưu đãi học viên 20% và buff EXP trần ×2) */
+const HAOSANG={perPts:200000,hostDay:3,hostMax:30,loanDay:3,loanMax:30,giftMin:10000,giftMax:50000000,range:12,
+  tiers:[{pts:10,name:'Hảo sảng',b:.02},{pts:30,name:'Hào phóng',b:.04},{pts:60,name:'Hào hiệp',b:.06},{pts:100,name:'Đại hiệp',b:.08},{pts:200,name:'Mạnh Thường Quân',b:.1}],
+  loan:{min:100000,max:50000000,minRate:.01,maxRate:.1,maxDays:7,maxActive:3,capDays:30}};   /* lãi đơn theo ngày (tính tròn ngày, ít nhất 1 ngày), tối đa capDays ngày lãi */
+const hsPts=p=>{ const h=p&&p.hs; if(!h) return 0; return Math.max(0,Math.floor(((h.give||0)-(h.got||0))/HAOSANG.perPts))+Math.min(HAOSANG.hostMax,h.host||0)+Math.min(HAOSANG.loanMax,h.loan||0); };
+const hsTier=p=>{ const n=hsPts(p); let t=null, i=0; HAOSANG.tiers.forEach((x,k)=>{ if(n>=x.pts){ t=x; i=k+1; } }); return t?{...t,lv:i,n}:{lv:0,n,b:0,name:''}; };
+const hsBonus=p=>hsTier(p).b;
+const loanOwed=(L,t)=>{ const days=Math.min(HAOSANG.loan.capDays,Math.max(1,Math.ceil((t-L.start)/864e5))); return Math.max(0,Math.round(L.amt*(1+L.rate*days)/1000)*1000-(L.paid||0)); };
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  ECON,fineOf,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  ECON,fineOf,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });
