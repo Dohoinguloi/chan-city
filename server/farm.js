@@ -248,4 +248,7 @@ on('cook',(pl,m)=>{ const p=pl.prof, D=S.DALAT;
 
 // chỉ dùng khi chạy thử: cho ô rau già đi `sec` giây
 function agePlot(id,sec){ const p=PLOTS[id]; if(p){ p.at-=sec*1000; p.nt=0; p.nt2=0; push(id); } }
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const k of [...LANDS.keys()]) if(gone(k)) LANDS.delete(k); for(const k of [...DOGOF.keys()]) if(gone(k)) DOGOF.delete(k);   /* đất thuê, chó canh vườn, ô ruộng */
+  for(const id of Object.keys(PLOTS)) if(PLOTS[id]&&gone(PLOTS[id].o)){ delete PLOTS[id]; db.savePlot(id,null); } pushLands(); });
 module.exports={PLOTS,pubOf,hasHorse,inPasture,agePlot};

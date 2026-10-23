@@ -241,6 +241,7 @@ body.touch #wcLog{max-height:52px;font-size:14px} body.touch #wcIn{font-size:15p
 #miniCv{display:block;width:160px;height:112px;image-rendering:pixelated;border:1px solid var(--ink)}
 #hudNeedsAct{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px} #hudNeedsAct:empty{display:none}
 .needGo{font:16px/1.1 var(--f);padding:2px 7px;background:#6b2a2a;color:#fff3d6;border:2px solid #1c1516;cursor:var(--cur-hand),pointer} .needGo:hover{background:#8a3a34} .needGo.crit{background:#a8322a;animation:keyPulse .6s steps(2) infinite}
+#hudReset{display:flex;align-items:center;gap:6px;color:#ffd84a;background:#5a1a22} #hudReset[hidden]{display:none} #hudReset.soon{animation:keyPulse .6s steps(2) infinite}   /* đếm ngược reset server */
 #hudPlayers{display:flex;align-items:center;gap:6px;color:#fff3d6;font:inherit;cursor:var(--cur-hand),pointer} #hudPlayers .dot{width:8px;height:8px;background:#5fe06a;box-shadow:0 0 0 2px #1c1516;animation:keyPulse 1.2s steps(2) infinite}
 .olist .row .you{color:var(--gold)}
 #keyHint{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:6;display:flex;gap:14px;align-items:center;padding:6px 14px;background:rgba(28,21,22,.86);border:2px solid var(--gold);color:#fff3d6;font-size:19px;pointer-events:none;white-space:nowrap}
@@ -521,6 +522,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="hudQuests" class="panel hud"></div>
 <div id="hudRight">
   <div class="hudTop"><button id="mStat" class="panel" type="button" aria-label="Xem cấp độ và chỉ số"><span id="mLv">Cấp 1</span><span class="mbars" aria-hidden="true"><i><b id="mbE"></b></i><i><b id="mbC"></b></i><i><b id="mbB"></b></i></span><span class="mcar">▾</span></button><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
+  <div id="hudReset" class="panel" hidden title="Server sắp reset"><span aria-hidden="true">🔄</span><span id="hudResetT"></span></div>
   <button id="hudPlayers" class="panel" type="button" title="Ai đang online · bấm xem danh sách"><span class="dot" aria-hidden="true"></span><span id="hudPlayersN">1</span> online</button>
   <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudWx" aria-label="Thời tiết"></span><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
   <div id="hudMoneyBox" class="panel"><span id="hudMoney">0đ</span></div></div>

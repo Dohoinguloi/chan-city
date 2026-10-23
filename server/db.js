@@ -68,6 +68,8 @@ module.exports={
   saveLoan(L){ if(L.st==='done') st.delLoan.run(L.id); else st.putLoan.run(JSON.stringify(L),L.id); },
   // cộng tiền cho người đang offline (sửa thẳng hồ sơ đã lưu): đền tiền chủ vườn, trả nợ cho người cho vay
   addMoney(uid,v){ const r=st.getProfile.get(uid); if(!r) return false; const p=JSON.parse(r.data); p.money=(p.money||0)+Math.round(v); st.putProfile.run(uid,JSON.stringify(p),Date.now()); return true; },
+  // sao lưu cả DB ra 1 file (VACUUM INTO, không khoá lâu): trước khi reset server
+  backup(file){ db.exec(`VACUUM INTO '${String(file).replace(/'/g,"''")}'`); },
   // chạy nhiều lệnh trong 1 giao dịch (mua bán chợ online)
   tx(fn){ db.exec('BEGIN'); try{ const r=fn(); db.exec('COMMIT'); return r; }catch(e){ db.exec('ROLLBACK'); throw e; } },
 };

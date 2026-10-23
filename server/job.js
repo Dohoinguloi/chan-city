@@ -83,4 +83,6 @@ on('perk',(pl,m)=>{ const k=String(m.k||''), P=S.OFFICE_PERKS[k], p=pl.prof; if(
   p.daily.perks=p.daily.perks||{}; if(p.daily.perks[k]) return {err:'Hôm nay dùng rồi'}; p.daily.perks[k]=true;
   if(P.buff) p.buff={mul:P.buff.mul,until:now()+P.buff.min*60e3}; p.needs.energy=Math.min(100,p.needs.energy+P.energy); markDirty(pl);
   return {msg:k==='coffee'?`Cà phê pantry: +${P.energy} năng lượng, +${Math.round((P.buff.mul-1)*100)}% EXP ${P.buff.min} phút`:`Ngả lưng ở sofa: +${P.energy} năng lượng`}; });
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const uid of Object.keys(JOBS)) if(gone(uid)){ delete JOBS[uid]; saveJob(uid); } });   /* nhân viên Everfit */
 module.exports={JOBS,jobView,officeOpen};

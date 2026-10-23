@@ -8,7 +8,7 @@ const players=new Map();       // pid → người chơi
 const byUid=new Map();         // uid → người chơi
 const scenes=new Map();        // id cảnh → Set người chơi
 const handlers={};             // loại tin → hàm xử lý
-const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[]};   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
+const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[],reset:[]};   /* reset: reset.js gọi (gone(uid) → tài khoản bị reset) để mỗi module dọn bộ nhớ theo người chơi */   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
 let nextPid=1;
 
 const on=(t,fn)=>{ handlers[t]=fn; };

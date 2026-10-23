@@ -67,4 +67,6 @@ on('hs',(pl,m)=>{ const p=pl.prof, t=now(), op=m.op, q=m.to!=null?players.get(m.
   return {err:'?'}; });
 // chủ nhà rời nhà → khách về nhà mình
 hook('leave',(pl,old,to)=>{ if(old==='room:'+pl.uid&&to!==old) for(const q of [...C.sceneOf(old)]) if(q!==pl){ const sp=S.ROOMS.tro.spawn; note(q,'Chủ nhà đã ra ngoài, bạn về nhà mình'); C.moveTo(q,'room:'+q.uid,sp.x,sp.y); } });
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const L of [...LOANS.values()]) if(gone(L.from)||gone(L.to)){ L.st='done'; db.saveLoan(L); LOANS.delete(L.id); } });   /* khoản vay có người bị reset: xoá */
 module.exports={owes,lent};

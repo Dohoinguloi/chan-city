@@ -31,3 +31,5 @@ on('kejob',(pl,m)=>{ const p=pl.prof, s=STAFF[pl.uid];
     return P.startTask(pl,'work',def.dur,()=>{ if(r.done.includes(task)) return {}; r.done.push(task); if(r.tasks&&r.done.length===r.tasks.length) P.stat(pl,'kestaff',1);   /* đủ việc 1 ngày nhân viên Ké */ saveStaff(pl.uid);
       reward(pl,{exp:def.exp,vnd:K.wage},'Cô Ké trả công: '+def.name); markDirty(pl); return {task}; },{anim:'work',name:def.name}); }
   return {err:'?'}; });
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const uid of Object.keys(STAFF)) if(gone(uid)){ delete STAFF[uid]; saveStaff(uid); } });   /* nhân viên Ké Retreat */

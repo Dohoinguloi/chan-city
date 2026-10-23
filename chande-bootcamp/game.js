@@ -1675,7 +1675,12 @@ NET.listen('task',m=>{ if(m.cancel){ TASK=null; toast('Đã dừng việc đang 
   if(m.done){ TASK=null; if(m.msg) toast(esc(m.msg),'item'); if(m.act==='herd'&&HERD) HERD.phase='back'; return; }
   TASK={act:m.act,name:m.name,start:performance.now(),end:performance.now()+m.sec*1000,anim:{nghi:'sleep',tam:'shower',tiktok:'phone',songao:'phone',shisha:'shisha',work:'work',hoc:'work',cook:'cook',herd:'',swim:'swim'}[m.act]||'',walk:m.act==='herd'}; });
 NET.listen('bite',()=>{ UI.fishBite&&UI.fishBite(); });
-NET.listen('online',m=>{ $('#hudPlayersN').textContent=m.n; }); $('#hudPlayers').addEventListener('click',e=>{ e.currentTarget.blur(); UI.online(); });
+NET.listen('online',m=>{ $('#hudPlayersN').textContent=m.n; });
+// reset server (server/reset.js): đếm ngược trên topbar theo giờ server gửi; reset xong thì báo rồi tải lại game
+let RESET=null; NET.listen('reset',m=>{ if(m.done){ UI.open('🔄 Server đã reset',()=>`<p>${esc(m.msg||'')}</p>`); setTimeout(()=>location.reload(),4500); return; } RESET=m; $('#hudReset').title=`Server reset: mọi người (trừ Kaixa) về cấp ${m.level}, ${fmt(m.money)}, xoá hết đồ`; resetTick(); });
+function resetTick(){ const el=$('#hudReset'), left=RESET?RESET.at-NET.now():0; if(left<=0){ el.hidden=true; return; } el.hidden=false; const s=Math.ceil(left/1000), h=Math.floor(s/3600), p2=v=>String(v).padStart(2,'0');
+  $('#hudResetT').textContent=`Reset sau ${h?h+':':''}${p2(Math.floor(s%3600/60))}:${p2(s%60)}`; el.classList.toggle('soon',left<600e3); }
+setInterval(resetTick,1000); $('#hudPlayers').addEventListener('click',e=>{ e.currentTarget.blur(); UI.online(); });
 NET.listen('lands',m=>{ LANDS=m.list||[]; }); NET.listen('stays',m=>{ STAYS=m.v||{}; }); NET.listen('pcar',m=>{ PCAR=m; if(m.driving!==NET.pid&&P.pcar){ P.pcar=false; } if(m.out||!m.driving) P.incar=false; }); NET.listen('moto',m=>{ if(m.off){ P.moto=null; } }); NET.listen('herds',m=>{ HERDS=m.list||[]; }); NET.listen('dogs',m=>{ DOGLIST=m.list||[]; });
 NET.listen('wild',m=>{ const od=WDINO, oc=WCROC; WDINO=m.dino; WCROC=m.croc; if(WDINO&&od&&od.k===WDINO.k){ WDINO.dx=od.dx; WDINO.dy=od.dy; } if(WCROC&&oc){ WCROC.dx=oc.dx; WCROC.dy=oc.dy; } });
 NET.listen('mega',m=>{ const old=MEGA; MEGA=m.v; if(MEGA&&old){ MEGA.dx=old.dx; MEGA.dy=old.dy; } });

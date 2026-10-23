@@ -332,4 +332,6 @@ on('mk',(pl,m)=>{ const p=pl.prof;
     LIST=db.market(); return {item:l.item,n:l.n}; } });
 hook('login',pl=>{ const ib=pl.prof.inbox; if(ib&&ib.length){ for(const m of ib) note(pl,m,'vnd'); pl.prof.inbox=[]; markDirty(pl); } });
 
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const k of [...STAYS.keys()]) if(gone(k)) STAYS.delete(k); for(const l of db.market()) if(gone(l.seller)) db.delListing(l.id); LIST=db.market(); });   /* phòng thuê, hàng đăng chợ online */
 module.exports={startTask,canFinish,roomCtx,doorOf,nearNpc,rentRoll,jailed,stat,achCheck};

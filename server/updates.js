@@ -4,6 +4,10 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24k',title:'24/10 · Reset server lúc 16:40 hôm nay',items:[
+    'Đúng 16:40 hôm nay (giờ Việt Nam) server reset: mọi người trừ Kaixa bắt đầu lại ở cấp 10 với 3.000.000đ, giữ tên + ngoại hình, mặc bộ đồ khởi đầu',
+    'Xoá hết đồ đã sở hữu: túi đồ, ngọc, đồ MU, quần áo, thú cưỡi, Xích Thố, Lính Cát, vật nuôi, nhà, đất, ô ruộng, hàng đăng chợ, khoản vay. MU về cấp 1 (chọn lại class), nhiệm vụ, thành tựu, mảnh huyền thoại, hảo sảng làm lại từ đầu',
+    'Có đồng hồ đếm ngược trên thanh trên cùng, kênh chat báo lúc còn 60 / 30 / 10 / 5 / 1 phút. Tới giờ game tự tải lại']},
   {v:'2026-10-24j',title:'24/10 · MU Đỉnh Bắc: 8 boss mới + giá đồ theo sức mạnh',items:[
     'MU mở rộng lên phía Bắc: Đỉnh Bắc có 3 đấu trường boss. Đi qua cổng ĐỈNH BẮC ở tường trên quảng trường, hoặc chọn mục Đỉnh Bắc ở mọi cổng dịch chuyển',
     '6 anh em Siêu Nhân (Căn cứ Siêu Nhân): ra trước 5 người, tổng máu còn 75% gọi Siêu Nhân Xanh Lá, tổng máu 6 người còn 50% gọi Megazord. Hạ hết cả nhóm mới ra lại',
