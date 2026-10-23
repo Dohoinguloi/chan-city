@@ -524,7 +524,7 @@ function nhoSac(){ UI.closeAll&&UI.closeAll(); if(TASK) return toast('Đang làm
   if(!near.length) return go('');                                                                   // map không có ai: nhờ người qua đường
   const [n,d]=near[0], name=speakerName(n.id).split(' (')[0]; if(d<60) return go(n.id);
   toast(`Pin yếu: tới chỗ <b>${esc(name)}</b> xin cắm sạc nhờ`,'quest'); walkTo(n.x/T,n.y/T+1.1,name,()=>go(n.id)); }
-async function gearUse(op){ const r=await act({t:'gear',op}); if(r&&!r.err&&r.msg) toast(esc(r.msg),'item'); if(UI.refresh) UI.refresh(); return r&&!r.err; }
+async function gearUse(op){ const r=await act({t:'carry',op}); if(r&&!r.err&&r.msg) toast(esc(r.msg),'item'); if(UI.refresh) UI.refresh(); return r&&!r.err; }
 function needGo(k){ if(String(k).startsWith('gear_')) return gearUse(k.slice(5)); UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac'||(k==='battery'&&S.kind==='vnpt')) return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
   if(S.kind==='room'||(S.kind==='stay'&&S.own)){ const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act===H.act);
     if(it) return walkTo(it.x/T,it.y/T,it.label,()=>interact({type:'obj',it,label:it.label}));   // gọi đúng việc (ngủ/tắm/sạc), không lấy điểm gần nhất (dễ trúng điện thoại)

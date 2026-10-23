@@ -3,7 +3,7 @@
 'use strict';
 const C=require('./core'), P=require('./places');
 const {S,on,markDirty,addItem}=C, G=S.GEAR;
-on('gear',(pl,m)=>{ const p=pl.prof, d=p.daily, own=p.gear||{}, op=String(m.op||''); if(pl.lcb||pl.race) return {err:'Đang bận'};
+on('carry',(pl,m)=>{   /* tên riêng: 'gear' là lệnh đổi trang bị MU (mu.js) */ const p=pl.prof, d=p.daily, own=p.gear||{}, op=String(m.op||''); if(pl.lcb||pl.race) return {err:'Đang bận'};
   if(op==='pbank'){ if(!own.pbank) return {err:'Chưa có sạc dự phòng: mua ở Shopee Chande, tab Phụ trợ'}; if((d.pbank||0)>=G.pbank.per) return {err:`Hôm nay đã sạc đủ ${G.pbank.per} lần, sạc dự phòng hết pin rồi`};
     if(p.needs.battery>=99) return {err:'Pin đầy rồi'};
     return P.startTask(pl,'sac',G.pbank.sec,()=>{ d.pbank=(d.pbank||0)+1; p.needs.battery=Math.min(100,p.needs.battery+G.pbank.charge); markDirty(pl);
