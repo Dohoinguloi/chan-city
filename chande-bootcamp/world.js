@@ -4,50 +4,30 @@
    → Đường bộ lên đồi (~10 phút) → khu trên (Nhà ăn, Deck ngắm cảnh, Bể bơi dự kiến, Nhà Ngủ 1-2-3,
    Nhà Chiềng 1-2, Nhà Mái Đá) → Nền khu cắm trại. Toạ độ theo ô 16px. */
 (function(){
-const A=ART, T=A.T;
+const A=ART, T=A.T, SD=SHARED;
 
 /* ---------- Phòng Mèn Mén ---------- */
-// căn hộ riêng ở Hà Nội (26×16): góc làm việc + phòng ngủ ở trên, phòng tắm riêng góc phải trên, bếp dưới trái, phòng khách dưới phải
-function buildRoom(){
-  const W=26, H=16, g=[];
-  for(let y=0;y<H;y++){ g.push([]); for(let x=0;x<W;x++) g[y].push(y<=1||y===H-1||x===0||x===W-1?'H':'O'); }
-  for(let y=4;y<=7;y++) for(let x=9;x<=15;x++) g[y][x]='M';                       // thảm phòng ngủ
-  for(let y=11;y<=14;y++) for(let x=16;x<=23;x++) g[y][x]='M';                     // thảm phòng khách
-  for(let y=2;y<=7;y++){ g[y][19]='H'; for(let x=20;x<W-1;x++) g[y][x]='I'; } for(let x=19;x<W-1;x++) g[8][x]='H'; g[8][21]='I'; g[8][22]='I';   // phòng tắm có cửa
-  g[H-1][12]='O'; g[H-1][13]='O';                                                   // khe cửa ra ngoài
-  const obj=[], solid=[];
+// căn hộ riêng ở Hà Nội: khung nhà theo cấp (SD.homeGrid) + nội thất người chơi tự đặt (SD.HOME, server home.js). Thiếu dữ liệu thì dùng bố cục có sẵn (giống căn hộ cũ 26×16)
+const FLIP=new Map();
+function sprOf(d,f){ const key=d.art+'|'+JSON.stringify(d.args||[]); let s=FLIP.get(key); if(!s){ s=A[d.art](...(d.args||[])); FLIP.set(key,s); } if(!f) return s;
+  let m=FLIP.get(key+'|f'); if(!m){ const c=A.cv(s.c.width,s.c.height), g=c.getContext('2d'); g.translate(s.c.width,0); g.scale(-1,1); g.drawImage(s.c,0,0); m={c,ax:s.c.width-s.ax,ay:s.ay}; FLIP.set(key+'|f',m); } return m; }
+// bóng đổ mờ dưới chân đồ đứng (như game pixel đồng quê), theo bề ngang chân đồ
+const SHADOW=new Map(); function shadowOf(fw){ let s=SHADOW.get(fw); if(s) return s; const w=fw*T+4, c=A.cv(w,10), g=c.getContext('2d'); g.fillStyle='rgba(20,12,10,.28)'; g.beginPath(); g.ellipse(w/2,5,w/2,4,0,0,Math.PI*2); g.fill(); s={c,ax:Math.floor(w/2),ay:5}; SHADOW.set(fw,s); return s; }
+function buildRoom(home){
+  const h=home||SD.homeDefault(), {W,H,g}=SD.homeGrid(h.lv||0), D=SD.HOME.items, obj=[], solid=[], inter=[]; let ph=null;
+  if(A.homeTheme) A.homeTheme({f:SD.HOME.floors[h.floor]||null,w:SD.HOME.walls[h.wall]||null});
   const put=(spr,tx,ty,o={})=>{ const it={spr,x:tx*T,y:ty*T,...o}; obj.push(it); return it; };
-  // góc làm việc
-  put(A.blinds(),3.5,2,{flat:true}); put(A.calendar(),8.2,2,{flat:true}); put(A.filing(),1.6,4.4); solid.push([1,2,1,3]);
-  put(A.desk(),5.5,4,{name:'Bàn làm việc'}); solid.push([4,2,6,3]);
-  const ph=put(A.phone(),4.6,3.2,{name:'Điện thoại',id:'phone',sort:4.05*T}); put(A.laptop(),6.6,3.5,{sort:4.1*T}); put(A.chair(),6,4.6); put(A.potPlant(1),8.4,3.4);
-  // phòng ngủ
-  put(A.windowWall(),12.5,2,{flat:true}); put(A.bed(),11,5,{name:'Giường'}); solid.push([10,2,11,4]); put(A.nightstand(),13.4,3.6); solid.push([13,2,13,3]);
-  put(A.charger(false),13.4,2.6,{flat:true}); put(A.wardrobe(),17,4,{name:'Tủ quần áo'}); solid.push([16,2,17,3]); put(A.poster(),15,2,{flat:true});
-  // phòng tắm
-  put(A.shower(),21,4.1); solid.push([20,2,21,3]); put(A.sink(),23.6,3.8); solid.push([23,2,24,3]); put(A.towel(),22.5,2.6,{flat:true}); put(A.mirror(),24.2,2.4,{flat:true});
-  // bếp + bàn ăn
-  put(A.fridge(),1.6,10.8); solid.push([1,9,1,10]); put(A.counter(80,'#e8e4dc'),4.6,10.6); solid.push([2,9,6,10]); put(A.kettleTable(),4.4,9.6,{sort:10.7*T}); put(A.cooler(),7.6,10.6); solid.push([7,9,7,10]);
-  put(A.roundTable(),4.5,14); solid.push([3,12,5,13]);
-  // phòng khách
-  put(A.tvStand(),20,10.6); solid.push([18,9,21,10]); put(A.shelf(),16,10.4,{name:'Kệ sách'}); solid.push([15,9,16,10]);
-  put(A.sofa('#7a6a5a',64),20,14.8); solid.push([18,13,21,14]); put(A.coffeeTable(true),20,12.6); solid.push([19,12,20,12]);
-  put(A.potPlant(2),24.4,10.4); solid.push([24,10,24,10]); put(A.potPlant(3),9.4,14.4); solid.push([9,14,9,14]); put(A.potPlant(0),14.6,14.4); solid.push([14,14,14,14]);
-  put(A.doorTile(),12.5,16,{id:'door',flat:true});
-  const inter=[
-    {id:'phone',x:4.6*T,y:4*T,label:'Nghe máy',r:22},
-    {id:'laptop',x:6.4*T,y:4.4*T,label:'Mở laptop',r:20,do:'hub'},
-    {id:'bed',x:11*T,y:5.2*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi',bed:{x:11,y:3.4}},
-    {id:'charger',x:13.4*T,y:4.2*T,label:'Sạc điện thoại',r:18,do:'ra',act:'sac'},
-    {id:'wardrobe',x:17*T,y:4.4*T,label:'Tủ quần áo',r:20,do:'wardrobe'},
-    {id:'shower',x:21.2*T,y:4.6*T,label:'Tắm',r:20,do:'ra',act:'tam'},
-    {id:'shelf',x:16*T,y:11*T,label:'Xem kệ sách',r:20,say:['Một chồng sách UX, một cuốn "Đi Hoà Bình mùa nào đẹp".']},
-    {id:'tv',x:20*T,y:11.6*T,label:'Xem TV',r:24,say:['Thời sự: "Đà Lạt vào mùa dâu tây, giá 50.000đ/hộp"... Tắt TV đi làm việc thôi.']},
-    {id:'fridge',x:1.6*T,y:11.6*T,label:'Mở tủ lạnh',r:20,say:['Tủ lạnh còn hộp sữa với mấy quả trứng. Đi ăn ngoài cho nhanh.']},
-    {id:'cooler',x:7.6*T,y:11.4*T,label:'Uống nước',r:18,say:['Ực ực... mát cả người.']},
-    {id:'door',x:12.5*T,y:15.3*T,label:'Ra cửa (gọi Grab)',r:22,do:'grab'},
-  ];
-  return {name:'Căn hộ của bạn · Hà Nội',W,H,grid:g,obj,solid,inter,spawn:{x:12.5*T,y:12.5*T},indoor:true,phone:ph,music:'music_room'};
+  h.items.forEach((it,i)=>{ const d=D[it.k]; if(!d) return; const F=SD.homeFoot(d,it), [ax,ay]=SD.homeAnchor(d,it), fl=it.f?-1:1;
+    if(d.rug){ for(let y=F.y0;y<=F.y1;y++) for(let x=F.x0;x<=F.x1;x++) if(g[y]&&g[y][x]==='O') g[y][x]='M'; return; }   /* thảm ô: tô sàn thành thảm */
+    const sp=sprOf(d,it.f);
+    if(d.flat){ const cx=(F.x0+d.fw/2)*T, cy=(F.y0+(d.fh||1)/2)*T; obj.push({spr:sp,x:Math.round(cx-sp.c.width/2+sp.ax),y:Math.round(cy-sp.c.height/2+sp.ay),flat:true,hi:i}); }   /* đồ trải sàn: căn giữa ô chân */
+    else { if(!d.wall) put(shadowOf(d.fw),ax,ay-.1,{flat:true}); put(sp,ax,ay,{flat:!!d.wall,hi:i}); }
+    if(SD.homeSolid(d)) solid.push([F.x0,F.y0,F.x1,F.y1]);
+    for(const [art,args,dx,dy,sk,id] of d.extra||[]){ const o=put(A[art](...args),ax+dx*fl,ay+dy,sk==='flat'?{flat:true}:{sort:(ay+sk)*T,...(id?{id,name:'Điện thoại'}:{})}); if(id==='phone') ph=o; }
+    for(const a of [].concat(d.act||[])){ if(a.bed){ inter.push({id:'bed',x:ax*T,y:(ay+.2)*T,label:'Nghỉ ngơi',r:22,do:'ra',act:'nghi',bed:{x:ax,y:ay-1.6}}); continue; }
+      inter.push({id:a.id||'hk'+i,x:(ax+(a.dx||0)*fl)*T,y:(ay+(a.dy||0))*T,label:a.label,r:22,...(a.do?{do:a.do}:{}),...(a.act?{act:a.act}:{}),...(a.say?{say:a.say}:{}),...(it.k==='bon_tam'?{bath:1}:{})}); } });
+  put(A.doorTile(),12.5,H,{id:'door',flat:true}); inter.push({id:'door',x:12.5*T,y:(H-.7)*T,label:'Ra cửa (gọi Grab)',r:22,do:'grab'});
+  return {name:h.name?'Nhà của '+h.name+' · Hà Nội':'Căn hộ của bạn · Hà Nội',W,H,grid:g,obj,solid,inter,spawn:{x:12.5*T,y:12.5*T},indoor:true,phone:ph,music:'music_room',home:h};
 }
 
 /* ---------- Map 1: Chande Bootcamp (Ké Retreat) ---------- */
@@ -242,7 +222,7 @@ function buildRetreat(){
   { const Q=SHARED.YENLANG.pho; put(A.stall('#c4382e',['#f4ead8','#e8b860','#5fae46']),Q.x-1,Q.y-.8); solid.push([Math.floor(Q.x)-2,Math.floor(Q.y)-2,Math.floor(Q.x),Math.floor(Q.y)-2]); put(A.label('PHO CHI THAO','#8c231f','#fff3d6'),Q.x-1,Q.y-3.2,{flat:true}); }   // quán phở chị Thảo trong ngõ
   put(A.parkingLines(3,2,72,46),54.4,98.2,{flat:true}); put(A.parkSign(),67.4,98.6); solid.push([67,97,67,97]);
   const carLow=put(A.car(),SHARED.CARS.car_low.x,SHARED.CARS.car_low.y-.6,{id:'car_low',name:'Xe 4 bánh'}), carTop=put(A.car(),49.5,42.2,{id:'car_top',name:'Xe 4 bánh'});
-  rect(48,40,51,41,'G',['F']); solid.push([45,96,47,96],[48,41,50,41]);
+  rect(48,40,51,41,'G',['F']); solid.push([48,41,50,41]);   /* xe dưới đã dời sang bãi đỗ (CARS.car_low): bỏ ô chặn cũ giữa đường ven hồ */
   // vườn rau Ké: hàng rào gỗ, chừa lối vào ở giữa phía Nam
   // cửa vào vườn: giữa cạnh dưới (x 54), cạnh trên (x 57–58), cạnh trái (y 83–84), cạnh phải (y 80–81)
   for(let x=48;x<=67;x++){ if(x!==57&&x!==58){ put(A.fence(false),x+.5,76.2); solid.push([x,76,x,76]); } if(x!==54){ put(A.fence(false),x+.5,86.2); solid.push([x,86,x,86]); } }
@@ -312,6 +292,8 @@ function buildRetreat(){
     flw=[['#ff9fb2',1],['#ffe066',2],['#f4f1ea',3],['#a882ff',4],['#ff6a55',5]].map(([c,s])=>A.flowers(s,c)), tufts=[0,1].map(i=>A.tuft(i)), stumpS=A.stump(), logS=A.logs(), mushS=A.mush(0), wrocks=[0,1].map(i=>A.wrock(i));
   const treeOf=(x,y)=>{ const k=A.hash(x,y,5); if(y<60&&x>72) return k<.45?pines[Math.floor(k*8)%4]:trees[Math.floor(k*trees.length)];   // đồi phía Bắc nhiều thông
     if(k<.06) return blos[Math.floor(k*60)%4]; return trees[Math.floor(k*trees.length)]; };
+  // cây ven hồ: chừa trống hàng sát mép đường (y 98) và quanh bến kayak, 2 cây cạnh nhau cách ít nhất 2 ô để cưỡi ngựa vẫn lọt qua
+  const lakeTree=(x,y)=>g[y][x]==='G'&&y>=99&&y<=104&&A.hash(x,y,99)<.12&&!nearDoor(x,y)&&Math.hypot(x+.5-SHARED.PCAR.park.x,y+.5-SHARED.PCAR.park.y)>4;
   for(let y=0;y<H;y++) for(let x=0;x<W;x++){ const t=g[y][x], h=A.hash(x,y,99), h2=A.hash(x,y,123);
     if(t==='W'&&(nearType(g,x,y,'D')||nearType(g,x,y,'G'))&&h2<.18){ put(reedS[Math.floor(h2*30)%3],x+.5,y+.9); continue; }      // lau sậy ven bờ
     if((t==='W'||t==='o')&&h2>.985){ put(lilyS[Math.floor(h2*400)%2],x+.5,y+.6,{flat:true}); continue; }                       // lá sen
@@ -320,7 +302,7 @@ function buildRetreat(){
     if(t==='F'&&h2<.012&&!nearType(g,x,y,'P')){ put([stumpS,logS,mushS][Math.floor(h2*250)%3],x+.5,y+.9); continue; }
     if(t==='F'&&h<.5&&!nearNpc(x,y)&&!nearType(g,x,y,'B')&&!nearType(g,x,y,'P')&&!nearType(g,x,y,'X')) put(treeOf(x,y),x+.5+(A.hash(x,y,6)-.5)*.6,y+1+(A.hash(x,y,7)-.5)*.4,{tree:true});
     else if(t==='F'&&h<.62&&!nearNpc(x,y)) put(bushes[Math.floor(h*40)%4],x+.5,y+.9);
-    else if(t==='G'&&y>=98&&y<=104&&h<.12&&Math.hypot(x+.5-SHARED.PCAR.park.x,y+.5-SHARED.PCAR.park.y)>4) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
+    else if(lakeTree(x,y)&&!lakeTree(x-1,y)&&!lakeTree(x-2,y)) { put(trees[Math.floor(A.hash(x,y,5)*trees.length)],x+.5,y+1,{tree:true}); solid.push([x,y,x,y]); }
     else if(t==='G'&&h<.025&&nearType(g,x,y,'F')&&!nearDoor(x,y)) { put(bam[Math.floor(h*120)%3],x+.5,y+1); solid.push([x,y,x,y]); }
     else if(t==='G'&&h>.985&&!nearType(g,x,y,'P')&&!nearDoor(x,y)) { put(A.rock(x),x+.5,y+.8); solid.push([x,y,x,y]); } }
 

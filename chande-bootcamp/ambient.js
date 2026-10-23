@@ -21,15 +21,15 @@ function weather(now,city,hf){ const b=Math.floor(now/BLOCK), f=FORCE!=null?.5:(
 /* ---------- âm thanh mưa, sấm, chim vỗ cánh (WebAudio tự tạo, không cần file) ---------- */
 const AU={c:null,rain:null};
 function ac(){ if(!AU.c){ try{ AU.c=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(AU.c.state==='suspended') AU.c.resume().catch(()=>{}); return AU.c; }
-function noiseBuf(c,sec){ const n=c.sampleRate*sec, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); let last=0; for(let i=0;i<n;i++){ const w=Math.random()*2-1; last=(last+.04*w)/1.04; d[i]=w*.6+last*2.4; } return b; }
+function noiseBuf(c,sec){ const n=c.sampleRate*sec, b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); let last=0; for(let i=0;i<n;i++){ const w=Math.random()*2-1; last=(last+.04*w)/1.04; d[i]=w*.15+last*3; } return b; }   /* nhiễu trầm (ít nhiễu trắng): mưa, sấm, cánh chim đỡ rè */
 function rainSound(vol){ const c=AU.c; if(!c) return; if(!AU.rain){ if(vol<.002) return; const s=c.createBufferSource(), f=c.createBiquadFilter(), hp=c.createBiquadFilter(), g=c.createGain();
-    s.buffer=noiseBuf(c,2.5); s.loop=true; f.type='lowpass'; f.frequency.value=2600; hp.type='highpass'; hp.frequency.value=380; g.gain.value=0; s.connect(hp); hp.connect(f); f.connect(g); g.connect(c.destination); s.start(); AU.rain={s,g}; }
+    s.buffer=noiseBuf(c,2.5); s.loop=true; f.type='lowpass'; f.frequency.value=1700; hp.type='highpass'; hp.frequency.value=300; g.gain.value=0; s.connect(hp); hp.connect(f); f.connect(g); g.connect(c.destination); s.start(); AU.rain={s,g}; }
   AU.rain.g.gain.setTargetAtTime(vol,c.currentTime,.6); }
 function thunder(vol){ const c=ac(); if(!c) return; const t=c.currentTime, s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(); s.buffer=noiseBuf(c,3);
   f.type='lowpass'; f.frequency.setValueAtTime(900,t); f.frequency.exponentialRampToValueAtTime(90,t+2.6); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.08);
   g.gain.setTargetAtTime(vol*.5,t+.3,.25); g.gain.exponentialRampToValueAtTime(.0001,t+2.9); s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t+3); }
-function flutter(vol){ const c=ac(); if(!c) return; const t=c.currentTime; for(let i=0;i<5;i++){ const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(), at=t+i*.045+Math.random()*.02;
-    s.buffer=noiseBuf(c,.06); f.type='bandpass'; f.frequency.value=1400+Math.random()*900; f.Q.value=1.2; g.gain.setValueAtTime(vol,at); g.gain.exponentialRampToValueAtTime(.0001,at+.05); s.connect(f); f.connect(g); g.connect(c.destination); s.start(at); s.stop(at+.07); } }
+function flutter(vol){ const c=ac(); if(!c) return; const t=c.currentTime; for(let i=0;i<3;i++){ const s=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain(), at=t+i*.05+Math.random()*.02;
+    s.buffer=noiseBuf(c,.06); f.type='bandpass'; f.frequency.value=700+Math.random()*400; f.Q.value=.9; g.gain.setValueAtTime(vol,at); g.gain.exponentialRampToValueAtTime(.0001,at+.05); s.connect(f); f.connect(g); g.connect(c.destination); s.start(at); s.stop(at+.07); } }
 function chirp(vol){ const c=ac(); if(!c) return; const t=c.currentTime, o=c.createOscillator(), g=c.createGain(), f0=2600+Math.random()*1400; o.type='sine';
   o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f0*1.35,t+.05); o.frequency.exponentialRampToValueAtTime(f0*.9,t+.11);
   g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+.13); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.15); }
@@ -68,7 +68,7 @@ function update(dt,st){ if(st.key!==key) reset(st); W=weather(st.now,st.city,st.
       let near=Math.hypot(b.x-st.px,b.y-st.py)<scare; if(!near&&st.others) for(const o of st.others) if(Math.hypot(b.x-o.x,b.y-o.y)<34){ near=true; break; }
       if(near||W.rain>.35||night){ const fid=b.fid; let n=0; for(const c of birds) if(c.fid===fid&&c.st==='peck'){ const a=Math.atan2(c.y-st.py,c.x-st.px)+(rnd()-.5)*.9, sp=70+rnd()*50;
           c.st='fly'; c.vx=Math.cos(a)*sp; c.vy=Math.sin(a)*sp*.6-12; c.vz=55+rnd()*30; c.face=c.vx>0?1:-1; c.d=rnd()*.18; n++; }
-        if(n&&!st.muted) flutter(.05); } continue; }
+        if(n&&!st.muted) flutter(.02); } continue; }
     if(b.st==='fly'){ if(b.d>0){ b.d-=dt; continue; } b.x+=b.vx*dt; b.y+=b.vy*dt; b.z+=b.vz*dt; b.vz=Math.max(22,b.vz-30*dt); } }
   birds=birds.filter(b=>b.st!=='fly'||(b.z<260&&b.x>x0-200&&b.x<x1+200&&b.y>y0-260&&b.y<y1+200));
   if(out&&!night&&!st.muted&&birds.some(b=>b.st==='peck')&&(chirpT-=dt)<=0){ chirpT=1.5+rnd()*4; chirp(.018); }
@@ -97,7 +97,7 @@ function update(dt,st){ if(st.key!==key) reset(st); W=weather(st.now,st.city,st.
   boltFlash=Math.max(0,boltFlash-dt*2.6);
   if(W.storm&&(boltT-=dt)<=0){ boltT=9+rnd()*16; if(out) boltFlash=.55+rnd()*.3; thunderAt=st.now+500+rnd()*1600; }
   if(thunderAt&&st.now>=thunderAt){ thunderAt=0; if(!st.muted) thunder(out?.32:.16); }
-  if(!st.muted&&W.rain>.02){ if(ac()) rainSound(W.rain*(out?.07:.025)); } else if(AU.rain) rainSound(0);
+  if(!st.muted&&W.rain>.02){ if(ac()) rainSound(W.rain*(out?.045:.018)); } else if(AU.rain) rainSound(0);
   // bụi trong vệt nắng trong phòng (ban ngày, trời không mưa)
   const sunny=st.indoor&&st.hf>7&&st.hf<17.3&&W.rain<.3;
   if(sunny&&beams.length&&motes.length<22) motes.push({b:Math.floor(rnd()*beams.length),u:rnd(),v:rnd(),t:0,ph:rnd()*7});

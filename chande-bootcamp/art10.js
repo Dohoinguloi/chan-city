@@ -62,4 +62,16 @@ D.phuong_hoang=P=>legend(P,'#f2a83a','#ffd84a','#c8402a',true); D.than_dieu_bang
 /* Tiểu Thần Cát (thần thoại): mèo hồng bay lơ lửng, đuôi dài */
 D.tieu_than=P=>{ ell(P,13,14,6,5,'#ffb8d8'); ell(P,13,7,6,5,'#ffb8d8'); P.rect(7,1,3,4,'#ffb8d8'); P.rect(16,1,3,4,'#ffb8d8'); eye(P,9,6,'#3a8ad8'); eye(P,14,6,'#3a8ad8'); blush(P,8,9); blush(P,15,9);
   P.rect(9,18,2,3,'#ffb8d8'); P.rect(15,18,2,3,'#ffb8d8'); for(let i=0;i<7;i++) P.rect(18+i,14-Math.round(Math.sin(i*.7)*4),2,2,'#ffb8d8'); P.rect(25,9,3,3,'#ffb8d8'); for(const [x,y] of [[3,20],[22,22],[6,24]]) P.px(x,y,'#e8f4ff'); };
+/* dạng 3 mới (tiến hoá cấp 25): Chuột Vương, Mãng Xà Vương, Dạ Dơi Vương, Hải Long Vương — to hơn, đội vương miện vàng */
+const crown=(P,x,y,w)=>{ P.rect(x,y+1,w,2,'#ffd84a'); for(let i=0;i<w;i+=Math.max(2,Math.floor((w-1)/2))) P.px(x+i,y,'#ffd84a'); P.px(x+Math.floor(w/2),y+1,'#e8302a'); };
+D.chuot_vuong=P=>{ ell(P,10,18,7,6,'#b8282a'); ell(P,16,19,9,7,'#a8743e'); ell(P,14,21,5,5,'#f4e0b8'); ell(P,8,12,6,5,'#a8743e'); P.rect(2,5,5,5,'#a8743e'); P.rect(3,6,3,3,'#f4b8c8'); P.rect(11,5,5,5,'#a8743e'); P.rect(12,6,3,3,'#f4b8c8');
+  eye(P,5,11,'#e8302a'); eye(P,10,11,'#e8302a'); P.rect(5,15,4,3,WH); P.px(7,15,K); crown(P,5,1,8); for(const y of [13,15]){ P.rect(0,y,3,1,K); P.rect(14,y,3,1,K); }
+  P.rect(24,16,3,2,'#8a5a32'); P.rect(26,11,2,5,'#8a5a32'); P.rect(9,25,4,3,'#6a4228'); P.rect(18,25,4,3,'#6a4228'); };
+D.mang_xa=P=>{ ell(P,14,24,11,3,'#5a2a90'); ell(P,14,21,8,3,'#6a3aa0'); P.rect(11,9,6,13,'#7a3ab0'); ell(P,14,10,11,7,'#6a2aa0'); ell(P,14,11,6,5,'#d8b0f0');
+  for(const [x,y] of [[5,8],[22,8],[4,12],[23,12],[7,15],[20,15]]) P.rect(x,y,2,2,'#ffd84a'); P.rect(11,8,2,2,'#ff3a3a'); P.rect(16,8,2,2,'#ff3a3a'); P.rect(12,12,5,1,K); P.rect(12,13,1,2,WH); P.rect(16,13,1,2,WH); P.rect(13,14,2,3,'#e8302a'); crown(P,10,0,9); };
+D.da_doi=P=>{ wing(P,5,12,6,8,'#4a1a78','#2e0e52'); wing(P,23,12,6,8,'#4a1a78','#2e0e52'); for(const x of [1,4,23,26]) P.rect(x,19,1,3,'#2e0e52'); ell(P,5,13,3,5,'#8a1a3a'); ell(P,23,13,3,5,'#8a1a3a');
+  ell(P,14,14,7,8,'#5a2a98'); P.rect(9,2,3,6,'#5a2a98'); P.rect(16,2,3,6,'#5a2a98'); P.px(10,1,'#5a2a98'); P.px(17,1,'#5a2a98'); eye(P,10,10,'#ff3a3a'); eye(P,16,10,'#ff3a3a');
+  P.rect(10,15,8,4,'#1a0820'); P.rect(11,15,2,3,WH); P.rect(15,15,2,3,WH); P.rect(11,22,2,5,'#2e0e52'); P.rect(15,22,2,5,'#2e0e52'); };
+D.hai_long=P=>{ for(let i=0;i<7;i++){ const x=7+i*3, y=24-Math.round(Math.sin(i*.9)*3); ell(P,x,y,3,3,i%2?'#2a6ad8':'#3a7ae8'); P.px(x,y+2,'#f4e8b0'); } for(const x of [10,16,22]) P.rect(x,18,2,3,'#7fd8ff');
+  ell(P,9,12,6,6,'#3a7ae8'); ell(P,7,15,4,3,'#f4e8b0'); eye(P,8,10,'#ffd84a'); P.rect(3,15,4,2,WH); P.rect(4,17,3,1,K); P.rect(0,12,4,1,'#f2c43d'); P.rect(0,14,3,1,'#f2c43d'); crown(P,6,3,7); P.rect(14,6,2,6,'#7fd8ff'); P.rect(16,8,2,4,'#7fd8ff'); };
 })();

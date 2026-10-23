@@ -3,7 +3,7 @@
 (function(){
 const SD=SHARED, A=ART, T=A.T, X=window.MAPX, L=SD.LINHCAT, SP=SD.LC_SPECIES, MV=SD.LC_MOVES, TY=SD.LC_TYPES;
 const G=()=>GAME.G, esc=s=>GAME.esc(s), fmt=SD.fmt, $=s=>document.querySelector(s), btn=(...a)=>UI.btn(...a), toast=(h,k)=>GAME.toast(h,k), sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const lc=()=>G().lc||{party:[],box:[],dex:{},gone:{}}, trained=()=>!!(G().skills||{}).linhcat, nm=m=>esc(m.nick||SP[m.sp].name), maxHp=m=>SD.lcStats(m.sp,m.lv).hp, cnt=k=>(G().items||{})[k]||0;
+const lc=()=>G().lc||{party:[],box:[],dex:{},gone:{}}, trained=()=>!!(G().skills||{}).linhcat, nm=m=>esc(m.nick||SP[m.sp].name), maxHp=m=>SD.lcStatsOf(m).hp, cnt=k=>(G().items||{})[k]||0;
 const URL_=new Map(), img=(sp,size=48)=>{ const k=sp+'|'+size; if(!URL_.has(k)){ const c=document.createElement('canvas'); c.width=c.height=size; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(A.linhcat(sp).c,0,0,size,size); URL_.set(k,c.toDataURL()); } return `<img class="lcimg" src="${URL_.get(k)}" width="${size}" height="${size}" alt="">`; };
 const chip=t=>`<span class="lct" style="background:${TY[t].col}">${TY[t].name}</span>`;
 const bar=(v,max,col)=>`<span class="lcbar"><i style="width:${Math.max(0,Math.min(100,Math.round(100*v/max)))}%;background:${col||(v/max>.5?'#5fe06a':v/max>.2?'#ffd84a':'#ff4a3a')}"></i></span>`;
@@ -12,12 +12,12 @@ const effOf=(mt,dt)=>((SD.LC_EFF[mt]||{})[dt]??1);
 const typeChart=()=>`<div class="lcchart">${Object.keys(TY).map(t=>{ const E=SD.LC_EFF[t]||{}, s=Object.keys(E).filter(k=>E[k]>1), w=Object.keys(E).filter(k=>E[k]<1&&E[k]>0), z=Object.keys(E).filter(k=>E[k]===0);
   return `<div>${chip(t)} <small>${s.length?'mạnh với '+s.map(k=>TY[k].name).join(', '):''}${w.length?` · yếu với ${w.map(k=>TY[k].name).join(', ')}`:''}${z.length?` · vô dụng với ${z.map(k=>TY[k].name).join(', ')}`:''}</small></div>`; }).join('')}</div>`;
 const req=async m=>{ const r=await NET.req(m); if(r.err) toast(esc(r.err),'lock'); return r; };
-const monRow=(m,extra='')=>`<div class="row lcrow">${img(m.sp,44)}<span><b>${nm(m)}</b> Lv${m.lv} ${chip(SP[m.sp].t)}<br>${bar(m.hp,maxHp(m))} <small>${m.hp}/${maxHp(m)} máu · EXP ${m.exp}/${SD.lcNext(m.lv)}</small><br><small class="muted">${SD.lcMoves(m.sp,m.lv).map(k=>MV[k].name).join(' · ')}</small></span><span class="lcbtns">${extra}</span></div>`;
+const monRow=(m,extra='')=>`<div class="row lcrow">${img(m.sp,44)}<span><b>${m.myth?'<span class="good">★</span> ':''}${nm(m)}</b> Lv${m.lv}${m.enh?` <span class="enlv">+${m.enh}</span>`:''} ${chip(SP[m.sp].t)}<br>${bar(m.hp,maxHp(m))} <small>${m.hp}/${maxHp(m)} máu · EXP ${m.exp}/${SD.lcNext(m.lv)}</small><br><small class="muted">${SD.lcMoves(m.sp,m.lv).map(k=>MV[k].name).join(' · ')}</small></span><span class="lcbtns">${extra}</span></div>`;
 
 /* ---------- Trung tâm: y tá, Giáo sư, bàn khởi đầu, máy gửi giữ, kệ hàng ---------- */
 X.lc=async(op)=>{ if(op==='nurse') return UI.place('lcyta',{id:'yta_cat'}); if(op==='box') return UI.lcBox(); if(op==='shop') return UI.lcShop();
   if(op==='starter'){ if(!trained()) return toast('Học <b>Huấn luyện Lính Cát</b> với Giáo sư Cát trước đã (góc trái)','quest'); const r=lc(); if(r.party.length||r.box.length) return toast('Bạn đã nhận Lính Cát khởi đầu rồi','lock'); return UI.lcStarter(); } };
-UI.defPlace('lcyta',()=>UI.open('Chị Y tá Cát · quầy hồi máu',()=>{ const r=lc(); return `<p>"Chào mừng tới Trung tâm Lính Cát! Chị chăm các bé miễn phí nhé."</p>${r.party.length?r.party.map(m=>monRow(m)).join(''):'<p class="muted">Bạn chưa có Lính Cát nào.</p>'}${r.party.length?btn('lcheal','💗 Hồi máu cả đội',{},'pri'):''}`; }));
+UI.defPlace('lcyta',()=>UI.open('Chị Y tá Cát · quầy hồi máu',()=>{ const r=lc(), fee=SD.lcHealFee(r.party); return `<p>"Chào mừng tới Trung tâm Lính Cát! Hồi máu cả đội tính theo tổng cấp các bé nhé."</p>${r.party.length?r.party.map(m=>monRow(m)).join(''):'<p class="muted">Bạn chưa có Lính Cát nào.</p>'}${r.party.length?btn('lcheal',`💗 Hồi máu cả đội · ${fmt(fee)}`,{},'pri'):''}`; }));
 UI.onAct('lcheal',async()=>{ const r=await req({t:'lc',op:'heal'}); if(!r.err){ GAME.sfx('power_up',.5); toast(esc(r.msg),'item'); } UI.refresh(); });
 UI.defPlace('lcgs',()=>UI.open('Giáo sư Cát',()=>{ const r=lc(), dex=r.dex||{}, wild=Object.keys(SP).filter(k=>!SP[k].npc), caught=wild.filter(k=>dex[k]===2).length, seen=wild.filter(k=>dex[k]).length;
   if(!trained()) return `<p>"Chào cháu! Ta là Giáo sư Cát. Lính Cát là những sinh vật sống quanh Ké: ngoài bãi cỏ, ven rừng, ban đêm còn có cả Lính Cát hệ Ma."</p>
@@ -36,6 +36,7 @@ UI.lcStarter=()=>UI.open('Chọn Lính Cát khởi đầu',()=>`<p>"Ba Bóng Cá
 UI.onAct('lcpick',async d=>{ const r=await req({t:'lc',op:'starter',k:d.k}); if(r.err) return; UI.closeAll(); GAME.sfx('level_up',.7); GAME.bigText(SP[d.k].name.toUpperCase()+'!'); toast(esc(r.msg),'quest'); });
 UI.lcBox=()=>UI.open('Máy gửi giữ Lính Cát',()=>{ const r=lc(); return `<h5>Đang mang theo (${r.party.length}/${L.party})</h5>${r.party.map(m=>monRow(m,r.party.length>1?btn('lcdep','Gửi',{u:m.u}):'')).join('')||'<p class="muted">Trống</p>'}
   <h5>Trong máy (${r.box.length}/${L.box})</h5>${r.box.map(m=>monRow(m,btn('lcwd','Mang theo',{u:m.u},r.party.length<L.party?'pri':''))).join('')||'<p class="muted">Chưa gửi con nào. Gửi vào máy thì được hồi máu đầy.</p>'}`; },{wide:true});
+UI.onAct('lcboxgo',()=>UI.lcBox());
 UI.onAct('lcdep',async d=>{ await req({t:'lc',op:'deposit',u:+d.u}); UI.refresh(); }); UI.onAct('lcwd',async d=>{ await req({t:'lc',op:'withdraw',u:+d.u}); UI.refresh(); });
 UI.lcShop=()=>UI.open('Kệ hàng Trung tâm Lính Cát',()=>`<div class="list">${Object.entries(L.shop).map(([k,v])=>`<div class="row">${UI.ico(SD.ITEMS[k].icon||k)}<span><b>${esc(SD.ITEMS[k].name)}</b> <small class="muted">· đang có ${cnt(k)}${k==='bong_vang'?' · bắt dễ gấp 1,8':k==='thuoc_cat'?` · hồi ${L.potion} máu`:k.startsWith('da_')?' · cho Cát Con tiến hoá':''}</small></span><span>${fmt(v)}</span>${btn('lcbuy','Mua 1',{k,n:1})}${k.startsWith('bong')||k==='thuoc_cat'?btn('lcbuy','Mua 5',{k,n:5}):''}</div>`).join('')}</div>`,{wide:true});
 UI.onAct('lcbuy',async d=>{ const r=await req({t:'lc',op:'buy',k:d.k,n:+d.n}); if(!r.err){ GAME.sfx('coin',.5); toast(esc(r.msg),'item'); } UI.refresh(); });
@@ -45,8 +46,17 @@ UI.lcParty=()=>UI.open('🐾 Đội Lính Cát',()=>{ const r=lc();
   if(!trained()) return `<p>Chưa biết huấn luyện Lính Cát. Tới <b>Trung tâm Lính Cát</b> ở thị trấn Đà Bắc (phía Đông chợ, toà mái đỏ) học với Giáo sư Cát, rồi chọn 1 con khởi đầu.</p>${btn('lcgo','➜ Chỉ đường tới Trung tâm',{},'go')}`;
   if(!r.party.length) return `<p>Chưa có Lính Cát nào. Ra bàn 3 Bóng Cát trong Trung tâm chọn con khởi đầu nhé.</p>${btn('lcgo','➜ Chỉ đường tới Trung tâm',{},'go')}`;
   return `<p class="muted">Con đứng đầu đội sẽ ra sân trước và đi theo bạn. Bóng Cát: <b>${cnt('bong_cat')}</b> · Bóng Vàng: <b>${cnt('bong_vang')}</b> · Thuốc: <b>${cnt('thuoc_cat')}</b></p>
-    ${r.party.map((m,i)=>monRow(m,(i?btn('lclead','Lên đầu đội',{u:m.u}):'<small class="good">Đầu đội</small>')+(cnt('thuoc_cat')&&m.hp<maxHp(m)?btn('lcpot','Cho uống thuốc',{u:m.u}):''))).join('')}
+    ${r.party.map((m,i)=>monRow(m,(i?btn('lclead','Lên đầu đội',{u:m.u}):'<small class="good">Đầu đội</small>')+(cnt('thuoc_cat')&&m.hp<maxHp(m)?btn('lcpot','Cho uống thuốc',{u:m.u}):'')+lvBtns(m))).join('')}
+    <h5>📦 Trong máy gửi giữ (${(r.box||[]).length}/${L.box})</h5>${(r.box||[]).map(m=>monRow(m,'')).join('')||'<p class="muted">Chưa có con nào. Đội đủ 5 con thì con mới bắt được tự gửi vào máy.</p>'}
+    ${(r.box||[]).length?`<p class="muted">Muốn mang con trong máy theo: tới máy gửi giữ ở Trung tâm Lính Cát (thị trấn Đà Bắc hoặc quảng trường MU) bấm "Mang theo".</p>${btn('lcboxgo','📦 Mở máy gửi giữ')}`:''}
+    <p class="muted">📖 Sách Kinh Nghiệm (+1 / +5 cấp) mua ở kệ hàng Trung tâm. 💎 Ngọc Cường Hoá cho Lính Cát ăn: +1 → +12, mỗi cấp +${Math.round(L.enh.per*100)}% mọi chỉ số (tỉ lệ như khắc đồ, thất bại mất ngọc). 🌟 Đền Lính Cát Huyền Thoại ở MU.</p>
     <p class="muted">Ra bãi cỏ quanh Ké tìm Lính Cát hoang (bấm E để đấu). Vật nuôi thả rông cạnh sân Ké cũng đấu được. Thú ở vườn quốc gia là thú bảo tồn: đấu xong dễ bị công an bắt!</p>`; },{wide:true});
+// nút đọc sách / ăn ngọc trên mỗi con
+const lvBtns=m=>{ const E=SD.ENH, L0=m.enh||0; return (cnt('sach_kn')&&m.lv<50?btn('lcbook',`📖 +1 cấp (${cnt('sach_kn')})`,{u:m.u,k:'sach_kn'}):'')+(cnt('sach_kn5')&&m.lv<50?btn('lcbook',`📗 +5 cấp (${cnt('sach_kn5')})`,{u:m.u,k:'sach_kn5'}):'')
+  +(L0<E.max&&cnt('ngoc_ch')?btn('lcgem',`💎 Ăn ngọc +${L0+1} (${Math.round(E.rate[L0]*100)}%)`,{u:m.u}):'')+(L0<E.max&&cnt('ngoc_ch_ht')?btn('lcgem','💠 Ngọc HT 80%',{u:m.u,legend:1}):''); };
+UI.onAct('lcbook',async d=>{ const r=await req({t:'lc',op:'book',u:+d.u,k:d.k}); if(!r.err){ GAME.sfx('level_up',.6); if(r.evo) GAME.bigText('TIẾN HOÁ!'); toast(esc(r.msg),'item'); } UI.refresh(); });
+UI.onAct('lcgem',async d=>{ if(!cnt(d.legend?'ngoc_ch_ht':'ngoc_ch')){ if(window.MU9) window.MU9.lack(d.legend?'ngoc_ch_ht':'ngoc_ch'); return; } const r=await req({t:'lc',op:'gem',u:+d.u,legend:d.legend?1:0}); if(r.err) return;
+  GAME.sfx(r.ok?'level_up':'poof',.8); if(window.MU9) window.MU9.result(r,r.name); else toast(esc(r.msg),r.ok?'item':'lock'); UI.refresh(); });
 UI.onAct('lclead',async d=>{ await req({t:'lc',op:'lead',u:+d.u}); UI.refresh(); }); UI.onAct('lcpot',async d=>{ const r=await req({t:'lc',op:'potion',u:+d.u}); if(!r.err) toast(esc(r.msg),'item'); UI.refresh(); });
 UI.onAct('lcgo',()=>{ UI.closeAll(); const S=GAME.S; if(S.kind==='linhcat') return toast('Bạn đang ở trong Trung tâm rồi','item'); if(S.kind!=='retreat'){ toast('Trung tâm Lính Cát ở thị trấn Đà Bắc (Ké): bấm G gọi Grab về Ké','quest'); return UI.grab(); } GAME.walkTo(L.door.x,L.door.y,'Trung tâm Lính Cát'); });
 setTimeout(()=>{ const b=$('#btnLc'); if(b) b.addEventListener('click',e=>{ e.currentTarget.blur(); if(GAME.S) UI.lcParty(); }); },0);
@@ -69,12 +79,15 @@ const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); const S=GAME.S, P=GAME.P; if
     for(const w of wildNow()){ const x=w.x*T, y=w.y*T; if(!inV(x,y)) continue; const fr=Math.floor(clock*2+w.i)%2, sp=A.linhcat(w.sp,fr,Math.sin(clock*.5+w.i)>0);
       list.push({y,d:()=>{ GAME.shadow(x,y,8); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }
     if(S.kind==='retreat') L.farm.forEach((f,i)=>{ const [fx,fy]=farmPos(f,i,clock), x=fx*T, y=fy*T; if(!inV(x,y)) return; const sp=A.linhcat(f[2],Math.floor(clock*2+i)%2,Math.cos(clock*.4+i*2)>0); list.push({y,d:()=>{ GAME.shadow(x,y,9); ctx.drawImage(sp.c,Math.round(x-sp.ax-cam.x),Math.round(y-sp.ay-cam.y)); }}); }); }
-  // con đầu đội đi theo người (không theo khi đang đi xe / chèo kayak)
-  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.riding||P.opt||['phongbay','track','deo'].includes(S.kind)){ FOL=null; return; }   // đang cưỡi / đi xe / đua ngựa / bốc đầu ở đèo thì không đi theo
-  const tx=P.x-(P.face||1)*20, ty=P.y+3; if(!FOL||FOL.sp!==lead.sp||FOL.scene!==S.kind||Math.hypot(FOL.x-tx,FOL.y-ty)>200) FOL={sp:lead.sp,x:tx,y:ty,scene:S.kind,face:1};
+  // con đầu đội đi theo người, cả khi cưỡi ngựa / thần thú (chạy sau đuôi ngựa); không theo khi đi xe / chèo kayak / đua ngựa / bốc đầu ở đèo
+  const lead=(lc().party||[])[0]; if(!lead||lead.hp<=0||P.kayak||P.moto||P.incar||P.pcar||P.opt||['phongbay','track','deo'].includes(S.kind)){ FOL=null; return; }
+  const tx=P.x-(P.face||1)*(P.riding?34:20), ty=P.y+3; if(!FOL||FOL.sp!==lead.sp||FOL.scene!==S.kind||Math.hypot(FOL.x-tx,FOL.y-ty)>200) FOL={sp:lead.sp,x:tx,y:ty,scene:S.kind,face:1};
   const dx=tx-FOL.x, dy=ty-FOL.y, dd=Math.hypot(dx,dy); if(dd>4){ const k=Math.min(1,dt*5); FOL.x+=dx*k; FOL.y+=dy*k; if(Math.abs(dx)>1) FOL.face=dx>0?1:-1; }
   const moving=dd>6, fr=Math.floor(clock*(moving?6:2))%2, sp=A.linhcat(FOL.sp,fr,FOL.face>0), fx=FOL.x, fy=FOL.y;
-  list.push({y:fy,d:()=>{ GAME.shadow(fx,fy,7); ctx.drawImage(sp.c,Math.round(fx-sp.ax-cam.x),Math.round(fy-sp.ay-cam.y-(moving&&fr?1:0))); }}); };
+  // dạng huyền thoại: hào quang vàng dưới chân + 3 đốm lấp lánh quanh người
+  const myth=!!lead.myth, glow=()=>{ const X0=Math.round(fx-cam.x), Y0=Math.round(fy-cam.y)-9, gr=ctx.createRadialGradient(X0,Y0,1,X0,Y0,15); gr.addColorStop(0,'rgba(255,236,140,.55)'); gr.addColorStop(1,'rgba(255,200,60,0)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(X0,Y0,15,0,7); ctx.fill(); ctx.fillStyle='#fff3b0'; for(let i=0;i<3;i++){ const a=clock*2.2+i*2.09, tw=Math.sin(clock*6+i*1.7)>.2; if(tw) ctx.fillRect(Math.round(X0+Math.cos(a)*11),Math.round(Y0+Math.sin(a)*7),1,1); } };
+  list.push({y:fy,d:()=>{ GAME.shadow(fx,fy,7); if(myth) glow(); ctx.drawImage(sp.c,Math.round(fx-sp.ax-cam.x),Math.round(fy-sp.ay-cam.y-(moving&&fr?1:0))); }}); };
 
 // nhãn "Lv cấp + tên" của con hoang ở gần: vẽ ở lớp giao diện cho chữ nét
 const o0=X.overlay; X.overlay=(ug,sx,sy,tag)=>{ if(o0) o0(ug,sx,sy,tag); const S=GAME.S, P=GAME.P; if(!S||!P||BT) return; ug.font='14px VT323, monospace'; ug.textAlign='center'; ug.textBaseline='bottom';

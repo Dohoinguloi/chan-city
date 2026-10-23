@@ -2,6 +2,7 @@
 // hoạt động trong phòng, chụp ảnh sống ảo, câu cá, kayak, việc của cô Ké, học kỹ năng, chợ online.
 'use strict';
 const C=require('./core'), W=require('./world');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take,give,has,addItem,players,byUid,kindOf,sceneOf,refreshInfo,broadcastNear}=C;
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
@@ -35,7 +36,9 @@ on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Khô
     for(const [k,n] of Object.entries(q.need||{})) addItem(pl,k,-n);
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
     if(q.cloth&&S.CLOTHES[q.cloth]){ p.owned[q.cloth]=1; C.note(pl,`Nhận trang phục ${S.CLOTHES[q.cloth].name}! Mở Tủ đồ (U) để mặc`,'item'); }   // nhiệm vụ thưởng trang phục
-    p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title); markDirty(pl); return {}; }
+    p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title);
+    if(q.secret){ addItem(pl,'ngoc_ch',1); C.note(pl,'🔮 Nhiệm vụ ẩn tặng thêm 1 Ngọc Cường Hoá (khắc lỗ ở Phù Thuỷ Cường Hoá, MU)','item'); }   /* nhiệm vụ ẩn ở mọi map rơi ngọc cường hoá */
+    markDirty(pl); return {}; }
   return {err:'?'}; });
 // hết pin ở ngoài (không gọi được Grab về phòng): xin cắm sạc nhờ người gần đó: chủ quán, nhân viên, người quen. Map không có ai thì nhờ người qua đường
 const STORY_NAME={phap:'Pháp',phule:'Phú Lê',donche:'Đôn Chề',khabanh:'Khá Bảnh',kenny:'Kenny Ho',huyphan:'Huy Phan'};
@@ -94,7 +97,7 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
     meal=slot; }
   const cdMin=f.meal?0:f.buff?f.buff.min:S.RULES.foodCd, t=now(); p.foodCd=p.foodCd||{};
   if(cdMin&&p.foodCd[m.id]>t) return {err:`Vừa ${f.buff?'uống':'ăn'} rồi, ${Math.ceil((p.foodCd[m.id]-t)/60e3)} phút nữa mới mua lại được`};
-  if(!take(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
+  if(!shopPay(pl,f.price)) return {err:`Món này ${fmt(f.price)}, không đủ tiền`};
   if(cdMin){ p.foodCd[m.id]=t+cdMin*60e3; for(const k in p.foodCd) if(p.foodCd[k]<t) delete p.foodCd[k]; }
   if(meal){ const d=today(); if(p.meals.day!==d) p.meals={day:d,eaten:{}}; if(!p.meals.eaten[meal.id]) C.track(pl,'meal'); p.meals.eaten[meal.id]=true; }
   if(f.buff) p.buff={mul:f.buff.mul,until:now()+f.buff.min*60e3};
@@ -106,8 +109,8 @@ on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc
   markDirty(pl); return {meal:meal&&meal.id,exp:r.exp}; });
 
 /* ---------- shop quần áo ---------- */
-on('buy',(pl,m)=>{ const it=Object.hasOwn(S.CLOTHES,m.id)&&S.CLOTHES[m.id], p=pl.prof; if(!it||it.hidden) return {err:'Không có món này'};   // đồ ẩn (thưởng nhiệm vụ, set MU, đồ riêng) không bán ở shop if(pl.scene!=='quanao') return {err:'Vào Shop Chande để mua'};
-  if(p.owned[m.id]) return {err:'Đã có rồi'}; if(!take(pl,it.price)) return {err:`${it.name} giá ${fmt(it.price)}, không đủ tiền`};
+on('buy',(pl,m)=>{ const it=Object.hasOwn(S.CLOTHES,m.id)&&S.CLOTHES[m.id], p=pl.prof; if(!it||it.hidden) return {err:'Không có món này'}; if(pl.scene!=='quanao') return {err:'Vào Shop Chande để mua'};   // đồ ẩn (thưởng nhiệm vụ, set MU, đồ riêng) không bán ở shop
+  if(p.owned[m.id]) return {err:'Đã có rồi'}; if(!shopPay(pl,it.price)) return {err:`${it.name} giá ${fmt(it.price)}, không đủ tiền`};
   p.owned[m.id]=1; markDirty(pl); return {}; });
 on('equip',(pl,m)=>{ const p=pl.prof, slot=String(m.slot||''); if(!S.SLOTS.some(s=>s[0]===slot)) return {err:'?'};
   if(m.id){ const it=S.CLOTHES[m.id]; if(!it||it.slot!==slot||!p.owned[m.id]) return {err:'Chưa có món này'}; p.look.outfit[slot]=m.id; }
@@ -162,15 +165,17 @@ hook('leave',(pl,old,to)=>{ if(old==='stay:'+pl.uid&&to!==old) for(const q of [.
 
 /* ---------- hoạt động trong phòng ---------- */
 // phòng đang đứng: tro (nhà Hà Nội) hoặc phòng thuê; guest: đang ở phòng người khác
-function roomCtx(pl){ const k=kindOf(pl.scene);
-  if(k==='room') return {room:S.ROOMS.tro,own:true};
+function roomCtx(pl,m){ const k=kindOf(pl.scene);
+  if(k==='room'){ const own=pl.scene==='room:'+pl.uid; if(!own) return {room:S.ROOMS.tro,own,allowed:false};   /* khách được mời về nhà (haosang.js) không dùng đồ của chủ */
+    const h=pl.prof.home, cz=S.homeCozy(h), tub=!!(m&&m.bath&&h&&h.items.some(o=>o.k==='bon_tam'));   /* nhà riêng: ấm cúng → ngủ hồi thêm năng lượng + buff EXP; có bồn tắm thì ngâm bồn */
+    return {room:{...S.ROOMS.tro,rest:S.ROOMS.tro.rest+Math.floor(cz/5),buff:S.homeBuff(cz)||undefined,bath:tub?'bontam':S.ROOMS.tro.bath},own,allowed:own}; }
   if(k==='stay'){ const own=pl.scene==='stay:'+pl.uid, hostUid=pl.scene.slice(5), p=pl.prof;
     return {room:S.ROOMS[pl.stayType],own,allowed:own||(p.sleep&&p.sleep.day===today()&&p.sleep.host===hostUid)}; }
   return null; }
 on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, n=p.needs; if(!def) return {err:'?'};
   if(act==='tam'&&m.where==='chung'){ if(!inRetreat(pl)||!near(pl,S.BATHHOUSE.x,S.BATHHOUSE.y,44)) return {err:'Lại nhà tắm chung'};
     return startTask(pl,'tam',def.dur,()=>{ n.clean=100; markDirty(pl); return {msg:'Tắm xong, thơm tho'}; },{anim:'shower',name:'Tắm ở nhà tắm chung'}); }
-  const c=roomCtx(pl); if(!c) return {err:'Vào phòng đã'};
+  const c=roomCtx(pl,m); if(!c) return {err:'Vào phòng đã'};
   if(def.host&&!c.own&&!c.allowed) return {err:'Phòng người ta, xin ngủ lại đã'};
   const r=c.room;
   if(act==='tam'){ if(r.bath==='chung') return {err:'Lều không có chỗ tắm, ra nhà tắm chung cạnh khu cắm trại'};
@@ -221,7 +226,7 @@ on('pee',pl=>{ if(!inPool(pl)) return {err:'Phải đang ở trong bể bơi'}; 
   PEES.set(id,{id,from:pl,at:t,wit:new Set(wit.map(q=>q.pid)),done:false}); for(const q of wit) send(q,{t:'peeSeen',id,name:pl.prof.name});
   broadcastNear(pl,{t:'ev',k:'pee',id:pl.pid},300); stat(pl,'pee',1); return {seen:wit.length,clean:pl.prof.needs.clean}; });
 on('report',(pl,m)=>{ const e=PEES.get(m.id|0); if(!e||e.done||!e.wit.has(pl.pid)) return {err:'Không báo được nữa'}; if(now()-e.at>S.POOL.pee.window*1000) return {err:'Lâu quá rồi, chủ homestay không tin'};
-  e.done=true; const v=Math.min(e.from.prof.money,S.POOL.pee.fine); if(players.has(e.from.pid)){ take(e.from,v); note(e.from,`${pl.prof.name} báo chủ homestay: bạn bị phạt ${fmt(v)} vì tè vào bể bơi!`,'lock'); }
+  e.done=true; const v=Math.min(e.from.prof.money,C.fineOf(e.from,S.POOL.pee.fine)); if(players.has(e.from.pid)){ take(e.from,v); note(e.from,`${pl.prof.name} báo chủ homestay: bạn bị phạt ${fmt(v)} vì tè vào bể bơi!`,'lock'); }
   return {msg:`Chủ homestay đã phạt ${e.from.prof.name} ${fmt(v)}`}; });
 hook('slow',()=>{ const t=now(); for(const [id,e] of PEES) if(t-e.at>S.POOL.pee.window*1000+5000) PEES.delete(id); for(const pl of players.values()) if(pl.prof.look&&Math.random()<.1) achCheck(pl); });
 on('ach',pl=>({ach:pl.prof.ach||{},stats:pl.prof.stats||{}}));
@@ -236,7 +241,7 @@ on('net',(pl,m)=>{ const B=S.BUTTERFLY, i=m.i|0, sp=B.spots[i], p=pl.prof, t=now
 /* ---------- lọ: về phòng riêng xem phim, ngoài đường là bị phạt ---------- */
 on('lo',(pl,m)=>{ const p=pl.prof, L=S.LO, t=now();
   if(m.op==='start'){ if(p.needs.battery<L.battery) return {err:`Pin dưới ${L.battery}%, sạc điện thoại đã`};
-    const c=roomCtx(pl); if(!(c&&c.own)&&kindOf(pl.scene)!=='room'){ const v=Math.min(p.money,L.fine); take(pl,v); markDirty(pl);
+    const c=roomCtx(pl); if(!(c&&c.own)&&kindOf(pl.scene)!=='room'){ const v=Math.min(p.money,C.fineOf(pl,L.fine)); take(pl,v); markDirty(pl);
       C.broadcastNear(pl,{t:'ev',k:'shame',id:pl.pid,name:p.name},400); return {fined:v,msg:`Bị bắt quả tang làm chuyện đồi bại nơi công cộng! Công an phạt ${fmt(v)}`}; }
     pl.lo={at:t}; p.needs.battery=Math.max(0,p.needs.battery-10); markDirty(pl); return {ok:true}; }
   if(m.op==='end'){ const s=pl.lo; pl.lo=null; if(!s) return {err:'?'}; if(!m.ok) { p.needs.energy=Math.max(0,p.needs.energy-5); markDirty(pl); return {msg:'Chưa tới đâu đã xong... thử lại sau'}; }
@@ -293,12 +298,12 @@ function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||item i
   if(nearNpc(pl,'quancom')) return item in S.FISH; if(nearNpc(pl,'bactrang')) return item in S.SELL; return false; }
 on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items[item]||0,Math.max(1,m.n|0||p.items[item]||0));
   if(!(item in S.SELL)) return {err:'Món này không ai mua'}; if(!buyerOk(pl,item)) return {err:'Người này không mua món đó'}; if(!n) return {err:'Không có'};
-  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))), v=price*n;   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); return {n,vnd:v}; });
+  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))*(1+S.hsBonus(p))), v=price*n;   /* bậc hảo sảng: bán được giá hơn */   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
 // hạt giống: rau Ké ở tiệm cô Ké, cây Đà Lạt ở bác Trang
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};
   if((c.kind==='cay'||c.kind==='caosu'||c.kind==='cafe')&&!pl.prof.skills.lamvuon) return {err:'Chưa học Làm vườn lâu năm (học online bằng laptop ở phòng)'};
-  if(!take(pl,c.seed*n)) return {err:`${n} × ${fmt(c.seed)} = ${fmt(c.seed*n)}, không đủ tiền`}; addItem(pl,'hat_'+m.crop,n); return {n}; });
+  if(!shopPay(pl,c.seed*n)) return {err:`${n} × ${fmt(c.seed)} = ${fmt(c.seed*n)}, không đủ tiền`}; addItem(pl,'hat_'+m.crop,n); return {n}; });
 
 /* ---------- học kỹ năng online (ở phòng) ---------- */
 on('learn',(pl,m)=>{ const c=S.COURSES[m.skill], p=pl.prof; if(!c) return {err:'?'}; if(!W.inOwnRoom(pl)) return {err:'Học bằng laptop ở phòng của bạn'};
@@ -311,7 +316,7 @@ let LIST=db.market();
 const listView=()=>LIST.slice(0,80).map(l=>({id:l.id,s:l.sname,item:l.item,n:l.n,price:l.price,mine:false,seller:l.seller}));
 on('mk',(pl,m)=>{ const p=pl.prof;
   if(m.op==='list') return {list:listView().map(l=>({...l,mine:l.seller===pl.uid,seller:undefined}))};
-  if(!W.inOwnRoom(pl)) return {err:'Mở chợ online bằng laptop ở phòng của bạn'};
+  if(m.op!=='buy'&&!W.inOwnRoom(pl)) return {err:'Đăng bán / gỡ món: mở laptop ở phòng của bạn'};   /* mua thì ở đâu cũng được (nút Cửa hàng online) */
   if(m.op==='sell'){ const item=String(m.item||''), n=Math.max(1,m.n|0), price=Math.round(+m.price||0);
     if(!S.ITEMS[item]||!has(pl,item,n)) return {err:'Không đủ đồ'}; if(price<1000||price>S.MARKET.maxPrice) return {err:'Giá từ 1.000đ'};
     if(LIST.filter(l=>l.seller===pl.uid).length>=S.MARKET.maxListings) return {err:`Tối đa ${S.MARKET.maxListings} món đang bán`};
@@ -327,4 +332,6 @@ on('mk',(pl,m)=>{ const p=pl.prof;
     LIST=db.market(); return {item:l.item,n:l.n}; } });
 hook('login',pl=>{ const ib=pl.prof.inbox; if(ib&&ib.length){ for(const m of ib) note(pl,m,'vnd'); pl.prof.inbox=[]; markDirty(pl); } });
 
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const k of [...STAYS.keys()]) if(gone(k)) STAYS.delete(k); for(const l of db.market()) if(gone(l.seller)) db.delListing(l.id); LIST=db.market(); });   /* phòng thuê, hàng đăng chợ online */
 module.exports={startTask,canFinish,roomCtx,doorOf,nearNpc,rentRoll,jailed,stat,achCheck};

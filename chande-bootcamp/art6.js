@@ -240,7 +240,7 @@ const turtleStele=()=>S(34,40,17,38,(g,P)=>{ P.disc(17,33,10,'#7a8288'); P.rect(
   P.disc(29,34,3,'#8a9298'); P.px(31,33,'#2a2a2a'); P.rect(5,36,4,3,'#6a7278'); P.rect(25,37,4,3,'#6a7278');
   P.rect(10,4,14,26,'#9aa2a8'); P.rect(9,2,16,4,'#8a9298'); P.disc(17,3,4,'#8a9298'); P.rect(10,4,1,26,'#b0b8be'); for(let y=8;y<28;y+=3) for(let x=12;x<23;x+=3) if(hash(x,y,4)<.75) P.rect(x,y,2,1,'#6a7278'); });
 // cổng tam quan: 3 lối, cột trụ, mái cong 2 tầng ở giữa, mái thấp 2 bên, đèn lồng đỏ, hoành phi
-const gate=(fr=0)=>S(164,92,82,88,(g,P)=>{ const R='#a8231c', Wl='#e8dcc0';
+const mieuGate=(fr=0)=>S(164,92,82,88,(g,P)=>{ const R='#a8231c', Wl='#e8dcc0';
   for(const [x,w] of [[4,20],[36,22],[106,22],[140,20]]){ P.rect(x,30,w,58,Wl); P.rect(x,30,w,3,'#f8f0dc'); P.rect(x+w-3,30,3,58,'#c8bca0'); P.rect(x-2,84,w+4,4,'#9aa0a6'); P.rect(x+3,40,w-6,36,'#d8ccb0'); P.rect(x+5,44,w-10,28,R); P.rect(x+7,46,w-14,24,'#c0392b'); for(let y=48;y<68;y+=4) P.rect(x+w/2-1|0,y,2,2,'#e8c25a'); }
   P.rect(24,48,12,40,'#7a8288'); P.rect(128,48,12,40,'#7a8288'); P.rect(58,40,48,8,'#c8a070');
   P.rect(62,50,40,36,'#2a1a14'); P.rect(64,52,36,34,'#4a2a1a');
@@ -311,6 +311,6 @@ const oldIcon6=A.icon; A.icon=function(name,scale=1){ const f=ICONS6[name]; if(!
   if(scale===1) return c; const s=A.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; };
 Object.assign(A,{text3,bearMark,bpNeon,bpDesk,meshChair,moodWall,renderStation,motionDesk,awardShelf,glassWallV,meetTable,bpTV,coffeeBar,bearMascot,bearHead,beanbag,riverWindow,logoRug,
   vnptLogo,vnptCounter,queueBoard,ticketKiosk,waitChairs,simCabinet,serverRack,callDesk,packStand,waterCooler,chargeStation,
-  shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,gate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,stove,
+  shrine,luHuong,offerTable,fortuneTable,banyan,turtleStele,mieuGate,flag5,lotus,foodCart,plasticStool,lowTable,tripodRing,stove,
   pingPong,designShelf,monstera,photoCorner,brochureRack,myTV,poster5G,plumeria,stoneLantern});
 })();

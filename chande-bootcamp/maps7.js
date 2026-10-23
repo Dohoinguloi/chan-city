@@ -30,10 +30,10 @@ const p0=X.pick; X.pick=async x=>{ if(x.k==='dv'){ GAME.sfx('blip',.4); return U
   if(x.k==='dvfig'){ const r=await GAME.act({t:'dv',op:'figma'}); if(r&&!r.err) toast('Mở file Figma, gắn token Zen...','quest'); return; } return p0(x); };
 /* ---------- chỉ đường ---------- */
 const g0=X.go; X.go=id=>{ if(!id.startsWith('dv_')) return g0(id); const S=GAME.S, w=where();
-  const goDv=()=>{ if(S.kind===w.scene) return GAME.walkTo(w.x,w.y+1,'Dương Vũ'); toast(`Dương Vũ đang ở <b>${esc(name(w.scene))}</b> (còn khoảng ${Math.ceil(w.left/60000)} phút): bấm G gọi Grab`,'quest'); UI.grab(); };
+  const goDv=()=>{ if(S.kind===w.scene) return GAME.walkTo(w.x,w.y+1,'Dương Vũ'); toast(`Dương Vũ đang ở <b>${esc(name(w.scene))}</b> (còn khoảng ${Math.ceil(w.left/60000)} phút)`,'quest'); GAME.autoGo(w.scene,()=>GAME.questGo(id)); };   /* tự gọi Grab tới chỗ Dương Vũ */
   if(GAME.canFinish(id)||id==='dv_follow'||id==='dv_quiz') return goDv(),true;
-  if(id==='dv_token'){ const i=D.tokens.findIndex((t,k)=>!(F().tok||{})[k]); if(i<0) return goDv(),true; const [sc,x,y]=D.tokens[i]; if(S.kind===sc) GAME.walkTo(x,y,'Zen Token'); else { toast(`Zen Token tiếp theo ở <b>${esc(name(sc))}</b>: bấm G gọi Grab`,'quest'); UI.grab(); } return true; }
-  if(id==='dv_figma'){ if(D.figma.includes(S.kind)){ const ds=S.kind==='lumen'?SD.LUMEN.desks:S.kind==='lavi'?SD.LAVI.desks:SD.BEARPLUS.desks; GAME.walkTo(ds[0][0],ds[0][1]+.9,'Bàn thiết kế'); } else { toast('Tới <b>Lumen Studio</b>, <b>Lavi Studio</b> hoặc <b>Bearplus</b> ngồi 1 bàn thiết kế: bấm G gọi Grab','quest'); UI.grab(); } return true; }
+  if(id==='dv_token'){ const i=D.tokens.findIndex((t,k)=>!(F().tok||{})[k]); if(i<0) return goDv(),true; const [sc,x,y]=D.tokens[i]; if(S.kind===sc) GAME.walkTo(x,y,'Zen Token'); else GAME.autoGo(sc,()=>GAME.questGo(id)); return true; }
+  if(id==='dv_figma'){ if(D.figma.includes(S.kind)){ const ds=S.kind==='lumen'?SD.LUMEN.desks:S.kind==='lavi'?SD.LAVI.desks:SD.BEARPLUS.desks; GAME.walkTo(ds[0][0],ds[0][1]+.9,'Bàn thiết kế'); } else GAME.autoGo('lumen',()=>GAME.questGo(id)); return true; }
   return goDv(),true; };
 /* ---------- vẽ ---------- */
 let lastLineT=0, line=0;

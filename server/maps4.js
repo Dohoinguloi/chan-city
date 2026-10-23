@@ -22,7 +22,7 @@ on('nm',(pl,m)=>{ const p=pl.prof, N=S.NMOTION, q=pr(p), op=m.op, d=p.daily; if(
   if(op==='game'){ if(!near(pl,N.game.x,N.game.y+.9,44)) return {err:'Ngồi vào góc game'}; if(pl.task) return {err:'Đang làm việc khác'}; if((d.nmgame||0)>=6) return {err:'Chơi nhiều quá rồi, mỏi tay. Mai chơi tiếp'};
     pl.nmFight={at:now()}; return {fight:true,lv:Math.min(2,q.ev_win||0)}; }
   if(op==='gameEnd'){ const f=pl.nmFight; pl.nmFight=null; if(!f) return {err:'Chưa vào trận'}; const el=now()-f.at; if(el<5000||el>180000) return {err:'Ván đấu không hợp lệ'};
-    d.nmgame=(d.nmgame||0)+1; const win=!!m.win, g=C.gainExp(pl,win?25:10); if(win&&active(p,'ev_win')&&(q.ev_win||0)<2) q.ev_win=(q.ev_win||0)+1; markDirty(pl);
+    d.nmgame=(d.nmgame||0)+1; const win=!!m.win; if(win) P.stat(pl,'nmWin',1); const g=C.gainExp(pl,win?25:10); if(win&&active(p,'ev_win')&&(q.ev_win||0)<2) q.ev_win=(q.ev_win||0)+1; markDirty(pl);
     return {win,msg:win?`🏆 Hạ gục Eva! +${g.exp} EXP${active(p,'ev_win')?` (thắng Eva ${Math.min(2,q.ev_win||0)}/2)`:''} · ván ${d.nmgame}/6 hôm nay`:`Eva thắng ván này. +${g.exp} EXP, luyện thêm rồi phục thù! · ván ${d.nmgame}/6 hôm nay`}; }
   if(op==='sauna'){ const Z=N.sauna, x=pl.x/C.T, y=pl.y/C.T; if(x<Z.x0||x>Z.x1+1||y<Z.y0||y>Z.y1+1) return {err:'Vào phòng xông hơi đã'}; if((d.sauna||0)>=N.saunaMax) return {err:`Hôm nay xông ${N.saunaMax} lần rồi, uống nước đi`};
     return P.startTask(pl,'sauna',N.saunaDur,()=>{ d.sauna=(d.sauna||0)+1; p.needs.energy=Math.min(100,p.needs.energy+N.saunaEnergy); p.needs.clean=Math.min(100,p.needs.clean+10);

@@ -39,7 +39,9 @@ function see(pl,k,quiet){ const a=ALBUM_OF[k]; if(!a) return; const p=pl.prof, s
   note(pl,`📖 Sổ sưu tầm · ${z.name}: thêm ${nm} (${have}/${z.items.length})${have===z.items.length?' · ĐỦ BỘ! Mở sổ nhận thưởng':''}`,'quest'); push(pl); }
 hook('item',(pl,k)=>see(pl,k));
 
-hook('login',pl=>{ const p=pl.prof; login(pl,true); dq(pl); for(const k of Object.keys(p.items||{})) see(pl,k,true); for(const k of Object.keys(p.owned||{})) see(pl,k,true); setTimeout(()=>{ if(pl.prof) send(pl,state(pl)); },1200); });
+hook('login',pl=>{ const p=pl.prof; login(pl,true); dq(pl); for(const k of Object.keys(p.items||{})) see(pl,k,true); for(const k of Object.keys(p.owned||{})) see(pl,k,true);
+  // kỷ vật đã trả / dùng mất trước khi có sổ: làm xong Bé Gấu mất đầu = đã có Đầu Bé Gấu, từng được Site of the Day = đã có cúp
+  if(p.quests&&p.quests.bp_head==='done') see(pl,'dau_gau',true); if(p.flags&&p.flags.bpAward==='sotd') see(pl,'cup_sotd',true); setTimeout(()=>{ if(pl.prof) send(pl,state(pl)); },1200); });
 // qua 0h khi đang online: đổi việc mới, mở điểm danh ngày mới
 hook('slow',()=>{ const d=today(); for(const pl of C.players.values()){ if(!pl.prof||pl._dqDay===d) continue; const first=!pl._dqDay; pl._dqDay=d; if(!first){ login(pl,true); push(pl); } } });
 

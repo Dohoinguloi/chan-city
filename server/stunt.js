@@ -26,8 +26,8 @@ function fail(pl,i,why){ const st=pl.stunt, n=pl.prof.needs; st.res[i]='fail';
 function finish(pl){ const st=pl.stunt, p=pl.prof; pl.stunt=null;
   const B=S.BIKES[st.bike], crash=st.falls>=W.maxFalls, risk=Math.max(0,Math.min(W.policeMax,W.policeBase+W.policePer*st.ok+B.police));
   if(st.ok) P.stat(pl,'stunt',st.ok);
-  if(Math.random()<risk){ p.jail={until:now()+W.jail*1000,fine:W.fine}; markDirty(pl); P.stat(pl,'jail',1); moveTo(pl,'doncongan',7,6);
-    note(pl,`Công an! Bị tạm giữ ${W.jail} giây vì đua xe trái phép. Nộp phạt ${fmt(W.fine)} để về sớm.`,'lock'); send(pl,{t:'stunt',k:'end',caught:true,ok:st.ok,falls:st.falls}); return; }
+  if(Math.random()<risk){ p.jail={until:now()+W.jail*1000,fine:C.fineOf(pl,W.fine)}; markDirty(pl); P.stat(pl,'jail',1); moveTo(pl,'doncongan',7,6);
+    note(pl,`Công an! Bị tạm giữ ${W.jail} giây vì đua xe trái phép. Nộp phạt ${fmt(p.jail.fine)} để về sớm.`,'lock'); send(pl,{t:'stunt',k:'end',caught:true,ok:st.ok,falls:st.falls}); return; }
   back(pl);
   if(crash){ note(pl,'Xoè xe liên tục, Đôn Chề phải dắt xe về. Không có thưởng.','lock'); send(pl,{t:'stunt',k:'end',crash:true,ok:st.ok,falls:st.falls}); return; }
   if(st.ok) reward(pl,{exp:Math.round(W.exp*st.ok*B.pay),vnd:Math.round(W.vnd*st.ok*B.pay),kind:'game'},`Bốc đầu thành công ${st.ok}/${W.cues} lần trên ${B.name} · Đôn Chề thưởng nóng`);
@@ -39,7 +39,7 @@ hook('tick',()=>{ const t=now();
 hook('leave',(pl,old,to)=>{ if(pl.stunt&&old&&old.startsWith('deo:')&&to&&!to.startsWith('deo:')) pl.stunt=null; });
 // đồn công an: nộp phạt hoặc chờ hết giờ tạm giữ
 on('police',(pl,m)=>{ const p=pl.prof; if(!P.nearNpc(pl,'congan')) return {err:'Gặp chú công an ở bàn'};
-  if(m.op==='fine'){ if(!P.jailed(pl)) return {err:'Bạn không bị tạm giữ'}; if(!take(pl,p.jail.fine)) return {err:`Phạt ${fmt(p.jail.fine)}, không đủ tiền. Đợi hết giờ tạm giữ`};
+  if(m.op==='fine'){ if(!P.jailed(pl)) return {err:'Bạn không bị tạm giữ'}; if(!take(pl,p.jail.fine)) return {err:`Phạt ${fmt(p.jail.fine)}, không đủ tiền. Đợi hết giờ tạm giữ`}; P.stat(pl,'fine',p.jail.fine);
     p.jail=null; markDirty(pl); return {msg:'Đã nộp phạt. Lần sau đi xe cẩn thận, đội mũ bảo hiểm nhé!'}; }
   return {jail:p.jail}; });
 hook('slow',()=>{ const t=now(); for(const pl of players.values()){ const j=pl.prof.jail; if(j&&j.until<=t){ pl.prof.jail=null; markDirty(pl); note(pl,'Hết giờ tạm giữ, được về rồi. Đi đứng cẩn thận nhé!','quest'); } } });

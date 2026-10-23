@@ -30,7 +30,7 @@ const ACT={};
 const btn=(a,label,data={},cls='')=>`<button class="btn sm ${cls}" data-a="${a}" ${Object.entries(data).map(([k,v])=>`data-${k}="${esc(v)}"`).join(' ')}>${label}</button>`;
 const ico=k=>`<img class="ico" src="${GAME.icon64(k)}" alt="">`;
 // cho module ngoài (lc.js...) dùng chung nút / hành động / bảng theo nơi
-UI.btn=btn; UI.ico=ico; UI.onAct=(k,f)=>{ ACT[k]=f; }; UI.defPlace=(k,f)=>{ PLACE[k]=f; }; UI.qRow=id=>qRow(id);
+UI.btn=btn; UI.ico=ico; UI.ask=(h,cb,sec)=>quickAsk(h,cb,sec); UI.onAct=(k,f)=>{ ACT[k]=f; }; UI.defPlace=(k,f)=>{ PLACE[k]=f; }; UI.qRow=id=>qRow(id);
 const money=()=>`<div class="pmoney">Ví: <b>${fmt(G().money)}</b></div>`;
 // nút tự đi tới 1 người bán/chủ trại trong map hiện tại
 const goBtn=(id,label)=>btn('goto','Đi tới '+label+' ➜',{id},'go');
@@ -88,14 +88,14 @@ ACT.soc=async d=>{ const r=await GAME.act({t:'soc',op:'ask',to:+d.to,kind:d.k});
 
 /* ---------- Grab ---------- */
 const destOf=()=>SD.SCENE_DEST[GAME.S.kind];
-UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery);
-  return `<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được '+btn('nhosac','🔌 Xin sạc nhờ người gần đây',{},'pri'):''}</p>`+money()+
+UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g.needs.battery), xt=(g.xt&&g.xt.lv||0)>=SD.XICHTHO.tele;
+  return (xt?'<p class="good">🔥 Xích Thố cấp '+SD.XICHTHO.tele+': bấm 🔥 để dịch chuyển tới ngay, ở đâu cũng được, không tốn tiền, không cần pin</p>':'')+`<p>Pin điện thoại: <b class="${bat<SD.GRAB.minBattery?'bad':''}">${bat}%</b> ${bat<SD.GRAB.minBattery?'· hết pin, không gọi được '+btn('nhosac','🔌 Xin sạc nhờ người gần đây',{},'pri'):''}</p>`+money()+
   `<div class="list grab">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
     if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
-    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}</div>`; }).join('')}</div>
+    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}${here||!xt?'':btn('grab','🔥 Dịch chuyển',{to:k,xt:1},'pri')}</div>`; }).join('')}</div>
   <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; },{xwide:true});
-ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to}); if(!r.err) UI.closeAll(); };
+ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to,xt:d.xt?1:0}); if(!r.err) UI.closeAll(); };
 
 /* ---------- túi đồ + tủ quần áo ---------- */
 UI.bag=()=>open('Túi đồ',()=>{ const g=G(), it=Object.entries(g.items);
@@ -135,6 +135,8 @@ function menuHtml(pc){ const ms=SD.mealStatus(G().meals,NET.now()), now=NET.now(
     if(!f.meal&&left>0) return `<button class="btn sm" disabled>Đã ${f.buff?'uống':'ăn'} · còn ${Math.ceil(left/60e3)} phút</button>`; return btn('eat',f.meal||f.snack?'Ăn':'Uống',{p:pc.key,id},'pri'); };
   return money()+`<p>Bữa: ${ms.map(m=>`<span class="meal ${m.st}">${m.name.replace('Bữa ','')}</span>`).join(' ')} <span class="muted">· trễ giờ thì ăn bù được</span></p><div class="list">`+
     pc.menu.map(id=>{ const f=SD.FOOD[id]; return `<div class="row"><span>${esc(f.name)} <small class="muted">${f.meal?'no 1 bữa':f.buff?'+'+Math.round((f.buff.mul-1)*100)+'% EXP '+f.buff.min+' phút':'ăn vặt, không tính bữa'} · +${f.exp} EXP</small></span><span>${fmt(f.price)}</span>${eatBtn(id,f)}</div>`; }).join('')+'</div>'; }
+PLACE.mu_quan=()=>open(SD.PLACES.mu_quan.name,()=>`<p>"Đánh boss mỏi tay thì ghé ăn một bữa cho chắc bụng nhé!"</p>`+menuHtml({...SD.PLACES.mu_quan,key:'mu_quan'}));   // quán ăn ở quảng trường MU
+PLACE.epl_food=()=>open(SD.PLACES.epl_food.name,()=>`<p>"Fish & chips nóng hổi cho fan bóng đá đây! Ăn no mới hò hét được 90 phút."</p>`+menuHtml({...SD.PLACES.epl_food,key:'epl_food'}));   // xe đồ ăn ở quảng trường Ngoại Hạng Anh
 for(const k of ['quan_com','cafe','nha_an']) PLACE[k]=()=>open(SD.PLACES[k].name,()=>menuHtml({...SD.PLACES[k],key:k})+(k==='quan_com'?sellHtml(Object.keys(SD.FISH),'Chú Tư mua cá'):''));
 ACT.eat=d=>req({t:'eat',place:d.p,id:d.id});
 function sellHtml(keys,head){ const g=G(), rows=keys.filter(k=>g.items[k]).map(k=>`<div class="row">${ico(k)}<span>${esc(SD.ITEMS[k].name)} ×${g.items[k]}</span><span>${fmt(SD.SELL[k]*(g.skills.damphan?1.1:1))}/cái</span>${btn('sell','Bán hết',{k},'pri')}</div>`);
@@ -227,6 +229,20 @@ ACT.tab=d=>{ hubTab=d.k; if(d.k!=='work') loadMarket(); draw(); };
 ACT.mkbuy=async d=>{ const r=await GAME.act({t:'mk',op:'buy',id:+d.id}); if(!r.err) GAME.toast('Đã mua','item'); loadMarket(); };
 ACT.mkcancel=async d=>{ await GAME.act({t:'mk',op:'cancel',id:+d.id}); loadMarket(); };
 ACT.mksell=async()=>{ const r=await GAME.act({t:'mk',op:'sell',item:$('#mkItem').value,n:+$('#mkN').value,price:+$('#mkP').value}); if(!r.err) GAME.toast('Đã đăng bán','item'); loadMarket(); };
+/* ---------- cửa hàng online (nút bên phải, phím C): xem + mua đồ mọi người đang đăng bán ở bất cứ đâu; đăng bán / gỡ món vẫn ở laptop trong phòng ---------- */
+let shopQ='', shopSort='new';
+UI.shop=()=>{ open('Cửa hàng online',()=>shopHtml(),{wide:true}); loadMarket(); };
+function shopHtml(){ const q=shopQ.trim().toLowerCase(), nm=l=>SD.ITEMS[l.item]?SD.ITEMS[l.item].name:l.item, mine=market.filter(l=>l.mine);
+  const L=market.filter(l=>!l.mine&&(!q||nm(l).toLowerCase().includes(q)||String(l.s).toLowerCase().includes(q)));
+  if(shopSort==='cheap') L.sort((a,b)=>a.price-b.price); else if(shopSort==='dear') L.sort((a,b)=>b.price-a.price);
+  const sorts=[['new','Mới đăng'],['cheap','Rẻ nhất'],['dear','Đắt nhất']], each=l=>l.n>1?`<small class="muted">· ${fmt(Math.round(l.price/l.n))}/cái</small>`:'';
+  return money()+`<div class="form"><input id="shopQ" maxlength="30" value="${esc(shopQ)}" placeholder="Tìm tên món hoặc người bán..." aria-label="Tìm">${btn('shopq','Tìm','','pri')}${shopQ?btn('shopq','Xoá tìm',{clear:1}):''}</div>
+    <div class="tabs">${sorts.map(([k,n])=>`<button class="tab ${k===shopSort?'on':''}" data-a="shopsort" data-k="${k}">${n}</button>`).join('')}</div>
+    <h5>Đang bán (${L.length})</h5><div class="list">${L.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n} <small class="muted">của ${esc(l.s)}</small></span><span>${fmt(l.price)} ${each(l)}</span>${btn('mkbuy','Mua',{id:l.id},G().money>=l.price?'pri':'')}</div>`).join('')||`<p class="muted">${q?'Không thấy món nào khớp':'Chưa ai bán gì'}</p>`}</div>
+    ${mine.length?`<h5>Bạn đang bán (${mine.length}/${SD.MARKET.maxListings})</h5><div class="list">${mine.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n}</span><span>${fmt(l.price)}</span></div>`).join('')}</div>`:''}
+    <p class="muted">Mua ở đâu cũng được, đồ vào túi ngay. Muốn đăng bán / gỡ món thì mở laptop trong phòng thuê (phí sàn ${SD.MARKET.fee*100}%).</p>`; }
+ACT.shopq=d=>{ shopQ=d.clear?'':(($('#shopQ')||{}).value||''); draw(); };
+ACT.shopsort=d=>{ shopSort=d.k; draw(); };
 ACT.learn=async d=>{ const r=await GAME.act({t:'learn',skill:d.k}); if(!r.err){ UI.closeAll(); } };
 ACT.och=async()=>{ const m=$('#ochIn').value.trim(); if(!m) return; const to=$('#ochTo').value; const r=await GAME.act({t:'och',m,to:to?+to:0}); if(!r.err) $('#ochIn').value=''; };
 inner.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter'&&e.target.id==='ochIn') ACT.och(); if(e.key==='Escape'){ e.target.blur(); } });
@@ -326,11 +342,15 @@ ACT.clear=async d=>{ await GAME.act({t:'clearPlot',id:d.id}); UI.closeAll(); };
 // thuê đất: chọn khu (rau, hoa, nhà kính, cà phê, cây ăn quả, cao su) rồi chọn cỡ mảnh; bác Trang cắm biển tên người thuê
 let landField='rau';
 const landHtml=()=>{ const L=G().land, d=SD.vnTime(NET.now()).day, F=SD.DALAT.fields, lands=GAME.lands||[], taken=k=>lands.filter(l=>l.field===k&&l.n!==G().name).reduce((a,l)=>a+l.plots.length,0), tot=k=>SD.DALAT.plots.filter(p=>p.kind===k).length;
-  return `<h5>Thuê đất (trả theo ngày)</h5><p class="muted">${L&&L.paid===d?`Đang thuê <b>${SD.DL_LAND.find(x=>x.id===L.tier).name}</b> ở khu <b>${esc(F[L.field]||L.field||'?')}</b>, đã trả hôm nay. Biển tên bạn cắm ở góc mảnh.`:'Chưa thuê đất: chưa trồng được ở nông trại.'}</p>
+  if(L&&L.own){ const t=SD.DL_LAND.find(x=>x.id===L.tier); return `<h5>Đất của bạn</h5><p>Đã mua đứt <b>${esc(t.name)}</b> (${t.plots} ô) ở khu <b>${esc(F[L.field]||L.field)}</b>: không phải trả tiền thuê.</p>${btn('landsell',`Bán lại cho bác Trang · +${fmt(t.sellBack)}`)}`; }
+  return `<h5>Thuê đất (trả theo ngày) hoặc mua đứt</h5><p class="muted">${L&&L.paid===d?`Đang thuê <b>${SD.DL_LAND.find(x=>x.id===L.tier).name}</b> ở khu <b>${esc(F[L.field]||L.field||'?')}</b>, đã trả hôm nay. Biển tên bạn cắm ở góc mảnh.`:'Chưa thuê đất: chưa trồng được ở nông trại.'}</p>
   <div class="tabs">${Object.entries(F).map(([k,n])=>btn('landfield',`${n} · còn ${tot(k)-taken(k)}/${tot(k)} ô`,{k},landField===k?'pri':'')).join('')}</div>
-  <div class="list">${SD.DL_LAND.map(t=>`<div class="row"><span><b>${t.name}</b> · ${t.plots} ô ở khu ${esc(F[landField])}</span><span>${fmt(t.price)}/ngày</span>${L&&L.tier===t.id&&L.field===landField&&L.paid===d?'<em>đang thuê</em>':btn('land','Thuê',{t:t.id},'pri')}</div>`).join('')}</div>${L?btn('landcancel','Trả đất'):''}`; };
+  <div class="list">${SD.DL_LAND.map(t=>`<div class="row"><span><b>${t.name}</b> · ${t.plots} ô ở khu ${esc(F[landField])}</span><span>${fmt(t.price)}/ngày</span>${L&&L.tier===t.id&&L.field===landField&&L.paid===d?'<em>đang thuê</em>':btn('land','Thuê',{t:t.id},'pri')}${btn('landbuy',`Mua đứt ${fmt(t.buy)}`,{t:t.id})}</div>`).join('')}</div>${L?btn('landcancel','Trả đất'):''}
+  <p class="muted">Mua đứt = 30 ngày tiền thuê, không bị trừ tiền hằng ngày; cần tiền thì bán lại cho bác Trang 70% giá mua.</p>`; };
 ACT.landfield=d=>{ landField=d.k; draw(); };
 ACT.land=d=>req({t:'land',op:'rent',tier:d.t,field:landField}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); });
+ACT.landbuy=d=>{ const t=SD.DL_LAND.find(x=>x.id===d.t); if(confirm(`Mua đứt ${t.name} ở khu ${SD.DALAT.fields[landField]||landField} giá ${fmt(t.buy)}?`)) req({t:'land',op:'buy',tier:d.t,field:landField}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); };
+ACT.landsell=()=>{ if(confirm('Bán lại mảnh đất cho bác Trang (70% giá mua)? Cây đang trồng vẫn thu hoạch được.')) req({t:'land',op:'sell'}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'vnd'); }); };
 ACT.landcancel=()=>{ if(confirm('Trả lại mảnh đất? Cây đang trồng vẫn thu hoạch được.')) req({t:'land',op:'cancel'}); };
 PLACE.bactrang=()=>open('Bác Trang · chủ nông trại',()=>money()+landHtml()+`<p class="muted">Ô rau, hoa, dâu tây trồng 1 lần thu 1 lần. Cà phê, bơ, hồng, cao su (cần học Làm vườn lâu năm) thu được nhiều lần.</p>
   <h5>Hạt giống, cây giống</h5>${seedHtml('dalat')}`+sellHtml(Object.keys(SD.SELL),'Bác Trang thu mua mọi nông sản'),{wide:true});
@@ -428,6 +448,7 @@ const PIECE={k:['..XX..','.XXXX.','..XX..','.XXXX.','..XX..','.XXXX.','XXXXXX'],
   b:['..XX..','.XX.X.','.XXXX.','..XX..','.XXXX.','..XX..','XXXXXX'],n:['.XXX..','XXXXX.','XX.XX.','...XX.','..XXX.','.XXXX.','XXXXXX'],p:['......','..XX..','.XXXX.','..XX..','.XXXX.','.XXXX.','XXXXXX']};
 function drawBoard(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null;
   GAMES.drawBoard(c,v,sel,st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[],cdrag); }
+addEventListener('resize',()=>{ if(GAME.TABLE&&GAME.TABLE.game==='chess') drawBoard(); });   // bàn cờ co lại vừa khung khi đổi cỡ / zoom
 function drawBoardOld(){ const c=$('#board'), v=GAME.TABLE; if(!c||!v||v.game!=='chess') return; const g=c.getContext('2d'), flip=v.me===1, S=40;
   const st=v.b?{b:v.b,turn:v.turn,castle:v.castle||'',ep:v.ep,half:0,full:1}:null, legal=st&&sel>=0?CHESS.legal(st).filter(m=>m.from===sel).map(m=>m.to):[];
   for(let i=0;i<64;i++){ const r=i>>3, f=i&7, X=(flip?7-f:f)*S, Y=(flip?7-r:r)*S; g.fillStyle=(r+f)%2?'#8a5d3b':'#e8d8b4'; g.fillRect(X,Y,S,S);
@@ -481,7 +502,7 @@ function raceHtml(v){ if(!v) return '<p class="muted">Đang tải...</p>'; const
   return money()+`<p class="rhead">${v.st==='lobby'?`Đang nhận kỵ sĩ + cược · <b>chốt danh sách sau ${mm(v.lobbyLeft)}</b> (cứ ${Math.round(R.every/60*10)/10} phút 1 trận, ghế trống có bot chạy)`:v.st==='run'?`Đang đua · nhịp ${v.round+1}/${v.rounds}`:'Kết thúc · trận mới mở ngay sau đây'}</p>
     <div class="list rows">${v.riders.map((r,i)=>`<div class="row ${i===me?'on':''}"><span>#${i+1} <b>${esc(r.name)}</b>${r.bot?' <small class="muted">(bot)</small>':''} <small class="muted">${r.dist}/${v.track}m · ${r.pf} perfect</small></span><span>cược ${fmt(r.pot)}</span>${v.st==='lobby'?btn('rbet','Cược 50k',{on:i,amt:50000})+btn('rbet','Cược 200k',{on:i,amt:200000}):''}</div>`).join('')}</div>
     <p>Tổng cược: <b>${fmt(v.pool)}</b>${v.myBets.length?' · bạn cược: '+v.myBets.map(b=>`#${b.on+1} ${fmt(b.amt)}`).join(', '):''}</p>
-    ${v.st==='lobby'&&me<0?btn('rjoin',`Thuê ngựa đua · ${fmt(v.fee)}`,{},'pri')+`<p class="muted">Trận có bot: phí thuê và tiền thưởng ×${R.botMul} (thắng ăn nhiều, thua mất nhiều). Cược vào bot cũng được, nhà cái bù thêm ${Math.round(R.houseBonus*100)}% vào quỹ; không ai cược trúng thì nhà cái giữ.</p>`:''}${v.st==='lobby'&&me>=0&&v.riders.filter(r=>!r.bot).length===1?btn('rstart','▶ Bắt đầu đua ngay (còn lại toàn bot)',{},'pri big'):''}${v.st==='lobby'&&me>=0?btn('rleave','Rút lui (hoàn tiền)'):''}
+    ${v.st==='lobby'&&me<0?btn('rjoin',`Thuê ngựa đua · ${fmt(v.fee)}`,{},'pri')+`<p class="muted">Trận có bot: phí thuê ×${R.botMul}, về nhất ăn phí × (số người + 1); mỗi ngày ${R.botWins} lần thắng bot có thưởng, sau đó chỉ hoàn phí. Cược vào bot cũng được; không ai cược trúng thì nhà cái giữ.</p>`:''}${v.st==='lobby'&&me>=0&&v.riders.filter(r=>!r.bot).length===1?btn('rstart','▶ Bắt đầu đua ngay (còn lại toàn bot)',{},'pri big'):''}${v.st==='lobby'&&me>=0?btn('rleave','Rút lui (hoàn tiền)'):''}
     ${v.results?`<h5>Kết quả</h5><p>${v.results.order.map((r,i)=>`${i+1}. ${esc(r.name)}${r.bot?' (bot)':''} (${r.dist}m)`).join(' · ')}<br>Người về nhất ăn ${fmt(v.results.prize)} · quỹ cược ${fmt(v.results.pool)} chia theo tỉ lệ</p>`:''}
     <p class="muted">Cách đua: mỗi nhịp hiện chuỗi mũi tên. Gõ đúng chuỗi bằng phím mũi tên (hoặc WASD), rồi bấm SPACE đúng lúc vạch chạy tới mốc vàng. PERFECT liên tiếp được cộng combo.</p>`; }
 ACT.rjoin=()=>req({t:'race',op:'join'}); ACT.rstart=()=>req({t:'race',op:'start'}); ACT.rleave=()=>req({t:'race',op:'leave'}); ACT.rbet=d=>req({t:'race',op:'bet',on:+d.on,amt:+d.amt});
@@ -613,7 +634,10 @@ PLACE.mieu=()=>open('Ông Từ · Miếu ông Trường Con',()=>{ const M=SD.MI
     ${mb?`<p class="good">Đang có phúc bình an: +${Math.round((g.mbuff.mul-1)*100)}% EXP · còn ${Math.ceil((g.mbuff.until-NET.now())/60000)} phút</p>`:''}${qRow('mieu_cauan')}`; });
 let tcJoke=-1;
 PLACE.truongcon=()=>open('Ông Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé! Mới Trường Con là như vậy!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Ông Trường Con kể chuyện',{},'pri')}${qRow('tc_luocga')}${qRow('tc_raubun')}${qRow('tc_antruc')}${qRow('tc_clip')}
+  ${(()=>{ const X=SD.XICHTHO, g=G(); if(g.xt&&g.xt.lv) return ''; const left=X.quests.filter(q=>(g.quests||{})[q]!=='done').length;   /* Xích Thố: xong 4 việc thì nhận ngay trong bảng của ông */
+    return left?`<p class="muted">🐎 Giúp ông xong ${left} việc nữa, ông trao ngựa Xích Thố.</p>`:`<p class="good">🐎 Con giúp ông đủ 4 việc rồi, Xích Thố là của con!</p>${btn('xtclaim','🐎 Nhận ngựa Xích Thố',{},'pri big')}`; })()}
   <p class="muted">Xong việc thì mỗi ngày vẫn quay được 1 clip cùng Trường Con ở đèn vòng (+${SD.MIEU.clip.exp} EXP).</p>`; });
+ACT.xtclaim=()=>window.XT_CLAIM&&window.XT_CLAIM();
 ACT.tcjoke=()=>{ const J=SD.MIEU.jokes; let k; do{ k=Math.floor(Math.random()*J.length); }while(J.length>1&&k===tcJoke); tcJoke=k; GAME.sayLine(J[k],.7,'vi'); UI.refresh(); };
 // Group Nghiện Motion
 const TR_SAY=['Keyframe ít thôi, quan trọng là timing. Chuyển động đẹp nằm ở graph editor!','Ease in ease out không phải để trang trí. Vật nào cũng có khối lượng của nó.','Render lỗi không sao, mất file project mới đáng sợ. Save, save, save!','Motion đẹp là motion có chủ đích. Mỗi khung hình phải kể được câu chuyện.','Làm xong vào xông hơi 15 phút là đầu óc thông suốt, ý tưởng tự đến.'];
@@ -700,6 +724,7 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
   if(dTab==='album'){ body+=`<p class="dim">Lần đầu có một món là được ghi vào sổ. Đủ bộ thì nhận thưởng lớn.</p>`+Object.entries(SD.ALBUM).map(([a,z])=>{ const have=z.items.filter(k=>D.seen[k]).length, full=have===z.items.length, got=D.albumGot[a];
       return `<div class="dalb ${full?'full':''}"><h5>${esc(z.name)} <small>${have}/${z.items.length}</small></h5><div class="dgrid">${z.items.map(k=>{ const it=SD.ITEMS[k]||SD.CLOTHES[k]||{name:k}, seen=D.seen[k];
         return `<div class="dcell ${seen?'':'unk'}" title="${seen?esc(it.name):'Chưa có'}">${ico(SD.ITEMS[k]?k:'hat')}<span>${seen?esc(it.name):'???'}</span></div>`; }).join('')}</div>
+        ${z.hints&&!full?`<ul class="dhint">${z.items.filter(k=>!D.seen[k]&&z.hints[k]).map(k=>`<li><b>${esc((SD.ITEMS[k]||{}).name||k)}:</b> ${esc(z.hints[k])}</li>`).join('')}</ul>`:''}
         <div class="drw">Thưởng đủ bộ: ${fmt(z.rw.vnd)} · ${z.rw.exp} EXP ${got?'<i>✔ Đã nhận</i>':full?btn('dalbum','Nhận thưởng',{al:a},'pri'):''}</div></div>`; }).join(''); }
   if(dTab==='season'&&season){ const n=g.items.bi_ngo||0, bg=(g.flags&&g.flags.bingo)||{}, end=season.to.split('-').reverse().join('/');
     if(!(g.flags||{}).hwFree) body+=`<p>${btn('hwopen','🎃 Nhận 1 bộ trang phục Halloween miễn phí (15 bộ để chọn)',{},'pri')}</p>`;
@@ -853,12 +878,13 @@ let lbTab='exp', LB=null;
 // ảnh mặt người chơi trong bảng xếp hạng (dựng từ dáng người, nhớ theo dáng)
 const LBFACE={}; const lbFace=l=>{ if(!l) return ''; const k=JSON.stringify(l); if(LBFACE[k]!==undefined) return LBFACE[k]; let u=''; try{ const av=AVATAR.build(l); u=av&&av.portrait?av.portrait.toDataURL():''; }catch(e){} return LBFACE[k]=u; };
 const ttl=rk=>{ const D=SD.TOP_TITLES[rk-1]; return D?`<span class="ttl ttl${rk}" data-t="${esc(D.name)}"><i>${rk===1?'♛ ':rk===7?'🐐 ':''}${esc(D.name)}</i></span>`:''; };
-const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)]];
+const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['power','Lực chiến MU',v=>v.toLocaleString('vi-VN')+' ⚔'],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)],['home','Nhà đẹp',v=>v+' điểm'],['goals','Vua phá lưới',v=>v+' bàn']];
 UI.leaderboard=async()=>{ open('Bảng xếp hạng',()=>lbHtml(),{wide:true}); const r=await NET.req({t:'lb'}); if(r.lb){ LB=r.lb; UI.refresh(); } };
 function lbHtml(){ const tab=LB_TABS.find(t=>t[0]===lbTab), rows=LB&&LB[lbTab]||[], me=G().name;
   return `<div class="tabs">${LB_TABS.map(([k,n])=>`<button class="tab ${k===lbTab?'on':''}" data-a="lbtab" data-k="${k}">${n}</button>`).join('')}</div>
-    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span class="lbn"><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b>${(f=>f?`<img class="lbf" src="${f}" alt="">`:'<i class="lbf"></i>')(lbFace(r.l))} ${esc(r.n)} <small class="muted">cấp ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span></div>`).join('')||'<p class="muted">Chưa có ai</p>'}</div><p class="muted">${LB.total} người chơi · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
+    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}${lbTab==='home'?'<p class="muted">Điểm nhà = độ ấm cúng (nội thất, sàn, tường) + 2 điểm mỗi người thích. Bấm Ghé thăm để vào xem nhà đang mở cửa.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span class="lbn"><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b>${(f=>f?`<img class="lbf" src="${f}" alt="">`:'<i class="lbf"></i>')(lbFace(r.l))} ${esc(r.n)} <small class="muted">${lbTab==='power'?'MU Lv':'cấp'} ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span>${lbTab==='home'&&r.o?btn('lbvisit','🏠 Ghé thăm',{i,n:r.n}):''}</div>`).join('')||'<p class="muted">Chưa có ai</p>'}</div><p class="muted">${LB.total} người chơi · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
 ACT.lbtab=d=>{ lbTab=d.k; draw(); };
+ACT.lbvisit=async d=>{ const r=await GAME.act({t:'home',op:'visit',i:+d.i,n:d.n}); if(r&&!r.err) UI.closeAll(); };   /* ghé thăm nhà đẹp (home.js) */
 /* ---------- câu cá kiểu Dota 2: chọn bóng cá → phao chìm bấm nhanh → giữ vùng xanh bám cá ---------- */
 let FS=null;
 UI.fish=async()=>{ const r=await GAME.act({t:'fish',op:'open'}); if(r.err) return; FS={fish:r.fish,st:'look',t0:performance.now(),mx:180,my:110,p:.2,zone:.5,vz:0,fy:.5,fv:0};
@@ -928,11 +954,14 @@ PLACE.dancer=n=>GAME.ask(`Bo Bot Dancer ${fmt(SD.DANCE.tip)} để được hôn
 // chú Ba: bán 9 giống chó giữ vườn Ké, mỗi con 1 năng lực
 const dogIco=k=>{ const s=ART.dog(k,0), c=document.createElement('canvas'); c.width=54; c.height=42; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.drawImage(s.c,0,0,54,42); return c.toDataURL(); };
 PLACE.kennel=()=>open('Chú Ba · thuê đất vườn Ké, chó giữ vườn',()=>{ const g=G(), d=g.dog&&SD.DOGS[g.dog.k], K=g.keLand, day=SD.vnTime(NET.now()).day, cur=K&&K.paid===day&&SD.KE_LAND.find(x=>x.id===K.tier);
-  return money()+`<h5>Thuê đất vườn Ké (trả theo ngày)</h5><p class="muted">${cur?`Đang thuê <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô.`:`Chưa thuê: trồng được ${SD.FARM.free} ô miễn phí.`} Rau chín phải thu trong ${SD.FARM.grace} giây, quá giờ người khác cướp được.</p>
-    <div class="list">${SD.KE_LAND.map(t=>`<div class="row ${cur&&cur.id===t.id?'on':''}"><span><b>${esc(t.name)}</b> · ${t.plots} ô</span><span>${fmt(t.price)}/ngày</span>${cur&&cur.id===t.id?'<em>đang thuê</em>':btn('keland','Thuê',{t:t.id},'pri')}</div>`).join('')}</div>${cur?btn('kelandcancel','Trả đất'):''}
+  return money()+`<h5>Đất vườn Ké: thuê theo ngày hoặc mua đứt</h5><p class="muted">${K&&K.own&&cur?`Đã mua đứt <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô, không phải trả tiền thuê.`:cur?`Đang thuê <b>${esc(cur.name)}</b>: trồng được ${cur.plots} ô.`:`Chưa thuê: trồng được ${SD.FARM.free} ô miễn phí.`} Rau chín phải thu trong ${SD.FARM.grace} giây, quá giờ người khác cướp được.</p>
+    <div class="list">${SD.KE_LAND.map(t=>`<div class="row ${cur&&cur.id===t.id?'on':''}"><span><b>${esc(t.name)}</b> · ${t.plots} ô</span><span>${fmt(t.price)}/ngày</span>${cur&&cur.id===t.id?`<em>${K&&K.own?'của bạn':'đang thuê'}</em>`:K&&K.own?'':btn('keland','Thuê',{t:t.id},'pri')}${K&&K.own?'':btn('kelandbuy',`Mua đứt ${fmt(t.buy)}`,{t:t.id})}</div>`).join('')}</div>${K&&K.own&&cur?btn('kelandsell',`Bán lại cho chú Ba · +${fmt(cur.sellBack)}`):cur?btn('kelandcancel','Trả đất'):''}
+    <p class="muted">Mua đứt = 30 ngày tiền thuê, không bị trừ tiền hằng ngày; cần tiền thì bán lại cho chú Ba 70% giá mua.</p>
     <h5>Chó giữ vườn</h5>`+`<p>${d?`Bạn đang nuôi <b>${esc(d.name)}</b>: ${esc(d.desc)}.`:'Chưa có chó. Trộm cướp rau mà gặp chó là bị cắn, phải đền tiền cho chủ vườn!'} Chó ngồi canh cạnh các ô rau của bạn ở Ké.</p>
     <div class="list">${Object.entries(SD.DOGS).map(([k,D])=>`<div class="row ${g.dog&&g.dog.k===k?'on':''}"><img class="ico dogi" src="${dogIco(k)}" alt=""><span><b>${esc(D.name)}</b><br><small class="muted">${esc(D.desc)}</small></span><span>${fmt(D.price)}</span>${g.dog&&g.dog.k===k?'<em>đang nuôi</em>':btn('buydog','Mua',{k},'pri')}</div>`).join('')}</div>${guardHtml()}`; },{wide:true});
 ACT.keland=d=>req({t:'dog',op:'land',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); });
+ACT.kelandbuy=d=>{ const t=SD.KE_LAND.find(x=>x.id===d.t); if(confirm(`Mua đứt ${t.name} ở vườn Ké giá ${fmt(t.buy)}?`)) req({t:'dog',op:'landbuy',tier:d.t}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); };
+ACT.kelandsell=()=>{ if(confirm('Bán lại đất vườn Ké cho chú Ba (70% giá mua)?')) req({t:'dog',op:'landsell'}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'vnd'); }); };
 ACT.kelandcancel=()=>{ if(confirm('Trả đất vườn Ké?')) req({t:'dog',op:'landcancel'}); };
 ACT.buydog=async d=>{ if(G().dog&&!confirm('Đổi chó? Con cũ chú Ba nuôi hộ, không hoàn tiền.')) return; const r=await req({t:'dog',op:'buy',k:d.k}); if(!r.err){ GAME.sfx('dog_bark',.6); GAME.toast(esc(r.msg),'quest'); } };
 // DAS: thầy Huy Tạ đăng ký khoá học, xem chứng chỉ, đứng lớp làm giảng viên

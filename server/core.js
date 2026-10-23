@@ -8,7 +8,7 @@ const players=new Map();       // pid → người chơi
 const byUid=new Map();         // uid → người chơi
 const scenes=new Map();        // id cảnh → Set người chơi
 const handlers={};             // loại tin → hàm xử lý
-const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[]};   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
+const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[],reset:[]};   /* reset: reset.js gọi (gone(uid) → tài khoản bị reset) để mỗi module dọn bộ nhớ theo người chơi */   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
 let nextPid=1;
 
 const on=(t,fn)=>{ handlers[t]=fn; };
@@ -60,6 +60,8 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   { const nm=giftName(p).normalize('NFC').toLowerCase(); if((nm==='leno'||nm==='ben jr')&&!(p.flags&&p.flags.gift10m)){ p.money+=10000000; p.flags.gift10m=true; } }
   // người chơi tên Kaixa: tài khoản có 100 triệu (nạp 1 lần)
   if(giftName(p).toLowerCase()==='kaixa'&&!(p.flags&&p.flags.vip100)){ p.money=Math.max(p.money,100000000); p.flags.vip100=true; }
+  // Kaixa thử tính năng cường hoá: 10 Ngọc Cường Hoá (1 lần)
+  if(giftName(p).toLowerCase()==='kaixa'&&!(p.flags&&p.flags.gemTest10)){ p.items.ngoc_ch=(p.items.ngoc_ch||0)+10; p.flags.gemTest10=true; }
   // skin riêng Kaixa theo ảnh: tóc xám tro dựng, kính vuông tròng xanh, blazer satin đen + dây chuyền, quần ống rộng, đồng hồ (mặc 1 lần, sau tự đổi trong tủ đồ)
   if(giftName(p).toLowerCase()==='kaixa'&&p.look&&!(p.flags&&p.flags.kaixaSkin)){ p.flags.kaixaSkin=true;
     for(const id of ['blazer_kaixa','quan_kaixa','kinh_kaixa','dong_ho','giay_den']) p.owned[id]=1;
@@ -83,7 +85,9 @@ function addItem(pl,k,n=1){ n=Math.round(n); if(typeof k!=='string'||k in Object
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
-  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; return m; }
+  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.ebuff&&p.ebuff.until>t) m*=p.ebuff.mul; /* ebuff: đội mình cổ vũ thắng (Ngoại Hạng Anh) */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; m*=1+S.hsBonus(p); /* bậc hảo sảng */ return Math.min(S.RULES.expMulCap||9,m); }   /* buff cộng dồn tối đa ×expMulCap */
+// tiền phạt theo ví người bị phạt (data.js fineOf)
+const fineOf=(pl,base)=>S.fineOf(base,pl&&pl.prof?pl.prof.money:0);
 function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.needs.energy<20?.8:1)*S.lvSpeed(pl.prof.level); }
 // cộng EXP; kind 'game' bị giới hạn mỗi ngày
 function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
@@ -116,12 +120,13 @@ function moveTo(pl,id,x,y,extra={}){
   pl.scene=id; pl.x=x*T; pl.y=y*T; pl.budget=0; pl.mvAt=now(); pl.task=null; pl.fishing=null; pl.act=0; pl.actUntil=0;
   sceneOf(id).add(pl); pl.sent=new Map();
   const k=kindOf(id); pl.prof.scene=k==='room'?'home':k==='stay'&&id!=='stay:'+pl.uid?'retreat':k; pl.prof.pos={x,y}; markDirty(pl);
+  if(k==='room'&&module.exports.homeScene) Object.assign(extra,module.exports.homeScene(pl,id));   /* nhà riêng: bố cục nội thất (home.js) */
   send(pl,{t:'scene',s:k,id,x:pl.x,y:pl.y,...extra});
   for(const f of hooks.enter) runHook(f,pl,id,old);
 }
 // 1 hook lỗi không được làm hỏng các hook sau hay làm sập server (vd. dữ liệu cũ hỏng trong hồ sơ)
 function runHook(f,...a){ try{ f(...a); }catch(e){ console.error('[hook]',e); } }
 
-module.exports={stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
+module.exports={fineOf,stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
   simPerk,defaults,fixProfile,runHook,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};

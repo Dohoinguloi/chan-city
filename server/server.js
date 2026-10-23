@@ -4,7 +4,9 @@
 const http=require('http'), fs=require('fs'), path=require('path'), zlib=require('zlib');
 const {WebSocketServer}=require('ws');
 const C=require('./core');
-require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu');
+require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu'); require('./muforest'); require('./muwest'); require('./dday'); require('./legend'); require('./haosang'); require('./home'); require('./event');
+require('./epl');   /* Giải Ngoại Hạng Anh */
+require('./reset');   /* reset toàn server 23/10 16:40 (chủ game cho phép): đếm ngược + chạy đúng 1 lần */
 const {verifyGoogle}=require('./auth');
 const {S,db,players,byUid,handlers,hooks,send,now,today,moveTo,markDirty,save,publicProfile}=C;
 const {clean}=require('./world');
@@ -64,23 +66,27 @@ async function api(req,res,url){
   if(url.pathname==='/api/logout'){ if(typeof b.token==='string') db.endSession(b.token); return json(res,200,{}); }
   json(res,404,{err:'?'});
 }
+// đường dẫn URL → file trong 2 thư mục công khai (null nếu ra ngoài); game chạy thẳng ở "/" nên file game tìm trong chande-bootcamp
+function fileFor(p){ if(p.endsWith('/')) p+='index.html'; const top=p.split('/')[1], file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)), rel=path.relative(ROOT,file);
+  return rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])?null:file; }
+const verTag=st=>st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36);
 function serveStatic(req,res,url){
   let p; try{ p=decodeURIComponent(url.pathname); }catch(e){ res.writeHead(400); return res.end(); }
   // link gọn: game chạy thẳng ở "/", link cũ /chande-bootcamp/... chuyển về (giữ query); file game tìm trong chande-bootcamp trước
   // Location lấy từ pathname còn mã hoá %xx (chữ có dấu đã giải mã cho vào header làm sập server), gộp các dấu / ở đầu để không chuyển ra trang ngoài (//evil.com)
   if(p==='/chande-bootcamp'||p.startsWith('/chande-bootcamp/')){ res.writeHead(301,{Location:'/'+url.pathname.slice(16).replace(/^\/+/,'')+(url.search||'')}); return res.end(); }
-  if(p.endsWith('/')) p+='index.html';
-  const top=p.split('/')[1]; let file=path.normalize(path.join(ROOT,PUBLIC.includes(top)?'':'chande-bootcamp',p)); const rel=path.relative(ROOT,file);
-  if(rel.startsWith('..')||!PUBLIC.includes(rel.split(path.sep)[0])){ res.writeHead(404); return res.end('Không tìm thấy'); }
+  const file=fileFor(p); if(!file){ res.writeHead(404); return res.end('Không tìm thấy'); } const rel=path.relative(ROOT,file);
   fs.stat(file,(e,st)=>{ if(e||!st.isFile()){ res.writeHead(404); return res.end('Không tìm thấy'); }
     const ext=path.extname(file).toLowerCase(), dyn=['.html','.js','.json','.css'].includes(ext);
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
       const h0=String(req.headers['x-forwarded-host']||req.headers.host||''), host=/^[a-z0-9.\-]+(:\d+)?$|^\[[0-9a-f:]+\](:\d+)?$/i.test(h0)?h0:'localhost', proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim()==='http'||(!req.headers['x-forwarded-proto']&&/^(localhost|127\.|\[::1\])/.test(host))?'http':'https';
-      const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host));
+      // script / css gắn mã phiên bản của file (?h=): trình duyệt giữ luôn, không hỏi lại server; file sửa thì mã đổi, tự tải bản mới
+      const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host).replace(/(<script src="|<link rel="stylesheet" href=")([^"?#:]+)(?:\?v=\d+)?"/g,(m0,a,src)=>{
+        const f=fileFor(new URL(src,'http://x/').pathname); let fs0; try{ fs0=f&&fs.statSync(f); }catch(e){ fs0=null; } return fs0?`${a}${src}?h=${verTag(fs0)}"`:m0; }));
       const body=wantGz(req)?zlib.gzipSync(html):html, enc=body===html?{}:{'Content-Encoding':'gzip'};
       res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
-    const tag='"'+st.size.toString(36)+'-'+Math.floor(st.mtimeMs).toString(36)+'"';
-    const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
+    const tag='"'+verTag(st)+'"', pinned=url.searchParams.get('h')===verTag(st);
+    const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':pinned?'public, max-age=31536000, immutable':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
     if(String(req.headers['if-none-match']||'').split(',').some(t=>t.trim().replace(/^W\//,'')===tag)){ res.writeHead(304,head); return res.end(); }
     if(ZIP.has(ext)&&wantGz(req)){ let z; try{ z=gzFile(file,st); }catch(e){ res.writeHead(500); return res.end(); }
       res.writeHead(200,{...head,'Content-Encoding':'gzip','Content-Length':z.length}); return res.end(req.method==='HEAD'?undefined:z); }
@@ -99,11 +105,14 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='everfit') return at('everfit',S.OFFICE.spawn);
   if(sc==='dalat') return at('dalat',S.DALAT.spawn);
   if(sc==='das') return at('das',S.DAS.spawn);
-  if(sc==='mu') return at('mu',S.MU.spawn);
+  if(sc==='mu'){ const OX=S.MU.OX, ME=S.MU.west.meme; if(pos&&pos.x&&(p.muOX||0)!==OX) pos.x+=OX-(p.muOX||0);   /* map MU mở rộng sang trái: vị trí lưu kiểu cũ dời theo */ const OY=S.MU.OY||0; if(pos&&pos.y!=null&&(p.muOY||0)!==OY) pos.y+=OY-(p.muOY||0);   /* mở rộng lên phía Bắc (Đỉnh Bắc): dời xuống theo */
+    if(pos&&pos.x>=ME.x0-1&&pos.x<=ME.x1+1&&pos.y>=ME.y0-1&&pos.y<=ME.y1+1) return moveTo(pl,'mu',ME.booth.x+1.5,ME.booth.y+1.4);   /* thoát game trong Làng Meme: vào lại đứng ngoài quầy vé */
+    return at('mu',S.MU.spawn); }
+  if(sc==='muw') return moveTo(pl,'mu',S.MU.spawn.x,S.MU.spawn.y);
   if(sc==='lavi') return at('lavi',S.LAVI.spawn);
   if(sc==='nghienmotion') return at('nghienmotion',S.NMOTION.spawn);
   if(sc==='bearplus') return at('bearplus',S.BEARPLUS.spawn); if(sc==='vnpt') return at('vnpt',S.VNPT.spawn); if(sc==='mieu') return at('mieu',S.MIEU.spawn);
-  if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y);
+  if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y); if(sc==='epl') return at('epl',S.EPL.spawn);
   if(sc==='diep'&&!DIEP.canVisit(p)) return at('diep',S.DIEP.spawn);
   if(sc==='track') return moveTo(pl,'dalat',S.DALAT.track.x,S.DALAT.track.y);
   if(sc==='phongbay'){ const I=S.INTERIORS.club; return moveTo(pl,'club',I.spawn.x,I.spawn.y); }
@@ -123,7 +132,9 @@ handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nh
   const st=L.starters.find(s=>s.id===m.starter); if(!st) return {err:'Chọn 1 bộ đồ'};
   const outfit={...(g==='nu'&&st.nu?st.nu:st.items)};
   NAMES.set(nk,pl.uid); p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
-  markDirty(pl); save(pl); place(pl); return {prof:publicProfile(pl)}; };
+  markDirty(pl); save(pl); place(pl);
+  if(!/^bot\b/i.test(name)) setTimeout(()=>require('./world').sysChat(`🎉 Chào mừng ${name} vừa gia nhập Chan City! Mọi người nhớ chỉ đường cho bạn mới nhé 👋`),1500);   /* kênh chat chào thành viên mới */
+  return {prof:publicProfile(pl)}; };
 // ping đo bằng giờ server gửi đi (client chỉ được gửi lại đúng số đó), không tin số client tự khai
 handlers.pong=(pl,m)=>{ if(m.s&&m.s===pl.pngAt){ pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); pl.pngAt=0; } };
 // chỉ dùng khi chạy thử tự động (CHAN_TEST=1): dịch chuyển, cho tiền/đồ/skill
@@ -133,7 +144,7 @@ C.hook('slow',()=>{ const d=today(); for(const pl of players.values()){ const p=
 if(process.env.CHAN_TEST==='1') handlers.dbg=(pl,m)=>{ const p=pl.prof;
   if(m.money) p.money+=m.money|0; if(m.items) for(const [k,n] of Object.entries(m.items)) C.addItem(pl,k,n|0);
   if(m.skills) for(const k of m.skills) p.skills[k]=true; if(m.level){ p.exp=S.RULES.levels[m.level-1]||0; p.level=m.level; }
-  if(m.needs) Object.assign(p.needs,m.needs); if(m.flags) Object.assign(p.flags,m.flags); if(m.stayType) pl.stayType=m.stayType;
+  if(m.needs) Object.assign(p.needs,m.needs); if(m.flags) Object.assign(p.flags,m.flags); if(m.quests) Object.assign(p.quests,m.quests); if(m.stayType) pl.stayType=m.stayType;
   if(m.plot) FARM.agePlot(m.plot.id,m.plot.ago);
   if(m.tp){ if(!m.tp.scene||m.tp.scene===pl.scene){ pl.x=m.tp.x*C.T; pl.y=m.tp.y*C.T; pl.budget=0; send(pl,{t:'pos',x:pl.x,y:pl.y}); } else moveTo(pl,m.tp.scene,m.tp.x,m.tp.y); }
   markDirty(pl); return {ok:true}; };

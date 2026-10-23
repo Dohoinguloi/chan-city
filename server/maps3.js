@@ -3,6 +3,7 @@
 // Miếu ông Trường Con (thắp hương cầu an, xin quẻ, buộc dải lụa ở cây đa, bánh đa cua, quay TikTok).
 'use strict';
 const C=require('./core'), P=require('./places');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,on,hook,now,today,near,kindOf,markDirty,send,note,reward,take,give,has,addItem}=C;
 const pr=p=>p.qprog=p.qprog||{};
 const active=(p,id)=>p.quests[id]==='active';
@@ -27,11 +28,14 @@ on('bp',(pl,m)=>{ const p=pl.prof, B=S.BEARPLUS, q=pr(p), op=m.op, here=pl.scene
   if(op==='render'){ if(!near(pl,B.render.x,B.render.y+.9,30)) return {err:'Lại gần trạm render'}; if(!active(p,'bp_3d')||q.bp_3d) return {err:'Máy đang render cảnh khác, quạt kêu vù vù'}; return job('bp_3d',25,'Render Bé Gấu 3D cùng chị My'); }
   if(op==='motion'){ if(!near(pl,B.motion.x,B.motion.y+.9,30)) return {err:'Lại gần góc motion'}; if(!active(p,'bp_motion')||q.bp_motion) return {err:'Bảng vẽ đang tắt. Nhận việc với anh Khoa trước'}; return job('bp_motion',20,'Làm intro Bé Gấu vẫy tay'); }
   if(op==='cups'){ if(!near(pl,B.cups.x,B.cups.y+.9,30)) return {err:'Lại gần tủ giải'};
+    // nộp xong nhiệm vụ mà mới được Honorable Mention: mỗi ngày nộp lại 1 dự án mới, tới khi được Site of the Day (cúp cho sổ Kỷ vật)
+    if((q.bp_aww||p.quests.bp_aww==='done')&&p.flags.bpAward!=='sotd'){ if(p.daily.bpaww) return {err:'Hôm nay nộp dự án rồi, mai nộp dự án khác nhé'}; p.daily.bpaww=1; const sotd=Math.random()<B.sotd; markDirty(pl);
+      if(sotd){ p.flags.bpAward='sotd'; reward(pl,{exp:150,item:'cup_sotd'},'Awwwards: SITE OF THE DAY!'); P.stat(pl,'sotd',1); } return {sotd,msg:sotd?'Dự án mới được SITE OF THE DAY! Cúp đặt lên hàng đầu tủ':'Lại Honorable Mention. Mai nộp dự án khác thử tiếp!'}; }
     if(!active(p,'bp_aww')||q.bp_aww) return {msg:p.flags.bpAward==='sotd'?'Cúp Site of the Day của bạn nằm ngay hàng đầu tủ!':'Tủ giải của Bearplus: Awwwards, FWA, CSSDA...'};
     const sotd=Math.random()<B.sotd; q.bp_aww=1; p.flags.bpAward=sotd?'sotd':'hm'; markDirty(pl);
     if(sotd){ reward(pl,{...B.sotdBonus,item:'cup_sotd'},'Awwwards: SITE OF THE DAY!'); P.stat(pl,'sotd',1); }
     return {sotd,msg:sotd?'Hội đồng chấm 7.8/10: SITE OF THE DAY! Cả team hú hét':'Honorable Mention 7.1/10. Vẫn là thành tích! Báo anh Khoa'}; }
-  if(op==='coffee'){ if(!near(pl,B.coffee.x,B.coffee.y+.9,30)) return {err:'Lại gần quầy cà phê'}; if(!take(pl,B.coffeePrice)) return {err:'Không đủ tiền'}; addItem(pl,'cafe_bp'); C.track(pl,'coffee'); return {msg:`Một ly cà phê sữa đá (${S.fmt(B.coffeePrice)})`}; }
+  if(op==='coffee'){ if(!near(pl,B.coffee.x,B.coffee.y+.9,30)) return {err:'Lại gần quầy cà phê'}; if(!shopPay(pl,B.coffeePrice)) return {err:'Không đủ tiền'}; addItem(pl,'cafe_bp'); C.track(pl,'coffee'); return {msg:`Một ly cà phê sữa đá (${S.fmt(B.coffeePrice)})`}; }
   if(op==='give'){ const who=String(m.who||''); if(!['bp_my','bp_dev','bp_ngan','bp_bear'].includes(who)) return {err:'?'}; if(!P.nearNpc(pl,who)) return {err:'Lại gần hơn'};
     if(!active(p,'bp_coffee')) return {err:'Chưa nhận việc mời cà phê'}; const g=p.flags.bpcafe=p.flags.bpcafe||{}; if(g[who]) return {err:'Người này có cà phê rồi'}; if(!has(pl,'cafe_bp')) return {err:'Mua cà phê ở quầy trước đã'};
     addItem(pl,'cafe_bp',-1); g[who]=1; q.bp_coffee=Object.keys(g).length; markDirty(pl); return {msg:`Đã mời cà phê (${q.bp_coffee}/4)`}; }
@@ -60,7 +64,7 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
   if(op==='buysim'){ if(!atDesk()) return {err:'Ra quầy giao dịch (bốc số trước) để mua SIM'}; const s=V.sims[m.i|0]; if(!s) return {err:'?'};
     if(p.sim&&p.sim.num===s.num) return {err:'Bạn đang dùng số này rồi'}; if(!take(pl,s.price)) return {err:`Số này ${S.fmt(s.price)}, ví không đủ`};
     let num=s.num; if(num==='random'){ const r=()=>Math.floor(Math.random()*10); num=`09${r()}${r()}.${r()}${r()}${r()}.${r()}${r()}${r()}`; }
-    if(p.sim&&SIMS.get(p.sim.num)===pl.uid) SIMS.delete(p.sim.num); p.sim={num,cat:s.cat,at:t}; SIMS.set(num,pl.uid); markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
+    if(p.sim&&SIMS.get(p.sim.num)===pl.uid) SIMS.delete(p.sim.num); p.sim={num,cat:s.cat,at:t}; SIMS.set(num,pl.uid); markDirty(pl); C.refreshInfo(pl); P.stat(pl,'sim',1); if(s.num!=='random') P.stat(pl,'simVip',1); return {num,msg:`Chúc mừng! Số mới của bạn: ${num} (${s.cat})`}; }
   if(op==='pack'){ const k=V.packs[m.k]; if(!k) return {err:'?'}; if(!p.sim) return {err:'Cần có SIM VNPT trước (mua ở quầy giao dịch)'}; if(!atDesk()&&!near(pl,V.pack.x,V.pack.y+.9,30)) return {err:'Ra quầy hoặc tới standee gói cước'};
     if(!take(pl,k.price)) return {err:'Không đủ tiền'}; const from=Math.max(t,(p.data&&p.data.until)||0); p.data={name:k.name,until:from+k.h*3600e3}; markDirty(pl);
     return {msg:`Đăng ký ${k.name} thành công! Pin điện thoại hao chậm hơn ${Math.round((1-V.packMul)*100)}% tới ${S.vnTime(p.data.until).day.split('-').reverse().join('/')}`}; }
@@ -85,6 +89,8 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
 function cauan(pl,part){ const p=pl.prof, f=p.flags.cauan=p.flags.cauan||{}; if(!active(p,'mieu_cauan')||f[part]) return; f[part]=1; pr(p).mieu_cauan=Object.keys(f).length; markDirty(pl); }
 on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDay(now());
   if(pl.scene!=='mieu') return {err:'Việc này ở Miếu ông Trường Con (Hải Phòng)'};
+  if(op==='congduc'){ const v=[1e6,5e6,1e7].includes(m.v|0)?m.v|0:0; if(!v) return {err:'?'}; if(!near(pl,M.altar.x,M.altar.y+1,48)) return {err:'Lại gần ban thờ ông Trường Con'}; if(!take(pl,v)) return {err:`Công đức ${S.fmt(v)}, ví không đủ`};   /* hòm công đức (thành tựu item huyền thoại) */
+    P.stat(pl,'donateMieu',v); reward(pl,{exp:Math.round(10+v/50000)},`Công đức ${S.fmt(v)} cho Miếu ông Trường Con 🙏`); markDirty(pl); return {msg:`Đã công đức ${S.fmt(v)}. Tổng công đức: ${S.fmt((p.stats&&p.stats.donateMieu)||v)}`}; }
   if(op==='incense'){ if(!near(pl,M.burner.x,M.burner.y+.9,34)) return {err:'Lại gần lư hương'}; if(d.incense) return {err:'Hôm nay bạn thắp hương rồi, lòng thành là đủ'}; if(!take(pl,M.incense.price)) return {err:'Không đủ tiền mua hương'};
     return P.startTask(pl,'incense',M.incense.dur,()=>{ d.incense=1; const b=holy?M.incense.holy:M.incense; const cur=p.mbuff&&p.mbuff.until>now()?p.mbuff.mul:1; p.mbuff={mul:Math.max(cur,b.mul),until:now()+b.min*60e3}; cauan(pl,'incense'); markDirty(pl);
       return {msg:`Thắp hương xong. Phúc bình an: +${Math.round((b.mul-1)*100)}% EXP trong ${b.min/60} giờ${holy?` (${holy}: phúc gấp đôi)`:''}`}; },{name:'Thắp hương cầu an'}); }
@@ -95,11 +101,11 @@ on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDa
     if(!take(pl,M.wishPrice)) return {err:'Không đủ tiền mua dải lụa'}; p.wish={k:m.k,day:today()}; cauan(pl,'wish'); markDirty(pl);
     return {msg:`Đã buộc dải lụa cầu ${w.name}. Mai quay lại game xem điều ước có linh không nhé!`}; }
   if(op==='food'){ const f=m.k==='nem'?M.nem:M.banhda, name=m.k==='nem'?'Nem cua bể':'Bánh đa cua'; if(!near(pl,M.cart.x,M.cart.y+.9,40)) return {err:'Lại gần xe bánh đa cua'};
-    const free=holy==='Lễ cầu an mùng 6'&&m.k!=='nem'&&!d.mieufree; if(!free&&!take(pl,f.price)) return {err:'Không đủ tiền'}; if(free) d.mieufree=1;
+    const free=holy==='Lễ cầu an mùng 6'&&m.k!=='nem'&&!d.mieufree; if(!free&&!shopPay(pl,f.price)) return {err:'Không đủ tiền'}; if(free) d.mieufree=1;
     p.needs.energy=Math.min(100,p.needs.energy+f.energy); const ds=today(); if(p.meals.day!==ds) p.meals={day:ds,eaten:{}}; const slot=S.mealStatus(p.meals,now()).find(s=>s.st==='now');
     if(slot&&!p.meals.eaten[slot.id]){ p.meals.eaten[slot.id]=true; C.track(pl,'meal'); } if(m.k!=='nem'&&!has(pl,'banh_da_cua')) addItem(pl,'banh_da_cua'); markDirty(pl);
     return {msg:`${name} nóng hổi${free?' (lộc cầu an, miễn phí!)':''}: +${f.energy} năng lượng${slot?', tính 1 bữa':''}`}; }
-  if(op==='buy'){ const k=String(m.k||''), price=M.shop[k]; if(!price) return {err:'?'}; if(!near(pl,M.cart.x,M.cart.y+.9,44)) return {err:'Lại gần xe bà Lụa'}; if(!take(pl,price)) return {err:'Không đủ tiền'};
+  if(op==='buy'){ const k=String(m.k||''), price=M.shop[k]; if(!price) return {err:'?'}; if(!near(pl,M.cart.x,M.cart.y+.9,44)) return {err:'Lại gần xe bà Lụa'}; if(!shopPay(pl,price)) return {err:'Không đủ tiền'};
     addItem(pl,k); markDirty(pl); return {msg:`Bà Lụa: "Của cháu đây: ${S.ITEMS[k].name.toLowerCase()}, mới về sáng nay!"`}; }
   if(op==='luoc'){ if(!near(pl,M.stove.x,M.stove.y+.9,44)) return {err:'Lại gần bếp củi'}; const q=pr(p); if(!active(p,'tc_luocga')||q.tc_luocga) return {err:'Bếp củi đang đỏ lửa. Ông Trường Con chưa nhờ luộc gì'};
     const k=has(pl,'ga_thit')?'ga_thit':has(pl,'chicken')?'chicken':''; if(!k) return {err:'Chưa có gà. Mua gà làm sẵn ở xe bà Lụa (45.000đ)'};
@@ -129,7 +135,7 @@ on('sms',(pl,m)=>{ const p=pl.prof, V=S.VNPT, msg=require('./world').clean(m.msg
   if(prof&&prof.sim&&prof.sim.num===to){ const ib=prof.inbox=prof.inbox||[]; ib.push(line); if(ib.length>INBOX_MAX) ib.splice(0,ib.length-INBOX_MAX); C.db.saveProfile(uid,prof); return {msg:`${to} đang offline, tin nhắn chờ trong hộp thư`}; }
   return {err:'Số máy quý khách vừa gọi hiện không có thật'}; });
 // gọi điện: người nghe máy được Grab tới chỗ người gọi (cước theo 2 thành phố); người gọi đang ở phòng riêng / chỗ đặc biệt thì chỉ nói chuyện
-const CALL_OK=new Set(['lavi','nghienmotion','retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);
+const CALL_OK=new Set(['epl','lavi','nghienmotion','retreat','dalat','das','lumen','yenlang','pickle','diep','everfit','bearplus','vnpt','mieu','club','track']);
 on('ring',(pl,m)=>{ const p=pl.prof, t=now(), to=String(m.to||''); if(!p.sim) return {err:'Chưa có SIM. Mua ở VNPT (Hà Nội)'}; if(p.needs.battery<S.GRAB.minBattery) return {err:'Hết pin rồi'};
   if(pl.ringAt&&t-pl.ringAt<15000) return {err:'Vừa gọi xong, chờ chút'}; const q=byNum(to); if(!q) return {err:'Thuê bao quý khách vừa gọi tạm thời không liên lạc được'}; if(q===pl) return {err:'Đây là số của bạn'};
   pl.ringAt=t; p.needs.battery=Math.max(0,p.needs.battery-2); markDirty(pl); const k=kindOf(pl.scene), dest=S.SCENE_DEST[k], come=CALL_OK.has(k)&&dest;

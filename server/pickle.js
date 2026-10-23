@@ -3,6 +3,7 @@
 // Không ai đỡ kịp là đội kia ăn điểm. Bot tự chạy tới điểm rơi. Thiếu người thì người bấm bắt đầu thuê bot tuyển thủ; rời sân giữa trận thì bot vào thay.
 'use strict';
 const C=require('./core'), P=require('./places'), crypto=require('crypto');
+const {shopPay}=require('./perks');   // mua đồ: giảm 20% cho học viên DAS, nhân viên Bearplus / Lumen / Everfit
 const {S,T,on,hook,send,now,near,take,reward,markDirty,players,sceneOf}=C;
 const K=S.PICKLE, SH=K.shots, fmt=S.fmt;
 const M={st:'idle',seats:[null,null,null,null],pos:[null,null,null,null],score:[0,0],ball:null,nextServe:0,endAt:0,log:'',win:-1,server:0};
@@ -24,7 +25,8 @@ function begin(){ M.st='play'; M.score=[0,0]; M.win=-1; M.log='Bắt đầu! Đ�
     if(s&&s.pl){ const [x,y]=K.slots[i]; s.pl.x=x*T; s.pl.y=y*T; s.pl.budget=0; send(s.pl,{t:'pos',x:s.pl.x,y:s.pl.y}); } }); serve(0); }
 function end(team){ M.st='end'; M.win=team; M.ball=null; M.endAt=now()+7000; M.log=`Đội ${team?'B':'A'} thắng ${M.score[team]}–${M.score[1-team]}!`;
   M.seats.forEach((s,i)=>{ if(!s||!s.pl) return; C.track(s.pl,'match'); if(teamOf(i)===team){ const o=s.pl.prof.look&&s.pl.prof.look.outfit||{}, pr=S.PK_SETS.find(z=>z.premium&&Object.entries(z.items).every(([sl,k])=>o[sl]===k));   // mặc đủ set premium: ×1,5 EXP
-    reward(s.pl,{exp:Math.round(K.win.exp*(pr?1.5:1)),vnd:K.win.vnd},'Thắng trận pickleball 2 vs 2!'+(pr?` (set ${pr.name} ×1,5 EXP)`:'')); P.stat(s.pl,'pickle',1); } else reward(s.pl,{exp:K.lose.exp},'Thua trận pickleball, tập thêm nhé'); });
+    const d=s.pl.prof.daily, paid=(d.pkWin||0)<(K.paidWins||99); if(paid) d.pkWin=(d.pkWin||0)+1;   /* paidWins trận thắng có tiền mỗi ngày */
+    reward(s.pl,{exp:Math.round(K.win.exp*(pr?1.5:1)),vnd:paid?K.win.vnd:0},'Thắng trận pickleball 2 vs 2!'+(pr?` (set ${pr.name} ×1,5 EXP)`:'')+(paid?'':` (hôm nay đủ ${K.paidWins} trận có thưởng tiền)`)); P.stat(s.pl,'pickle',1); } else reward(s.pl,{exp:K.lose.exp},'Thua trận pickleball, tập thêm nhé'); });
   push(); }
 const won=()=>{ const [a,b]=M.score; return Math.max(a,b)>=K.cap||(Math.max(a,b)>=K.target&&Math.abs(a-b)>=2); };
 function botShot(){ const r=Math.random(); return r<.4?'drive':r<.75?'dink':'lob'; }
@@ -63,7 +65,7 @@ on('pk',(pl,m)=>{ const p=pl.prof; if(pl.scene!=='pickle') return {err:'Tới s�
     begin(); return {hired:empty,cost}; }
   if(m.op==='buyset'||m.op==='wearset'){ const z=S.PK_SETS.find(z=>z.id===m.id); if(!z) return {err:'Không có set này'}; if(!P.nearNpc(pl,'pk_shop')) return {err:'Gặp chị Hà ở quầy đồ pickleball'};
     const ids=Object.values(z.items), have=ids.every(k=>p.owned[k]);
-    if(m.op==='buyset'){ if(have) return {err:'Bạn đã có set này rồi'}; if(!take(pl,z.price)) return {err:`Set ${z.name} giá ${fmt(z.price)}, không đủ tiền`}; for(const k of ids) p.owned[k]=1; }
+    if(m.op==='buyset'){ if(have) return {err:'Bạn đã có set này rồi'}; if(!shopPay(pl,z.price)) return {err:`Set ${z.name} giá ${fmt(z.price)}, không đủ tiền`}; for(const k of ids) p.owned[k]=1; }
     else if(!have) return {err:'Chưa mua set này'};
     if(m.op==='wearset'||m.wear){ p.look.outfit={...p.look.outfit,...z.items}; C.refreshInfo(pl); }
     markDirty(pl); return {msg:m.op==='buyset'?`Đã mua set ${z.name}${m.wear?' và mặc luôn':''}`:`Đã mặc set ${z.name}`,look:p.look}; }

@@ -50,26 +50,39 @@ function pieceCanvas(p){ return once('pc2:'+p,()=>{ const w=p===p.toUpperCase()?
   A.gridRows(P,R,C,1,1);
   R.forEach((r,y)=>{ if(y>=R.length-6||!r) return; const m=/^(\d+)-(\d+)A/.exec(r.split(' ')[0]); if(m&&+m[2]-+m[1]>=3){ g.fillStyle=C.H; g.fillRect(2+ +m[1],1+y,1,1); } });   // viền sáng bên trái cho nổi khối
   A.outline(k); return k; }); }
-const FR=14, SQ=22, BW=SQ*8+FR*2, START=CHESS.newGame().b;   // chưa vào ván vẫn bày quân sẵn                                            // khung 14px + 8 ô 22px
-function drawBoard(c,v,sel,legal,drag){ if(!c||!v) return; c.width=BW; c.height=BW; const g=c.getContext('2d');
-  const avail=Math.min(innerHeight-196,innerWidth>800?innerWidth-400:innerWidth-30), sc=avail>=BW?Math.floor(avail/BW*2)/2*BW:Math.max(140,avail); c.style.width=c.style.height=sc+'px';   /* vuông, phóng nguyên lần cho nét */
-  g.imageSmoothingEnabled=false; const flip=v.me===1;
-  g.fillStyle='#946a64'; g.fillRect(0,0,BW,BW); g.fillStyle='#5e5266'; g.fillRect(3,3,BW-6,BW-6); g.fillStyle='#e48c4a'; g.fillRect(5,5,BW-10,BW-10); g.fillStyle='#d0663a'; g.fillRect(FR-1,FR-1,SQ*8+2,SQ*8+2);
-  for(let i=0;i<8;i++){ const f=flip?7-i:i, r=flip?i:7-i; A.drawText(g,'ABCDEFGH'[f],FR+i*SQ+10,BW-FR+4,'#b04e2a'); A.drawText(g,String(r+1),5,FR+i*SQ+9,'#b04e2a'); }
-  for(let i=0;i<64;i++){ const r=i>>3, f=i&7, X=FR+(flip?7-f:f)*SQ, Y=FR+(flip?7-r:r)*SQ; g.fillStyle=(r+f)%2?'#c8dcd2':'#5e5266'; g.fillRect(X,Y,SQ,SQ);
-    if(v.last&&(v.last.from===i||v.last.to===i)){ g.fillStyle='rgba(255,216,74,.45)'; g.fillRect(X,Y,SQ,SQ); }
-    if(i===sel){ g.fillStyle='rgba(127,224,255,.55)'; g.fillRect(X,Y,SQ,SQ); }
-    const p=(v.b||START)[i];
-    if(v.check&&p&&p===(v.turn==='w'?'K':'k')){ g.fillStyle='#e04040'; g.fillRect(X,Y,SQ,SQ); g.fillStyle='#b02a2a'; g.fillRect(X,Y+SQ-2,SQ,2); }
-    if(p&&!(drag&&drag.i===i)) g.drawImage(pieceCanvas(p),X+2,Y+1);
-    if(legal.includes(i)){ g.fillStyle=OUT; g.fillRect(X+7,Y+8,8,6); g.fillRect(X+8,Y+7,6,8); g.fillStyle='#8edc6a'; g.fillRect(X+8,Y+8,6,6); g.fillStyle='#3fb070'; g.fillRect(X+8,Y+13,6,1); } }
-  if(drag&&v.b&&v.b[drag.i]){ const pc=pieceCanvas(v.b[drag.i]); g.fillStyle='rgba(0,0,0,.25)'; g.fillRect(Math.round(drag.x)-7,Math.round(drag.y)+8,14,2); g.drawImage(pc,Math.round(drag.x)-9,Math.round(drag.y)-14); } }   // quân đang cầm theo chuột
-// ô cờ dưới chuột (theo khung đã phóng to)
-// toạ độ chuột theo khung bàn cờ gốc (BW×BW)
-function boardXY(c,e){ const rc=c.getBoundingClientRect(); return [(e.clientX-rc.left)*BW/rc.width,(e.clientY-rc.top)*BW/rc.height]; }
+const START=CHESS.newGame().b;   // chưa vào ván vẫn bày quân sẵn
+/* ---------- bàn cờ kiểu chess.com: vẽ theo độ phân giải màn hình (nét ở mọi mức zoom), tự co vừa khung; ô kem / xanh lá, toạ độ trong góc ô,
+   nước vừa đi tô vàng, ô đang chọn tô vàng đậm, gợi ý nước đi (chấm tròn, ăn quân = vòng tròn), vua bị chiếu toả đỏ, quân cầm theo chuột to hơn, quân trượt mượt ---------- */
+const CB={light:'#ebecd0',dark:'#779556',lastL:'#f5f682',lastD:'#b9ca43',hint:'rgba(0,0,0,.14)'};
+let ANIM=null, ANIM_KEY='', LAST=null;
+// cỡ bàn tính theo khung ngoài cố định (không theo khung chứa bàn: khung đó co theo bàn nên vẽ lại sẽ teo dần): bề ngang trừ cột bên phải, bề cao trừ 2 thẻ người chơi
+function boardSide(c){ const fs=c.closest('.chessfs'), host=c.parentElement, one=innerWidth<=800, W=fs?fs.clientWidth-(one?0:358)-24:innerWidth-30, cards=[...(host?host.children:[])].filter(x=>x!==c).reduce((a,x)=>a+x.offsetHeight,0);
+  return Math.max(200,Math.floor(Math.min(W,innerHeight-cards-(one?60:90)))); }
+function drawBoard(c,v,sel,legal,drag){ if(!c||!v) return; LAST=[c,v,sel,legal,drag]; const side=boardSide(c), dpr=Math.min(3,devicePixelRatio||1);
+  if(c.style.width!==side+'px'){ c.style.width=c.style.height=side+'px'; } if(c.width!==Math.round(side*dpr)){ c.width=c.height=Math.round(side*dpr); }
+  const g=c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.imageSmoothingEnabled=false; const sq=side/8, flip=v.me===1, b=v.b||START, now=performance.now();
+  const XY=i=>{ const r=i>>3, f=i&7; return [(flip?7-f:f)*sq,(flip?7-r:r)*sq]; };
+  // nước vừa đi: quân trượt từ ô cũ sang ô mới trong 160ms
+  const key=v.last?v.last.from+'-'+v.last.to+'-'+(v.moves||[]).length:''; if(key&&key!==ANIM_KEY){ if(ANIM_KEY) ANIM={from:v.last.from,to:v.last.to,t:now}; ANIM_KEY=key; }
+  const anim=ANIM&&now-ANIM.t<160?ANIM:null;
+  for(let i=0;i<64;i++){ const r=i>>3, f=i&7, [X,Y]=XY(i), light=(r+f)%2===0, last=v.last&&(v.last.from===i||v.last.to===i);
+    g.fillStyle=i===sel?(light?'#f6f669':'#baca2b'):last?(light?CB.lastL:CB.lastD):light?CB.light:CB.dark; g.fillRect(X,Y,Math.ceil(sq),Math.ceil(sq));
+    const p=b[i]; if(v.check&&p&&p===(v.turn==='w'?'K':'k')){ const gr=g.createRadialGradient(X+sq/2,Y+sq/2,sq*.1,X+sq/2,Y+sq/2,sq*.62); gr.addColorStop(0,'rgba(255,40,40,.95)'); gr.addColorStop(1,'rgba(255,40,40,0)'); g.fillStyle=gr; g.fillRect(X,Y,sq,sq); } }
+  // toạ độ trong góc ô (như chess.com): chữ cột ở hàng dưới, số hàng ở cột trái
+  g.font=`bold ${Math.max(9,Math.round(sq*.2))}px system-ui, sans-serif`; g.textBaseline='alphabetic';
+  for(let k=0;k<8;k++){ const fileIx=flip?7-k:k, rankIx=flip?k:7-k; g.fillStyle=(k%2===0)?CB.light:CB.dark; g.textAlign='right'; g.fillText('abcdefgh'[fileIx],(k+1)*sq-3,side-4); g.fillStyle=(k%2===0)?CB.dark:CB.light; g.textAlign='left'; g.fillText(String(rankIx+1),3,k*sq+sq*.24); }
+  if(drag&&drag.moved){ const j=boardSquareXY(v,drag.x,drag.y,side); if(j>=0){ const [X,Y]=XY(j); g.strokeStyle='rgba(255,255,255,.75)'; g.lineWidth=Math.max(2,sq*.05); g.strokeRect(X+g.lineWidth/2,Y+g.lineWidth/2,sq-g.lineWidth,sq-g.lineWidth); } }   /* ô đang kéo tới */
+  const piece=(p,X,Y,s)=>{ const pc=pieceCanvas(p), w=pc.width, h=pc.height, k=s*.86/Math.max(w,h); g.drawImage(pc,Math.round(X+(sq-w*k)/2),Math.round(Y+(sq-h*k)/2+sq*.02),Math.round(w*k),Math.round(h*k)); };
+  for(let i=0;i<64;i++){ const p=b[i]; if(!p||(drag&&drag.moved&&drag.i===i)||(anim&&anim.to===i)) continue; const [X,Y]=XY(i); piece(p,X,Y,sq); }
+  // gợi ý nước đi: chấm giữa ô trống, vòng tròn quanh quân bị ăn
+  for(const i of legal||[]){ const [X,Y]=XY(i), cx=X+sq/2, cy=Y+sq/2; g.fillStyle=CB.hint; g.strokeStyle=CB.hint; if(b[i]){ g.lineWidth=sq*.09; g.beginPath(); g.arc(cx,cy,sq*.44,0,7); g.stroke(); } else { g.beginPath(); g.arc(cx,cy,sq*.16,0,7); g.fill(); } }
+  if(anim){ const k=Math.min(1,(now-anim.t)/160), e=1-(1-k)*(1-k), [x0,y0]=XY(anim.from), [x1,y1]=XY(anim.to); if(b[anim.to]) piece(b[anim.to],x0+(x1-x0)*e,y0+(y1-y0)*e,sq); requestAnimationFrame(()=>{ if(LAST) drawBoard(...LAST); }); }
+  if(drag&&drag.moved&&b[drag.i]){ piece(b[drag.i],drag.x-sq*.6,drag.y-sq*.62,sq*1.2); } }   // quân đang cầm theo chuột, to hơn 1 chút
+// toạ độ chuột theo khung bàn cờ (px CSS của canvas)
+function boardXY(c,e){ const rc=c.getBoundingClientRect(); return [e.clientX-rc.left,e.clientY-rc.top]; }
+function boardSquareXY(v,x,y,side){ const sq=side/8; if(x<0||y<0||x>=side||y>=side) return -1; let f=Math.floor(x/sq), r=Math.floor(y/sq); if(v.me===1){ f=7-f; r=7-r; } return r*8+f; }
 // ô cờ dưới chuột: chỉ số 0 = a8 ở hàng trên cùng (giống lúc vẽ), cầm quân đen thì lật cả 2 chiều
-function boardSquare(c,e,v){ const [bx,by]=boardXY(c,e), x=bx-FR, y=by-FR; if(x<0||y<0||x>=SQ*8||y>=SQ*8) return -1;
-  let f=Math.floor(x/SQ), r=Math.floor(y/SQ); if(v.me===1){ f=7-f; r=7-r; } return r*8+f; }
+function boardSquare(c,e,v){ const [x,y]=boardXY(c,e); return boardSquareXY(v,x,y,c.getBoundingClientRect().width); }
 function chessHtml(v){ const me=v.me, mc=me===0?'w':me===1?'b':null, top=me===1?0:1, bot=me===1?1:0;
   const res=v.result?(v.result.w<0?'HOÀ · '+esc(v.result.why):`${esc(v.seats[v.result.w]?v.seats[v.result.w].name:'?')} THẮNG · ${esc(v.result.why)}`):'';
   const banner=v.st==='wait'?'ĐỢI ĐỐI THỦ...':v.st==='end'?res:v.turn===mc?'TỚI LƯỢT BẠN':me<0?(v.turn==='w'?'TRẮNG ĐI':'ĐEN ĐI'):'ĐỐI THỦ ĐANG NGHĨ';

@@ -28,6 +28,8 @@ on('kejob',(pl,m)=>{ const p=pl.prof, s=STAFF[pl.uid];
   if(m.op==='quit'){ p.flags.keQuit=today(); delete STAFF[pl.uid]; saveStaff(pl.uid); if(p.stay&&p.stay.staff) p.stay=null; markDirty(pl); return {msg:'Đã nghỉ làm ở Ké Retreat'}; }
   if(m.op==='do'){ const task=String(m.task||''), def=K.tasks[task], r=rec(pl.uid); if(!def||!r.tasks.includes(task)) return {err:'Hôm nay cô Ké không giao việc này'};
     if(r.done.includes(task)) return {err:'Xong việc này rồi'}; if(pl.scene!=='retreat'||!near(pl,def.x,def.y,40)) return {err:'Ra đúng chỗ làm việc đã'};
-    return P.startTask(pl,'work',def.dur,()=>{ if(r.done.includes(task)) return {}; r.done.push(task); saveStaff(pl.uid);
+    return P.startTask(pl,'work',def.dur,()=>{ if(r.done.includes(task)) return {}; r.done.push(task); if(r.tasks&&r.done.length===r.tasks.length) P.stat(pl,'kestaff',1);   /* đủ việc 1 ngày nhân viên Ké */ saveStaff(pl.uid);
       reward(pl,{exp:def.exp,vnd:K.wage},'Cô Ké trả công: '+def.name); markDirty(pl); return {task}; },{anim:'work',name:def.name}); }
   return {err:'?'}; });
+// reset server (reset.js): dọn dữ liệu trong bộ nhớ của các tài khoản bị reset
+hook('reset',gone=>{ for(const uid of Object.keys(STAFF)) if(gone(uid)){ delete STAFF[uid]; saveStaff(uid); } });   /* nhân viên Ké Retreat */

@@ -97,26 +97,42 @@ const C={
   mu_dk(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%5===0)) U.put(x,y,';'); }); U.rows(26,26,(x,y,c)=>{ if(c==='U'||BODY_T.includes(c)) U.put(x,y,'$'); });
     if(f){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(0,20,4,20,'$'); U.rect(15,20,19,20,'$'); U.rect(4,0,15,3,'_'); U.rect(4,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(9,-5,10,-3,':');
-      U.rect(20,9,21,26,'%'); U.rect(20,9,20,26,'#'); U.rect(18,25,23,26,'$'); U.rect(20,27,21,30,'>'); U.rect(20,31,21,31,'$'); }
+      if(!U.nowep){ U.rect(20,9,21,26,'%'); U.rect(20,9,20,26,'#'); U.rect(18,25,23,26,'$'); U.rect(20,27,21,30,'>'); U.rect(20,31,21,31,'$'); } }
     if(s){ U.rect(12,18,16,20,'_'); U.rect(12,20,16,20,'$'); U.rect(5,0,15,3,'_'); U.rect(5,3,15,3,'$'); U.rect(8,-3,11,0,':'); U.rect(7,-4,9,-3,':');
-      U.rect(18,9,19,25,'%'); U.rect(19,9,19,25,'#'); U.rect(16,24,21,25,'$'); U.rect(18,26,19,29,'>'); }
+      if(!U.nowep){ U.rect(18,9,19,25,'%'); U.rect(19,9,19,25,'#'); U.rect(16,24,21,25,'$'); U.rect(18,26,19,29,'>'); } }
     if(v==='back'){ U.rect(0,18,4,20,'_'); U.rect(15,18,19,20,'_'); U.rect(4,0,15,3,'_'); U.rect(8,-3,11,0,':'); U.rows(19,27,(x,y)=>{ if(x>=6&&x<=13) U.put(x,y,':'); }); } },
   // MU Online · Tiên Nữ: áo trắng viền vàng, vương miện lá vàng, tai nhọn, song kiếm tiên lưỡi xanh băng
   mu_elf(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||y===23)) U.put(x,y,'$'); }); U.rows(27,30,(x,y,c)=>{ if('Pp'.includes(c)&&y===30) U.put(x,y,'$'); });
     const cx=s?10:9.5; for(let x=Math.round(cx)-5;x<=Math.round(cx)+5;x++) U.put(x,1,x%2?'$':'~'); U.put(Math.round(cx),0,'$'); U.put(Math.round(cx),-1,'?');
     if(f){ U.rect(-1,9,0,10,'S'); U.put(-2,8,'S'); U.rect(19,9,20,10,'S'); U.put(21,8,'S');
-      for(const x of [21,-2]){ U.rect(x,15,x,26,'?'); U.put(x,14,'#'); U.rect(x,16,x,25,x>0?'#':'?'); U.rect(x-1,27,x+1,27,'$'); U.rect(x,28,x,30,'<'); } }
-    if(s){ U.put(5,9,'S'); U.put(4,8,'S'); U.rect(19,14,19,26,'?'); U.put(19,13,'#'); U.rect(20,15,20,25,'#'); U.rect(18,27,21,27,'$'); U.rect(19,28,20,30,'<'); }
+      if(!U.nowep) for(const x of [21,-2]){ U.rect(x,15,x,26,'?'); U.put(x,14,'#'); U.rect(x,16,x,25,x>0?'#':'?'); U.rect(x-1,27,x+1,27,'$'); U.rect(x,28,x,30,'<'); } }
+    if(s){ U.put(5,9,'S'); U.put(4,8,'S'); } if(s&&!U.nowep){ U.rect(19,14,19,26,'?'); U.put(19,13,'#'); U.rect(20,15,20,25,'#'); U.rect(18,27,21,27,'$'); U.rect(19,28,20,30,'<'); }
     if(v==='back'){ U.rect(-1,9,0,10,'S'); U.rect(19,9,20,10,'S'); U.rect(8,19,11,30,'$'); } },
   // MU Online · Phù Thuỷ: giáp xanh lam viền bạc, mũ trùm xanh đính ngọc, áo choàng xanh thẫm, gậy phép gỗ đầu quả cầu sáng
   mu_dw(U,v){ const s=v==='side', f=v==='front';
     U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y===19||x%4===0)) U.put(x,y,'%'); });
     if(v!=='side'){ for(let y=17;y<=32;y++){ U.put(-1,y,'*'); U.put(20,y,'*'); } } else { for(let y=16;y<=32;y++){ const w=y<20?1:Math.min(4,1+((y-18)>>1)); for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,'*'); } }
     U.rect(s?5:4,0,s?15:15,2,'&'); U.rect(s?6:5,-2,s?14:14,-1,'&'); U.put(s?10:9,0,'?'); U.put(s?10:10,0,'?');
-    if(f){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
-    if(s){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
+    if(f&&!U.nowep){ U.rect(20,4,20,31,'<'); U.rect(19,1,21,3,'?'); U.put(20,0,'#'); U.put(18,2,'?'); U.put(22,2,'?'); }
+    if(s&&!U.nowep){ U.rect(18,4,18,30,'<'); U.rect(17,1,19,3,'?'); U.put(18,0,'#'); }
     if(v==='back'){ U.rows(17,32,(x,y)=>U.put(x,y,(x===5||x===14)?'&':'*')); } },
+  // MU Online · Đại Tượng: giáp voi chiến thép xám viền vàng, mũ đầu voi (vòi giữa trán, 2 tai lớn trong hồng, ngà trắng), giáp vai to, khiên tháp tay trái, chuỳ gai tay phải
+  mu_dt(U,v){ const s=v==='side', f=v==='front';
+    U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)) U.put(x,y,(y===19||y===22)?'%':'_'); }); U.rows(26,26,(x,y,c)=>{ if(c==='U'||BODY_T.includes(c)) U.put(x,y,'$'); });
+    U.rows(27,33,(x,y,c)=>{ if(LEG.includes(c)&&(y===29||y===33)) U.put(x,y,'_'); });
+    if(f){ U.rect(3,-1,16,3,'_'); U.rect(5,-2,14,-2,'_'); U.rect(3,3,16,3,'$'); U.rect(8,-1,11,-1,'%');   /* mũ đầu voi */
+      U.rect(-1,3,2,12,'_'); U.rect(0,5,1,10,'!'); U.rect(17,3,20,12,'_'); U.rect(18,5,19,10,'!');   /* 2 tai voi */
+      U.rect(9,4,10,8,'_'); U.put(9,9,'_'); U.put(10,9,'%'); U.put(4,13,'/'); U.put(3,14,'/'); U.put(15,13,'/'); U.put(16,14,'/');   /* vòi + ngà */
+      U.rect(-2,17,4,21,'_'); U.rect(15,17,21,21,'_'); U.rect(-2,21,4,21,'$'); U.rect(15,21,21,21,'$'); U.rect(-1,17,3,17,'%'); U.rect(16,17,20,17,'%');   /* giáp vai */
+      U.rect(-5,15,-1,31,'_'); U.rect(-5,15,-1,15,'$'); U.rect(-5,31,-1,31,'$'); U.rect(-5,15,-5,31,'$'); U.rect(-1,15,-1,31,'$'); U.rect(-3,20,-3,25,'/'); U.rect(-4,21,-2,22,'%');   /* khiên tháp */
+      if(!U.nowep){ U.rect(21,14,21,30,'>'); U.rect(19,9,23,13,'%'); U.rect(19,9,23,9,'_'); U.put(18,11,'_'); U.put(24,11,'_'); U.put(21,8,'_'); U.rect(19,11,23,11,'$'); } }   /* chuỳ gai */
+    if(s){ U.rect(4,-1,16,3,'_'); U.rect(6,-2,14,-2,'_'); U.rect(4,3,16,3,'$'); U.rect(3,3,6,12,'_'); U.rect(4,5,5,10,'!');   /* mũ + tai voi phía sau */
+      U.rect(17,3,18,9,'_'); U.rect(18,10,19,12,'_'); U.put(19,13,'%'); U.put(16,13,'/'); U.put(17,14,'/'); U.put(18,14,'/');   /* vòi cong xuống trước mặt + ngà */
+      U.rect(8,17,14,21,'_'); U.rect(8,21,14,21,'$'); U.rect(9,17,13,17,'%');   /* giáp vai */
+      U.rect(16,15,20,31,'_'); U.rect(16,15,20,15,'$'); U.rect(16,31,20,31,'$'); U.rect(20,15,20,31,'$'); U.rect(18,20,18,25,'/'); }   /* khiên tháp đưa ra trước */
+    if(v==='back'){ U.rect(3,-1,16,3,'_'); U.rect(5,-2,14,-2,'_'); U.rect(-1,3,2,12,'_'); U.rect(17,3,20,12,'_'); U.rect(-2,17,4,21,'_'); U.rect(15,17,21,21,'_'); U.rect(-2,21,4,21,'$'); U.rect(15,21,21,21,'$');
+      U.rows(19,26,(x,y)=>{ if(x>=6&&x<=13&&(y===20||y===24)) U.put(x,y,'$'); }); } },
   // đồ ninja cam: vai + hông đen, băng đeo trán xanh có tấm kim loại, khoá kéo trắng
   mu_naruto(U,v){ const s=v==='side'; U.rows(19,26,(x,y,c)=>{ if(BODY_T.includes(c)&&(y<=20||y>=25)) U.put(x,y,'@'); });
     if(v==='front'){ U.rect(9,21,10,26,'#'); U.rect(3,8,16,9,'?'); U.rect(7,8,12,9,'%'); U.rect(8,8,11,8,'_'); U.rect(0,8,2,9,'?'); }
@@ -143,7 +159,8 @@ const C={
     if(v==='front'){ U.rect(6,17,13,18,':'); U.rect(8,19,11,19,':'); U.rect(9,20,10,20,':'); } if(s){ U.rect(9,17,16,18,':'); U.rect(13,19,15,19,':'); }
     U.rows(19,25,(x,y,c)=>{ if(BODY_T.includes(c)&&(x%4===0||y%4===0)) U.put(x,y,';'); }); U.rows(33,33,(x,y,c)=>{ if('Ff'.includes(c)&&(x===4||x===15||(s&&x===6))) U.put(x,y,'$'); }); }};
 /* ---------- set legacy (Premium Store MU): phủ kín đầu thành mũ giáp / mặt nạ, tô lại thân + chân, vũ khí cầm tay phải (cột 20 nhìn thẳng, 18 nhìn nghiêng) ---------- */
-const LGPAL={'0':[76,124,234],'9':[40,70,180],'[':[176,206,255],']':[24,26,40],'{':[255,240,150],'}':[196,136,28],'(':[156,96,56],')':[100,60,34],'-':[255,64,64],'`':[124,226,110],'"':[255,255,255],"'":[150,96,210],'a':[255,166,46]};
+const LGPAL={'0':[76,124,234],'9':[40,70,180],'[':[176,206,255],']':[24,26,40],'{':[255,240,150],'}':[196,136,28],'(':[156,96,56],')':[100,60,34],'-':[255,64,64],'`':[124,226,110],'"':[255,255,255],"'":[150,96,210],'a':[255,166,46],
+  '1':[232,48,160],'2':[168,230,48],'3':[255,140,30],'4':[36,180,90],'5':[62,62,72],'6':[34,54,130],'7':[248,208,40],'8':[214,36,48]};   /* màu Kamen Rider: hồng cánh sen, xanh chanh, cam, xanh lá, xám đậm, navy, vàng, đỏ thẫm */
 for(const [k,v] of Object.entries(LGPAL)){ PAL[k]=v; KEYS.add(k); }
 const LG={
   // đầu: tô mọi pixel đầu (tóc + mặt) theo 3 tông sáng / vừa / tối, sáng ở góc trên trái
@@ -160,20 +177,51 @@ const LG={
     if(v==='side'){ for(let y=17;y<=33;y++){ const w=y<20?1:Math.min(5,1+((y-17)>>1)); for(let x=2-w;x<=2;x++) if(!U.body(x,y)||x<4) U.put(x,y,x===2-w?c[1]:c[0]); } if(fur) U.rect(2,18,6,19,fur); return; }
     for(let y=18;y<=33;y++){ U.put(-1,y,c[0]); U.put(20,y,c[0]); U.put(-2,y,y>24?c[1]:'.'); U.put(21,y,y>24?c[1]:'.'); } if(fur){ U.rect(-1,18,3,19,fur); U.rect(16,18,20,19,fur); } },
   wx:v=>v==='side'?18:20 };
+// Kamen Rider: mũ giáp kín mặt, mắt kính to, đai Driver bạc ở eo; 6 form khác màu / mũ (lg_kr0…5, đổi mỗi 5 giây khi đánh)
+const KRF=(U,v,o)=>{ const s=v==='side', f=v==='front';
+  LG.head(U,o.h); LG.torso(U,o.t); LG.legs(U,o.l,o.b); LG.hands(U,o.hand||']'); LG.belt(U,'%'); if(f){ U.rect(8,26,11,26,o.core||'-'); U.put(9,26,'"'); }
+  if(o.eye&&v!=='back') o.eye(U,s); if(o.x) o.x(U,v,s,f); };
 Object.assign(C,{
+  lg_kr0(U,v){ KRF(U,v,{h:['8','8',';'],t:['8','8',';'],l:['8',';'],b:['0','9'],core:'-',x:(U,v,s,f)=>{ const half=x=>(s?x<12:x<10);   /* Build RabbitTank: nửa đỏ thỏ, nửa xanh xe tăng */
+      U.rows(1,18,(x,y,ch)=>{ if(ch!=='O'&&!half(x)) U.put(x,y,y<4?'[':'0'); }); U.rows(19,33,(x,y,ch)=>{ if(ch!=='O'&&!half(x)&&!'%"-'.includes(ch)) U.put(x,y,y>30?'8':'0'); });
+      if(f){ U.rect(4,9,8,12,'-'); U.rect(5,8,7,8,'-'); U.rect(11,9,15,12,'['); U.rect(11,9,15,9,'"'); U.rect(5,-2,6,3,'8'); U.put(4,-3,'8'); U.rect(13,-1,15,2,'0'); U.rect(9,1,10,18,']'); U.rect(9,19,10,25,']'); }
+      if(s){ U.rect(12,9,16,12,'['); U.rect(13,-1,15,2,'0'); } } }); },
+  lg_kr1(U,v){ KRF(U,v,{h:['!','1','1'],t:['!','1','1'],l:['1','2'],b:['1','2'],core:'2',x:(U,v,s,f)=>{   /* Ex-Aid: tóc dựng hồng, mặt đen mắt cam to kiểu game, viền xanh chanh */
+      for(let x=s?5:3;x<=(s?16:16);x+=2){ U.rect(x,-4+(x%4),x+1,1,'1'); U.put(x,-4+(x%4),'!'); }
+      if(f){ U.rect(3,7,16,15,']'); U.rect(4,8,8,13,'3'); U.rect(11,8,15,13,'3'); U.rect(5,9,6,11,']'); U.rect(13,9,14,11,']'); U.rect(3,7,16,7,'"'); U.rect(6,21,13,24,'_'); U.rect(7,22,8,23,'0'); U.rect(11,22,12,23,'-'); }
+      if(s){ U.rect(9,7,17,15,']'); U.rect(12,8,16,13,'3'); U.rect(13,9,14,11,']'); }
+      U.rows(27,33,(x,y,ch)=>{ if('PpUj'.includes(ch)&&y%2) U.put(x,y,'2'); }); } }); },
+  lg_kr2(U,v){ KRF(U,v,{h:[']',']','5'],t:[']',']','5'],l:[']','5'],b:['5',']'],core:'3',hand:'5',x:(U,v,s,f)=>{   /* Ghost: mũ trùm đen, mặt cam, sừng bạc giữa trán, sọc cam trên áo */
+      if(f){ U.rect(4,6,15,15,'3'); U.rect(4,6,15,6,'a'); U.rect(7,9,12,13,']'); U.rect(9,-3,10,8,'%'); U.put(9,-4,'"'); U.rect(4,19,6,25,'3'); U.rect(13,19,15,25,'3'); }
+      if(s){ U.rect(10,6,17,15,'3'); U.rect(12,9,15,13,']'); U.rect(13,-3,14,8,'%'); U.rect(9,19,11,25,'3'); }
+      if(v==='back'){ U.rows(19,33,(x,y)=>{ if(x>=4&&x<=15) U.put(x,y,y%4?']':'3'); }); } } }); },
+  lg_kr3(U,v){ KRF(U,v,{h:['0','6','6'],t:['0','6','6'],l:['6','9'],b:['7','}'],core:'3',hand:'6',x:(U,v,s,f)=>{   /* Gaim: mũ navy samurai sừng vàng, mặt cam lát cam, viền vàng */
+      LG.pair(U,v,[[3,3],[2,2],[1,1],[0,0],[-1,-1],[4,4]],'$'); U.rect(s?13:9,-2,s?14:10,2,'$');
+      if(f){ U.rect(5,7,14,15,'3'); U.rect(5,7,14,7,'a'); for(const x of [7,9,11]) U.rect(x,8,x,15,'a'); U.rect(9,7,10,7,'-'); U.rect(-1,18,4,21,'$'); U.rect(15,18,20,21,'$'); U.rect(6,20,13,23,'3'); }
+      if(s){ U.rect(11,7,17,15,'3'); U.rect(8,18,15,21,'$'); }
+      U.rows(19,33,(x,y,ch)=>{ if((y===19||y===27)&&ch!=='O') U.put(x,y,'$'); }); } }); },
+  lg_kr4(U,v){ KRF(U,v,{h:['"','"','_'],t:['"','"','_'],l:['"','_'],b:['0','7'],core:'7',hand:'_',x:(U,v,s,f)=>{   /* Fourze: mũ tên lửa trắng chóp nhọn, kính cam to, đai 4 công tắc màu */
+      for(let y=-4;y<=0;y++){ const w=2+(y+4); U.rect((s?11:9)-w+1,y,(s?11:10)+w-1,y,'"'); }
+      if(f){ U.rect(4,8,15,14,'3'); U.rect(4,8,15,8,'a'); U.rect(6,10,8,12,'['); U.rect(11,10,13,12,'['); U.rect(4,26,5,26,'-'); U.rect(6,26,7,26,'0'); U.rect(12,26,13,26,'7'); U.rect(14,26,15,26,'"'); U.rect(7,20,12,23,'_'); }
+      if(s){ U.rect(10,8,17,14,'3'); U.rect(13,10,15,12,'['); } } }); },
+  lg_kr5(U,v){ KRF(U,v,{h:['-','8','8'],t:['-','8','8'],l:['4','4'],b:['4','5'],core:'7',hand:']',x:(U,v,s,f)=>{   /* OOO: mũ đại bàng đỏ mào nhọn, mắt xanh lá to; ngực đỏ, giữa vàng hổ, dưới xanh châu chấu */
+      for(let i=0;i<6;i++){ const x=(s?6:3)+i*(s?2:3); U.rect(x,-3+(i%2),x+1,1,'8'); U.put(x,-3+(i%2),'-'); }
+      if(f){ U.rect(4,8,15,14,'4'); U.rect(4,8,15,8,'`'); U.rect(9,9,10,14,']'); U.rect(-1,19,4,24,'7'); U.rect(15,19,20,24,'7'); }
+      if(s){ U.rect(10,8,17,14,'4'); U.rect(9,19,14,24,'7'); }
+      U.rows(19,26,(x,y,ch)=>{ if(ch==='O'||'%"-'.includes(ch)) return; if(y>=22&&y<=23) U.put(x,y,'7'); else if(y>=24) U.put(x,y,'4'); }); if(f) U.rect(8,20,11,21,'7'); } }); },
   // Shovel Knight: mũ giáp xanh sừng ngà cong, khe chữ T, vai tròn, đai vàng, xẻng cán nâu lưỡi bạc
   lg_shovel(U,v){ const s=v==='side'; LG.head(U,['[','0','9']); LG.torso(U,['[','0','9']); LG.legs(U,['0','9'],['9',']']); LG.hands(U,'9'); LG.belt(U,'$');
     LG.pair(U,v,[[2,5],[1,4],[0,3],[-1,2],[-2,1],[-2,0],[-2,-1],[-1,-2],[1,5],[0,4],[-1,3]],'/'); LG.pair(U,v,[[-2,-2],[-1,-3],[0,-3]],'{');
     if(v==='front'){ U.rect(5,10,14,11,']'); U.rect(9,10,10,16,']'); } if(s){ U.rect(11,10,18,11,']'); U.rect(14,10,15,16,']'); }
     if(!s){ U.rect(-1,19,5,21,'0'); U.rect(14,19,20,21,'0'); U.rect(-1,19,5,19,'['); U.rect(14,19,20,19,'['); U.put(2,21,'$'); U.put(17,21,'$'); } else { U.rect(8,19,15,21,'0'); U.rect(8,19,15,19,'['); }
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,9,X,26,'<'); U.rect(X-1,26,X+1,26,'$'); U.rect(X-1,27,X+1,31,'%'); U.rect(X+1,27,X+1,31,'_'); U.put(X,32,'%'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,9,X,26,'<'); U.rect(X-1,26,X+1,26,'$'); U.rect(X-1,27,X+1,31,'%'); U.rect(X+1,27,X+1,31,'_'); U.put(X,32,'%'); } },
   // King Knight: giáp vàng, vương miện có thánh giá, khe mũ dọc, áo choàng đỏ lông trắng, quyền trượng ngọc đỏ
   lg_king(U,v){ const s=v==='side'; LG.cape(U,v,[':',';'],'#'); LG.head(U,['{','$','}']); LG.torso(U,['{','$','}']); LG.legs(U,[':',';'],['$','}']); LG.hands(U,'$');
     U.rows(23,25,(x,y,ch)=>{ if(ch!=='O'&&x>=7&&x<=12&&v==='front') U.put(x,y,':'); });
     const c0=s?5:4, c1=s?15:15; U.rect(c0,0,c1,0,'$'); for(const x of [c0,Math.round((c0+c1)/2),c1]){ U.put(x,-1,'$'); U.put(x,-2,'{'); } U.rect(Math.round((c0+c1)/2)-1,-4,Math.round((c0+c1)/2)+1,-4,'$'); U.put(Math.round((c0+c1)/2),-5,'$'); U.put(c0+3,0,':'); U.put(c1-3,0,':');
     if(v==='front') U.rect(9,9,10,16,']'); if(s) U.rect(14,9,15,16,']');
     if(v==='back') U.rows(20,32,(x,y)=>{ if((x*3+y*5)%11===0) U.put(x,y,'@'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,12,X,29,'$'); U.rect(X-1,8,X+1,11,':'); U.put(X,9,'-'); U.put(X,7,'$'); U.put(X,6,'$'); U.rect(X-1,12,X+1,12,'}'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,12,X,29,'$'); U.rect(X-1,8,X+1,11,':'); U.put(X,9,'-'); U.put(X,7,'$'); U.put(X,6,'$'); U.rect(X-1,12,X+1,12,'}'); } },
   // Sparta Sư Tử: mũ đồng che má, chùm lông đỏ viền xanh, ngực trần, găng đầu sư tử vàng, váy da tua, dép quai
   lg_sparta(U,v){ const s=v==='side'; U.rows(1,10,(x,y)=>U.put(x,y,y<4?'%':'_')); U.rows(11,17,(x,y)=>{ if(s?(x<7):(x<5||x>14)) U.put(x,y,'_'); });
     if(v==='front'){ U.rect(9,3,10,10,'%'); U.rect(8,8,11,8,'@'); } if(s) U.rect(12,3,13,9,'%');
@@ -191,7 +239,7 @@ Object.assign(C,{
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?')':'('); }); U.rows(19,21,(x,y,ch)=>{ if(ch!=='O') U.put(x,y,y===21?'}':'$'); }); if(v==='front') U.rect(9,20,10,21,'?');
     U.rows(24,24,(x,y,ch)=>{ if(ch!=='O'&&(x<6||x>13)) U.put(x,y,'$'); }); LG.hands(U,')'); LG.belt(U,'&');
     U.rows(27,30,(x,y,ch)=>{ if('PpUj'.includes(ch)) U.put(x,y,y===27?'&':x%3?'~':'^'); }); U.rows(31,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,')'); }); U.rows(32,33,(x,y,ch)=>{ if('Ff'.includes(ch)) U.put(x,y,y===32?'$':'}'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,8,X,33,'^'); for(const y of [14,22,30]) U.put(X,y,'$'); U.rect(X-1,3,X+1,7,'$'); U.put(X,2,'$'); U.put(X,5,'~'); U.put(X,4,'?'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,8,X,33,'^'); for(const y of [14,22,30]) U.put(X,y,'$'); U.rect(X-1,3,X+1,7,'$'); U.put(X,2,'$'); U.put(X,5,'~'); U.put(X,4,'?'); } },
   // Samurai Quỷ Đỏ: mũ kabuto đen sừng trăng lưỡi liềm vàng, mặt nạ quỷ đỏ mắt vàng nanh trắng, giáp lá đỏ đen, vai to, katana
   lg_samurai(U,v){ const s=v==='side'; LG.head(U,[']','@','@'],1,9); U.rows(9,9,(x,y)=>U.put(x,y,':'));
     LG.pair(U,v,[[5,0],[4,-1],[3,-2],[2,-3],[2,-4],[1,-5],[4,0],[3,-1]],'$'); LG.pair(U,v,[[1,-6],[2,-5]],'a');
@@ -201,7 +249,7 @@ Object.assign(C,{
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,y%2?']':(ch==='t'||ch==='q'?';':':')); }); LG.hands(U,']');
     if(!s){ U.rect(-2,19,4,23,':'); U.rect(15,19,21,23,':'); for(const y of [20,22]){ U.rect(-2,y,4,y,']'); U.rect(15,y,21,y,']'); } } else { U.rect(7,19,15,23,':'); U.rect(7,21,15,21,']'); }
     LG.legs(U,[']','@'],[';',']']); U.rows(27,29,(x,y,ch)=>{ if(ch!=='O'&&(x<7||x>12)) U.put(x,y,y%2?':':';'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,7,X,25,'%'); U.rect(X+1,8,X+1,24,'#'); U.put(X,6,'#'); U.rect(X-1,26,X+1,26,'$'); U.rect(X,27,X,30,']'); U.put(X,28,':'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,7,X,25,'%'); U.rect(X+1,8,X+1,24,'#'); U.put(X,6,'#'); U.rect(X-1,26,X+1,26,'$'); U.rect(X,27,X,30,']'); U.put(X,28,':'); } },
   // Chainsaw Man: đầu cưa máy cam, lưỡi cưa dựng trên trán, hàm răng nhọn, sơ mi trắng cà vạt đen, 2 tay mọc lưỡi cưa
   lg_chainsaw(U,v){ const s=v==='side'; LG.head(U,['a','+','=']); const bx=s?10:9; U.rect(bx-1,-8,bx+1,0,'%'); U.rect(bx,-8,bx,0,'#'); for(let y=-7;y<=0;y+=2){ U.put(bx-2,y,'@'); U.put(bx+2,y+1,'@'); }
     if(v==='front'){ U.rect(4,12,15,16,'@'); for(let x=4;x<=15;x+=2){ U.put(x,12,'#'); U.put(x+1,16,'#'); } U.rect(5,9,6,10,'#'); U.rect(13,9,14,10,'#'); }
@@ -222,7 +270,7 @@ Object.assign(C,{
     LG.torso(U,['$','a','=']); U.rows(19,21,(x,y,ch)=>{ if(ch!=='O'&&x>=5&&x<=14) U.put(x,y,'$'); }); LG.belt(U,'=',25); LG.hands(U,'S');
     U.rows(23,26,(x,y,ch)=>{ if(ch!=='O'&&(x<5||x>14)) U.put(x,y,'$'); });
     LG.legs(U,['$','}'],['<','>']); U.rows(30,31,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'<'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,2,X,33,'<'); for(const y of [8,9,26,27]) U.put(X,y,'>'); U.put(X,1,'$'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,2,X,33,'<'); for(const y of [8,9,26,27]) U.put(X,y,'>'); U.put(X,1,'$'); } },
   // Quyền Vương: ngực trần, găng đỏ to cổ găng trắng, quần đùi đỏ cạp trắng, giày boxing trắng cao cổ
   lg_boxer(U,v){ const s=v==='side'; U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='t'||ch==='q'?'s':'S'); }); if(v==='front'){ U.rect(9,22,10,25,'d'); U.rect(7,24,12,24,'d'); }
     if(!s){ for(const x of [-2,15]){ U.rect(x,23,x+6,29,':'); U.rect(x+4,24,x+6,29,';'); U.rect(x,23,x+6,23,'#'); U.put(x+1,25,'-'); U.put(x+2,24,'-'); } }
@@ -255,7 +303,7 @@ Object.assign(C,{
     U.rows(1,9,(x,y,ch)=>{ if(ch!=='O') U.put(x,y,x<6?'-':':'); }); U.rect(s?12:9,6,s?13:10,7,'?'); if(v!=='side'){ U.rect(0,4,2,9,'#'); U.rect(17,4,19,9,'#'); } else U.rect(4,4,6,9,'#');
     U.rows(10,17,(x,y,ch)=>{ if('HhJX'.includes(ch)) U.put(x,y,'$'); });
     LG.torso(U,['-',':',';']); if(v==='front'){ U.rect(7,20,12,21,'#'); U.rect(9,22,10,25,'%'); } LG.belt(U,'%'); LG.hands(U,'#'); LG.legs(U,[':',';'],[':',';']); U.rows(29,29,(x,y,ch)=>{ if('Pp'.includes(ch)) U.put(x,y,'#'); });
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,5,X,24,'`'); U.rect(X+1,6,X+1,23,'"'); U.rect(X-1,25,X+1,25,'_'); U.rect(X,26,X,29,'%'); } },
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,5,X,24,'`'); U.rect(X+1,6,X+1,23,'"'); U.rect(X-1,25,X+1,25,'_'); U.rect(X,26,X,29,'%'); } },
   // 16Typh: tóc bạch kim xanh dựng, blazer đen ve xám, sơ mi hoạ tiết hình học vàng đen, chuỗi ngọc trai, khuyên tai bạc
   lg_16typh(U,v){ const s=v==='side'; U.rows(-10,12,(x,y,ch)=>{ if('HhJX'.includes(ch)) U.put(x,y,x<8||(x+y)%4===0?'?':'_'); }); for(const x of (s?[4,7,10,13]:[3,6,9,12,15])){ U.put(x,0,'?'); U.put(x+1,-1,'?'); U.put(x+1,-2,'_'); }
     U.rows(20,26,(x,y,ch)=>{ if('TtqIi'.includes(ch)) U.put(x,y,ch==='I'||ch==='i'?((x+y)%3===0?'$':(x*2+y)%5===0?'/':'@'):ch==='t'||ch==='q'?'@':']'); });
@@ -297,8 +345,9 @@ Object.assign(C,{
     if(s){ U.rect(12,10,15,12,'@'); U.rect(13,10,14,10,'_'); U.rect(14,13,18,17,'_'); U.rect(15,14,17,16,'@'); }
     LG.torso(U,[']','@','@']); if(v==='front'){ U.rect(7,21,12,23,'_'); U.put(8,22,'-'); U.put(9,22,'0'); U.put(10,22,'$'); U.put(11,22,'-'); } LG.belt(U,'%'); if(v==='front') U.rect(9,26,10,26,'_');
     LG.hands(U,'@'); LG.legs(U,['@',']'],['@',']']);
-    if(v!=='back'){ const X=LG.wx(v); U.rect(X,4,X,24,'-'); U.rect(X,5,X,23,'"'); U.put(X-1,4,'-'); U.put(X+1,4,'-'); U.rect(X,25,X,29,'%'); U.put(X,27,']'); } } });
+    if(v!=='back'&&!U.nowep){ const X=LG.wx(v); U.rect(X,4,X,24,'-'); U.rect(X,5,X,23,'"'); U.put(X-1,4,'-'); U.put(X+1,4,'-'); U.rect(X,25,X,29,'%'); U.put(X,27,']'); } } });
 // trả về lưới đã nới lề + vẽ trang phục + viền
-function apply(G,set,view){ const P=pad(G), f=C[set]; if(f) f(api(P),view); outline(P); return P; }
+// nw: người chơi đang cầm vũ khí của Thợ Rèn → không vẽ vũ khí có sẵn trong bộ đồ (vũ khí thật vẽ riêng trên tay)
+function apply(G,set,view,nw){ const P=pad(G), f=C[set]; if(f){ const u=api(P); u.nowep=!!nw; f(u,view); } outline(P); return P; }
 window.HWC={PX,PT,PAL,C,apply};
 })();

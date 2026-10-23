@@ -24,7 +24,7 @@ X.pick=x=>BOTS.includes(x.k)?UI.place(x.k,{id:x.k}):p0(x);
 /* ---------- chỉ đường nhiệm vụ ---------- */
 X.go=id=>{ if(!/^(nm|gp|ev)_/.test(id)) return g0(id); const q=SD.QUESTS[id]; if(!q) return false;
   const w=(x,y,l)=>GAME.walkTo(x,y,l), P=GAME.P;
-  if(!here()){ toast('Việc này ở <b>Group Nghiện Motion (Hà Nội)</b>: bấm G gọi Grab','quest'); UI.grab(); return true; }
+  if(!here()){ GAME.autoGo('nghienmotion',()=>GAME.questGo(id)); return true; }
   if(GAME.canFinish(id)||Q(id)!=='active'){ if(q.giver==='trong') GAME.walkToNpc('trong'); else w(N[q.giver].x,N[q.giver].y+1.2,SD.NPC_LOOKS[q.giver].name); return true; }
   const desk=N.desks.map(([x,y])=>[x,y+.9]).sort((a,b)=>Math.hypot(a[0]*T-P.x,a[1]*T-P.y)-Math.hypot(b[0]*T-P.x,b[1]*T-P.y))[0];
   const spot={nm_ball:[...desk,'Bàn làm motion'],nm_easing:[...desk,'Bàn làm motion'],nm_logo:[...desk,'Bàn làm motion'],nm_reel:[N.tv.x,3.4,'TV lớn'],

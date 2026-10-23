@@ -40,9 +40,9 @@ function build(look){ const key=JSON.stringify(look); if(CACHE.has(key)) return 
   const pal=RT.palette(cols), o={...t.opts,quay:true,noi:true,hokage:true}, rows=RT.compose(o).map(r=>[...r]), anims={};
   const hw=o.costume&&window.HWC&&HWC.C[o.costume];   // đồ Halloween: lưới nới lề, bảng màu riêng
   if(hw) Object.assign(pal,HWC.PAL); else if(o.costume){ Object.assign(pal,COSTUME_PAL); costume(rows,o.costume,'side'); }
-  const sr=hw?HWC.apply(rows,o.costume,'side'):rows, spx=hw?HWC.PX:0, spt=hw?HWC.PT:0;
+  const sr=hw?HWC.apply(rows,o.costume,'side',o.nowep):rows, spx=hw?HWC.PX:0, spt=hw?HWC.PT:0;
   for(const [name,d] of Object.entries(SIDE)) anims[name]={fps:d.fps,loop:name!=='attack'&&name!=='hurt',frames:d.f.map(f=>side(sr,pal,f,spx,spt))};
-  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>{ if(hw) return grid(HWC.apply(G,o.costume,view),pal,OX-HWC.PX,HWC.PT,0); if(o.costume) costume(G,o.costume,view); return grid(G,pal,OX,0,0); })}; }
+  for(const [view,suf] of [['front','down'],['back','up']]){ const vf=RT.viewFrames(o,view); for(const k of ['idle','walk','run']) anims[k+'_'+suf]={fps:SIDE[k].fps,loop:true,frames:vf[k].map(G=>{ if(hw) return grid(HWC.apply(G,o.costume,view,o.nowep),pal,OX-HWC.PX,HWC.PT,0); if(o.costume) costume(G,o.costume,view); return grid(G,pal,OX,0,0); })}; }
   const pose=(name,opts,skipTop)=>RT.poseFrames(name,opts).map(f=>grid(skipTop?f.grid.map((r,y)=>y<f.padTop?r.map(()=>'.'):r):f.grid,pal,0,f.padTop||0,f.bob||0,f.palExtra));
   anims.quay={fps:8,loop:true,frames:pose('quay',o)}; anims.hokage={fps:8,loop:false,frames:pose('hokage',o)}; anims.noi={fps:6,loop:true,frames:pose('noi',o,true)};
   anims.gong={fps:8,loop:false,frames:pose('saiyan',{...o,saiyan:{toOpts:{hair:o.hair,beard:o.beard,mouth:o.mouth},toHair:cols.hair}})};

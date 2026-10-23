@@ -12,6 +12,8 @@ const isBot=pl=>pl&&pl.bot;
 // tiền/thưởng: bot dùng tiền nhà cái nên bỏ qua
 const takeP=(pl,v)=>isBot(pl)?true:take(pl,v), giveP=(pl,v)=>{ if(!isBot(pl)) give(pl,v); }, rewardP=(pl,r,m)=>{ if(!isBot(pl)) reward(pl,r,m); }, noteP=(pl,m,k)=>{ if(!isBot(pl)) note(pl,m,k); };
 const BN=()=>CL.bots.names[rnd(CL.bots.names.length)];
+// tiền thắng từ bot (nhà cái bỏ ra): mỗi người tối đa CL.botWinDaily / ngày, phần vượt nhà cái giữ lại
+const botPay=(pl,gain)=>{ if(!pl||isBot(pl)||!pl.prof||gain<=0) return Math.max(0,gain); const d=pl.prof.daily, v=Math.max(0,Math.min(gain,(CL.botWinDaily||1e12)-(d.botWin||0))); d.botWin=(d.botWin||0)+v; if(v<gain) note(pl,`🎰 Hôm nay đã ăn của bot đủ ${fmt(CL.botWinDaily)}: phần thắng thêm ${fmt(gain-v)} nhà cái giữ lại`,'lock'); return v; };
 const PV={p:1,n:3,b:3,r:5,q:9,k:0};
 
 class Table{ constructor(def){ this.def=def; this.id=def.id; this.watch=new Set(); this.log=[]; }
@@ -52,7 +54,7 @@ class Chess extends Table{
     return {err:'?'}; }
   end(w,why){ this.st='end'; const pot=this.bet*2;
     if(w<0){ for(const s of this.seats) if(s){ giveP(s.pl,this.bet); rewardP(s.pl,{exp:CL.chess.drawExp,kind:'game'},'Cờ vua: hoà ('+why+')'); } this.say('Hoà: '+why); }
-    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ giveP(W.pl,pot); rewardP(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
+    else { const W=this.seats[w], L=this.seats[1-w]; if(W){ if(W.pl&&!isBot(W.pl)) require('./places').stat(W.pl,'chessW',1); giveP(W.pl,L&&isBot(L.pl)?this.bet+botPay(W.pl,this.bet):pot);   /* thắng bot: tiền của bot tính vào trần mỗi ngày */ rewardP(W.pl,{exp:CL.chess.winExp,kind:'game'},`Thắng cờ vua (${why})${pot?' · +'+fmt(pot):''}`); }
       if(L&&L.pl.ws) noteP(L.pl,`Thua cờ vua (${why})${this.bet?' · -'+fmt(this.bet):''}`,'lock'); this.say(`${W?W.name:'?'} thắng: ${why}`); }
     for(const s of this.seats) if(s&&isBot(s.pl)) this.botLeaveAt=now()+4000;
     this.result={w,why}; this.push(); }
@@ -83,11 +85,12 @@ class Poker extends Table{
   join(pl,o){ if(this.seatOf(pl)>=0) return {}; const free=this.seats.indexOf(null); if(free<0) return this.watchOnly(pl);
     const P=CL.poker, buy=Math.round(o.buy||0); if(buy<P.minBuy||buy>P.maxBuy) return {err:`Mua chip từ ${fmt(P.minBuy)} tới ${fmt(P.maxBuy)}`};
     if(!take(pl,buy)) return {err:'Không đủ tiền mua chip'};
-    this.seats[free]={pl,name:pl.prof.name,chips:buy,bet:0,tot:0,cards:null,fold:true,allin:false,acted:false,inHand:false}; this.watch.delete(pl); pl.table=this;
+    this.seats[free]={pl,name:pl.prof.name,chips:buy,buy,bet:0,tot:0,cards:null,fold:true,allin:false,acted:false,inHand:false}; this.watch.delete(pl); pl.table=this;
     this.say(`${pl.prof.name} vào bàn với ${fmt(buy)}`); if(this.st==='wait') this.next=now()+3000; this.push(); return {}; }
   live(){ return this.seats.map((s,i)=>[s,i]).filter(([s])=>s&&s.inHand&&!s.fold); }
   nextIdx(from,pred){ for(let k=1;k<=this.seats.length;k++){ const i=(from+k)%this.seats.length, s=this.seats[i]; if(s&&pred(s,i)) return i; } return -1; }
   startHand(){ const P=CL.poker; for(const [i,s] of this.seats.entries()) if(s&&!s.pl){ this.seats[i]=null; }
+    if(this.seats.some(x=>x&&isBot(x.pl))) for(const x of this.seats) if(x&&!isBot(x.pl)) x.botSeen=true;   /* ván có bot: lãi lúc rời bàn tính vào trần thắng bot */
     const ready=this.seats.filter(s=>s&&s.chips>=P.big); if(ready.length<2){ this.st='wait'; this.push(); return; }
     this.deck=PK.deck(); this.board=[]; this.show=null;
     for(const s of this.seats) if(s){ const ok=s.chips>=P.big; Object.assign(s,{bet:0,tot:0,fold:!ok,allin:false,acted:false,inHand:ok,cards:ok?[this.deck.pop(),this.deck.pop()]:null,best:null}); }
@@ -134,11 +137,11 @@ class Poker extends Table{
     this.win([...pays.entries()],true); }
   win(list,show){ const P=CL.poker;
     for(const [s,v] of list){ s.chips+=v; const profit=v-s.tot; this.say(`${s.name} ăn ${fmt(v)}${show&&s.best?' · '+s.best.name:''}`); if(s.name===CL.tuSena.name) this.say(`Tú Sena: "${CL.tuSena.win}"`);
-      if(s.pl&&!isBot(s.pl)&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
+      if(s.pl&&!isBot(s.pl)&&profit>0) require('./places').stat(s.pl,'pokerWon',profit); if(s.pl&&!isBot(s.pl)&&profit>0) reward(s.pl,{exp:5+Math.min(45,Math.floor(profit/20000)),kind:'game'},`Poker: ăn ${fmt(v)}`); }
     this.show=show?this.seats.map(s=>s&&s.inHand&&!s.fold&&s.best?{cards:s.cards,name:s.best.name}:null):null;
     this.st='show'; this.toAct=-1; this.next=now()+(show?6000:3000); this.push(); }
   leave(pl){ const i=this.seatOf(pl); this.watch.delete(pl); if(pl.table===this) pl.table=null;
-    if(i>=0){ const s=this.seats[i]; if(s.chips>0) give(pl,s.chips); this.say(`${s.name} rời bàn, đổi ${fmt(s.chips)} chip ra tiền`); s.chips=0;
+    if(i>=0){ const s=this.seats[i]; if(s.chips>0) give(pl,s.botSeen&&s.chips>s.buy?s.buy+botPay(pl,s.chips-s.buy):s.chips); this.say(`${s.name} rời bàn, đổi ${fmt(s.chips)} chip ra tiền`);   /* bàn có bot: phần lãi tính vào trần thắng bot */ s.chips=0;
       if(this.st==='play'&&s.inHand){ s.pl=null; if(!s.fold){ s.fold=true; if(this.toAct===i||this.live().length<=1) this.advance(); } }   // giữ ghế tới hết ván để tính pot
       else this.seats[i]=null; }
     this.push(); }
@@ -216,7 +219,7 @@ class MaSoi extends Table{
     if(w===0) team='dan'; else if(w>=o) team='soi'; if(!team) return false;
     const win=this.ps.filter(p=>(p.role==='soi')===(team==='soi')), lose=this.ps.filter(p=>!win.includes(p)), here=win.filter(p=>p.pl&&!isBot(p.pl));
     const pot=Math.round(this.pot*(this.withBots?CL.bots.masoiBonus:1)), share=here.length?Math.floor(pot/here.length):0;    // chơi với bot: nhà cái bù, ăn nhiều hơn
-    for(const p of here){ give(p.pl,share); reward(p.pl,{exp:CL.masoi.winExp,kind:'game'},`Ma sói: phe ${team==='soi'?'Sói':'Dân làng'} thắng${share?' · +'+fmt(share):''}`); }
+    for(const p of here){ give(p.pl,this.withBots&&share>this.fee?this.fee+botPay(p.pl,share-this.fee):share);   /* bàn có bot: phần lãi tính vào trần thắng bot */ reward(p.pl,{exp:CL.masoi.winExp,kind:'game'},`Ma sói: phe ${team==='soi'?'Sói':'Dân làng'} thắng${share?' · +'+fmt(share):''}`); }
     for(const p of lose) if(p.pl&&!isBot(p.pl)){ const extra=this.withBots?Math.min(p.pl.prof.money,Math.round(this.fee*(CL.bots.masoiBonus-1))):0; if(extra) take(p.pl,extra);   // chơi với bot: thua mất thêm
       reward(p.pl,{exp:CL.masoi.loseExp,kind:'game'},`Ma sói: thua rồi${extra?' · mất thêm '+fmt(extra)+' (bàn có bot)':''}`); }
     this.reveal=this.ps.map(p=>({name:p.name,role:ROLE[p.role],alive:p.alive,win:win.includes(p)}));   // lật bài cả bàn sau ván

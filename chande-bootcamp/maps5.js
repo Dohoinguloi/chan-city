@@ -9,7 +9,7 @@ X.rf=async(op,it)=>{ const r=await act({t:'rf',op:op==='desk'?'desk':'spot',k:it
   if(r.msg) return toast(esc(r.msg),'item'); if(r.sec) toast('Bắt đầu... đứng yên nhé','quest'); };
 /* ---------- chỉ đường ---------- */
 const g0=X.go; X.go=id=>{ if(!/^(rf|hk|sq)_/.test(id)) return g0(id); const q=SD.QUESTS[id]; if(!q) return false;
-  if(!here()){ toast('Việc này ở <b>120 Yên Lãng (nhà anh Độ)</b>: bấm G gọi Grab','quest'); UI.grab(); return true; }
+  if(!here()){ GAME.autoGo('yenlang',()=>GAME.questGo(id)); return true; }
   if(GAME.canFinish(id)||Q(id)!=='active'){ GAME.walkToNpc(q.giver); return true; }
   if(id==='sq_banhbao') return GAME.walkToNpc('rf_jikey'),true;
   const t=R.tasks[id]; if(!t){ GAME.walkToNpc(q.giver); return true; }
