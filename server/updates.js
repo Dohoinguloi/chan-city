@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24u',title:'24/10 (sửa lỗi)',items:['Bấm các nút bên phải (Shopee, Chợ đồ cũ, Kỹ năng, Hằng ngày, Tủ đồ...) không còn tự bật / tắt tiếng nữa']},
   {v:'2026-10-24t',title:'24/10 · Shopee Chande, ngân khố nhà nước, thú cưng',items:[
     '🛍 Shopee Chande (nút cam riêng cạnh Chợ đồ cũ): mua ở đâu cũng được, freeship, Flash Sale -30% đổi mỗi 3 tiếng, bấm thẻ là mặc thử lên người, giá hiện sẵn ưu đãi Lumen / Bearplus / DAS / Everfit -20%',
     'Hàng mới: 30 áo (có áo + hoodie logo Lumen Studio, DAS), 30 quần / váy, 30 giày dép, 50 mũ (nón lá, mũ phớt, vương miện, tai mèo...), 30 kính, khăn / nơ / cà vạt, 14 kiểu tóc, 17 kiểu mặt; đủ bộ đồ của Đôn Chề',

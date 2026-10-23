@@ -91,8 +91,8 @@ function pickBgm(){ if(!S||!window.MUSIC||danceAudio) return; let k;
 setInterval(pickBgm,1000);
 if(window.MUSIC) window.MUSIC.setMuted(AUD.muted);
 function setMute(m){ AUD.muted=m; window.MUSIC&&window.MUSIC.setMuted(m); try{ localStorage.setItem('chande-mute',m?'1':'0'); }catch(e){} if(AUD.music){ if(m) AUD.music.pause(); else AUD.music.play().catch(()=>{}); }
-  for(const b of document.querySelectorAll('.muteBtn')){ b.classList.toggle('off',m); b.setAttribute('aria-pressed',String(!m)); const l=b.querySelector('.lbl'); if(l) l.textContent=m?'Tiếng: tắt':'Tiếng: bật'; } }
-document.addEventListener('click',e=>{ const b=e.target.closest('.muteBtn'); if(b){ setMute(!AUD.muted); b.blur(); } });
+  for(const b of document.querySelectorAll('.muteBtn')){ if(!b.querySelector('.spk')) continue; b.classList.toggle('off',m); b.setAttribute('aria-pressed',String(!m)); const l=b.querySelector('.lbl'); if(l) l.textContent=m?'Tiếng: tắt':'Tiếng: bật'; } }
+document.addEventListener('click',e=>{ const b=e.target.closest('.muteBtn'); if(b&&b.querySelector('.spk')){ setMute(!AUD.muted); b.blur(); } });   /* chỉ nút có biểu tượng loa: các nút HUD khác cũng dùng class muteBtn để lấy kiểu */
 
 /* ---------- sprite ---------- */
 const SHEETS={}; let PETS=null;
