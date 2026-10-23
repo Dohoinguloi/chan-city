@@ -41,7 +41,7 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
   put(A.stall('#d8742a',['#f4ead8','#e8b860','#5fae46']),15.5,15.6); block(14,13,16,14); put(A.label('QUAN AN','#5a2a10','#ffd84a'),15.5,13.2,{flat:true});   // Quán Ăn Lục Địa Cát (Bác Bếp Cát đứng trước quầy)
   put(A.tent({w:44,flag:'#3a8ae8'}),27.5,15.2); block(26,13,29,14); put(A.label('PHONG NGHI TRUA','#1e4a9a','#ffffff'),27.5,11.6,{flat:true});   // Phòng Nghỉ Trưa: hồi năng lượng (maps10)
   { const G=SD.MU.preOY?SD.MU.preOY.ddayGate:SD.MU.dday.gate, gx=G.x-SD.MU.OX; put(A.ddayGate(0),gx,G.y+.6,{anim:'ddgate'}); block(Math.floor(gx)-1,Math.floor(G.y)-1,Math.floor(gx)+1,Math.floor(G.y)-1); }   // nhà sự kiện Cổng D-Day (toạ độ cũ = gate.x - OX)   // lối mở trên tường Tây (y 19–22) sang vùng boss phía Tây
-  put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,24.2,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26);
+  put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,24.2,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26); put(A.grabSign(),16.6,28.9,{grab:true}); block(16,28,16,28);   /* biển GRAB cạnh lối ra (bên trái vòm Rừng Quái) */
   put(A.label('→ LANG LA · DAM RONG','#2a2026','#ff9a3a'),37,13.2,{flat:true});
   /* --- rừng Làng Lá phía Bắc: cổng torii, cọc tập, quán ramen, bia đá --- */
   put(A.muTorii(),46.5,9.6); block(45,9,45,9); block(48,9,48,9); put(A.label('LANG LA','#c8302a','#ffffff'),46.5,4.6,{flat:true});

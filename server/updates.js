@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24m',title:'24/10 (nhỏ)',items:['Quảng trường MU có biển GRAB bên trái cổng Rừng Quái: đứng gần bấm E hoặc G để gọi Grab đi map khác / về phòng']},
   {v:'2026-10-24l',title:'24/10 · Đồng phục VNPT + vẽ lại boss Đỉnh Bắc',items:[
     'Tạo nhân vật có thêm bộ đồ khởi đầu Đồng phục VNPT: áo polo xanh dương cổ + viền tay trắng, logo VNPT trên ngực và sau lưng, quần tây đen (nam) / váy đen (nữ). Áo polo VNPT cũng bán ở cửa hàng quần áo',
     'Vẽ lại Yasuo: đuôi tóc tím đen bay ra sau từ búi buộc vòng vàng, khăn choàng xanh che miệng, ngực trần, giáp vai trái nhiều lớp, đai thừng bện, quần ống rộng, chân đất quấn ống',
