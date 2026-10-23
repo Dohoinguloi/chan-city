@@ -2105,6 +2105,9 @@ Object.assign(QUESTS,{
   ars_coach:{giver:'huyphan_epl',after:'ars_goal',title:'Arteta mới của Emirates',desc:'Lấy Chứng chỉ HLV bóng đá, ngồi ghế HLV Arsenal và thắng 1 trận. Huy Phan tặng Áo Pháo Thủ Huyền Thoại (mùa Bất Bại 2003–04).',prog:1,cloth:'kit_ars_legend',reward:{exp:800,vnd:1500000}}});
 Object.assign(ACH,{epl_goal10:{name:'Sát thủ vòng cấm',desc:'Ghi 10 bàn ở Giải Ngoại Hạng Anh',stat:'goals',n:10,exp:150},epl_goal50:{name:'Vua phá lưới',desc:'Ghi 50 bàn ở Giải Ngoại Hạng Anh',stat:'goals',n:50,exp:400},
   epl_apps30:{name:'Trụ cột đội bóng',desc:'Ra sân 30 trận',stat:'eplApps',n:30,exp:200},epl_fan20:{name:'Cổ động viên số 12',desc:'Đi xem 20 trận có vé',stat:'eplFan',n:20,exp:150},epl_champ:{name:'Nhà vô địch Ngoại Hạng Anh',desc:'Vô địch 1 mùa giải cùng CLB',stat:'eplChamp',n:1,exp:500}});
+// Việc hôm nay ×2 (24/10): tiền + EXP mỗi việc và rương ngày (mở khi nhận đủ 3 việc; rương mốc điểm danh dùng chung) gấp đôi
+for(const d of Object.values(DAYQ.pool)){ if(d.rw.vnd) d.rw.vnd*=2; if(d.rw.exp) d.rw.exp*=2; }
+DAYQ.chest.vnd=DAYQ.chest.vnd.map(v=>v*2); DAYQ.chest.exp*=2;
 /* ======================= Giá đồ theo sức mạnh (23/10): đồ càng mạnh càng đắt, tính theo tiền kiếm được =======================
    Sức mạnh của 1 món = % tăng của trung bình nhân (sát thương ra đòn × độ trâu: máu, thủ, giáp, hút máu, hồi máu) ở cấp MU 40, trung bình 4 class.
    Giá = 170.000đ × (% tăng)^1,25 (1% ≈ 6 phút cày; món mạnh 10% ≈ 3 triệu, 20% ≈ 7 triệu), làm tròn. Giày cộng giá trị tốc chạy, món tay trái cộng giá trị cơ chế riêng

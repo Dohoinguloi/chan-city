@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24p',title:'24/10 (nhỏ)',items:['Việc hôm nay thưởng gấp đôi: mỗi việc 80–160K + 60–120 EXP, rương ngày (nhận đủ 3 việc) 240–640K + 240 EXP']},
   {v:'2026-10-24o',title:'24/10 · Auto thông minh hơn + Điểm danh 30 ngày',items:[
     'Auto nhiệm vụ không còn kẹt: pin yếu ở ngoài thì tự xin sạc nhờ người gần nhất (hết lượt thì tự Grab về phòng sạc), buồn ngủ / bẩn thì tự Grab về phòng ngủ / tắm, không bấm nhầm cổng dịch chuyển, Grab lỗi (hết pin, thiếu tiền) thì tự xử lý hoặc bỏ qua',
     'Việc phải chờ (vừa ăn món đó, chưa tới bữa, bướm chưa bay lại, "X phút nữa"...): Auto tự làm việc khác gần nhất trước, hết giờ chờ tự quay lại làm nốt. Việc ở map đang đứng và gần mình được làm trước',
