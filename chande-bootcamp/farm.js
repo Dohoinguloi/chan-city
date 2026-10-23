@@ -65,6 +65,7 @@ function decorate(m){ const W=m.W, H=m.H, g=m.grid, D=SD.DALAT, occ=new Uint8Arr
   for(const n of SD.NPCS.filter(n=>n.scene==='dalat')) mark(Math.floor(n.x)-2,Math.floor(n.y)-2,Math.floor(n.x)+2,Math.floor(n.y)+2);
   for(const p of Object.values(D.pens)) mark(Math.floor(p.x)-2,Math.floor(p.y)-2,Math.floor(p.x)+2,Math.floor(p.y)+2);
   mark(Math.floor(D.spawn.x)-3,Math.floor(D.spawn.y)-3,Math.floor(D.spawn.x)+3,Math.floor(D.spawn.y)+2);
+  { const c=SD.CLUB_DOORS&&SD.CLUB_DOORS.dalat; if(c) mark(Math.floor(c.x)-4,Math.floor(c.y)-5,Math.floor(c.x)+4,Math.floor(c.y)+1); }   /* quán Nhà giải trí (game.js withClubDoor): cây hoa không mọc đè */
   const PENS=[[46,36,61,44],[62,35,69,40],[70,35,77,41],[57,7,77,25]], inPen=(x,y)=>PENS.some(([a,b,c,d])=>x>=a&&x<=c&&y>=b&&y<=d);
   const put=(k,v,x,y,o={})=>{ m.obj.push({spr:spr(k,v),x:Math.round(x*T),y:Math.round(y*T),...o}); };
   // đồ đứng: chiếm ô (fw ô ngang, đáy ở hàng y); solid thì chặn đi qua

@@ -190,6 +190,7 @@ function buildRetreat(){
   bld('Cafe Đà Bắc',78,89,82,91,{shop:true,roof:'tile',wall:'ochre',doors:[30],windows:[6,50],sign:'CAFE',awning:'#3f6e9a'});
   bld('Siêu thị Đà Bắc',86,88,96,91,{shop:true,roof:'stone',wall:'stone',doors:[80],windows:[10,40,120,150],sign:'SIEU THI',awning:'#e04848'});
   bld('Tiệm net Cỏ',100,89,104,91,{shop:true,roof:'tile',wall:'stone',doors:[30],windows:[6,50],sign:'NET',awning:'#2a2a30'});
+  bld('Phòng Bay',180,60,187,63,{shop:true,roof:'stone',wall:'stone',doors:[56],windows:[10,100],sign:'PHONG BAY',awning:'#a259ff'});   /* sàn nhảy Audition: nhà riêng ở phố Đà Bắc, cửa nhìn ra vỉa hè */
   bld('Quán nhậu đặc sản Mường',108,88,115,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'QUAN NHAU'});
   bld('Trại ngựa Đà Bắc',156,84,163,86,{shop:true,roof:'thatch',wall:'wood',doors:[56],windows:[10,90],sign:'TRAI NGUA',awning:'#8a5a36'});
   // nhà dân trong thị trấn
@@ -262,7 +263,7 @@ function buildRetreat(){
     const A0=SHARED.LINHCAT.dragon.altar; put(A.lcAltar(),A0.x,A0.y+.6); solid.push([Math.floor(A0.x)-1,Math.floor(A0.y)-1,Math.floor(A0.x)+1,Math.floor(A0.y)]); put(A.signPost('TE DAN RONG THAN'),A0.x+4.5,A0.y+2.4); }
   put(A.lcStatue(),171,49.6); solid.push([170,48,172,49]); for(const x of [165,177]) put(A.lcFlag(),x,46.4); solid.push([165,45,165,45],[177,45,177,45]); for(const x of [167.5,174.5]) put(A.flowerBed(),x,51.2,{flat:true});   /* Trung tâm Lính Cát: tượng Bóng Cát, cờ, bồn hoa */
   spot(171,50.8,'Ngắm tượng Bóng Cát',['Tượng Bóng Cát khổng lồ trước Trung tâm Lính Cát. Ai đi ngang cũng xoa đầu bóng lấy may trước khi đi bắt Lính Cát.']);
-  put(A.signPost('LINH CAT - LEN KHU TAM LINH'),176.5,63.4);   /* chỗ Trung tâm cũ: biển chỉ đường */
+  put(A.signPost('LINH CAT - LEN KHU TAM LINH'),172.5,64.4);   /* chỗ Trung tâm cũ: biển chỉ đường */
   for(const [x,y] of [[80.5,41],[86.5,15],[133.5,36],[127.5,26],[171.5,12],[193.5,33],[13.5,12],[45.5,19],[236.5,24],[252.5,47],[323.5,77]]) put(A.rock(x|0),x,y);   /* mỏm đá dọc đường rừng núi */
   put(A.pagoda(),148.5,45,{name:'Chùa Đà Bắc',house:true}); rect(143,36,154,44,'B'); put(A.bellTower(),157.5,50.4); solid.push([156,48,158,49]); put(A.urn(),148.5,49.6); solid.push([148,48,148,48]);
   put(A.banyan(),139,52.6); solid.push([138,51,140,51]); put(A.signPost('CHUA DA BAC','#a8322a'),150.5,91.8);

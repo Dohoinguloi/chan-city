@@ -42,7 +42,7 @@ function buildInterior(kind){ const I=SD.INTERIORS[kind], W=I.W, H=I.H, K=kit(),
       put(A.label({chess:'CO VUA',poker:'POKER',masoi:'MA SOI'}[t.game]+(t.game==='masoi'?'':' '+t.id.slice(1)),'#2a1a10','#ffd84a'),t.x,t.y-1.4,{flat:true});
       act(t.x,t.y+(t.game==='chess'?.9:1.8),'Ngồi '+t.name.toLowerCase(),{do:'table',id:t.id},40); }
     put(A.barCounter(),20.5,2.9,{flat:false}); block(18,2,23,2);
-    put(A.label('PHONG BAY','#a259ff','#fff3d6'),2.2,7.6,{flat:true}); act(SD.DANCE.door.x,SD.DANCE.door.y,'Vào Phòng Bay (nhảy kiểu Audition)',{do:'bay'},30);
+    put(A.palm(),2.2,8.6);   /* Phòng Bay đã thành nhà riêng ở phố Đà Bắc */
     for(const [x,y] of [[1.6,3],[24.4,3],[1.6,15.4],[24.4,15.4]]) put(A.palm(),x,y);
     put(A.label('NHA GIAI TRI','#8c231f','#fff3d6'),13,1.6,{flat:true});
     const H=SD.SHISHA; put(A.rug(),H.x,H.y+.7,{flat:true}); put(A.pouf(),H.seat.x,H.seat.y+.2); put(A.pouf(),H.oii.x,H.oii.y+.2); put(A.shisha(),H.x,H.y+.2);   // góc shisha của Ộ i i

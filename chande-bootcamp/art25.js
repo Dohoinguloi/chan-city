@@ -200,6 +200,14 @@ A.lcAltar=()=>A.sprite(56,46,28,44,(g,P)=>{ P.rect(2,34,52,10,'#6a6e76'); P.rect
   P.rect(4,12,8,22,'#2a2a36'); ell(P,8,10,5,4,'#2a2a36'); P.rect(2,10,4,2,'#2a2a36'); P.px(6,9,'#e8302a'); P.rect(7,4,2,4,'#16161e');
   P.rect(44,12,8,22,'#e8e8f0'); ell(P,48,10,5,4,'#f4f4f8'); P.rect(50,10,4,2,'#f4f4f8'); P.px(49,9,'#4ab0ff'); P.rect(47,4,2,4,'#ffffff');
   P.disc(28,15,6,'#5a2a8a'); P.disc(28,15,4,'#a86ae8'); P.disc(27,13,1,'#f4e8ff'); });
+/* ---------- quán Nhà giải trí nhỏ đặt ở mọi map: mái tím, biển neon GIAI TRI nhấp nháy bóng đèn, cửa vàng ấm, chậu cây, bích chất / cơ / rô / tép ---------- */
+A.clubBooth=()=>A.sprite(56,64,28,63,(g,P)=>{ P.rect(4,26,48,36,'#3a2a3a'); P.rect(4,26,48,2,'#5a4258'); P.rect(6,60,44,3,'#2a1e28');
+  for(let i=0;i<6;i++) P.rect(2+i,26-i*2-2,52-i*2,2,i%2?'#6a2a7a':'#7a3a8a'); P.rect(6,12,44,2,'#4a1a5a');
+  P.rect(8,1,40,11,'#1c1516'); P.rect(9,2,38,9,'#2a1030'); A.drawText(g,'GIAI TRI',Math.round(28-A.textW('GIAI TRI')/2),3,'#ffd84a'); for(let x=9;x<47;x+=4){ P.px(x,1,x%8?'#ff5aa8':'#7fd8ff'); P.px(x+2,11,x%8?'#7fd8ff':'#ff5aa8'); }
+  P.rect(21,38,14,22,'#ffd27a'); P.rect(21,38,14,2,'#fff0b8'); P.rect(27,38,2,22,'#c89a4a'); P.rect(20,37,16,1,'#1c1516');
+  P.rect(8,34,10,10,'#7fd8ff'); P.rect(38,34,10,10,'#7fd8ff'); P.rect(9,35,8,8,'#2a6a9a'); P.rect(39,35,8,8,'#2a6a9a');
+  P.px(12,38,'#f4f1ea'); P.px(13,39,'#f4f1ea'); P.px(42,38,'#e84a5a'); P.px(43,39,'#e84a5a'); P.px(43,37,'#e84a5a');
+  P.rect(6,50,6,8,'#8a5a32'); P.rect(5,45,8,6,'#5fae46'); P.rect(44,50,6,8,'#8a5a32'); P.rect(43,45,8,6,'#5fae46'); });
 /* ---------- cổng võ đài CLB: 2 cột gỗ, băng rôn màu hệ có Bóng Cát ---------- */
 A.lcGate=col=>A.sprite(64,40,32,39,(g,P)=>{ for(const x of [3,57]){ P.rect(x,6,4,33,'#6a4228'); P.rect(x,6,4,2,'#8a5a32'); P.rect(x-1,37,6,2,'#4a2e1c'); } P.rect(2,4,60,4,'#4a2e1c');
   P.rect(8,9,48,13,col); P.rect(8,9,48,2,'rgba(255,255,255,.35)'); P.rect(8,21,48,1,'rgba(0,0,0,.3)'); P.disc(32,15,5,'#f4f4f2'); P.rect(27,12,11,3,'#e8302a'); P.rect(27,15,11,1,K); P.disc(32,15,1,K);

@@ -123,7 +123,11 @@ const vn=()=>SD.vnTime(NET.now());
 
 /* ---------- cảnh ---------- */
 let HOME_NOW=null, HOME_MINE=null;   /* nhà đang đứng (bố cục do server gửi kèm cảnh) + kho đồ / sàn tường đã mua của nhà mình */
-function buildMap(kind,room){ if(kind==='room') return Wd.buildRoom(HOME_NOW); if(kind==='retreat') return Wd.buildRetreat(); if(kind==='stay') return Wd.buildStay(room);
+// Nhà giải trí có cửa ở mọi map (SD.CLUB_DOORS): dựng quán nhỏ có biển neon ngay chỗ cửa, chặn ô quán để không đi xuyên
+function withClubDoor(m,kind){ const d=SD.CLUB_DOORS[kind]; if(!m||!d||!A.clubBooth) return m; const x=Math.floor(d.x), y=Math.floor(d.y);
+  m.obj.push({spr:A.clubBooth(),x:d.x*T,y:(y)*T,name:'Nhà giải trí',house:true}); m.solid.push([x-1,y-2,x+1,y-1]); return m; }
+function buildMap(kind,room){ return withClubDoor(buildMap0(kind,room),kind); }
+function buildMap0(kind,room){ if(kind==='room') return Wd.buildRoom(HOME_NOW); if(kind==='retreat') return Wd.buildRetreat(); if(kind==='stay') return Wd.buildStay(room);
   if(kind==='mu') return Wd.buildMU(); if(kind==='dday') return Wd.buildDday();
   if(kind==='lavi') return Wd.buildLavi();
   if(kind==='nghienmotion') return Wd.buildNghienMotion();
@@ -491,7 +495,7 @@ function questGo(id){ if(id==='herd') return herdGo(); if(id==='lumenscholar') r
   if(S.kind!=='retreat'&&!(q.dance&&S.kind==='club')){ toast('Nhiệm vụ ở Ké Retreat: bấm G gọi Grab về Ké trước','lock'); return; }
   const near=list=>list.sort((a,b)=>Math.hypot(a.x*T-P.x,a.y*T-P.y)-Math.hypot(b.x*T-P.x,b.y*T-P.y))[0];
   if(canFinish(id)){ if(q.giver==='phap'||npcs.some(n=>n.id===q.giver)) return walkToNpc(q.giver); toast('Quay lại gặp '+speakerName(q.giver),'quest'); return; }
-  if(q.dance){ ROUTE=(S.kind==='club'?[]:[{place:'club'}]).concat([{x:SD.DANCE.door.x,y:SD.DANCE.door.y+.4,label:'Phòng Bay',then:()=>act({t:'enterBay'})}]); return runRoute(); }
+  if(q.dance){ ROUTE=S.kind==='phongbay'?[]:[{place:'phongbay'}]; return runRoute(); }
   if(q.eat){ const n=SD.NPCS.find(x=>x.place===Object.keys(SD.PLACES).find(k=>(SD.PLACES[k].menu||[]).includes(q.eat.id))); if(n) return walkToNpc(n.id); }
   if(q.spots){ const s=near(SD.SPOTS.filter(s=>q.spots.includes(s.id)&&!G.flags.spots[s.id])); if(s) return walkTo(s.x,s.y,s.name); }
   if(q.butterflies){ const t=NET.now(), s=near(SD.BUTTERFLY.spots.filter((sp,i)=>((G.buom||{})[i]||0)<t&&!(G.items['buom_'+sp.k]>0)).map(sp=>({...sp}))); if(s) return walkTo(s.x,s.y+1,SD.BUTTERFLY.names[s.k]); }

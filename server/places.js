@@ -81,16 +81,16 @@ function achCheck(pl){ const p=pl.prof, s=p.stats||{}; p.ach=p.ach||{};
   for(const [k,a] of Object.entries(S.ACH)){ if(p.ach[k]) continue; const v=a.stat==='money'?p.money:s[a.stat]||0; if(v>=a.n){ p.ach[k]=now(); reward(pl,{exp:a.exp},`${a.hidden?'Thành tích ẩn':'Thành tích'}: ${a.name}!`); send(pl,{t:'ev',k:'ach',id:k}); } } }
 /* ---------- vào/ra nhà ---------- */
 on('enter',(pl,m)=>{ const pc=S.PLACES[m.place]; if(!pc||!pc.door) return {err:'Không có cửa'}; if(kindOf(pl.scene)!==(pc.map||'retreat')||!near(pl,pc.door.x,pc.door.y,44)) return {err:'Đứng trước cửa đã'};
-  const I=S.INTERIORS[pc.scene]; if(!I) return {err:'Có bản cập nhật mới, bấm F5 tải lại trang rồi bấm E ở cửa tiệm'}; moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
+  const I=S.INTERIORS[pc.scene]; if(!I) return {err:'Có bản cập nhật mới, bấm F5 tải lại trang rồi bấm E ở cửa tiệm'}; if(pc.scene==='club') pl.prof.clubFrom=m.place;   /* Nhà giải trí có cửa ở mọi map: nhớ cửa đã vào */
+  moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
 // chỗ đứng khi ra khỏi nhà: đúng điểm cửa (luôn đi được), phòng thuê thì cửa đã dùng để vào
 function doorOf(kind,stayType,pl){ if(kind==='stay'){ const d=(pl&&pl.stayDoor)||S.ROOMS[stayType].doors[0]; return {x:d[0],y:d[1]}; }
   if(kind==='track') return {x:S.DALAT.track.x,y:S.DALAT.track.y};
-  const pc=S.PLACES[kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y}:S.SPAWN.retreat; }
+  const pc=S.PLACES[kind==='club'&&pl&&S.PLACES[pl.prof.clubFrom]?pl.prof.clubFrom:kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y}:S.SPAWN.retreat; }
 function nearestDoor(pl,room){ let best=null, bd=1e18; for(const d of S.ROOMS[room].doors){ const dd=Math.hypot(pl.x-d[0]*T,pl.y-d[1]*T); if(dd<bd){ bd=dd; best=d; } } return best; }
 on('exit',pl=>{ const k=kindOf(pl.scene); if(!['stay','track'].includes(k)&&!S.INTERIORS[k]) return {err:'Không ở trong nhà'};
-  if(k==='phongbay'){ moveTo(pl,'club',S.DANCE.door.x+1,S.DANCE.door.y); return {}; }
   if(k==='doncongan'&&jailed(pl)) return {err:`Đang bị tạm giữ, còn ${Math.ceil((pl.prof.jail.until-now())/1000)} giây. Nộp phạt để về sớm`};
-  const d=doorOf(k,pl.stayType,pl); moveTo(pl,k==='track'?'dalat':(S.INTERIORS[k]&&S.INTERIORS[k].map)||'retreat',d.x,d.y); return {}; });
+  const d=doorOf(k,pl.stayType,pl), from=k==='club'&&S.PLACES[pl.prof.clubFrom]; moveTo(pl,k==='track'?'dalat':from?from.map||'retreat':(S.INTERIORS[k]&&S.INTERIORS[k].map)||'retreat',d.x,d.y); return {}; });
 
 /* ---------- ăn uống ---------- */
 on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc||!pc.menu||!f||!pc.menu.includes(m.id)) return {err:'Quán không có món này'};

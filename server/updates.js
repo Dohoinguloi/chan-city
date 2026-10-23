@@ -4,6 +4,11 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24x',title:'24/10 · Poker, Ma sói mới · Nhà giải trí ở mọi map',items:[
+    '🎲 Map nào cũng có Nhà giải trí (Đà Lạt, MU, Ngoại Hạng Anh, Miếu, DAS, Bearplus, Lavi, VNPT, Lumen, Everfit, 120 Yên Lãng, Nghiện Motion, Pickleball): vào chung 1 nhà, ra cửa là về đúng map đã vào',
+    '🪩 Phòng Bay tách ra thành nhà riêng ở phố Đà Bắc, cạnh đường Hà Phạm',
+    '🃏 Poker: 2 bàn 2 mức (Bình dân 5K/10K, VIP 25K/50K); bong bóng hiện ai vừa theo / tố / bỏ; bài của bạn hiện rõ (Đôi K, Hai đôi A và 7, Sảnh tới 9...); lúc lật bài người thắng sáng vàng, 5 lá làm nên bài sáng lên; tố nhanh Min / ½ Pot / ¾ Pot / Pot; chọn trước Tự xem / bỏ, Tự theo; phím tắt F C R A; mua thêm chip nhiều mức; bot chơi khôn hơn (tính tỉ lệ pot, bài chờ, thỉnh thoảng tố lừa)',
+    '🐺 Ma sói: thêm Phù thuỷ (1 bình cứu + 1 bình độc) và Thợ săn (chết thì bắn 1 người); ô gợi ý việc cần làm, đồng hồ pha, phiếu công khai ai chỉ ai, Sẵn sàng bỏ phiếu để bỏ phiếu sớm, kênh Hồn ma cho người đã chết, tiên tri soi xong hiện kết quả ngay; bot sói dồn cùng 1 mục tiêu, tiên tri bot lên tiếng khi thấy sói']},
   {v:'2026-10-24w',title:'24/10 (cân bằng)',items:['Mọi boss giảm 40% máu (trừ Pepe): Luffy và các boss MU, 5 anh em Siêu Nhân, Megazord, Đỉnh Bắc, MCK ở Ké, Megatron. Boss đang sống giữ máu cũ tới lần xuất hiện sau']},
   {v:'2026-10-24v',title:'24/10 · Lính Cát 200 loài, võ đài, rồng thần, Ngoại Hạng Anh',items:[
     '🐾 Lính Cát lên 200 loài: 41 họ tiến hoá mới, nhiều loài mang 2 hệ (khắc hệ nhân cả 2). Lính Cát hoang ra nhiều hơn ở Ké (thêm 40 điểm, vùng 4 sâu trong vườn quốc gia Lv20–32) và trang trại bác Trang (16 điểm + ao). Trên tên con hoang có nhãn hệ',

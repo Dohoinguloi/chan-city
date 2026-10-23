@@ -118,7 +118,6 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y); if(sc==='epl') return at('epl',S.EPL.spawn);
   if(sc==='diep'&&!DIEP.canVisit(p)) return at('diep',S.DIEP.spawn);
   if(sc==='track') return moveTo(pl,'dalat',S.DALAT.track.x,S.DALAT.track.y);
-  if(sc==='phongbay'){ const I=S.INTERIORS.club; return moveTo(pl,'club',I.spawn.x,I.spawn.y); }
   if(sc==='deo') return moveTo(pl,'retreat',S.NPCS.find(n=>n.id==='donche').x+1,90.4);
   if(S.INTERIORS[sc]){ const I=S.INTERIORS[sc]; return moveTo(pl,sc,I.spawn.x,I.spawn.y); }
   if(sc==='stay'){ if(p.stay&&p.stay.paid===today()){ const r=S.ROOMS[p.stay.room]; pl.stayType=p.stay.room; return moveTo(pl,'stay:'+pl.uid,r.spawn.x,r.spawn.y,{room:p.stay.room,host:p.name,own:true}); }

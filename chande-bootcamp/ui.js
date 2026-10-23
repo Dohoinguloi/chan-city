@@ -522,7 +522,8 @@ UI.table=async id=>{ const def=SD.CLUB.tables.find(t=>t.id===id), r=await NET.re
   const C=SD.CLUB; let body='';
   if(def.game==='chess') body=v.seats.some(Boolean)?`<p>${esc(v.seats.filter(Boolean).map(s=>s.name).join(', '))} đang đợi · cược <b>${fmt(v.bet)}</b> mỗi bên.</p>${btn('join','Ngồi vào (cược '+fmt(v.bet)+')',{id},'pri')}${btn('join','Xem',{id,watch:1})}`
     :`<p>Chọn mức cược (mỗi bên đặt, ai thắng ăn cả):</p><div class="col">${C.chess.bets.map(b=>btn('join',b?fmt(b):'Chơi vui (0đ)',{id,bet:b})).join('')}</div>`;
-  if(def.game==='poker') body=`<p>Texas Hold'em · mù ${fmt(C.poker.small)}/${fmt(C.poker.big)} · ${v.seats.filter(Boolean).length}/${C.poker.seats} người</p><p>Mua chip (rời bàn đổi lại thành tiền):</p><div class="col">${[100000,200000,500000,1000000].map(b=>btn('join',fmt(b),{id,buy:b})).join('')}</div>`;
+  if(def.game==='poker'){ const [lo,hi]=v.buy||[C.poker.minBuy,C.poker.maxBuy], opts=[lo,lo*2,lo*5,lo*10].filter(b=>b<=hi);
+    body=`<p>Texas Hold'em · <b>${esc(v.stakes||'')}</b> · mù ${fmt(v.blinds[0])}/${fmt(v.blinds[1])} · ${v.seats.filter(Boolean).length}/${C.poker.seats} người</p><p>Mua chip ${fmt(lo)} – ${fmt(hi)} (rời bàn đổi lại thành tiền):</p><div class="col">${opts.map(b=>btn('join',fmt(b),{id,buy:b})).join('')}</div>`; }
   if(def.game==='masoi') body=v.players.length?`<p>${v.players.length}/${v.max} người · phí <b>${fmt(v.fee)}</b>/người, phe thắng chia pot.</p>${btn('join','Vào bàn',{id},'pri')}`
     :`<p>Ma sói ${v.min}–${v.max} người. Chọn phí vào bàn:</p><div class="col">${C.masoi.fees.map(f=>btn('join',f?fmt(f):'Chơi vui (0đ)',{id,fee:f})).join('')}</div>`;
   open(def.name,()=>money()+body,{static:true}); };
@@ -530,7 +531,13 @@ ACT.join=async d=>{ const m={t:'tbl',op:'join',id:d.id}; if(d.bet!==undefined) m
   const r=await GAME.act(m); if(!r.err){ tableId=d.id; const v=(await NET.req({t:'tbl',op:'peek',id:d.id})).v; UI.tableView(v); } };
 ACT.tleave=async()=>{ await NET.req({t:'tbl',op:'leave'}); tableId=null; UI.closeAll(); };
 UI.tableView=v=>{ if(!tableId||v.id!==tableId) return; const t={chess:'Cờ vua',poker:'Poker',masoi:'Ma sói'}[v.game]+' · '+v.name;
-  if(!cur||cur.t!==t){ open(t,()=>tableHtml(GAME.TABLE&&GAME.TABLE.id===tableId?GAME.TABLE:v),{full:true,after:()=>{ if(GAME.TABLE&&GAME.TABLE.game==='chess') drawBoard(); }});   /* bảng vẽ lại (tiền, thông báo...) là canvas mới: vẽ lại bàn cờ ngay */ } else draw(); if(v.game==='chess') setTimeout(drawBoard,0); };
+  if(!cur||cur.t!==t){ open(t,()=>tableHtml(GAME.TABLE&&GAME.TABLE.id===tableId?GAME.TABLE:v),{full:true,after:()=>{ if(GAME.TABLE&&GAME.TABLE.game==='chess') drawBoard(); }});   /* bảng vẽ lại (tiền, thông báo...) là canvas mới: vẽ lại bàn cờ ngay */ } else draw(); if(v.game==='chess') setTimeout(drawBoard,0);
+  if(v.game==='poker') pokerAuto(v); };
+// poker: hành động đã chọn trước (Tự xem / bỏ, Tự theo, Tự xem) chạy ngay khi tới lượt; âm báo tới lượt
+let pkTurnKey='';
+function pokerAuto(v){ const s=v.seats[v.me]; if(!s||v.st!=='play'||v.toAct!==v.me) return; const key=v.hand+':'+v.board.length+':'+v.cur, need=v.cur-s.bet, pre=GAMES.pre; if(key===pkTurnKey) return; pkTurnKey=key;
+  if(pre){ GAMES.pre=''; const op=pre==='checkfold'?(need>0?'fold':'check'):pre==='call'?(need>0?'call':'check'):need>0?'':'check'; if(op) return ACT.pk({op}); }
+  GAME.sfx&&GAME.sfx('quest_accept',.35); }
 function tableHtml(v){ if(v.game==='chess') return GAMES.chessHtml(v); if(v.game==='poker') return GAMES.pokerHtml(v); return GAMES.masoiHtml(v); }
 const log=v=>`<div class="tlog">${(v.log||[]).slice(-6).map(l=>`<div>${esc(l)}</div>`).join('')}</div>`;
 // cờ vua
@@ -579,7 +586,13 @@ function pokerHtml(v){ const me=v.me, s=v.seats[me], myTurn=v.st==='play'&&v.toA
     ${myTurn?`<div class="pact">${btn('pk','Bỏ bài',{op:'fold'})}${need>0?btn('pk','Theo '+fmt(Math.min(need,s.chips)),{op:'call'},'pri'):btn('pk','Xem bài',{op:'check'},'pri')}
       <input id="raiseTo" type="number" step="5000" value="${v.cur+v.minRaise}" min="${v.cur+v.minRaise}" aria-label="Tố lên">${btn('pk','Tố',{op:'raise'})}${btn('pk','All-in',{op:'allin'})}</div>`:''}
     ${s&&v.st!=='play'&&v.seats.filter(Boolean).length<SD.CLUB.poker.seats?btn('pk','Thêm bot vào bàn',{op:'bots'}):''}${s&&s.chips<v.blinds[1]&&v.st!=='play'?btn('pk','Mua thêm 200.000đ chip',{op:'rebuy'}):''}${btn('tleave','Rời bàn (đổi chip ra tiền)')}${log(v)}</div>`; }
-ACT.pk=d=>{ const m={t:'tbl',id:tableId,op:d.op}; if(d.op==='raise') m.to=+$('#raiseTo').value; if(d.op==='rebuy') m.buy=200000; NET.req(m).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); }); };
+ACT.pk=d=>{ const m={t:'tbl',id:tableId,op:d.op}; if(d.op==='raise'){ const el=$('#raiseTo'); if(!el) return; m.to=+el.value; } if(d.op==='rebuy') m.buy=+d.buy||200000; if(['call','raise','allin'].includes(d.op)) GAME.sfx&&GAME.sfx('coin',.4);
+  NET.req(m).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); }); };
+ACT.pkset=d=>{ const el=$('#raiseTo'), l=$('#raiseLbl'); if(!el) return; el.value=d.v; GAMES.raise=+el.value; if(l) l.textContent=fmt(+el.value); };
+ACT.pkpre=d=>{ GAMES.pre=GAMES.pre===d.k?'':d.k; draw(); };
+// phím tắt poker khi tới lượt: F bỏ · C theo / xem · R tố · A all-in
+addEventListener('keydown',e=>{ const v=GAME.TABLE; if(!tableId||!v||v.game!=='poker'||v.st!=='play'||v.toAct!==v.me||e.repeat) return; const t=e.target; if(t&&(t.tagName==='INPUT'&&t.type!=='range'||t.tagName==='TEXTAREA')) return;
+  const s=v.seats[v.me], need=s?v.cur-s.bet:0, k=e.key.toLowerCase(), op=k==='f'?'fold':k==='c'?(need>0?'call':'check'):k==='r'?'raise':k==='a'?'allin':''; if(!op) return; e.preventDefault(); e.stopPropagation(); ACT.pk({op}); },true);
 // ma sói
 function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, ph={wait:'Đợi người',night:'Ban đêm',day:'Ban ngày: bàn bạc',vote:'Bỏ phiếu treo cổ',end:'Hết ván'}[v.st];
   const act=v.st==='night'?{soi:['kill','Cắn'],tientri:['see','Soi'],baove:['guard','Bảo vệ']}[v.role]:v.st==='vote'?['vote','Treo']:null;
@@ -590,10 +603,10 @@ function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, 
     ${v.st==='vote'&&alive?btn('ms','Bỏ qua',{op:'vote',target:-1}):''}${(v.st==='wait'||v.st==='end')&&me>=0&&v.players.length<SD.CLUB.bots.masoiSize?btn('ms',`Thuê quản trò tìm người (${fmt(SD.CLUB.bots.masoiHire)}, thắng ăn ×${SD.CLUB.bots.masoiBonus})`,{op:'hire'},'pri'):''}${(v.st==='wait'||v.st==='end')&&v.players.length>=v.min?btn('ms','Bắt đầu ván',{op:'start'},'pri'):''}
     <div class="tlog">${v.log.slice(-5).map(l=>`<div>${esc(l)}</div>`).join('')}${v.chat.slice(-6).map(c=>`<div class="${c.to==='soi'?'bad':''}"><b>${esc(c.n)}:</b> ${esc(c.m)}</div>`).join('')}</div>
     ${alive?`<div class="form"><input id="msIn" maxlength="100" placeholder="${v.st==='night'?(v.role==='soi'?'Nói với bầy sói...':'Ban đêm im lặng'):'Nói với cả làng...'}" aria-label="Nói">${btn('mschat','Nói')}</div>`:''}${btn('tleave','Rời bàn')}</div>`; }
-ACT.ms=d=>NET.req({t:'tbl',id:tableId,op:d.op,target:+d.target}).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); });
+ACT.ms=d=>NET.req({t:'tbl',id:tableId,op:d.op,target:d.target===undefined?-1:+d.target}).then(r=>{ if(r.err) GAME.toast(esc(r.err),'lock'); else if(['kill','see','guard','poison','save','shoot'].includes(d.op)) GAME.sfx&&GAME.sfx('poof',.35); });
 ACT.mschat=()=>{ const m=$('#msIn').value.trim(); if(m) NET.req({t:'tbl',id:tableId,op:'chat',m}); $('#msIn').value=''; };
 inner.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.id==='msIn') ACT.mschat(); });
-inner.addEventListener('input',e=>{ if(e.target.id==='raiseTo'){ const l=$('#raiseLbl'); if(l) l.textContent=fmt(+e.target.value); } });
+inner.addEventListener('input',e=>{ if(e.target.id==='raiseTo'){ const l=$('#raiseLbl'); GAMES.raise=+e.target.value; if(l) l.textContent=fmt(+e.target.value); } });
 
 /* ---------- trường đua: đăng ký, cược, đua kiểu Audition ---------- */
 let raceInput=null; const ARW={L:'←',U:'↑',R:'→',D:'↓'}, KEY2={arrowleft:'L',arrowup:'U',arrowright:'R',arrowdown:'D',a:'L',w:'U',d:'R',s:'D'};
