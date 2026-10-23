@@ -2025,6 +2025,71 @@ const homeTier=c=>{ let t=HOME.tiers[0]; for(const x of HOME.tiers) if(c>=x[0]) 
 const homeScore=home=>home?homeCozy(home)+Object.keys(home.likes||{}).length*HOME.likePts:0;
 // ngủ ở nhà mình: ấm cúng ≥ 10 thì +EXP (tối đa +15% trong 60 phút, kém phòng Nhà Chiềng thuê 600k/ngày) và hồi thêm năng lượng
 const homeBuff=cozy=>cozy>=10?{mul:1+Math.min(.15,Math.round(cozy*.15)/100),min:Math.min(60,Math.round(20+cozy*.4))}:null;
+/* ======================= Giải Ngoại Hạng Anh (map 'epl', bay sang nước Anh bằng Grab): 6 sân của 6 CLB, giải đấu chạy suốt ngày =======================
+   Mỗi EPL.every phút (giờ thật) 1 vòng đấu 3 trận (6 CLB chia cặp xoay vòng, đổi sân nhà / khách), mỗi trận EPL.dur giây = 90 phút bóng đá, bàn thắng tính theo sức mạnh 2 đội.
+   4 vai, gắn với cả game:
+   · Cầu thủ: ký hợp đồng ở Giám đốc CLB (từ cấp contract.lv), tập sút ở chấm phạt đền (tốn năng lượng, lên chỉ số Sút bóng), đứng trên sân nhà / khách lúc trận diễn ra:
+     đội mạnh hơn theo số người + chỉ số, thỉnh thoảng có Cơ hội dứt điểm (bấm đúng lúc) → bàn thắng. Lương mỗi trận + thưởng thắng + thưởng bàn.
+   · Huấn luyện viên: học Chứng chỉ HLV bóng đá (laptop ở phòng) + đủ chỉ số / số trận, nhận ghế HLV 1 CLB (mỗi CLB 1 người), chọn chiến thuật, có mặt ở sân lúc trận diễn ra thì nhận lương.
+   · Cổ động viên: chọn CLB yêu thích, mua vé, vào sân cổ vũ (mặc áo đấu đúng đội cổ vũ mạnh gấp rưỡi) → sân nóng lên, đội nhà mạnh thêm; đội mình thắng thì có thưởng + buff EXP.
+   · Người bán hàng: thuê sạp trước cổng sân theo ngày, nhập hàng ở Tổng kho quảng trường, rao bán cho fan (bot); có trận ở sân đó + sân càng nóng bán càng được giá, có trần lãi mỗi ngày.
+   Lương / thưởng tiền mỗi ngày: tối đa paidPerDay trận có tiền (gộp mọi vai), tiền bán hàng có trần riêng: khớp khối "Cân bằng kinh tế" (cày tối đa ~1,5–2 triệu / giờ).
+   Mùa giải = 1 tuần thật (thứ Hai → Chủ nhật): bảng xếp hạng 3 điểm thắng / 1 điểm hoà, hết tuần CLB vô địch thưởng cầu thủ + HLV + fan chăm đi xem, Vua phá lưới có thưởng riêng.
+   Huy Phan (fan Arsenal) đứng trước sân Emirates giao chuỗi nhiệm vụ Pháo Thủ. */
+const EPL={W:158,H:100,spawn:{x:79,y:56.4},every:20,dur:180,join:60,
+  clubs:{
+    ars:{name:'Arsenal',short:'ARS',stadium:'Emirates',col:'#ef0107',col2:'#ffffff',rating:87,coach:'Mikel Arteta',stars:['Saka','Ødegaard','Rice','Martinelli','Gyökeres'],bx:4,by:3},
+    mci:{name:'Manchester City',short:'MCI',stadium:'Etihad',col:'#6cabdd',col2:'#1c2c5b',rating:88,coach:'Pep Guardiola',stars:['Haaland','Foden','Rodri','Doku','Marmoush'],bx:56,by:3},
+    liv:{name:'Liverpool',short:'LIV',stadium:'Anfield',col:'#c8102e',col2:'#f6eb61',rating:86,coach:'Arne Slot',stars:['Salah','Wirtz','Van Dijk','Szoboszlai','Isak'],bx:108,by:3},
+    mu:{name:'Manchester United',short:'MUN',stadium:'Old Trafford',col:'#da291c',col2:'#fbe122',rating:81,coach:'Ruben Amorim',stars:['Bruno Fernandes','Mbeumo','Cunha','Mainoo','Šeško'],bx:4,by:65},
+    che:{name:'Chelsea',short:'CHE',stadium:'Stamford Bridge',col:'#034694',col2:'#ffffff',rating:84,coach:'Enzo Maresca',stars:['Palmer','Enzo','Caicedo','João Pedro','Estêvão'],bx:56,by:65},
+    new:{name:'Newcastle',short:'NEW',stadium:"St James' Park",col:'#241f20',col2:'#ffffff',rating:82,coach:'Eddie Howe',stars:['Gordon','Bruno Guimarães','Tonali','Joelinton','Wissa'],bx:108,by:65}},
+  bw:46,bh:32,gate:[20,25],   /* khối sân 46×32 ô, cổng ở cạnh nhìn ra quảng trường */
+  contract:{lv:5,transfer:500000,cd:24},   /* đổi CLB: phí chuyển nhượng + đợi cd giờ */
+  coachReq:{course:'hlvbd',sk:25,apps:12},
+  train:{energy:6,exp:12,cd:20,perDay:30,gain:[1.4,.35]},   /* mỗi buổi tập: chỉ số Sút bóng +gain[0] (lúc 0) giảm dần còn gain[1] (lúc 100) × độ chuẩn cú sút */
+  match:{energy:10,goalRate:2.7,home:2,heatMax:40,heatPer:10,human:[.6,40],chance:[32,50],window:6,tac:{tancong:{name:'Tấn công tổng lực',me:1.25,opp:1.12},canbang:{name:'Cân bằng',me:1,opp:1},phongngu:{name:'Phòng ngự phản công',me:.82,opp:.72}}},
+  pay:{player:{wage:40000,win:60000,goal:30000,exp:40,goalExp:25},coach:{wage:70000,win:100000,exp:60},fan:{ticket:30000,win:40000,exp:25,cheers:3,buff:{mul:1.1,min:30}},paidPerDay:6},
+  vendor:{rent:100000,goods:{khan:{name:'Khăn cổ động',cost:20000},hotdog:{name:'Hot dog',cost:15000},bia:{name:'Bia Anh',cost:12000},aonhai:{name:'Áo đấu nhái',cost:90000}},mul:[1.5,2.2],quiet:1.25,perMatch:15,perIdle:3,cd:3,dailyCap:600000,maxStock:40},
+  season:{player:1500000,coach:2000000,fan:500000,fanMin:5,boot:1000000,bootMin:3},
+  kitPrice:250000};
+const EPL_CLUBS=Object.keys(EPL.clubs);
+// hình học mỗi sân (ô): khối sân, mặt cỏ, chấm phạt đền 2 đầu, sạp hàng trước cổng. Sân hàng trên mở cổng xuống dưới, hàng dưới mở cổng lên trên
+Object.assign(EPL,{top:k=>EPL.clubs[k].by<30,block:k=>{ const c=EPL.clubs[k]; return {x0:c.bx,y0:c.by,x1:c.bx+EPL.bw-1,y1:c.by+EPL.bh-1}; },
+  pitch:k=>{ const c=EPL.clubs[k], t=c.by<30; return {x0:c.bx+5,x1:c.bx+40,y0:c.by+(t?7:6),y1:c.by+(t?25:24)}; },
+  spots:k=>{ const P=EPL.pitch(k), my=(P.y0+P.y1+1)/2; return [[P.x0+4.5,my],[P.x1-3.5,my]]; },
+  stall:k=>{ const c=EPL.clubs[k]; return {x:c.bx+36.5,y:c.by<30?c.by+EPL.bh+1.6:c.by-1.4}; },
+  clubAt:(x,y)=>EPL_CLUBS.find(k=>{ const B=EPL.block(k); return x>=B.x0&&x<=B.x1+1&&y>=B.y0&&y<=B.y1+1; })||''});
+DEST.epl={name:'Ngoại Hạng Anh · 6 sân bóng (nước Anh)',city:'uk',plane:true};
+Object.assign(GRAB,{hb_uk:125000,dl_uk:135000,hcm_uk:120000,hn_uk:120000,hp_uk:122000,mu_uk:120000,uk_uk:0});
+SCENE_DEST.epl='epl'; SCENE_SIZE.epl=[EPL.W,EPL.H];
+COURSES.hlvbd={name:'Chứng chỉ HLV bóng đá (UEFA C)',price:1500000,level:10,dur:45,desc:'Mở vai Huấn luyện viên ở Giải Ngoại Hạng Anh (cần thêm chỉ số Sút bóng + số trận đã đá).'};
+SKILLS.hlvbd={name:'HLV bóng đá',key:'-',desc:COURSES.hlvbd.desc};
+// áo đấu 6 CLB (bán ở quầy vé & áo đấu mỗi sân), áo Pháo Thủ Huyền Thoại: thưởng chuỗi nhiệm vụ của Huy Phan
+for(const [k,c] of Object.entries(EPL.clubs)) CLOTHES['kit_'+k]={name:'Áo đấu '+c.name,slot:'top',price:EPL.kitPrice,hidden:true,opts:{top:'tee',polo:true,logo:true,...(k==='new'?{vstripe:true}:{})},colors:{top:c.col.slice(1),print:c.col2.slice(1),line:k==='new'?'f4f4f0':'1c1516'}};
+{ const AWAY={ars:['f6d84a','1e3a8a'],mci:['1c2c5b','6cabdd'],liv:['f4f2ec','c8102e'],mu:['f4f4f0','da291c'],che:['f4f4f0','034694'],new:['3ab0c8','241f20']};   /* áo sân khách: đổi khi màu 2 đội gần nhau */
+  for(const [k,[a,b]] of Object.entries(AWAY)) CLOTHES['kit_'+k+'_away']={name:'Áo sân khách '+EPL.clubs[k].name,slot:'top',price:0,hidden:true,opts:{top:'tee',polo:true,logo:true},colors:{top:a,print:b,line:'1c1516'}}; }
+CLOTHES.kit_ars_legend={name:'Áo Pháo Thủ Huyền Thoại (Arsenal 2003–04)',slot:'top',price:0,hidden:true,opts:{top:'tee',polo:true,logo:true},colors:{top:'b8001c',print:'e8c35a',line:'1c1516'}};
+Object.assign(FOOD,{fish_chips:{name:'Fish & chips',price:65000,meal:true,exp:8},pie_anh:{name:'Bánh pie thịt bò',price:55000,meal:true,exp:7},tra_anh:{name:'Trà sữa kiểu Anh',price:30000,drink:true,exp:3,buff:{mul:1.1,min:20}},hotdog_san:{name:'Hot dog sân bóng',price:35000,exp:3}});
+PLACES.epl_food={name:'Xe đồ ăn Premier',where:'quảng trường Ngoại Hạng Anh',menu:['fish_chips','pie_anh','hotdog_san','tra_anh'],map:'epl',x:92.5,y:52.6};
+// NPC: Giám đốc CLB (ký hợp đồng, ghế HLV, chiến thuật) + quầy vé & áo đấu trước mỗi cổng, Tổng kho hàng cổ động, xe đồ ăn, Huy Phan áo Arsenal
+{ const side=c=>c.by<30, gx=c=>c.bx+EPL.gate[0]-3, gy=c=>side(c)?c.by+EPL.bh+1.4:c.by-1.6;
+  for(const [k,c] of Object.entries(EPL.clubs)){ NPCS.push({id:'epl_mgr_'+k,scene:'epl',x:gx(c),y:gy(c),place:'epl_mgr',club:k},{id:'epl_shop_'+k,scene:'epl',x:c.bx+EPL.gate[1]+3.5,y:gy(c),place:'epl_shop',club:k});
+    NPC_LOOKS['epl_mgr_'+k]={name:`Giám đốc ${c.name}`,look:{gender:'nam',hair:'swept',hairColor:'3a2f37',skin:'f0c49a',outfit:{top:'vest',bottom:'quan_vai_den',shoes:'giay_den'},opts:{mouth:'line'}}};
+    NPC_LOOKS['epl_shop_'+k]={name:`Quầy vé & áo đấu ${c.short}`,look:{gender:'nu',hair:'ponytail',hairColor:'6b4128',skin:'f8cdb0',outfit:{top:'kit_'+k,bottom:'jean',shoes:'giay_trang'},opts:{mouth:'smile'}}}; } }
+NPCS.push({id:'epl_kho',scene:'epl',x:66.5,y:53.4,place:'epl_kho'},{id:'epl_food',scene:'epl',x:92.5,y:53.4,place:'epl_food'},{id:'huyphan_epl',scene:'epl',x:31.5,y:38.6,place:'epl_hp'});
+NPC_LOOKS.epl_kho={name:'Ông Tony (Tổng kho đồ cổ động)',look:{gender:'nam',hair:'bald',hairColor:'3a2f37',skin:'f3c4a4',outfit:{top:'khoac_jean',bottom:'jean',shoes:'giay_den'},opts:{mouth:'smile',beard:'goatee'}}};
+NPC_LOOKS.epl_food={name:'Cô Emma (xe đồ ăn Premier)',look:{gender:'nu',hair:'bun',hairColor:'c98a45',skin:'f8cdb0',outfit:{top:'somi_dai',bottom:'vay_den',shoes:'giay_den'},opts:{mouth:'smile'}}};
+NPC_LOOKS.huyphan_epl={name:'Huy Phan (fan cứng Arsenal)',look:{gender:'nam',hair:'undercut',hairColor:'1d1a1e',skin:'eab08c',outfit:{top:'kit_ars',bottom:'short_xam',shoes:'giay_trang',eyes:'kinh_can'},opts:{mouth:'smile',watch:true}}};
+// chuỗi nhiệm vụ Pháo Thủ của Huy Phan (prog đếm ở server/epl.js)
+Object.assign(QUESTS,{
+  ars_kit:{giver:'huyphan_epl',title:'Gunner nhập môn',desc:'Huy Phan: "Muốn làm Gooner thì phải có áo!" Mua áo đấu Arsenal ở quầy vé & áo đấu trước sân Emirates rồi mặc vào.',prog:1,reward:{exp:150,vnd:150000}},
+  ars_fan:{giver:'huyphan_epl',after:'ars_kit',title:'Lửa Emirates',desc:'Mua vé xem 2 trận có Arsenal (sân nhà hay sân khách đều được), vào sân cổ vũ ít nhất 3 lần mỗi trận cho Pháo Thủ.',prog:2,reward:{exp:250,vnd:300000}},
+  ars_big:{giver:'huyphan_epl',after:'ars_fan',title:'Hạ đại gia',desc:'Có mặt (cầu thủ, HLV hoặc cổ động viên có vé) trong 1 trận Arsenal thắng Man City, Liverpool hoặc Chelsea.',prog:1,reward:{exp:350,vnd:500000}},
+  ars_goal:{giver:'huyphan_epl',after:'ars_big',title:'Sút tung lưới cho Pháo Thủ',desc:'Ký hợp đồng cầu thủ Arsenal, ghi đủ 3 bàn cho Arsenal trong các trận đấu.',prog:3,reward:{exp:500,vnd:800000}},
+  ars_coach:{giver:'huyphan_epl',after:'ars_goal',title:'Arteta mới của Emirates',desc:'Lấy Chứng chỉ HLV bóng đá, ngồi ghế HLV Arsenal và thắng 1 trận. Huy Phan tặng Áo Pháo Thủ Huyền Thoại (mùa Bất Bại 2003–04).',prog:1,cloth:'kit_ars_legend',reward:{exp:800,vnd:1500000}}});
+Object.assign(ACH,{epl_goal10:{name:'Sát thủ vòng cấm',desc:'Ghi 10 bàn ở Giải Ngoại Hạng Anh',stat:'goals',n:10,exp:150},epl_goal50:{name:'Vua phá lưới',desc:'Ghi 50 bàn ở Giải Ngoại Hạng Anh',stat:'goals',n:50,exp:400},
+  epl_apps30:{name:'Trụ cột đội bóng',desc:'Ra sân 30 trận',stat:'eplApps',n:30,exp:200},epl_fan20:{name:'Cổ động viên số 12',desc:'Đi xem 20 trận có vé',stat:'eplFan',n:20,exp:150},epl_champ:{name:'Nhà vô địch Ngoại Hạng Anh',desc:'Vô địch 1 mùa giải cùng CLB',stat:'eplChamp',n:1,exp:500}});
 /* ======================= Giá đồ theo sức mạnh (23/10): đồ càng mạnh càng đắt, tính theo tiền kiếm được =======================
    Sức mạnh của 1 món = % tăng của trung bình nhân (sát thương ra đòn × độ trâu: máu, thủ, giáp, hút máu, hồi máu) ở cấp MU 40, trung bình 4 class.
    Giá = 170.000đ × (% tăng)^1,25 (1% ≈ 6 phút cày; món mạnh 10% ≈ 3 triệu, 20% ≈ 7 triệu), làm tròn. Giày cộng giá trị tốc chạy, món tay trái cộng giá trị cơ chế riêng
@@ -2085,7 +2150,7 @@ MU.north={open:{x:[79,82]},road:{y0:24,y1:27},
     rem:{exp:90,vnd:100000,mu:70},yasuo:{exp:140,vnd:180000,mu:110,jewels:1},yone:{exp:110,vnd:130000,mu:85},yone_bong:{exp:10,vnd:5000,mu:5}});   /* Luffy 200k là mốc cao nhất */
   MU.portals.push({id:'bac',north:1,name:'Đỉnh Bắc · lối lên 3 đấu trường boss mới',kind:'front',x:81,y:32,span:4,col:'#ffd84a',sign:'DINH BAC'},
     {id:'n_ranger',north:1,name:'Căn cứ Siêu Nhân · 5 anh em Siêu Nhân',kind:'pad',x:27,y:25.2,col:'#e8302a'},{id:'n_yasuo',north:1,name:'Thung lũng Gió · Yasuo',kind:'pad',x:93,y:25.2,col:'#7ab8f0'},{id:'n_ryuk',north:1,name:'Thế giới Thần Chết · Ryuk',kind:'pad',x:132,y:25.2,col:'#9a5ae8'}); }
-return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
+return {EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};

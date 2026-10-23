@@ -2,7 +2,7 @@
 'use strict';
 const C=require('./core');
 const {db,on,now,players}=C;
-const CATS={exp:p=>p.exp||0,money:p=>p.money||0,power:p=>require('./mu').powerOf(p),fish:p=>(p.stats||{}).fish||0,harvest:p=>(p.stats||{}).harvest||0,dance:p=>(p.stats||{}).dance||0,know:p=>(p.stats||{}).know||0,donate:p=>(p.stats||{}).donate||0};
+const CATS={exp:p=>p.exp||0,money:p=>p.money||0,power:p=>require('./mu').powerOf(p),fish:p=>(p.stats||{}).fish||0,harvest:p=>(p.stats||{}).harvest||0,dance:p=>(p.stats||{}).dance||0,know:p=>(p.stats||{}).know||0,donate:p=>(p.stats||{}).donate||0,goals:p=>(p.stats||{}).goals||0};   /* goals: Vua phá lưới Ngoại Hạng Anh */
 let cache=null, at=0;
 const all=db.allProfiles||(()=>[]);
 function build(){ const rows=new Map();

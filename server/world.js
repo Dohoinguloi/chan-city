@@ -143,7 +143,7 @@ function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.sp
   if(to==='lavi') return ['lavi',S.LAVI.spawn];
   if(to==='nghienmotion') return ['nghienmotion',S.NMOTION.spawn];
   if(to==='bearplus') return ['bearplus',S.BEARPLUS.spawn]; if(to==='vnpt') return ['vnpt',S.VNPT.spawn]; if(to==='mieu') return ['mieu',S.MIEU.spawn];
-  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; if(to==='lumen') return ['lumen',S.LUMEN.spawn]; if(to==='yenlang') return ['yenlang',S.YENLANG.spawn]; if(to==='pickle') return ['pickle',S.PICKLE.spawn]; if(to==='diep') return ['diep',S.DIEP.spawn]; return ['retreat',S.SPAWN.retreat]; }
+  if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; if(to==='lumen') return ['lumen',S.LUMEN.spawn]; if(to==='yenlang') return ['yenlang',S.YENLANG.spawn]; if(to==='pickle') return ['pickle',S.PICKLE.spawn]; if(to==='epl') return ['epl',S.EPL.spawn]; if(to==='diep') return ['diep',S.DIEP.spawn]; return ['retreat',S.SPAWN.retreat]; }
 on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene)], p=pl.prof;
   if(!S.DEST[to]) return {err:'Không có điểm đến này'}; if(destSpawn(pl,to)[0]===pl.scene) return {err:'Bạn đang ở đây rồi'};
   if(to==='diep'){ const why=require('./diep').canVisit(p); if(why) return {err:why}; }

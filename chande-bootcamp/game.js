@@ -76,7 +76,7 @@ function music(k){ if(AUD.cur===k) return; AUD.cur=k; const old=AUD.music;
 // nhạc nền theo khu: bài thu sẵn cho Ké + phòng, còn lại chiptune tự sinh (music.js); đêm ngoài trời đổi sang bài đêm, có Megatron thì nhạc đánh nhau
 const BGM_ZONE=[[/Vườn quốc gia|Bãi voi|Rừng khỉ|Vườn công|Tán rừng|Bờ suối|Vách đá|Trạm cứu hộ|Khu hổ|Rừng lợn|Đồi hươu/,'park'],[/Chùa|Khu tâm linh/,'temple'],[/Làng Mường|Nhà văn hoá|Chợ phiên|Suối bản|Cầu sang|Nhà sàn/,'village'],
   [/Hồ Hoà Bình|Bến hồ/,'lake'],[/Thác|Đồi chè|Chòi canh|cắm trại rừng|Rừng/,'forest'],[/Thị trấn|Phố Đà Bắc|Đường|Sân bóng|Quảng trường|Bến xe|Chợ Đà Bắc|Trường tiểu học/,'town']];
-const BGM_SCENE={mu:'mu_plaza',lavi:'lavi',nghienmotion:'nmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',everfit:'office',lumen:'lumen',diep:'diep',yenlang:'yenlang',pickle:'pickle',dalat:'dalat',track:'race',das:'das',club:'club',phongbay:'club',cafe2:'cafe',quan_lan:'cafe',sieuthi:'mall',net:'net',nongsan:'cafe',quanao:'mall',doncongan:'tense',deo:'deo',stay:'room',linhcat:'linhcat'};
+const BGM_SCENE={mu:'mu_plaza',lavi:'lavi',nghienmotion:'nmotion',bearplus:'bearplus',vnpt:'vnpt',mieu:'mieu',everfit:'office',lumen:'lumen',diep:'diep',yenlang:'yenlang',pickle:'pickle',epl:'pickle',dalat:'dalat',track:'race',das:'das',club:'club',phongbay:'club',cafe2:'cafe',quan_lan:'cafe',sieuthi:'mall',net:'net',nongsan:'cafe',quanao:'mall',doncongan:'tense',deo:'deo',stay:'room',linhcat:'linhcat'};
 let bgmKey='', bgmToastAt=0;
 function pickBgm(){ if(!S||!window.MUSIC||danceAudio) return; let k;
   if((MEGA||(MCKB&&inMck()))&&S.kind==='retreat') k='battle';
@@ -128,7 +128,7 @@ function buildMap(kind,room){ if(kind==='room') return Wd.buildRoom(HOME_NOW); i
   if(kind==='lavi') return Wd.buildLavi();
   if(kind==='nghienmotion') return Wd.buildNghienMotion();
   if(kind==='bearplus') return Wd.buildBearplus(); if(kind==='vnpt') return Wd.buildVnpt(); if(kind==='mieu') return Wd.buildMieu();
-  if(kind==='das') return Wd.buildDas(); if(kind==='lumen') return Wd.buildLumen(); if(kind==='yenlang') return Wd.buildYenLang(); if(kind==='pickle') return Wd.buildPickle(); if(kind==='diep') return Wd.buildDiep();
+  if(kind==='das') return Wd.buildDas(); if(kind==='lumen') return Wd.buildLumen(); if(kind==='yenlang') return Wd.buildYenLang(); if(kind==='pickle') return Wd.buildPickle(); if(kind==='epl') return Wd.buildEpl(); if(kind==='diep') return Wd.buildDiep();
   if(kind==='everfit') return Wd.buildOffice(); if(kind==='dalat') return Wd.buildDalat(); if(kind==='track') return Wd.buildTrack(); if(kind==='deo') return Wd.buildDeo(); if(kind==='linhcat') return Wd.buildLinhCat(); return Wd.buildInterior(kind); }
 function prep(m,kind){ const W=m.W, H=m.H, solid=new Uint8Array(W*H);
   for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(!A.WALKABLE.has(m.grid[y][x])) solid[y*W+x]=1;
@@ -1319,7 +1319,7 @@ function drawWild(list,inView){ SD.PARK.spots.forEach((sp,i)=>{ const n=sp.k==='
 const PTRUCK={}; const ptruck=(cargo,l,dmg=0)=>{ const k=cargo+l+'d'+dmg; return PTRUCK[k]||(PTRUCK[k]=A.policeTruck(cargo,dmg>=5?0:l,dmg)); }; const CONE=()=>PTRUCK.cone||(PTRUCK.cone=A.cone());
 function csgtAv(){ return CSGT_AV.a||(CSGT_AV.a=AVATAR.build(SD.NPC_LOOKS.csgt.look)); }
 // ảnh thumbnail điểm đến Grab: chụp 1 góc map thật (ô đất + đồ vật) quanh chỗ đặc trưng, dựng dần từng map rồi lưu lại
-const THUMB={}, THUMB_AT={mu:['mu',22+(SD.MU.OX||0),14+(SD.MU.OY||0)],lavi:['lavi',16,11],nghienmotion:['nghienmotion',14,10],bearplus:['bearplus',17,10],vnpt:['vnpt',13,10],mieu:['mieu',20,13],home:['room'],everfit:['everfit'],retreat:['retreat',39.5,91],dalat:['dalat',24,56],das:['das',16,8],lumen:['lumen',19,26],yenlang:['yenlang',13,9],pickle:['pickle',15,11],diep:['diep',11,9]}; let thumbBusy=false;
+const THUMB={}, THUMB_AT={epl:['epl',79,48],mu:['mu',22+(SD.MU.OX||0),14+(SD.MU.OY||0)],lavi:['lavi',16,11],nghienmotion:['nghienmotion',14,10],bearplus:['bearplus',17,10],vnpt:['vnpt',13,10],mieu:['mieu',20,13],home:['room'],everfit:['everfit'],retreat:['retreat',39.5,91],dalat:['dalat',24,56],das:['das',16,8],lumen:['lumen',19,26],yenlang:['yenlang',13,9],pickle:['pickle',15,11],diep:['diep',11,9]}; let thumbBusy=false;
 function snapMap(m,cx,cy){ const VW=12, VH=7, c=A.cv(VW*T,VH*T), g=c.getContext('2d'); g.imageSmoothingEnabled=false;
   const x0=Math.max(0,Math.min(m.W-VW,Math.round(cx-VW/2))), y0=Math.max(0,Math.min(m.H-VH,Math.round(cy-VH/2))), nb=(x,y)=>(dx,dy)=>{ const yy=y+dy, xx=x+dx; return yy>=0&&yy<m.H&&xx>=0&&xx<m.W?m.grid[yy][xx]:'F'; };
   g.translate(-x0*T,-y0*T); for(let y=y0;y<y0+VH;y++) for(let x=x0;x<x0+VW;x++) A.drawTile(g,m.grid[y][x],x,y,nb(x,y),0);
@@ -1558,7 +1558,7 @@ document.addEventListener('click',e=>{ if(e.target.closest('#btnBag')) UI.bag();
 // dấu tích xanh trong ô vuông viền đen (phòng đã thuê)
 function tick(g,X,Y,small){ const r=small?4:5; g.fillStyle='#1c1516'; g.fillRect(Math.round(X-r-1),Math.round(Y-r-1),r*2+2,r*2+2); g.fillStyle=small?'#4fbf5a':'#7de07a'; g.fillRect(Math.round(X-r),Math.round(Y-r),r*2,r*2);
   g.fillStyle='#1c1516'; const x=Math.round(X-3), y=Math.round(Y); g.fillRect(x,y,2,2); g.fillRect(x+2,y+1,1,2); g.fillRect(x+3,y-1,1,2); g.fillRect(x+4,y-2,1,2); g.fillRect(x+5,y-3,1,2); }
-const MINI_COL={q:'#eef0ee',k:'#23263a',w:'#946542',o:'#2a6eb0',p:'#8fc4c8',m:'#f2f2ef',y:'#ffd400',M:'#b84a3a',Z:'#e2c9a2',I:'#e9f0f2',O:'#a7744c',H:'#5a4a40',U:'#a9a49a',J:'#c9a35e',A:'#4fa84a',n:'#2a2236',g:'#9fc7d9',G:'#79b34a',F:'#3f7a31',P:'#d6c39b',T:'#d6c39b',S:'#cbc6ba',R:'#55555c',D:'#e3d2a2',W:'#3b8ed3',K:'#a26c40',L:'#43c5e3',E:'#e6e0d2',X:'#8d8880',C:'#c9a877',Q:'#a26c40',B:'#b0643c',Y:'#8a5a3a'};
+const MINI_COL={q:'#eef0ee',k:'#23263a',w:'#946542',o:'#2a6eb0',p:'#8fc4c8',m:'#f2f2ef',y:'#ffd400',M:'#b84a3a',Z:'#e2c9a2',I:'#e9f0f2',O:'#a7744c',H:'#5a4a40',U:'#a9a49a',J:'#c9a35e',A:'#4fa84a',n:'#2a2236',g:'#9fc7d9',G:'#79b34a',F:'#3f7a31',P:'#d6c39b',T:'#d6c39b',S:'#cbc6ba',R:'#55555c',D:'#e3d2a2',W:'#3b8ed3',K:'#a26c40',L:'#43c5e3',E:'#e6e0d2',X:'#8d8880',C:'#c9a877',Q:'#a26c40',B:'#b0643c',Y:'#8a5a3a','<':'#55a43e','>':'#4a9636','$':'#8a3a3a','|':'#5a5a64','9':'#b8ad9a'};
 let miniBase=null; const MINI_MU={'9':'#b8ad9a','0':'#3a3036','%':'#4e425e','&':'#7a6650','~':'#5ab4d8','+':'#3a4a6a','*':'#6ab84a','=':'#3a2e44'};   // map MU: đá lát, tường thành, nghĩa địa, bãi phế liệu
 const hasMini=()=>S&&(S.kind==='retreat'||S.kind==='dalat'||S.kind==='mu'||S.kind==='muw'||S.kind==='dday');
 // zoom minimap: số ô ngang hiển thị (ít ô = phóng to); nút +/− và lăn chuột trên minimap, nhớ mức zoom trên máy

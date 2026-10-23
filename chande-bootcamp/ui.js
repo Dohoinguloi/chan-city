@@ -136,6 +136,7 @@ function menuHtml(pc){ const ms=SD.mealStatus(G().meals,NET.now()), now=NET.now(
   return money()+`<p>Bữa: ${ms.map(m=>`<span class="meal ${m.st}">${m.name.replace('Bữa ','')}</span>`).join(' ')} <span class="muted">· trễ giờ thì ăn bù được</span></p><div class="list">`+
     pc.menu.map(id=>{ const f=SD.FOOD[id]; return `<div class="row"><span>${esc(f.name)} <small class="muted">${f.meal?'no 1 bữa':f.buff?'+'+Math.round((f.buff.mul-1)*100)+'% EXP '+f.buff.min+' phút':'ăn vặt, không tính bữa'} · +${f.exp} EXP</small></span><span>${fmt(f.price)}</span>${eatBtn(id,f)}</div>`; }).join('')+'</div>'; }
 PLACE.mu_quan=()=>open(SD.PLACES.mu_quan.name,()=>`<p>"Đánh boss mỏi tay thì ghé ăn một bữa cho chắc bụng nhé!"</p>`+menuHtml({...SD.PLACES.mu_quan,key:'mu_quan'}));   // quán ăn ở quảng trường MU
+PLACE.epl_food=()=>open(SD.PLACES.epl_food.name,()=>`<p>"Fish & chips nóng hổi cho fan bóng đá đây! Ăn no mới hò hét được 90 phút."</p>`+menuHtml({...SD.PLACES.epl_food,key:'epl_food'}));   // xe đồ ăn ở quảng trường Ngoại Hạng Anh
 for(const k of ['quan_com','cafe','nha_an']) PLACE[k]=()=>open(SD.PLACES[k].name,()=>menuHtml({...SD.PLACES[k],key:k})+(k==='quan_com'?sellHtml(Object.keys(SD.FISH),'Chú Tư mua cá'):''));
 ACT.eat=d=>req({t:'eat',place:d.p,id:d.id});
 function sellHtml(keys,head){ const g=G(), rows=keys.filter(k=>g.items[k]).map(k=>`<div class="row">${ico(k)}<span>${esc(SD.ITEMS[k].name)} ×${g.items[k]}</span><span>${fmt(SD.SELL[k]*(g.skills.damphan?1.1:1))}/cái</span>${btn('sell','Bán hết',{k},'pri')}</div>`);
@@ -877,7 +878,7 @@ let lbTab='exp', LB=null;
 // ảnh mặt người chơi trong bảng xếp hạng (dựng từ dáng người, nhớ theo dáng)
 const LBFACE={}; const lbFace=l=>{ if(!l) return ''; const k=JSON.stringify(l); if(LBFACE[k]!==undefined) return LBFACE[k]; let u=''; try{ const av=AVATAR.build(l); u=av&&av.portrait?av.portrait.toDataURL():''; }catch(e){} return LBFACE[k]=u; };
 const ttl=rk=>{ const D=SD.TOP_TITLES[rk-1]; return D?`<span class="ttl ttl${rk}" data-t="${esc(D.name)}"><i>${rk===1?'♛ ':rk===7?'🐐 ':''}${esc(D.name)}</i></span>`:''; };
-const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['power','Lực chiến MU',v=>v.toLocaleString('vi-VN')+' ⚔'],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)],['home','Nhà đẹp',v=>v+' điểm']];
+const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)],['power','Lực chiến MU',v=>v.toLocaleString('vi-VN')+' ⚔'],['fish','Cần thủ',v=>v+' con cá'],['harvest','Nông dân',v=>v+' nông sản'],['dance','Vũ công Phòng Bay',v=>v+' điểm'],['know','Hiểu biết',v=>v+' 📚'],['donate','Mạnh thường quân',v=>fmt(v)],['home','Nhà đẹp',v=>v+' điểm'],['goals','Vua phá lưới',v=>v+' bàn']];
 UI.leaderboard=async()=>{ open('Bảng xếp hạng',()=>lbHtml(),{wide:true}); const r=await NET.req({t:'lb'}); if(r.lb){ LB=r.lb; UI.refresh(); } };
 function lbHtml(){ const tab=LB_TABS.find(t=>t[0]===lbTab), rows=LB&&LB[lbTab]||[], me=G().name;
   return `<div class="tabs">${LB_TABS.map(([k,n])=>`<button class="tab ${k===lbTab?'on':''}" data-a="lbtab" data-k="${k}">${n}</button>`).join('')}</div>

@@ -5,6 +5,7 @@ const http=require('http'), fs=require('fs'), path=require('path'), zlib=require
 const {WebSocketServer}=require('ws');
 const C=require('./core');
 require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu'); require('./muforest'); require('./muwest'); require('./dday'); require('./legend'); require('./haosang'); require('./home'); require('./event');
+require('./epl');   /* Giải Ngoại Hạng Anh */
 require('./reset');   /* reset toàn server 23/10 16:40 (chủ game cho phép): đếm ngược + chạy đúng 1 lần */
 const {verifyGoogle}=require('./auth');
 const {S,db,players,byUid,handlers,hooks,send,now,today,moveTo,markDirty,save,publicProfile}=C;
@@ -109,7 +110,7 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='lavi') return at('lavi',S.LAVI.spawn);
   if(sc==='nghienmotion') return at('nghienmotion',S.NMOTION.spawn);
   if(sc==='bearplus') return at('bearplus',S.BEARPLUS.spawn); if(sc==='vnpt') return at('vnpt',S.VNPT.spawn); if(sc==='mieu') return at('mieu',S.MIEU.spawn);
-  if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y);
+  if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y); if(sc==='epl') return at('epl',S.EPL.spawn);
   if(sc==='diep'&&!DIEP.canVisit(p)) return at('diep',S.DIEP.spawn);
   if(sc==='track') return moveTo(pl,'dalat',S.DALAT.track.x,S.DALAT.track.y);
   if(sc==='phongbay'){ const I=S.INTERIORS.club; return moveTo(pl,'club',I.spawn.x,I.spawn.y); }

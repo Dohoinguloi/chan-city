@@ -4,6 +4,15 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24n',title:'24/10 · Map mới: Giải Ngoại Hạng Anh',items:[
+    'Gọi Grab bay sang nước Anh (120.000đ): 6 sân bóng Emirates (Arsenal), Etihad (Man City), Anfield (Liverpool), Old Trafford (MU), Stamford Bridge (Chelsea), St James\' Park (Newcastle) quanh quảng trường Premier League có cúp vàng, xe buýt 2 tầng, bốt điện thoại đỏ',
+    'Cứ 20 phút 1 vòng 3 trận, mỗi trận 3 phút = 90 phút bóng đá, ai cũng xem được 22 cầu thủ chạy trên sân. Bảng xếp hạng + Vua phá lưới ở giữa quảng trường (bảng Xếp hạng có thêm tab Vua phá lưới)',
+    'Cầu thủ: ký hợp đồng ở Giám đốc CLB (từ cấp 5), tập sút phạt đền lên chỉ số Sút bóng, có trận của đội mình thì vào mặt cỏ đứng đá: thỉnh thoảng có Cơ hội dứt điểm, bấm SPACE đúng lúc là ghi bàn. Lương + thưởng thắng + thưởng bàn',
+    'Huấn luyện viên: học Chứng chỉ HLV bóng đá bằng laptop ở phòng, Sút bóng 25 + 12 trận, mỗi CLB 1 ghế; chọn chiến thuật Tấn công / Cân bằng / Phòng ngự, có mặt ở sân lúc đá thì nhận lương',
+    'Cổ động viên: mua vé ở quầy trước cổng, vào sân bấm E cổ vũ (mặc áo đúng đội mạnh gấp rưỡi), sân càng nóng đội nhà càng mạnh. Đội mình thắng: 40.000đ + EXP ×1,1 trong 30 phút',
+    'Người bán hàng: thuê sạp trước cổng 100.000đ/ngày, nhập khăn, hot dog, bia, áo nhái ở Tổng kho của ông Tony, có trận thì bán được giá (lãi tối đa 600.000đ/ngày). Mỗi ngày tối đa 6 trận có tiền, gộp mọi vai',
+    'Mùa giải = 1 tuần: CLB vô địch thưởng cầu thủ 1,5 triệu, HLV 2 triệu, fan đi xem từ 5 trận 500.000đ; Vua phá lưới 1 triệu',
+    'Huy Phan (fan cứng Arsenal) đứng trước sân Emirates giao 5 nhiệm vụ Pháo Thủ, cuối chuỗi tặng Áo Pháo Thủ Huyền Thoại (mùa Bất Bại 2003–04)']},
   {v:'2026-10-24m',title:'24/10 (nhỏ)',items:['Quảng trường MU có biển GRAB bên trái cổng Rừng Quái: đứng gần bấm E hoặc G để gọi Grab đi map khác / về phòng']},
   {v:'2026-10-24l',title:'24/10 · Đồng phục VNPT + vẽ lại boss Đỉnh Bắc',items:[
     'Tạo nhân vật có thêm bộ đồ khởi đầu Đồng phục VNPT: áo polo xanh dương cổ + viền tay trắng, logo VNPT trên ngực và sau lưng, quần tây đen (nam) / váy đen (nữ). Áo polo VNPT cũng bán ở cửa hàng quần áo',

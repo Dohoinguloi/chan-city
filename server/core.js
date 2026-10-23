@@ -76,7 +76,7 @@ function addItem(pl,k,n=1){ const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
-  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; m*=1+S.hsBonus(p); /* bậc hảo sảng */ return Math.min(S.RULES.expMulCap||9,m); }   /* buff cộng dồn tối đa ×expMulCap */
+  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.ebuff&&p.ebuff.until>t) m*=p.ebuff.mul; /* ebuff: đội mình cổ vũ thắng (Ngoại Hạng Anh) */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; m*=1+S.hsBonus(p); /* bậc hảo sảng */ return Math.min(S.RULES.expMulCap||9,m); }   /* buff cộng dồn tối đa ×expMulCap */
 // tiền phạt theo ví người bị phạt (data.js fineOf)
 const fineOf=(pl,base)=>S.fineOf(base,pl&&pl.prof?pl.prof.money:0);
 function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.needs.energy<20?.8:1)*S.lvSpeed(pl.prof.level); }
