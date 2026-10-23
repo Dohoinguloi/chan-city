@@ -124,7 +124,9 @@ handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nh
   const st=L.starters.find(s=>s.id===m.starter); if(!st) return {err:'Chọn 1 bộ đồ'};
   const outfit={...(g==='nu'&&st.nu?st.nu:st.items)};
   p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
-  markDirty(pl); save(pl); place(pl); return {prof:publicProfile(pl)}; };
+  markDirty(pl); save(pl); place(pl);
+  if(!/^bot\b/i.test(name)) setTimeout(()=>require('./world').sysChat(`🎉 Chào mừng ${name} vừa gia nhập Chan City! Mọi người nhớ chỉ đường cho bạn mới nhé 👋`),1500);   /* kênh chat chào thành viên mới */
+  return {prof:publicProfile(pl)}; };
 handlers.pong=(pl,m)=>{ if(m.s) pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); };
 // chỉ dùng khi chạy thử tự động (CHAN_TEST=1): dịch chuyển, cho tiền/đồ/skill
 // giới hạn mỗi ngày game (6 tiếng thật): đổi ngày lúc đang online cũng reset luôn, khỏi phải vào lại

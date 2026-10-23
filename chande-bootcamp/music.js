@@ -59,7 +59,7 @@ const DRUMS={ // 16 ô / ô nhịp: K trống cái, S trống lẫy, H hi-hat
   gong:  {K:'1000000000000000',S:'0000000010000000',H:'0000001000000010'},
   bell:  {K:'',S:'',H:''},
 };
-let ctx=null, muted=false, vol=.075, cur=null, timer=0, NOISE=null, WAVES={};
+let ctx=null, muted=false, vol=.06, cur=null, timer=0, NOISE=null, WAVES={};
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function rngOf(seed){ let s=seed>>>0||1; return ()=>{ s^=s<<13; s>>>=0; s^=s>>17; s^=s<<5; s>>>=0; return (s%10000)/10000; }; }
 function ensure(){ if(!ctx){ try{ ctx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
@@ -76,8 +76,8 @@ function note(dest,inst,m,t,dur,v,vib){ const o=ctx.createOscillator(), g=ctx.cr
   if(inst==='bell'){ const o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=mtof(m)*2.76; o2.connect(g); o2.start(t); o2.stop(t+rel+.05); }
   o.connect(g); g.connect(dest); o.start(t); o.stop(t+(inst==='bell'?rel:dur+rel)+.05); }
 function drum(dest,kind,t,v){ if(kind==='K'){ const o=ctx.createOscillator(), g=ctx.createGain(); o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(42,t+.12); g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(.0001,t+.18); o.connect(g); g.connect(dest); o.start(t); o.stop(t+.2); return; }
-  const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain(); s.buffer=NOISE; f.type=kind==='S'?'bandpass':'highpass'; f.frequency.value=kind==='S'?1800:7000; const d=kind==='S'?.14:.035;
-  g.gain.setValueAtTime(v*(kind==='S'?.8:.35),t); g.gain.exponentialRampToValueAtTime(.0001,t+d); s.connect(f); f.connect(g); g.connect(dest); s.start(t,Math.random()*.5); s.stop(t+d+.02); }
+  const s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain(); s.buffer=NOISE; f.type=kind==='S'?'bandpass':'highpass'; f.frequency.value=kind==='S'?1500:6000; const d=kind==='S'?.11:.02;   /* hi-hat ngắn + nhỏ lại, đỡ tiếng sẹt sẹt */
+  g.gain.setValueAtTime(v*(kind==='S'?.45:.1),t); g.gain.exponentialRampToValueAtTime(.0001,t+d); s.connect(f); f.connect(g); g.connect(dest); s.start(t,Math.random()*.5); s.stop(t+d+.02); }
 // giai điệu 4 ô nhịp theo hạt giống: ưu tiên nốt trong hợp âm, bước liền bậc, có nghỉ; ráp thành câu A A' B A'
 function chordOf(tr,bar){ const sc=tr.scale, n=sc.length, d=tr.prog[bar%tr.prog.length], pick=k=>{ const i=d+k; return sc[i%n]+12*Math.floor(i/n); }; return [pick(0),pick(2),pick(n>5?4:3)]; }
 function makeBar(tr,rng,bar){ const sc=tr.scale, n=sc.length, ch=chordOf(tr,bar), out=Array(16).fill(null), rhythm=tr.sparse?'1000001000100000':['1010101010101000','1000101010001010','1010001010100010','1001001010101010'][Math.floor(rng()*4)];
@@ -89,12 +89,12 @@ function makeBar(tr,rng,bar){ const sc=tr.scale, n=sc.length, ch=chordOf(tr,bar)
   return out; }
 function makeSong(tr){ const r=rngOf(tr.seed), A=[0,1].map(b=>makeBar(tr,r,b)), B=[2,3].map(b=>makeBar(tr,r,b)), A2=A.map(x=>x.map(y=>y&&{...y})); if(A2[1][12]) A2[1][12]={...A2[1][12],m:chordOf(tr,1)[0]+12};
   return [...A,...B,...A2,...B.map((x,i)=>i===1?makeBar(tr,r,7):x)]; }   // 8 ô nhịp rồi lặp lại
-function start(key){ const tr=TR[key]; if(!tr||!ensure()) return null; const bus=ctx.createGain(); bus.gain.value=.0001; bus.connect(ctx.destination); bus.gain.exponentialRampToValueAtTime(muted?.0001:vol,ctx.currentTime+1.6);
+function start(key){ const tr=TR[key]; if(!tr||!ensure()) return null; const bus=ctx.createGain(), soft=ctx.createBiquadFilter(); bus.gain.value=.0001; soft.type='lowpass'; soft.frequency.value=3600; soft.Q.value=.4; bus.connect(soft); soft.connect(ctx.destination);   /* lọc bớt tiếng rít cao của sóng vuông + hi-hat */ bus.gain.exponentialRampToValueAtTime(muted?.0001:vol,ctx.currentTime+1.6);
   return {key,tr,bus,song:makeSong(tr),step:0,t:ctx.currentTime+.12}; }
 function tick(){ const P=cur; if(!P||!ctx) return; const tr=P.tr, sd=60/tr.bpm/4, horizon=ctx.currentTime+.35, D=DRUMS[tr.drums]||null;
   while(P.t<horizon){ const s=P.step, bar=Math.floor(s/16)%P.song.length, i=s%16, t=P.t, ch=chordOf(tr,bar), root=tr.root;
     const ln=P.song[bar][i]; if(ln) note(P.bus,tr.lead,root+12+ln.m,t,sd*ln.len*.92,.22,tr.vib);
-    if(tr.arp&&(!tr.sparse||i%2===0)&&!(i%2&&tr.bpm>130)) note(P.bus,tr.arp,root+ch[(i>>(tr.sparse?1:0))%3]+(i%8<4?0:12),t,sd*.8,.07);
+    if(tr.arp&&(!tr.sparse||i%2===0)&&!(i%2&&tr.bpm>130)) note(P.bus,tr.arp==='p12'?'p25':tr.arp,root+ch[(i>>(tr.sparse?1:0))%3]+(i%8<4?0:12),t,sd*.8,.045);   /* arp xung 12,5% rất rè: đổi 25%, nhỏ lại */
     if(i%(tr.sparse?8:4)===0) note(P.bus,tr.bass,root-12+ch[0]+(i===8&&!tr.sparse?7:0),t,sd*(tr.sparse?7:3),.2);
     if(tr.pad&&i===0) for(const c of ch) note(P.bus,'sine',root+c,t,sd*15,.045);
     if(D) for(const k of ['K','S','H']) if(D[k][i]==='1') drum(P.bus,k,t,.35);

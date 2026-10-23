@@ -4,6 +4,13 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24h',title:'24/10 · Nông trại bác Trang đẹp hơn + bớt tiếng ồn',items:[
+    'Nông trại bác Trang (Đà Lạt) làm mới cảnh quan: hàng mai anh đào hồng 2 bên đường (cánh hoa rơi), cột đèn Đà Lạt sáng ấm về đêm, cổng hoa vòm ở lối vào',
+    'Cẩm tú cầu viền vườn hoa / vườn rau, đồng hướng dương + hoa dại, tổ ong, bù nhìn, bướm bay quanh vườn hoa; đồng cỏ ngựa, cỏ bò có hoa và máng nước',
+    'Hồ câu: cầu gỗ ra giữa hồ, thuyền chèo, lá súng + hoa sen, lau sậy quanh bờ; góc picnic ven hồ có dây đèn; giếng nước, đống củi, cỏ khô, xe cút kít',
+    'Mặt cỏ có mảng đậm nhạt, khóm cỏ, hoa dại, sỏi ven đường, nấm ven rừng; bồn hoa 2 bên cửa các ngôi nhà',
+    'Âm thanh bớt ồn: hi-hat nhạc nền nhỏ + ngắn lại (hết tiếng sẹt sẹt), nhạc nền được lọc êm hơn, tiếng mưa / vỗ cánh trầm hơn, bước chân nhỏ lại, tiếng bị đánh / sét phát dồn thì giãn ra',
+    'Kênh chat chào mừng mỗi thành viên mới vừa tạo nhân vật']},
   {v:'2026-10-24g',title:'24/10 · Bộ nội thất "nhà ấm" + bộ sưu tập',items:[
     '21 món nội thất mới vẽ kiểu game pixel đồng quê: giường chăn kẻ ô, tủ đầu giường có đèn / đồng hồ, tủ ngăn kéo, đèn tường, tranh đồi núi, tủ bếp gạch ốp, bếp lò + ấm trà, bồn rửa, tủ lạnh xanh bạc hà, tủ bếp treo, bàn ăn 4 ghế đệm xanh, chậu cây lá to, giỏ cây treo, đồng hồ quả lắc, kệ hũ thuỷ tinh, thùng ngô, thảm xám viền chấm, bàn học + ghế đệm',
     'Tường nhà cao 2 ô: ván xanh / ván kem phía trên + ốp gỗ chân tường, ván gỗ dọc nâu. Sàn mới: ván gỗ to so le, gạch caro kim cương. Đồ đạc có bóng đổ dưới chân',

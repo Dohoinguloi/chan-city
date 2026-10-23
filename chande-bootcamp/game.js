@@ -64,7 +64,9 @@ function whistleSnd(){ for(const [d,len] of [[0,.18],[.26,.5]]) setTimeout(()=>t
 function sirenSet(vol){ const c=synCtx(); if(!c) return; if(!SYN.sir){ if(vol<=.001) return; const o=c.createOscillator(), l=c.createOscillator(), lg=c.createGain(), f=c.createBiquadFilter(), g=c.createGain();
     o.type='square'; o.frequency.value=700; l.type='square'; l.frequency.value=1.4; lg.gain.value=170; l.connect(lg); lg.connect(o.frequency); f.type='lowpass'; f.frequency.value=1600; g.gain.value=0; o.connect(f); f.connect(g); g.connect(c.destination); o.start(); l.start(); SYN.sir={o,l,g}; }
   SYN.sir.g.gain.setTargetAtTime(vol,c.currentTime,.25); }
-function sfx(k,vol=.55){ if(AUD.muted) return; const a=AUD.files[k]; if(!a) return;
+// cùng 1 tiếng phát dồn (bị đánh liên tục, sét Thor, chuỗi sét...) thì cách nhau tối thiểu SFX_GAP ms cho đỡ ồn
+const SFX_GAP={poof:320,power_up:320,dash:220,coin:120,item_pickup:150,blip:90}, SFX_AT={};
+function sfx(k,vol=.55){ if(AUD.muted) return; const a=AUD.files[k]; if(!a) return; const tn=performance.now(); if(SFX_GAP[k]&&tn-(SFX_AT[k]||0)<SFX_GAP[k]) return; SFX_AT[k]=tn;
   if(MONO[k]){ const n=monoNode[k]||(monoNode[k]=a.cloneNode()); n.volume=vol; n.currentTime=0; n.play().catch(()=>{}); return n; }
   const n=a.cloneNode(); n.volume=vol; n.play().catch(()=>{}); return n; }
 function music(k){ if(AUD.cur===k) return; AUD.cur=k; const old=AUD.music;
@@ -896,7 +898,7 @@ function update(dt){
   const base=P.act&&P.act!=='noi'?P.act:P.moving?(running||P.riding?'run':'walk'):'idle';
   const name=!P.act&&P.view!=='side'&&P.av&&P.av.anims[base+'_'+P.view]?base+'_'+P.view:base;
   if(P.anim!==name){ P.anim=name; P.t=0; } P.t+=dt;
-  if(P.moving&&!P.kayak){ P.stepT-=dt; if(P.stepT<=0){ sfx(Math.random()<.5?'step1':'step2',.14); P.stepT=running?.24:.34; if(window.AMB&&AMB_ST&&!P.moto&&!P.pcar&&!P.riding) AMB.step(AMB_ST,P.x,P.y,P.face,P.view,(P.stepN=(P.stepN||0)+1)%2);
+  if(P.moving&&!P.kayak){ P.stepT-=dt; if(P.stepT<=0){ sfx(Math.random()<.5?'step1':'step2',.07); P.stepT=running?.24:.34; if(window.AMB&&AMB_ST&&!P.moto&&!P.pcar&&!P.riding) AMB.step(AMB_ST,P.x,P.y,P.face,P.view,(P.stepN=(P.stepN||0)+1)%2);
     if((running||P.riding)&&!P.moto&&!P.pcar) for(let i=0;i<(P.riding?3:2);i++) fx.push({kind:'puff',x:P.x-P.face*(P.riding?14:4)+(Math.random()-.5)*6,y:P.y+1,vx:-P.face*(6+Math.random()*10),vy:-4-Math.random()*6,t:-i*.04,life:.42+Math.random()*.15}); } }   /* chạy, phi ngựa: bụi tung sau gót */
   if(P.riding&&SD.mythIdx(G)>=9&&Math.random()<(P.moving?.7:.2)){ const c=xtCol(G.xt&&G.xt.el); fx.push({kind:'ember',c:Math.random()<.4?'#fff3b0':c,x:P.x-P.face*(4+Math.random()*24),y:P.y-10-Math.random()*26,vx:-P.face*(P.moving?20:2)+(Math.random()-.5)*8,vy:-14-Math.random()*22,t:0,life:.5+Math.random()*.4,s:1+(Math.random()<.4)}); }   /* Xích Thố: tàn lửa bay theo màu hệ */
   // gửi vị trí 10 lần/giây
