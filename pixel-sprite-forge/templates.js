@@ -427,6 +427,8 @@ function compose(o){
   if(o.floral) floral(rows);
   if(o.polka) polka(rows);
   if(o.vstripe) vstripe(rows);
+  if(o.polo&&!open){ rows[19][10]=rows[19][11]='B'; rows[20][10]='T'; for(const x of [3,4,5,6,7,15,16,17]) if(rows[23][x]==='q') rows[23][x]='B'; }   // áo polo: cổ bẻ + viền tay màu print
+  if(o.logo&&!open){ rows[21][13]=rows[21][14]='B'; rows[22][14]='b'; }   // logo nhỏ trên ngực (đồng phục VNPT)
   if(o.tie&&(o.top==='tee'||o.top==='long')) overlay(rows,'tieTee');
   if(o.capPattern&&o.hair==='cap') for(let y=1;y<=5;y++) for(let x=0;x<W;x++) if(rows[y][x]==='C'&&(x*2+y)%4===0) rows[y][x]='c';
   if(o.capWeb&&o.hair==='cap') overlay(rows,'capWeb');
@@ -851,6 +853,8 @@ function composeView(o,view){
   // hoạ tiết áo + phụ kiện
   if(o.plaid) plaid(R); if(o.floral) floral(R); if(o.polka) polka(R,18,34); if(o.vstripe) vstripe(R,18,26);
   const put=(pts,ch)=>{ for(const [x,y] of pts) if(R[y]) R[y][x]=ch; };
+  if(o.polo&&!open){ if(front){ put([[7,19],[8,19],[11,19],[12,19],[8,20],[11,20]],'B'); put([[9,20],[10,20]],'T'); put([[9,21]],'D'); } else put([[6,19],[7,19],[8,19],[9,19],[10,19],[11,19],[12,19],[13,19]],'B'); put([[2,23],[3,23],[16,23],[17,23]],'B'); }   // polo: cổ bẻ, nẹp cúc, viền tay
+  if(o.logo&&!open){ if(front) put([[12,21],[13,21],[13,22]],'B'),put([[12,22]],'b'); else put([[9,21],[10,21],[8,22],[11,22],[9,23]],'B'),put([[10,23]],'b'); }   // logo: ngực trái, sau lưng to hơn
   if(o.hair==='cap'&&o.capPattern) for(let y=0;y<=5;y++) for(let x=0;x<W;x++) if(R[y][x]==='C'&&(x*2+y)%4===0) R[y][x]='c';
   if(o.hair==='cap'&&o.mongCap) mongCap(R,false,!front);
   if(front){

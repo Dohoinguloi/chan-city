@@ -37,6 +37,7 @@ const LOOK={
     {id:'nangdong',name:'Năng động',items:{top:'tee_trang',bottom:'jean',shoes:'giay_trang'}},
     {id:'thanhlich',name:'Thanh lịch',items:{top:'somi_dai',bottom:'kaki',shoes:'giay_den'}},
     {id:'matme',name:'Mát mẻ',items:{top:'tee_xanh',bottom:'short_xam',shoes:'dep_to_ong'},nu:{top:'tee_hong',bottom:'vay_do',shoes:'giay_trang'}},
+    {id:'vnpt',name:'Đồng phục VNPT',items:{top:'polo_vnpt',bottom:'quan_vai_den',shoes:'giay_den'},nu:{top:'polo_vnpt',bottom:'vay_den',shoes:'giay_den'}},   /* polo xanh dương cổ + viền tay trắng, logo VNPT */
   ],
 };
 
@@ -49,6 +50,7 @@ const CLOTHES={
   tee_xanh:{name:'Áo thun xanh rêu',slot:'top',price:180000,opts:{top:'tee'},colors:{top:'5a7d4a'}},
   tee_hong:{name:'Áo thun hồng',slot:'top',price:180000,opts:{top:'tee'},colors:{top:'f2a6b8'}},
   tee_do:{name:'Áo thun đỏ',slot:'top',price:180000,opts:{top:'tee'},colors:{top:'c4382e'}},
+  polo_vnpt:{name:'Áo polo đồng phục VNPT',slot:'top',price:250000,opts:{top:'tee',polo:true,logo:true},colors:{top:'1f5fcf',print:'f4f6fa',line:'153f8a'}},
   somi_dai:{name:'Sơ mi tay dài',slot:'top',price:290000,opts:{top:'long'},colors:{top:'dfe6ef'}},
   somi_hoa:{name:'Sơ mi hoa',slot:'top',price:350000,opts:{top:'tee',floral:true},colors:{top:'2e2740',print:'8fc4c6',line:'e2b98a'}},
   somi_caro:{name:'Sơ mi caro',slot:'top',price:320000,opts:{top:'long',plaid:true},colors:{top:'c8a77d',print:'b4473c',line:'554850'}},
