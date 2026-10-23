@@ -8,6 +8,16 @@ const R=c=>{ const b=hx(c); return [mix(b,[255,252,240],.55),b,mix(b,[20,10,50],
 const X=x=>40+x, Y=y=>62+y;
 // Xích Thố: màu lửa theo hệ [chính, lõi sáng, viền tối] + màu hào quang
 const XT_FC={'':['#ff8a1a','#ffd84a','#ff5a1a'],kim:['#ffd84a','#fff3b0','#e8b030'],moc:['#4ad86a','#c8ffb0','#2a9a4a'],thuy:['#3ab8f0','#bff0ff','#2a6ad8'],hoa:['#ff3a1a','#ffd84a','#ff8a1a'],tho:['#c8902a','#f0d090','#8a5a22']};
+// cờ chiến cắm sau yên Xích Thố: chữ Hán theo hệ (chưa chọn hệ: 赤), nền màu hệ, bay phần phật khi chạy
+const XT_CH={'':'赤',kim:'金',moc:'木',thuy:'水',hoa:'火',tho:'土'}, XT_FLAG={'':'#c8202a',kim:'#e8b030',moc:'#2a9a4a',thuy:'#2a6ad8',hoa:'#d8302a',tho:'#8a5a22'};
+const CHAR={};   /* chữ Hán vẽ 1 lần bằng font máy rồi cắt ngưỡng cho ra pixel sắc */
+function hanzi(ch,col){ const key=ch+col; if(CHAR[key]) return CHAR[key]; const c=A.cv(12,12), g=c.getContext('2d'); g.fillStyle=col; g.font='bold 11px "PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","SimHei",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(ch,6,6.5);
+  const d=g.getImageData(0,0,12,12); for(let i=3;i<d.data.length;i+=4) d.data[i]=d.data[i]>90?255:0; g.putImageData(d,0,0); return CHAR[key]=c; }
+function xtFlag(c,el,f,mv){ const g=c.getContext('2d'), bb=Math.round(mv?[0,-1,0,-1][f]:[0,0,-.5,0][f]), px=X(-9), top=Y(-61+bb), bg=XT_FLAG[el]||XT_FLAG[''], fc=XT_FC[el]||XT_FC[''];
+  g.fillStyle='#4a2a16'; g.fillRect(px,top+2,2,Y(-28+bb)-top-2); g.fillStyle='#ffd84a'; g.fillRect(px-1,top,4,3); g.fillStyle='#fff3b0'; g.fillRect(px,top,1,1);   /* cán cờ + đầu cán vàng */
+  for(let y=0;y<18;y++){ const w=mv?Math.round(Math.sin(f*1.57+y*.45)*1.5):Math.round(Math.sin(f*.8+y*.3)*.6), x0=px-13+w-(y>14?Math.abs(y-16)-1:0);   /* lá cờ dọc, đuôi xẻ, gợn sóng */
+    g.fillStyle=y===0||y===17?'#1c1516':bg; g.fillRect(x0,top+3+y,13-(y>14&&y<17?2:0),1); g.fillStyle='#1c1516'; g.fillRect(x0-1,top+3+y,1,1); g.fillStyle=fc[1]; if(y>0&&y<17) g.fillRect(x0+1,top+3+y,1,1); }
+  g.drawImage(hanzi(XT_CH[el]||XT_CH[''],el==='kim'?'#7a1a1e':'#fff3b0'),px-13+(mv?Math.round(Math.sin(f*1.57+3)*1.5):0)+1,top+6); return c; }
 // lửa rực quanh Xích Thố: lưỡi lửa bốc sau lưng, cổ, mông, quanh 4 chân (vẽ ra sau thân) + tàn lửa bay lên phía trước, nhấp nháy theo khung
 function xtFlame(c,el,f,mv){ const g=c.getContext('2d'), fc=XT_FC[el]||XT_FC[''], bb=Math.round(mv?[0,-1,0,-1][f]:[0,0,-.5,0][f]);
   const tongue=(x0,y0,h,w,sway)=>{ for(const [col,ins] of [[fc[2],0],[fc[0],1],[fc[1],2]]){ g.fillStyle=col; for(let k=ins;k<h-ins;k++){ const t=k/h, ww=Math.max(1,Math.round((w-ins*2)*(1-t*t))), dx=Math.round(Math.sin(t*3+sway)*t*2); g.fillRect(X(x0)+dx-(ww>>1),Y(y0)-k,ww,1); } } };
@@ -110,8 +120,9 @@ const M={
     x:(V,f,mv,y0)=>stars(V,[[-14,y0-14],[-22,y0-12],[-30,y0-10],[-26,y0-6],[-34,y0-8],[-6,y0-30],[-10,y0-26],[2,y0-34],[-2,y0-38]],f)})}};
 const CACHE={};
 A.mythMount=(k,f=0,mv=false)=>{ const m=M[k]; if(!m) return null; const key=k+(f%4)+(mv?'m':''); if(CACHE[key]) return CACHE[key]; const V=vol(80,64); m.draw(V,f%4,mv);
-  if(k.startsWith('xichtho')){ const el=k.slice(8), col=hx((XT_FC[el]||XT_FC[''])[0]); return CACHE[key]={c:xtFlame(V.done(false,{glow:`rgba(${col.join(',')},.4)`,gr:3}),el,f%4,mv),ax:40,ay:62}; }
+  if(k.startsWith('xichtho')){ const el=k.slice(8), col=hx((XT_FC[el]||XT_FC[''])[0]); return CACHE[key]={c:xtFlag(xtFlame(V.done(false,{glow:`rgba(${col.join(',')},.4)`,gr:3}),el,f%4,mv),el,f%4,mv),ax:40,ay:62}; }
   return CACHE[key]={c:V.done(false,k==='tinhvan'?{glow:'rgba(90,220,240,.35)',gr:2}:k==='thuyquan'?{glow:'rgba(140,120,255,.3)',gr:2}:undefined),ax:40,ay:62}; };
+A.XT_FC=XT_FC;   /* màu lửa theo hệ cho hiệu ứng phun lửa / vết cháy (game.js) */
 A.mythMount.M=Object.fromEntries(Object.entries(M).map(([k,m])=>[k,{seat:m.seat,mouth:m.mouth}]));
 // chuồng thần thú ở MU: mái lá, rào gỗ, máng cỏ, tượng rồng nhỏ
 A.mythStable=()=>A.sprite(56,46,28,44,(g,P)=>{ for(let i=0;i<8;i++) P.rect(2+Math.round(i*6.5),6,7,10,i%2?'#3a8a4a':'#c8a040'); P.rect(2,16,52,2,'#5a3a22');

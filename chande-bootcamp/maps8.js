@@ -597,17 +597,26 @@ function xtCard(g,h,cur,it){ const X=SD.XICHTHO, x=g.xt||{}, has=x.lv>0, my=has?
   const need=c?Object.entries(c.jewels).map(([k,n])=>`${n} ${SD.ITEMS[k].name} (có ${it[k]||0})`).join(', '):'';
   const qs=X.quests.map(q=>{ const st=(g.quests||{})[q], Q=SD.QUESTS[q]; return `<li>${st==='done'?'✔':st==='active'?'▶':'◻'} ${esc(Q.title)} ${st==='done'?'':`<button class="qgo" type="button" data-go="${q}" title="Tự đi tới">➜</button>`}</li>`; }).join('');
   /* 6 dáng Xích Thố: lửa gốc + 5 hệ; có ngựa rồi thì bấm để chọn / đổi hệ */
-  const gal=`<div class="xtgal">${[['',{name:'Lửa gốc',col:'#ff8a1a',fx:'chưa chọn hệ'}]].concat(Object.entries(X.els)).map(([k,e])=>{ const on=has&&(x.el||'')===k, inner=`<img src="${mountImg('xichtho_'+k)}" width="96" height="78" alt=""><b>${k?'Hệ ':''}${esc(e.name)}</b><small>${esc(k?e.fx.split(',')[0]:e.fx)}</small>`;
+  const gal=`<div class="xtgal">${[['',{name:'Lửa gốc',col:'#ff8a1a',fx:'chưa chọn hệ'}]].concat(Object.entries(X.els)).map(([k,e])=>{ const on=has&&(x.el||'')===k, inner=`<canvas class="xtanim" data-k="xichtho_${k}" width="96" height="78"></canvas><b>${k?'Hệ ':''}${esc(e.name)}</b><small>${esc(k?e.fx.split(',')[0]:e.fx)}</small>`;
     return has&&k?`<button type="button" class="xtv ${on?'on':''}" style="--lc:${e.col}" data-a="xtel" data-el="${k}" title="${esc(e.fx)}">${inner}${on?'<em>✔ đang theo</em>':''}</button>`:`<div class="xtv ${on?'on':''}" style="--lc:${e.col}" title="${esc(e.fx)}">${inner}</div>`; }).join('')}</div>`;
+  if(!xtLoop) xtLoop=requestAnimationFrame(xtAnim);   /* vẽ ngựa chạy sau khi bảng đã gắn vào trang */
   const tele=x.lv>=X.tele?`<small class="good">🔥 Đã mở DỊCH CHUYỂN: bảng Grab bấm 🔥 là tới ngay mọi map</small>`:`<small class="star">✨ Cấp ${X.tele}: mở DỊCH CHUYỂN tới mọi map, ở đâu cũng đi được, không cần gọi Grab</small>`;
   return `<h5>🔥 Xích Thố của ông Trường Con <small class="muted">· ngựa lửa thần thoại, chọn 1 trong 5 hệ, cưỡi trong MU tự phun lửa đánh quái</small></h5>
-  <div class="mulgc wr5 ${has?'':'xtlock'}"><img src="${mountImg('xichtho')}" width="128" height="104" alt=""><b>Xích Thố${has?` · cấp ${x.lv}/${X.max}`:''}${E?` · hệ ${E.name}`:''}</b>
+  <div class="mulgc wr5 ${has?'':'xtlock'}"><canvas class="xtanim xtmain" data-k="xichtho_${x.el||''}" width="128" height="104"></canvas><b>Xích Thố${has?` · cấp ${x.lv}/${X.max}`:''}${E?` · hệ ${E.name}`:''}</b>
     <small class="good">⚡ MẠNH HƠN mọi thú cưỡi thường: chỉ số hơn thần thú cùng bậc 30%${has?'':' · máu ??? · công ??? · tốc độ ???'}</small>${tele}
     ${has?`<small class="good">Tốc độ +${Math.round((my.speed-1)*100)}% · ${bonusTxt(my.bonus)}</small>${E?`<small>${esc(E.fx)}</small>`:'<small class="bad">Chưa chọn hệ: bấm 1 trong 5 con bên dưới (lần đầu miễn phí)</small>'}
       <div class="mulgb">${cur==='xichtho'?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:'xichtho'},'pri')}${c?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('xtup','Lên cấp '+(x.lv+1)+' · '+SD.fmt(c.vnd),{},'pri')}`:'<small class="good">Cấp tối đa</small>'}</div>
       ${gal}${x.el?'<small class="muted">đổi hệ: 1 Ngọc Hỗn Nguyên</small>':''}`
     :`<small class="bad">🔒 Chưa mở: làm xong 4 nhiệm vụ của ông Trường Con ở Miếu (Hải Phòng) rồi gặp ông xin ngựa</small>${gal}<ul class="xtq">${qs}</ul>
       <div class="mulgb">${btn('xtgo',X.quests.every(q=>(g.quests||{})[q]==='done')?'🐎 Tới nhận Xích Thố':'➜ Tới gặp ông Trường Con',{},'pri')}</div>`}</div>`; }
+// thẻ Xích Thố: ngựa phi tại chỗ, cứ 2,6 giây phun lửa ra trước mõm (vẽ lại liên tục khi bảng còn mở)
+let xtLoop=0;
+function xtAnim(){ const cs=document.querySelectorAll('canvas.xtanim'); if(!cs.length){ xtLoop=0; return; } const t=performance.now()/1000, f=Math.floor(t*10)%4, br=t%2.6<.75;
+  for(const c of cs){ const k=c.dataset.k, s=A.mythMount(k,f,true); if(!s) continue; const g=c.getContext('2d'), sc=Math.min(2,c.width/s.c.width,c.height/s.c.height), ax=c.width*.42, ay=c.height-2;
+    g.imageSmoothingEnabled=false; g.clearRect(0,0,c.width,c.height); g.drawImage(s.c,Math.round(ax-s.ax*sc),Math.round(ay-s.ay*sc),s.c.width*sc,s.c.height*sc);
+    if(br){ const M=A.mythMount.M[k], fc=(A.XT_FC&&A.XT_FC[k.slice(8)])||['#ff8a1a','#ffd84a','#ff5a1a'], mx=ax+M.mouth.dx*sc, my=ay+M.mouth.dy*sc;
+      for(let i=0;i<16;i++){ const d=(i*7+Math.floor(t*40))%20, z=Math.max(1,Math.round((4-d/6)*sc/2)); g.fillStyle=[fc[0],fc[1],'#fff3b0',fc[2]][i%4]; g.fillRect(Math.round(mx+d*sc*.8),Math.round(my+Math.sin(i*2.1+t*18)*d*.22*sc),z,z); } } }
+  xtLoop=requestAnimationFrame(xtAnim); }
 UI.onAct('xtup',async()=>{ const r=await GAME.act({t:'xichtho',op:'up'}); if(r&&!r.err){ GAME.sfx('level_up',.8); GAME.bigText('XÍCH THỐ CẤP '+r.xt.lv+'!'); } mythDone(r); });
 UI.onAct('xtel',async d=>mythDone(await GAME.act({t:'xichtho',op:'el',el:d.el})));
 UI.onAct('xtgo',()=>{ UI.closeAll(); GAME.autoGo('mieu',()=>GAME.walkToNpc('truongcon')); });   /* tới nơi mở bảng ông Trường Con, xong 4 việc thì có nút Nhận ngựa Xích Thố */

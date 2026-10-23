@@ -4,6 +4,15 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24f',title:'24/10 · Trang trí nhà riêng + cổng dịch chuyển MU',items:[
+    'Nhà riêng (Hà Nội): vào nhà bấm 🛠 Sửa nhà (hoặc bấm R). Chọn đồ trong kho → bóng mờ xanh là đặt được, đỏ kèm lý do → bấm chuột trái đặt. Bấm vào đồ đã đặt để dời · R xoay · Delete cất vào kho · Esc thôi',
+    'Cửa hàng nội thất 75 món (phòng ngủ, phòng khách, bếp, làm việc, phòng tắm, cây hoa, treo tường, thảm, giải trí, sưu tầm), bán lại 50%. 8 loại sàn, 7 loại tường: mua 1 lần, đổi qua lại miễn phí',
+    'Mở rộng nhà 4 cấp: 26×16 → 32×18 (8 triệu) → 38×20 (20 triệu) → 44×24 (40 triệu), cấp càng cao đặt được càng nhiều đồ',
+    'Độ ấm cúng (0–100): nội thất + sàn + tường. Ngủ ở nhà mình hồi thêm năng lượng và được buff EXP tới +15% trong 60 phút. Có bồn tắm thì ngâm bồn +10% EXP',
+    'Bảng xếp hạng ▸ Nhà đẹp: điểm = ấm cúng + 2 điểm mỗi người thích. Bấm 🏠 Ghé thăm để vào xem nhà người khác (chủ nhà có thể đóng cửa), bấm R ▸ ❤ Thích nhà này',
+    'MU: cổng dịch chuyển phát sáng ở mọi lối qua tường (Rừng Quái, Làng Lá, Đầm Rồng, Nghĩa địa, Bãi Phế Liệu, Vùng Boss Tây) + bệ dịch chuyển giữa 9 khu quái rừng. Đứng gần bấm E chọn nơi tới',
+    'Menu 🙌 Tương tác · 💸 Donate · 🤝 Cho vay · 🏠 Mời về nhà giờ mở bằng phím R khi đứng cạnh người khác (đứng 1 mình thì R vẫn là gồng). Chuột phải trở lại là đi bộ',
+    'Xích Thố: cờ chiến sau lưng có chữ Hán theo hệ (赤 金 木 水 火 土), phun lửa trước mõm, lửa liếm móng để lại vết cháy đen trên đất, thẻ ở Người Thuần Thú có ngựa phi + phun lửa']},
   {v:'2026-10-24e',title:'24/10 (sửa lỗi)',items:['Sửa lỗi làm xong 4 việc của ông Trường Con mà không nhận được Xích Thố: giờ mở bảng ông Trường Con là có nút 🐎 Nhận ngựa Xích Thố (thẻ ở Người Thuần Thú có nút Tới nhận Xích Thố)','Cổng Ké Retreat · Chande Bootcamp về lại như cũ (trước bị cổng Miếu vẽ đè)']},
   {v:'2026-10-24d',title:'24/10 · Hảo sảng: donate, cho vay, mời về nhà',items:[
     'Chuột phải vào người chơi khác: 🙌 Tương tác · 💸 Donate tiền · 🤝 Cho vay · 🏠 Mời về nhà. Chuột phải vào chính mình: 💛 Hảo sảng của tôi',

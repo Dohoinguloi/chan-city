@@ -165,15 +165,17 @@ hook('leave',(pl,old,to)=>{ if(old==='stay:'+pl.uid&&to!==old) for(const q of [.
 
 /* ---------- hoạt động trong phòng ---------- */
 // phòng đang đứng: tro (nhà Hà Nội) hoặc phòng thuê; guest: đang ở phòng người khác
-function roomCtx(pl){ const k=kindOf(pl.scene);
-  if(k==='room'){ const own=pl.scene==='room:'+pl.uid; return {room:S.ROOMS.tro,own,allowed:own}; }   /* khách được mời về nhà (haosang.js) không dùng đồ của chủ */
+function roomCtx(pl,m){ const k=kindOf(pl.scene);
+  if(k==='room'){ const own=pl.scene==='room:'+pl.uid; if(!own) return {room:S.ROOMS.tro,own,allowed:false};   /* khách được mời về nhà (haosang.js) không dùng đồ của chủ */
+    const h=pl.prof.home, cz=S.homeCozy(h), tub=!!(m&&m.bath&&h&&h.items.some(o=>o.k==='bon_tam'));   /* nhà riêng: ấm cúng → ngủ hồi thêm năng lượng + buff EXP; có bồn tắm thì ngâm bồn */
+    return {room:{...S.ROOMS.tro,rest:S.ROOMS.tro.rest+Math.floor(cz/5),buff:S.homeBuff(cz)||undefined,bath:tub?'bontam':S.ROOMS.tro.bath},own,allowed:own}; }
   if(k==='stay'){ const own=pl.scene==='stay:'+pl.uid, hostUid=pl.scene.slice(5), p=pl.prof;
     return {room:S.ROOMS[pl.stayType],own,allowed:own||(p.sleep&&p.sleep.day===today()&&p.sleep.host===hostUid)}; }
   return null; }
 on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, n=p.needs; if(!def) return {err:'?'};
   if(act==='tam'&&m.where==='chung'){ if(!inRetreat(pl)||!near(pl,S.BATHHOUSE.x,S.BATHHOUSE.y,44)) return {err:'Lại nhà tắm chung'};
     return startTask(pl,'tam',def.dur,()=>{ n.clean=100; markDirty(pl); return {msg:'Tắm xong, thơm tho'}; },{anim:'shower',name:'Tắm ở nhà tắm chung'}); }
-  const c=roomCtx(pl); if(!c) return {err:'Vào phòng đã'};
+  const c=roomCtx(pl,m); if(!c) return {err:'Vào phòng đã'};
   if(def.host&&!c.own&&!c.allowed) return {err:'Phòng người ta, xin ngủ lại đã'};
   const r=c.room;
   if(act==='tam'){ if(r.bath==='chung') return {err:'Lều không có chỗ tắm, ra nhà tắm chung cạnh khu cắm trại'};

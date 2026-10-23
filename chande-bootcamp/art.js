@@ -48,6 +48,21 @@ const C={
 const WALKABLE=new Set(['G','P','S','R','D','K','E','T','O','M','Q','C']);
 const TILE_EXT={};   // tile bổ sung (art2.js)
 // vẽ 1 ô; nb(dx,dy) trả loại ô hàng xóm; frame dùng cho nước
+// nhà riêng: sàn / tường theo theme chủ nhà chọn (data.js HOME.floors / walls); game.js đặt lại mỗi lần vào cảnh, cảnh khác là null
+let HT={};
+function homeTheme(t){ HT=t||{}; }
+function homeFloor(P,X,Y,tx,ty,F){ const c=F.col;
+  if(F.style==='tile'){ P.rect(X,Y,T,T,c[0]); P.rect(X,Y,T,1,c[1]); P.rect(X,Y,1,T,c[1]); P.rect(X+2,Y+2,4,1,c[2]); P.px(X+2,Y+3,c[2]); }
+  else if(F.style==='check'){ P.rect(X,Y,T,T,(tx+ty)%2?c[2]:c[0]); P.rect(X,Y,T,1,c[1]); P.rect(X,Y,1,T,c[1]); P.px(X+3,Y+3,(tx+ty)%2?c[3]:'#ffffff'); }
+  else if(F.style==='marble'){ P.rect(X,Y,T,T,c[0]); for(let i=0;i<3;i++){ const sx=Math.floor(hash(tx,ty*3+i,81)*16), sy=Math.floor(hash(tx*3+i,ty,82)*16); for(let k=0;k<6;k++) P.px(X+((sx+k)&15),Y+((sy+(k>>1))&15),k%2?c[1]:c[3]); } P.rect(X,Y,T,1,c[2]); P.rect(X,Y,1,T,c[1]); }
+  else if(F.style==='carpet'){ P.rect(X,Y,T,T,c[0]); for(let i=0;i<10;i++) P.px(X+Math.floor(hash(tx*7+i,ty,83)*16),Y+Math.floor(hash(tx,ty*7+i,84)*16),i%2?c[1]:c[2]); }
+  else { P.rect(X,Y,T,T,c[0]); for(let y=0;y<T;y+=4){ P.rect(X,Y+y+3,T,1,c[1]); const s=Math.floor(hash(tx,ty*4+y,60)*16); P.rect(X+s,Y+y,1,3,c[3]); P.px(X+(s+5)%16,Y+y+1,c[2]); } } }
+function homeWall(P,X,Y,W){ const c=W.col; P.rect(X,Y,T,T,c[0]);
+  if(W.style==='brick'){ for(let y=0;y<T-4;y+=4){ P.rect(X,Y+y,T,1,c[1]); for(let x=(y/4)%2?4:0;x<T;x+=8) P.rect(X+x,Y+y,1,4,c[1]); } }
+  else if(W.style==='stripe'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,2,T-4,c[1]); }
+  else if(W.style==='panel'){ for(let x=0;x<T;x+=4) P.rect(X+x,Y,1,T-4,c[1]); P.rect(X,Y+3,T,1,c[2]); }
+  else for(let x=0;x<T;x+=8) P.rect(X+x,Y,1,T-4,c[1]);
+  P.rect(X,Y+T-4,T,4,c[2]); P.rect(X,Y+T-4,T,1,'#a8865f'); }
 function drawTile(g,t,tx,ty,nb,frame=0){
   const X=tx*T, Y=ty*T, P=painter(g);
   const dither=(cols,p1,p2,seed)=>{ P.rect(X,Y,T,T,cols[0]); for(let y=0;y<T;y++) for(let x=0;x<T;x++){ const h=hash(X+x,Y+y,seed);
@@ -124,7 +139,7 @@ function drawTile(g,t,tx,ty,nb,frame=0){
     dither(['#c9a877','#b8955f','#d8bb8c'],.14,.05,6);
     edges(g,X,Y,nb,k=>k==='C'||isPathy(k)||k==='B',C.path[3]);
     break; }
-  case 'O': {
+  case 'O': { if(HT.f){ homeFloor(P,X,Y,tx,ty,HT.f); break; }
     P.rect(X,Y,T,T,C.floor[0]);
     for(let y=0;y<T;y+=4){ P.rect(X,Y+y+3,T,1,C.floor[1]); const s=Math.floor(hash(tx,ty*4+y,60)*16); P.rect(X+s,Y+y,1,3,C.floor[3]); P.px(X+(s+5)%16,Y+y+1,C.floor[2]); }
     break; }
@@ -136,6 +151,7 @@ function drawTile(g,t,tx,ty,nb,frame=0){
     break; }
   case 'H': { // tường phòng: mặt tường trước nếu ô dưới là sàn, còn lại là đỉnh tường tối
     const below=nb(0,1);
+    if((below==='O'||below==='M')&&HT.w){ homeWall(P,X,Y,HT.w); break; } if(HT.w){ P.rect(X,Y,T,T,HT.w.col[3]); P.rect(X,Y,T,1,'#62524a'); break; }
     if(below==='O'||below==='M'){ P.rect(X,Y,T,T,C.wall[0]); for(let x=0;x<T;x+=8) P.rect(X+x,Y,1,T-4,C.wall[1]); P.rect(X,Y+T-4,T,4,C.wall[2]); P.rect(X,Y+T-4,T,1,'#a8865f'); }
     else { P.rect(X,Y,T,T,C.wall[3]); P.rect(X,Y,T,1,'#62524a'); }
     break; }
@@ -306,6 +322,6 @@ function icon(name,scale=1){ const c=cv(14,14), g=c.getContext('2d'); g.translat
   outline(c); if(scale===1) return c; const s=cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; }
 function pickup(name){ const c=icon(name); return {c,ax:7,ay:13}; }
 
-window.ART={T,WALKABLE,TILE_EXT,GL,C,painter,sprite,edges,rgb,drawTile,outline,hash,cv,tree,bamboo,bush,bigleaf,rock,potPlant,house,tent,domeTent,gate,car,umbrella,lounger,bench,table,bonfire,sign,lamp,kayak,platform,chicken,
+window.ART={homeTheme,T,WALKABLE,TILE_EXT,GL,C,painter,sprite,edges,rgb,drawTile,outline,hash,cv,tree,bamboo,bush,bigleaf,rock,potPlant,house,tent,domeTent,gate,car,umbrella,lounger,bench,table,bonfire,sign,lamp,kayak,platform,chicken,
   bed,desk,phone,wardrobe,shelf,windowWall,poster,chair,doorTile,icon,pickup,textW,drawText,sparkleMarker};
 })();

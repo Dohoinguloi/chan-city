@@ -108,6 +108,7 @@ function moveTo(pl,id,x,y,extra={}){
   pl.scene=id; pl.x=x*T; pl.y=y*T; pl.budget=0; pl.mvAt=now(); pl.task=null; pl.fishing=null; pl.act=0; pl.actUntil=0;
   sceneOf(id).add(pl); pl.sent=new Map();
   const k=kindOf(id); pl.prof.scene=k==='room'?'home':k==='stay'&&id!=='stay:'+pl.uid?'retreat':k; pl.prof.pos={x,y}; markDirty(pl);
+  if(k==='room'&&module.exports.homeScene) Object.assign(extra,module.exports.homeScene(pl,id));   /* nhà riêng: bố cục nội thất (home.js) */
   send(pl,{t:'scene',s:k,id,x:pl.x,y:pl.y,...extra});
   for(const f of hooks.enter) f(pl,id,old);
 }

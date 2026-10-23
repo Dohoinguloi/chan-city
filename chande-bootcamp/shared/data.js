@@ -1853,8 +1853,144 @@ const hsPts=p=>{ const h=p&&p.hs; if(!h) return 0; return Math.max(0,Math.floor(
 const hsTier=p=>{ const n=hsPts(p); let t=null, i=0; HAOSANG.tiers.forEach((x,k)=>{ if(n>=x.pts){ t=x; i=k+1; } }); return t?{...t,lv:i,n}:{lv:0,n,b:0,name:''}; };
 const hsBonus=p=>hsTier(p).b;
 const loanOwed=(L,t)=>{ const days=Math.min(HAOSANG.loan.capDays,Math.max(1,Math.ceil((t-L.start)/864e5))); return Math.max(0,Math.round(L.amt*(1+L.rate*days)/1000)*1000-(L.paid||0)); };
+/* ======================= Cổng dịch chuyển MU: vòm đá phát sáng ở mọi lối qua tường + bệ dịch chuyển giữa mỗi khu quái rừng =======================
+   kind front: vòm nhìn chính diện trên tường Nam (x giữa lối, y mép dưới tường); side: 2 trụ đá + màn sáng trên tường dọc (x giữa tường, y giữa lối); pad: bệ đá trong khu quái.
+   Đứng gần cổng / bệ bấm E chọn nơi tới (server muwest.js op 'warp'). Toạ độ khung MU mới (đã dời OX). */
+MU.portals=[
+  {id:'town',name:'Quảng trường · lối xuống Rừng Quái',kind:'front',x:86,y:30,span:6,col:'#ff7a3a',sign:'RUNG QUAI'},
+  {id:'lang',name:'Rừng Làng Lá',kind:'side',x:107,y:8,span:4,col:'#5ae86a',sign:'LANG LA'},
+  {id:'dam',name:'Đầm Rồng',kind:'side',x:107,y:23.5,span:5,col:'#3ab8f0',sign:'DAM RONG'},
+  {id:'ma',name:'Nghĩa địa Bóng Ma',kind:'side',x:135,y:8,span:4,col:'#b07aff',sign:'NGHIA DIA'},
+  {id:'phe',name:'Bãi Phế Liệu',kind:'side',x:135,y:23.5,span:5,col:'#ffb03a',sign:'BAI PHE LIEU'},
+  {id:'tay',name:'Vùng Boss phía Tây',kind:'side',x:65,y:21,span:4,col:'#ffd84a',sign:'VUNG BOSS TAY'},
+  {id:'rung2',name:'Đầm Rồng · lối xuống rừng',kind:'front',x:121,y:30,span:4,col:'#ff7a3a',sign:'RUNG QUAI'},
+  {id:'rung3',name:'Bãi Phế Liệu · lối xuống rừng',kind:'front',x:148,y:30,span:4,col:'#ff7a3a',sign:'RUNG QUAI'},
+  ...Object.values(MU.forest.mobs).map(m=>({id:'f_'+m.k,name:`${m.zone.name} · ${m.name} Lv${m.lv}`,kind:'pad',x:(m.zone.x0+m.zone.x1+1)/2,y:m.zone.y0+(m.k==='mage'?1.2:2.2),col:'#c8a0ff',lv:m.lv}))];
+MU.portalR=2.8;   /* đứng trong bán kính này (ô) quanh cổng mới dịch chuyển được */
+/* ======================= Nhà riêng (Hà Nội): mua nội thất, đặt / dời / cất đồ, đổi sàn + tường, mở rộng nhà, độ ấm cúng, bảng xếp hạng nhà đẹp =======================
+   Đồ đặt theo ô: x = cột trái, y = hàng dưới cùng của chân đồ (fw × fh ô). Đồ treo tường (wall) nằm trên tường trên cùng (y bỏ qua). Thảm ô (rug) tô ô sàn thành thảm.
+   art: tên hàm vẽ ART + args; extra: vẽ thêm (điện thoại, laptop, sạc, ấm) lệch [dx,dy] ô so với điểm neo; act: chỗ bấm E (ngủ, tủ đồ, laptop, tắm, sạc, câu nói).
+   req: đồ bắt buộc (dời được, không cất / bán được). cozy: điểm ấm cúng (mỗi loại tính tối đa sameMax món). */
+const HOME={levels:[{name:'Căn hộ 1 phòng ngủ',W:26,H:16,cap:36,price:0},{name:'Căn hộ mở rộng',W:32,H:18,cap:50,price:8000000},{name:'Căn hộ penthouse',W:38,H:20,cap:70,price:20000000},{name:'Biệt thự mini',W:44,H:24,cap:95,price:40000000}],
+  sellBack:.5,cozyMax:100,sameMax:3,likePts:2,likeLv:3,
+  cats:[['ngu','Phòng ngủ'],['khach','Phòng khách'],['bep','Bếp & ăn'],['lam','Làm việc'],['tam','Phòng tắm'],['cay','Cây & hoa'],['tuong','Treo tường'],['tham','Thảm'],['vui','Giải trí'],['suu','Sưu tầm']],
+  floors:{go:{name:'Sàn gỗ sồi',price:0,style:'plank',col:['#b98a5c','#a37548','#c99a6a','#8e6239'],cozy:0},go_oc:{name:'Sàn gỗ óc chó',price:600000,style:'plank',col:['#7a5234','#5e3e26','#93653f','#4a301c'],cozy:4},
+    go_trang:{name:'Sàn gỗ sồi trắng',price:800000,style:'plank',col:['#d8c4a0','#c2ab84','#e8d8b8','#a8906a'],cozy:5},gach:{name:'Gạch men trắng',price:400000,style:'tile',col:['#e8e6e0','#c8c4bc','#f8f6f0','#a8a49c'],cozy:2},
+    caro:{name:'Gạch caro đen trắng',price:700000,style:'check',col:['#ece8e0','#9a968e','#34303a','#6a6670'],cozy:3},da:{name:'Đá cẩm thạch',price:2000000,style:'marble',col:['#ece8e4','#c8c0b8','#f8f6f4','#a8a098'],cozy:6},
+    tham_xam:{name:'Thảm trải sàn xám',price:1200000,style:'carpet',col:['#8a8a94','#7a7a84','#9a9aa4','#6a6a74'],cozy:7},tham_hong:{name:'Thảm trải sàn hồng',price:1200000,style:'carpet',col:['#e8b4c0','#d8a0b0','#f4c8d2','#c88ea0'],cozy:7}},
+  walls:{kem:{name:'Sơn kem',price:0,style:'paint',col:['#eadfca','#d7c8ad','#8c6b4a','#4a3c34'],cozy:0},mint:{name:'Sơn xanh mint',price:300000,style:'paint',col:['#cdebdc','#b5d9c6','#5e8a74','#33463e'],cozy:2},
+    hong:{name:'Sơn hồng phấn',price:300000,style:'paint',col:['#f2d4d8','#e2bcc2','#8a5e66','#4a343a'],cozy:2},xanh:{name:'Sơn xanh dương',price:300000,style:'paint',col:['#c4d8f0','#a8c0e0','#4a6488','#2a3448'],cozy:2},
+    gach_do:{name:'Tường gạch đỏ',price:1000000,style:'brick',col:['#b5523c','#e0c8b0','#6a3428','#3a2a26'],cozy:4},soc:{name:'Giấy dán tường sọc',price:800000,style:'stripe',col:['#efe2c8','#d8c098','#8c6b4a','#4a3c34'],cozy:4},
+    go_op:{name:'Tường ốp gỗ',price:1500000,style:'panel',col:['#9a6a42','#7e5434','#5a3a22','#3a2a20'],cozy:5}},
+  items:{
+    giuong:{name:'Giường gỗ',cat:'ngu',price:1200000,art:'bed',fw:2,fh:3,cozy:4,req:1,act:{bed:1}},
+    giuong_don:{name:'Giường đơn',cat:'ngu',price:600000,art:'bedSingle',fw:2,fh:2,cozy:3,act:{bed:1}},
+    giuong_doi:{name:'Giường đôi',cat:'ngu',price:2500000,art:'bedDouble',fw:3,fh:2,cozy:8,act:{bed:1}},
+    tu_dau_giuong:{name:'Tủ đầu giường + sạc',cat:'ngu',price:300000,art:'nightstand',fw:1,fh:2,dy:-.4,cozy:1,req:1,extra:[['charger',[false],-.1,-1,'flat']],act:{id:'charger',label:'Sạc điện thoại',do:'ra',act:'sac',dy:.6}},
+    tu_do:{name:'Tủ quần áo',cat:'ngu',price:1000000,art:'wardrobe',fw:2,fh:2,cozy:2,req:1,act:{id:'wardrobe',label:'Tủ quần áo',do:'wardrobe',dy:.4}},
+    ban_canh:{name:'Tủ đầu giường gỗ',cat:'ngu',price:300000,art:'bedside',fw:1,fh:2,cozy:2},
+    den_cay:{name:'Đèn cây',cat:'ngu',price:250000,art:'lamp',fw:1,fh:1,cozy:3},
+    quat:{name:'Quạt cây',cat:'ngu',price:150000,art:'fan',fw:1,fh:1,cozy:1},
+    den_bao:{name:'Đèn bão',cat:'ngu',price:120000,art:'lantern',fw:1,fh:1,solid:false,cozy:2},
+    sofa_nau:{name:'Sofa nâu',cat:'khach',price:1500000,art:'sofa',args:['#7a6a5a',64],fw:4,fh:2,dy:-.2,cozy:5},
+    sofa_xanh:{name:'Sofa xanh',cat:'khach',price:1800000,art:'sofa',args:['#3f6f8a',64],fw:4,fh:2,dy:-.2,cozy:6},
+    sofa_do:{name:'Sofa đỏ',cat:'khach',price:1800000,art:'sofa',args:['#a8403a',64],fw:4,fh:2,dy:-.2,cozy:6},
+    sofa_kem:{name:'Sofa kem 2 chỗ',cat:'khach',price:1200000,art:'sofa',args:['#d8c8a8',48],fw:3,fh:2,dy:-.2,cozy:5},
+    ghe_banh:{name:'Ghế bành',cat:'khach',price:900000,art:'armchair',fw:2,fh:2,cozy:4},
+    ghe_luoi:{name:'Ghế lười',cat:'khach',price:350000,art:'loungeChair',fw:1,fh:1,solid:false,cozy:2},
+    gau_luoi:{name:'Ghế hạt xốp',cat:'khach',price:400000,art:'beanbag',fw:2,fh:1,solid:false,cozy:3},
+    ban_tra:{name:'Bàn trà',cat:'khach',price:400000,art:'coffeeTable',args:[true],fw:2,fh:1,dy:-.4,cozy:2},
+    ban_thap:{name:'Bàn thấp',cat:'khach',price:300000,art:'lowTable',fw:2,fh:1,cozy:2},
+    tv:{name:'Kệ TV',cat:'khach',price:2000000,art:'tvStand',fw:4,fh:2,dy:-.4,cozy:4,act:{label:'Xem TV',dy:.6,say:['Thời sự: "Đà Lạt vào mùa dâu tây, giá 50.000đ/hộp"... Tắt TV đi làm việc thôi.']}},
+    tv_lon:{name:'TV màn hình lớn',cat:'khach',price:4000000,art:'myTV',fw:4,fh:2,cozy:6,act:{label:'Xem TV',dy:.6,say:['Đang chiếu phim bom tấn, âm thanh vòm rung cả nhà!']}},
+    ke_sach:{name:'Kệ sách',cat:'khach',price:800000,art:'shelf',fw:2,fh:2,dy:-.6,cozy:3,act:{label:'Xem kệ sách',dy:.6,say:['Một chồng sách UX, một cuốn "Đi Hoà Bình mùa nào đẹp".']}},
+    ke_retro:{name:'Kệ đồ cổ điển',cat:'khach',price:1200000,art:'retroShelf',fw:2,fh:2,cozy:4},
+    loa:{name:'Loa thùng',cat:'khach',price:700000,art:'speaker',fw:1,fh:1,cozy:3},
+    tu_lanh:{name:'Tủ lạnh',cat:'bep',price:1500000,art:'fridge',fw:1,fh:2,dy:-.2,cozy:2,act:{label:'Mở tủ lạnh',dy:.6,say:['Tủ lạnh còn hộp sữa với mấy quả trứng. Đi ăn ngoài cho nhanh.']}},
+    ke_bep:{name:'Kệ bếp + ấm siêu tốc',cat:'bep',price:2000000,art:'counter',args:[80,'#e8e4dc'],fw:5,fh:2,dy:-.4,cozy:3,extra:[['kettleTable',[],-.1,-1,.1]]},
+    bep_ga:{name:'Bếp ga',cat:'bep',price:1200000,art:'stove',fw:2,fh:2,cozy:3},
+    cay_nuoc:{name:'Cây nước',cat:'bep',price:300000,art:'cooler',fw:1,fh:2,dy:-.4,cozy:1,act:{label:'Uống nước',dy:.6,say:['Ực ực... mát cả người.']}},
+    ban_tron:{name:'Bàn ăn tròn',cat:'bep',price:900000,art:'roundTable',fw:3,fh:2,cozy:3},
+    ban_an:{name:'Bàn ăn dài',cat:'bep',price:800000,art:'eatTable',fw:3,fh:1,cozy:3},
+    ban_cafe:{name:'Bàn cà phê',cat:'bep',price:600000,art:'cafeTable',fw:2,fh:2,cozy:3},
+    ghe_dau:{name:'Ghế đẩu',cat:'bep',price:80000,art:'stool',fw:1,fh:1,solid:false,cozy:1},
+    ban_lv:{name:'Bàn làm việc + laptop',cat:'lam',price:1500000,art:'desk',fw:3,fh:2,cozy:2,req:1,extra:[['phone',[],-.9,-.8,.05,'phone'],['laptop',[],1.1,-.5,.1]],
+      act:[{id:'phone',label:'Nghe máy',dx:-.9},{id:'laptop',label:'Mở laptop',do:'hub',dx:.9,dy:.4}]},
+    ghe_xoay:{name:'Ghế xoay',cat:'lam',price:150000,art:'chair',fw:1,fh:1,dy:-.4,solid:false,cozy:1},
+    tu_ho_so:{name:'Tủ hồ sơ',cat:'lam',price:300000,art:'filing',fw:1,fh:2,dy:.4,cozy:1},
+    ban_imac:{name:'Bàn iMac',cat:'lam',price:3000000,art:'imacDesk',fw:3,fh:2,cozy:4},
+    pc_game:{name:'Dàn PC chơi game',cat:'lam',price:2500000,art:'pcStation',fw:2,fh:2,cozy:4,act:{label:'Chơi PC',dy:.6,say:['Vào trận rank... thua 3 trận liền. Thôi đi ngủ.']}},
+    ghe_gaming:{name:'Ghế gaming',cat:'lam',price:900000,art:'gamingChair',fw:1,fh:1,solid:false,cozy:2},
+    voi_sen:{name:'Vòi sen',cat:'tam',price:800000,art:'shower',fw:2,fh:2,dy:.1,cozy:1,req:1,act:{id:'shower',label:'Tắm',do:'ra',act:'tam',dx:.2,dy:.5}},
+    bon_rua:{name:'Bồn rửa mặt',cat:'tam',price:500000,art:'sink',fw:2,fh:2,dy:-.2,cozy:1},
+    bon_tam:{name:'Bồn tắm',cat:'tam',price:4000000,art:'bathtub',fw:3,fh:2,cozy:6,act:{label:'Ngâm bồn tắm',do:'ra',act:'tam',dy:.5}},
+    cay_1:{name:'Chậu cây xanh',cat:'cay',price:120000,art:'potPlant',args:[0],fw:1,fh:1,dy:-.6,cozy:2},
+    cay_2:{name:'Chậu cây lá to',cat:'cay',price:150000,art:'potPlant',args:[1],fw:1,fh:1,dy:.4,cozy:2},
+    cay_3:{name:'Chậu cây cao',cat:'cay',price:180000,art:'potPlant',args:[2],fw:1,fh:1,dy:-.6,cozy:2},
+    cay_4:{name:'Chậu hoa',cat:'cay',price:200000,art:'potPlant',args:[3],fw:1,fh:1,dy:-.6,cozy:2},
+    bonsai:{name:'Cây bonsai',cat:'cay',price:1500000,art:'bonsaiPot',fw:1,fh:1,cozy:5},
+    duong_xi:{name:'Chậu dương xỉ',cat:'cay',price:400000,art:'pottedFern',fw:1,fh:1,cozy:3},
+    luong_hoa:{name:'Luống hoa',cat:'cay',price:350000,art:'flowerBed',fw:2,fh:1,solid:false,cozy:3},
+    rem:{name:'Rèm cửa sổ',cat:'tuong',price:300000,art:'blinds',fw:3,wall:1,cozy:1},
+    lich:{name:'Lịch treo tường',cat:'tuong',price:50000,art:'calendar',fw:1,wall:1,cozy:1},
+    cua_so:{name:'Cửa sổ',cat:'tuong',price:800000,art:'windowWall',fw:3,wall:1,cozy:3},
+    poster:{name:'Poster',cat:'tuong',price:150000,art:'poster',fw:1,wall:1,cozy:1},
+    khan:{name:'Khăn tắm',cat:'tuong',price:50000,art:'towel',fw:1,wall:1,dy:.6,cozy:1},
+    guong:{name:'Gương',cat:'tuong',price:300000,art:'mirror',fw:1,wall:1,dy:.4,cozy:1},
+    tv_tuong:{name:'TV treo tường',cat:'tuong',price:2500000,art:'wallTV',fw:3,wall:1,cozy:4},
+    cua_so_ho:{name:'Cửa sổ nhìn hồ',cat:'tuong',price:3000000,art:'lakeWindow',fw:3,wall:1,cozy:6},
+    cua_so_dem:{name:'Cửa kính toàn cảnh đêm',cat:'tuong',price:6000000,art:'nightWindow',fw:8,wall:1,cozy:8},
+    tham_ngu:{name:'Thảm đỏ 7×4',cat:'tham',price:300000,fw:7,fh:4,rug:1,cozy:2},
+    tham_khach:{name:'Thảm đỏ 8×4',cat:'tham',price:350000,fw:8,fh:4,rug:1,cozy:2},
+    tham_nho:{name:'Thảm hoa văn',cat:'tham',price:400000,art:'rug',fw:5,fh:2,flat:1,cozy:2},
+    tham_xanh:{name:'Thảm xanh lớn',cat:'tham',price:900000,art:'plainRug',fw:8,fh:6,flat:1,cozy:3},
+    tham_logo:{name:'Thảm logo',cat:'tham',price:700000,art:'logoRug',fw:5,fh:2,flat:1,cozy:3},
+    tham_co:{name:'Thảm cỏ khổng lồ',cat:'tham',price:1500000,art:'greenRug',fw:13,fh:8,flat:1,cozy:4},
+    may_game:{name:'Máy game thùng',cat:'vui',price:3000000,art:'arcade',fw:2,fh:2,cozy:5,act:{label:'Chơi game thùng',dy:.6,say:['Đạt điểm cao mới! Ghi tên vào bảng: AAA.']}},
+    bong_ban:{name:'Bàn bóng bàn',cat:'vui',price:2000000,art:'tableTennis',fw:3,fh:2,cozy:4},
+    co_vua:{name:'Bàn cờ vua',cat:'vui',price:1200000,art:'chessTable',fw:3,fh:2,cozy:3},
+    goc_game:{name:'Góc chơi game',cat:'vui',price:4000000,art:'gameCorner',fw:4,fh:2,cozy:6},
+    tu_do_choi:{name:'Tủ đồ chơi',cat:'vui',price:3000000,art:'toyCabinet',fw:3,fh:2,cozy:5},
+    den_sk:{name:'Đèn sân khấu',cat:'vui',price:600000,art:'stageLight',fw:1,fh:1,cozy:2},
+    tuong_zaku:{name:'Tượng Zaku',cat:'suu',price:6000000,art:'zakuStatue',fw:2,fh:2,cozy:7},
+    tuong_optimus:{name:'Tượng Optimus Prime',cat:'suu',price:8000000,art:'optimusStatue',fw:2,fh:2,cozy:8},
+    tu_cup:{name:'Tủ cúp',cat:'suu',price:3500000,art:'trophyCase',fw:2,fh:2,cozy:5},
+    ke_figure:{name:'Kệ figure',cat:'suu',price:4000000,art:'figShelf',fw:3,fh:2,cozy:6},
+    ban_mo_hinh:{name:'Bàn mô hình',cat:'suu',price:2500000,art:'modelTable',fw:3,fh:2,cozy:4},
+    den_da:{name:'Đèn đá Nhật',cat:'suu',price:1200000,art:'stoneLantern',fw:1,fh:1,cozy:4},
+    nem_cho:{name:'Nệm cho cún',cat:'suu',price:500000,art:'dogBed',fw:2,fh:1,solid:false,cozy:3}},
+  // bố cục có sẵn (giống căn hộ cũ): [món, x, y]
+  base:[['rem',2,2],['lich',7,2],['tu_ho_so',1,3],['ban_lv',4,3],['ghe_xoay',5,4],['cay_2',8,2],['cua_so',11,2],['giuong',10,4],['tu_dau_giuong',13,3],['tu_do',16,3],['poster',14,2],
+    ['voi_sen',20,3],['bon_rua',23,3],['khan',22,2],['guong',24,2],['tu_lanh',1,10],['ke_bep',2,10],['cay_nuoc',7,10],['ban_tron',3,13],['tv',18,10],['ke_sach',15,10],['sofa_nau',18,14],
+    ['ban_tra',19,12],['cay_3',24,10],['cay_4',9,14],['cay_1',14,14],['tham_ngu',9,7],['tham_khach',16,14]]};
+const homeDefault=()=>({lv:0,floor:'go',wall:'kem',items:HOME.base.map(([k,x,y])=>({k,x,y,f:0})),inv:{},own:{floor:{go:1},wall:{kem:1}},likes:{},open:true});
+// khung nhà theo cấp: tường bao 2 hàng trên, phòng tắm góc phải trên (cửa x 21–22), cửa ra x 12–13 ở tường dưới
+const homeGrid=lv=>{ const L=HOME.levels[lv]||HOME.levels[0], W=L.W, H=L.H, g=[];
+  for(let y=0;y<H;y++){ const r=[]; for(let x=0;x<W;x++) r.push(y<=1||y===H-1||x===0||x===W-1?'H':'O'); g.push(r); }
+  for(let y=2;y<=7;y++){ g[y][19]='H'; for(let x=20;x<=24;x++) g[y][x]='I'; if(W>26) g[y][25]='H'; }
+  for(let x=19;x<=(W>26?25:24);x++) g[8][x]='H'; g[8][21]='I'; g[8][22]='I'; g[H-1][12]='O'; g[H-1][13]='O'; return {W,H,g}; };
+const homeFoot=(d,it)=>d.wall?{x0:it.x,y0:1,x1:it.x+d.fw-1,y1:1}:{x0:it.x,y0:it.y-(d.fh||1)+1,x1:it.x+d.fw-1,y1:it.y};
+const homeSolid=d=>!d.wall&&!d.flat&&!d.rug&&d.solid!==false;
+// điểm neo vẽ (đơn vị ô): giữa chân đồ, mép dưới hàng cuối (+dy); đồ treo tường neo ở hàng 2
+const homeAnchor=(d,it)=>[it.x+d.fw/2,(d.wall?2:it.y+1)+(d.dy||0)];
+// đặt được không: '' là được, còn lại là lý do. skip: vị trí món đang dời (bỏ qua chính nó); me: ô người chủ đang đứng [x,y]
+function homeFits(home,it,skip,me){ const d=HOME.items[it.k]; if(!d) return 'Không có món này'; const {W,H,g}=homeGrid(home.lv||0), F=homeFoot(d,it);
+  if(!Number.isInteger(it.x)||!Number.isInteger(it.y)) return '?'; if(F.x0<1||F.x1>W-2) return 'Ra ngoài tường rồi';
+  if(d.wall){ for(const [i,o] of (home.items||[]).entries()){ if(i===skip) continue; const e=HOME.items[o.k]; if(e&&e.wall&&o.x<=F.x1&&o.x+e.fw-1>=F.x0) return 'Chỗ tường này treo đồ khác rồi'; } return ''; }
+  if(F.y0<2||F.y1>H-2) return 'Ra ngoài tường rồi'; for(let y=F.y0;y<=F.y1;y++) for(let x=F.x0;x<=F.x1;x++) if(g[y][x]==='H') return 'Vướng tường';
+  if(!homeSolid(d)) return '';
+  const keep=[[12,H-2],[13,H-2],[22,9],[22,7]]; for(const [x,y] of keep) if(x>=F.x0&&x<=F.x1&&y>=F.y0&&y<=F.y1) return 'Để trống lối đi ở cửa';
+  if(me&&me[0]>=F.x0&&me[0]<=F.x1&&me[1]>=F.y0&&me[1]<=F.y1) return 'Bạn đang đứng chỗ đó';
+  for(const [i,o] of (home.items||[]).entries()){ if(i===skip) continue; const e=HOME.items[o.k]; if(!e||!homeSolid(e)) continue; const G=homeFoot(e,o); if(G.x0<=F.x1&&G.x1>=F.x0&&G.y0<=F.y1&&G.y1>=F.y0) return 'Vướng '+e.name.toLowerCase(); }
+  return ''; }
+// độ ấm cúng 0–100: cộng điểm từng món (mỗi loại tối đa sameMax món) + sàn + tường
+function homeCozy(home){ if(!home) return 0; const n={}; let c=(HOME.floors[home.floor]||{}).cozy||0; c+=(HOME.walls[home.wall]||{}).cozy||0;
+  for(const o of home.items||[]){ const d=HOME.items[o.k]; if(!d) continue; n[o.k]=(n[o.k]||0)+1; if(n[o.k]<=HOME.sameMax) c+=d.cozy||0; } return Math.min(HOME.cozyMax,c); }
+const homeScore=home=>home?homeCozy(home)+Object.keys(home.likes||{}).length*HOME.likePts:0;
+// ngủ ở nhà mình: ấm cúng ≥ 10 thì +EXP (tối đa +15% trong 60 phút, kém phòng Nhà Chiềng thuê 600k/ngày) và hồi thêm năng lượng
+const homeBuff=cozy=>cozy>=10?{mul:1+Math.min(.15,Math.round(cozy*.15)/100),min:Math.min(60,Math.round(20+cozy*.4))}:null;
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  ECON,fineOf,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  ECON,fineOf,HOME,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

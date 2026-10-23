@@ -1,5 +1,5 @@
-/* Chan City — chuột phải người chơi khác: 🙌 Tương tác · 💸 Donate tiền · 🤝 Cho vay · 🏠 Mời về nhà (server/haosang.js).
-   Chuột phải chính mình: 💛 Hảo sảng của tôi (bậc, quyền lợi, khoản đang nợ / cho vay), đang ở nhà người khác thì có 🏠 Về nhà mình.
+/* Chan City — phím R cạnh người chơi khác: 🙌 Tương tác · 💸 Donate tiền · 🤝 Cho vay · 🏠 Mời về nhà (server/haosang.js).
+   R khi đứng trong nhà mà không ai gần: 💛 Hảo sảng của tôi (bậc, quyền lợi, khoản đang nợ / cho vay), đang ở nhà người khác thì có 🏠 Về nhà mình.
    Bậc hảo sảng (data.js HAOSANG): +EXP, mua rẻ hơn, bán được giá hơn; chip trên HUD. */
 (function(){
 const SD=SHARED, H=SD.HAOSANG, LN=H.loan, fmt=SD.fmt, esc=s=>GAME.esc(String(s)), toast=(m,k)=>GAME.toast(m,k), G=()=>GAME.G||{}, btn=UI.btn, $=s=>document.querySelector(s);
@@ -9,16 +9,16 @@ NET.listen('hs',m=>{ HS=m.v; });
 window.HSUI={chip(){ const v=HS||SD.hsTier(G()); return v&&v.lv?`<span class="good hschip" title="Hảo sảng bậc ${v.lv}: +${pct(v.b)} EXP, mua rẻ ${pct(v.b)}, bán được giá hơn ${pct(v.b)}">💛 ${esc(v.name)} +${pct(v.b)}</span>`:''; }};
 async function hsAct(q){ const r=await GAME.act(q); if(r&&!r.err&&r.msg) toast(esc(r.msg),'item'); return r; }
 
-/* ---------- menu chuột phải ---------- */
+/* ---------- menu phím R (game.js rMenu) ---------- */
 const PM=document.getElementById('pmenu');
 const pmClose=()=>{ PM.hidden=true; PM.innerHTML=''; PM._r=null; };
 const guestHome=()=>{ const S=GAME.S; return S&&S.kind==='room'&&S.host&&!S.own; };
-UI.pmenu=(r,cx,cy)=>{ const items=r?[['soc','🙌 Tương tác'],['gift','💸 Donate tiền'],['loan','🤝 Cho vay'],['home','🏠 Mời về nhà']]:[['me','💛 Hảo sảng của tôi'],...(guestHome()?[['back','🏠 Về nhà mình']]:[])];
+UI.pmenu=(r,cx,cy)=>{ const items=r?[['soc','🙌 Tương tác'],['gift','💸 Donate tiền'],['loan','🤝 Cho vay'],['home','🏠 Mời về nhà']]:[['me','💛 Hảo sảng của tôi'],...(GAME.S&&GAME.S.kind==='room'&&!GAME.S.host?[['deco','🛠 Sửa nhà']]:[]),...(guestHome()?[['like','❤ Thích nhà này'],['back','🏠 Về nhà mình']]:[])];
   PM.innerHTML=`<b>${esc(r?r.name:G().name||'Bạn')}</b><small class="muted pmhs">${r?'…':''}</small>`+items.map(([k,l])=>`<button type="button" class="btn sm" data-pm="${k}">${l}</button>`).join('');
   PM.hidden=false; PM._r=r; const w=PM.offsetWidth, h=PM.offsetHeight; PM.style.left=Math.max(8,Math.min(innerWidth-w-8,cx+6))+'px'; PM.style.top=Math.max(8,Math.min(innerHeight-h-8,cy+6))+'px';
   if(r) NET.req({t:'hs',op:'peek',to:r.id}).then(v=>{ const el=PM.querySelector('.pmhs'); if(!el||PM._r!==r||!v||v.err) return; el.textContent=(v.v.lv?`Hảo sảng bậc ${v.v.lv} · ${v.v.name}`:'Chưa có bậc hảo sảng')+(v.late?' · ⚠ đang nợ quá hạn':''); }); };
 PM.addEventListener('click',e=>{ const b=e.target.closest('[data-pm]'); if(!b) return; const r=PM._r, k=b.dataset.pm; pmClose();
-  if(k==='soc') UI.social(r); else if(k==='gift') gift(r); else if(k==='loan') loan(r); else if(k==='home') hsAct({t:'hs',op:'invite',to:r.id}); else if(k==='me') panel(); else if(k==='back') hsAct({t:'hs',op:'home'}); });
+  if(k==='soc') UI.social(r); else if(k==='gift') gift(r); else if(k==='loan') loan(r); else if(k==='home') hsAct({t:'hs',op:'invite',to:r.id}); else if(k==='me') panel(); else if(k==='back') hsAct({t:'hs',op:'home'}); else if(k==='deco'&&window.HOMEUI) window.HOMEUI.open(); else if(k==='like') hsAct({t:'home',op:'like'}); });
 addEventListener('mousedown',e=>{ if(!PM.hidden&&!PM.contains(e.target)) pmClose(); },true);
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&!PM.hidden) pmClose(); });
 

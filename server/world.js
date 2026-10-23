@@ -4,7 +4,8 @@ const C=require('./core');
 const {S,T,on,hook,send,now,today,nearby,broadcastNear,moveTo,markDirty,note,reward,take,info,kindOf,sceneOf,players}=C;
 
 /* ---------- vị trí ---------- */
-const sizeOf=pl=>{ const k=kindOf(pl.scene); if(k==='room'||k==='stay'){ const r=k==='room'?S.ROOMS.tro:S.ROOMS[pl.stayType||'leu']; return r.size; } return S.SCENE_SIZE[k]||[80,112]; };
+const sizeOf=pl=>{ const k=kindOf(pl.scene); if(k==='room'&&pl.roomWH) return pl.roomWH;   /* nhà riêng đã mở rộng (home.js) */
+  if(k==='room'||k==='stay'){ const r=k==='room'?S.ROOMS.tro:S.ROOMS[pl.stayType||'leu']; return r.size; } return S.SCENE_SIZE[k]||[80,112]; };
 on('mv',(pl,m)=>{
   const x=+m.x, y=+m.y; if(!Number.isFinite(x)||!Number.isFinite(y)) return; if(pl.incar) return;   /* ngồi ghế phụ: vị trí do xe quyết định */
   if(pl.csgt||pl.freeze){ if(Math.hypot(x-pl.x,y-pl.y)>2) send(pl,{t:'pos',x:pl.x,y:pl.y}); return; }   /* đang bị CSGT giữ lại kiểm tra / đứng ô của mình trên sân pickleball */

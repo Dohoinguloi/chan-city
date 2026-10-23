@@ -41,7 +41,7 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
   put(A.stall('#d8742a',['#f4ead8','#e8b860','#5fae46']),15.5,15.6); block(14,13,16,14); put(A.label('QUAN AN','#5a2a10','#ffd84a'),15.5,13.2,{flat:true});   // Quán Ăn Lục Địa Cát (Bác Bếp Cát đứng trước quầy)
   put(A.tent({w:44,flag:'#3a8ae8'}),27.5,15.2); block(26,13,29,14); put(A.label('PHONG NGHI TRUA','#1e4a9a','#ffffff'),27.5,11.6,{flat:true});   // Phòng Nghỉ Trưa: hồi năng lượng (maps10)
   { const G=SD.MU.dday.gate, gx=G.x-SD.MU.OX; put(A.ddayGate(0),gx,G.y+.6,{anim:'ddgate'}); block(Math.floor(gx)-1,Math.floor(G.y)-1,Math.floor(gx)+1,Math.floor(G.y)-1); }   // nhà sự kiện Cổng D-Day (toạ độ cũ = gate.x - OX)   // lối mở trên tường Tây (y 19–22) sang vùng boss phía Tây
-  put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,26.4,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26);
+  put(A.label('MU ONLINE · LUC DIA CAT','#2a2026','#ffd84a'),22,24.2,{flat:true}); act(22,28.4,'Ra khỏi game (gọi Grab)',{do:'grab'},26);
   put(A.label('→ LANG LA · DAM RONG','#2a2026','#ff9a3a'),37,13.2,{flat:true});
   /* --- rừng Làng Lá phía Bắc: cổng torii, cọc tập, quán ramen, bia đá --- */
   put(A.muTorii(),46.5,9.6); block(45,9,45,9); block(48,9,48,9); put(A.label('LANG LA','#c8302a','#ffffff'),46.5,4.6,{flat:true});
@@ -60,7 +60,7 @@ function buildOld(){ const M=SD.MU.local, W=M.W, H=M.H, H0=M.town, Z=M.zones, K=
   for(const [x,y,v] of [[75,21,0],[92,21,1],[75,27,2],[92,27,0],[79,25,1],[89,19.5,2]]){ put(A.muJunk(v),x,y); block(Math.floor(x)-1,Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   for(const [x,y] of [[77,19],[90,24],[86,27.6]]) put(A.muBarrel(),x,y); for(const [x,y] of [[81,27.4],[73,24]]) put(A.muTires(),x,y);
   forestDecor(g,K);
-  put(A.label('↓ RUNG QUAI','#2a2026','#ff7a5a'),21.5,28.2,{flat:true});
+  /* lối xuống rừng quái: vòm cổng dịch chuyển có biển RUNG QUAI (portal.js) */
   // khu (hiện tên khi đi vào + trên minimap / bản đồ lớn)
   const zones=[{name:'Quảng trường Lục Địa Cát',x0:2,y0:2,x1:41,y1:28},{name:'Rừng Làng Lá',x0:44,y0:2,x1:69,y1:14},{name:'Đầm Rồng',x0:44,y0:17,x1:69,y1:28},
     {name:'Nghĩa địa Bóng Ma',x0:72,y0:2,x1:93,y1:14},{name:'Bãi Phế Liệu',x0:72,y0:17,x1:93,y1:28},
