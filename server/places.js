@@ -224,7 +224,7 @@ on('pee',pl=>{ if(!inPool(pl)) return {err:'Phải đang ở trong bể bơi'}; 
   PEES.set(id,{id,from:pl,at:t,wit:new Set(wit.map(q=>q.pid)),done:false}); for(const q of wit) send(q,{t:'peeSeen',id,name:pl.prof.name});
   broadcastNear(pl,{t:'ev',k:'pee',id:pl.pid},300); stat(pl,'pee',1); return {seen:wit.length,clean:pl.prof.needs.clean}; });
 on('report',(pl,m)=>{ const e=PEES.get(m.id|0); if(!e||e.done||!e.wit.has(pl.pid)) return {err:'Không báo được nữa'}; if(now()-e.at>S.POOL.pee.window*1000) return {err:'Lâu quá rồi, chủ homestay không tin'};
-  e.done=true; const v=Math.min(e.from.prof.money,S.POOL.pee.fine); if(players.has(e.from.pid)){ take(e.from,v); note(e.from,`${pl.prof.name} báo chủ homestay: bạn bị phạt ${fmt(v)} vì tè vào bể bơi!`,'lock'); }
+  e.done=true; const v=Math.min(e.from.prof.money,C.fineOf(e.from,S.POOL.pee.fine)); if(players.has(e.from.pid)){ take(e.from,v); note(e.from,`${pl.prof.name} báo chủ homestay: bạn bị phạt ${fmt(v)} vì tè vào bể bơi!`,'lock'); }
   return {msg:`Chủ homestay đã phạt ${e.from.prof.name} ${fmt(v)}`}; });
 hook('slow',()=>{ const t=now(); for(const [id,e] of PEES) if(t-e.at>S.POOL.pee.window*1000+5000) PEES.delete(id); for(const pl of players.values()) if(pl.prof.look&&Math.random()<.1) achCheck(pl); });
 on('ach',pl=>({ach:pl.prof.ach||{},stats:pl.prof.stats||{}}));
@@ -239,7 +239,7 @@ on('net',(pl,m)=>{ const B=S.BUTTERFLY, i=m.i|0, sp=B.spots[i], p=pl.prof, t=now
 /* ---------- lọ: về phòng riêng xem phim, ngoài đường là bị phạt ---------- */
 on('lo',(pl,m)=>{ const p=pl.prof, L=S.LO, t=now();
   if(m.op==='start'){ if(p.needs.battery<L.battery) return {err:`Pin dưới ${L.battery}%, sạc điện thoại đã`};
-    const c=roomCtx(pl); if(!(c&&c.own)&&kindOf(pl.scene)!=='room'){ const v=Math.min(p.money,L.fine); take(pl,v); markDirty(pl);
+    const c=roomCtx(pl); if(!(c&&c.own)&&kindOf(pl.scene)!=='room'){ const v=Math.min(p.money,C.fineOf(pl,L.fine)); take(pl,v); markDirty(pl);
       C.broadcastNear(pl,{t:'ev',k:'shame',id:pl.pid,name:p.name},400); return {fined:v,msg:`Bị bắt quả tang làm chuyện đồi bại nơi công cộng! Công an phạt ${fmt(v)}`}; }
     pl.lo={at:t}; p.needs.battery=Math.max(0,p.needs.battery-10); markDirty(pl); return {ok:true}; }
   if(m.op==='end'){ const s=pl.lo; pl.lo=null; if(!s) return {err:'?'}; if(!m.ok) { p.needs.energy=Math.max(0,p.needs.energy-5); markDirty(pl); return {msg:'Chưa tới đâu đã xong... thử lại sau'}; }

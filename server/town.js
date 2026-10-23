@@ -42,12 +42,12 @@ const sendStop=pl=>send(pl,{t:'csgt',stop:stopView(pl.csgt)});
 // không đủ tiền nộp phạt thì về đồn tạm giữ 1 phút
 function fineOrJail(pl,v){ if(take(pl,v)){ P.stat(pl,'fine',v); return true; } const p=pl.prof; p.money=0; p.jail={until:now()+60e3,fine:v}; pl.csgt=null; pl.moto=null; send(pl,{t:'moto',off:true}); markDirty(pl); P.stat(pl,'jail',1); C.moveTo(pl,'doncongan',7,6); return false; }
 function stopCheck(pl){ const p=pl.prof; pl.csgtAt=now();
-  if(pl.speeding){ pl.speeding=false; pl.csgt={type:'speed',fine:CG.speed.fine,bribe:CG.speed.bribe,at:now()}; P.stat(pl,'csgt',1); send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); return; }
-  if(!p.helmet) pl.csgt={type:'helmet',fine:CG.fine,bribe:CG.bribe,at:now()};
+  if(pl.speeding){ pl.speeding=false; pl.csgt={type:'speed',fine:C.fineOf(pl,CG.speed.fine),bribe:C.fineOf(pl,CG.speed.bribe),at:now()}; P.stat(pl,'csgt',1); send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); return; }
+  if(!p.helmet) pl.csgt={type:'helmet',fine:C.fineOf(pl,CG.fine),bribe:C.fineOf(pl,CG.bribe),at:now()};   /* phạt theo ví: data.js fineOf */
   else if(Math.random()<CG.quiz) pl.csgt={type:'quiz',qs:[...CG.Q.keys()].sort(()=>Math.random()-.5).slice(0,CG.n),i:0,wrong:0,at:now()};
   else { C.note(pl,'CSGT kiểm tra: mũ bảo hiểm đội đúng, giấy tờ đủ. "Mời đi tiếp, chú ý an toàn nhé!"','item'); return; }
   P.stat(pl,'csgt',1); send(pl,{t:'ev',k:'csgtStop'}); sendStop(pl); }   /* bị CSGT bắt dừng xe (thành tựu) */
-function impound(pl){ const p=pl.prof, md=pl.moto||(p.moto&&p.moto.model)||'wave'; p.impound={model:md,left:Math.max(0,(p.moto&&p.moto.until||0)-now()),fee:CG.impound}; p.moto=null; pl.moto=null;
+function impound(pl){ const p=pl.prof, md=pl.moto||(p.moto&&p.moto.model)||'wave'; p.impound={model:md,left:Math.max(0,(p.moto&&p.moto.until||0)-now()),fee:C.fineOf(pl,CG.impound)}; p.moto=null; pl.moto=null;
   send(pl,{t:'moto',off:true}); C.broadcastScene('retreat',{t:'ev',k:'impound',id:pl.pid,x:pl.x,y:pl.y,model:md}); markDirty(pl); }
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'csgt',post:postView()}); });
 hook('slow',()=>{ const t=now();
@@ -97,8 +97,8 @@ on('optimus',(pl,m)=>{ if(!isKaixa(pl)) return {err:'Chỉ Kaixa mới biến h�
     if(m.op==='smash'){ if(POST.wreck) return {err:'Xe nát bét rồi'}; if(!near(pl,tx,ty,64)) return {err:'Lại gần xe CSGT đã'}; POST.hp--; if(POST.hp<=0){ POST.wreck=true; POST.until=t+R.wreck*1000; } }
     else { if(POST.kind!=='chot') return {err:'Xe tuần không có ai đứng ngoài'}; if(POST.ko>t) return {err:'Chú CSGT nằm đo đất rồi'}; if(!near(pl,POST.x,POST.y,48)) return {err:'Lại gần chú CSGT đã'}; POST.ko=t+R.ko*1000; }
     pushPost(); C.broadcastScene('retreat',{t:'ev',k:'riot',op:m.op,id:pl.pid,x:m.op==='smash'?tx:POST.x,y:m.op==='smash'?ty:POST.y,hp:POST.hp,wreck:!!POST.wreck});
-    if(Math.random()<(m.op==='smash'?R.smashJail:R.punchJail)){ const p=pl.prof; pl.optimus=null; if(OPT===pl.pid){ OPT=0; pushOpt(); } p.jail={until:t+R.jail*1000,fine:R.fine,why:'Optimus Prime phá xe, hành hung CSGT'}; markDirty(pl); P.stat(pl,'jail',1);
-      C.broadcastScene('retreat',{t:'ev',k:'arrest',id:pl.pid,name:p.name}); C.moveTo(pl,'doncongan',7,6); return {arrested:true,msg:`Bị lực lượng cơ động khống chế! Tạm giữ ${R.jail} giây, nộp ${fmt(R.fine)} để về sớm`}; }
+    if(Math.random()<(m.op==='smash'?R.smashJail:R.punchJail)){ const p=pl.prof; pl.optimus=null; if(OPT===pl.pid){ OPT=0; pushOpt(); } p.jail={until:t+R.jail*1000,fine:C.fineOf(pl,R.fine),why:'Optimus Prime phá xe, hành hung CSGT'}; markDirty(pl); P.stat(pl,'jail',1);
+      C.broadcastScene('retreat',{t:'ev',k:'arrest',id:pl.pid,name:p.name}); C.moveTo(pl,'doncongan',7,6); return {arrested:true,msg:`Bị lực lượng cơ động khống chế! Tạm giữ ${R.jail} giây, nộp ${fmt(p.jail.fine)} để về sớm`}; }
     return {hp:POST.hp,wreck:!!POST.wreck,ko:POST.ko>t,msg:m.op==='smash'?(POST.wreck?'RẦM! Xe CSGT nát bét, khói bốc nghi ngút!':`Đập móp xe CSGT (còn ${POST.hp}/${R.truckHp})`):'BỐP! Chú CSGT ngã lăn quay'}; }
   else if(m.op==='human'){ if(!pl.optimus) return {}; if(!near(pl,OP.park.x,OP.park.y,90)) return {err:'Về chỗ đỗ cạnh xe Chika Phú mới cất xe được'}; pl.optimus=null; }
   else return {err:'?'};
@@ -112,7 +112,7 @@ const pushMega=()=>C.broadcastScene('retreat',{t:'mega',v:megaView()});
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'mega',v:megaView()}); });
 function megaEnd(win,why){ const M=MEGA; if(!M) return; MEGA=null; megaCd=now()+MG.cd*1000; const pl=M.foe;
   C.broadcastScene('retreat',{t:'ev',k:'megaEnd',win,x:M.x,y:M.y,id:pl.pid});
-  if(win){ give(pl,MG.prize); reward(pl,{exp:MG.winExp},`Đánh bại Megatron! +${fmt(MG.prize)}`); P.stat(pl,'megatron',1); }
+  if(win){ const d=pl.prof.daily, paid=(d.mega||0)<(MG.daily||99); if(paid){ d.mega=(d.mega||0)+1; give(pl,MG.prize); } reward(pl,{exp:paid?MG.winExp:Math.round(MG.winExp/5)},paid?`Đánh bại Megatron! +${fmt(MG.prize)}`:'Đánh bại Megatron! (hôm nay nhận thưởng rồi, mai đánh tiếp có tiền)'); P.stat(pl,'megatron',1); }   /* MG.daily lần thắng có thưởng mỗi ngày */
   else if(why==='ko'){ const p=pl.prof; p.needs.energy=Math.max(0,p.needs.energy-MG.loseEnergy); optOff(pl); markDirty(pl); C.note(pl,`Optimus gục ngã, trở lại làm Kaixa (-${MG.loseEnergy} năng lượng). Hồi sức rồi gọi Megatron đấu lại!`,'lock'); }
   else C.note(pl,'Megatron rút lui: "Ta sẽ quay lại, Optimus!"','item');
   pushMega(); }

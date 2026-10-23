@@ -58,9 +58,11 @@ function startRound(t){ race.round++; const len=Math.min(9,4+Math.floor(race.rou
   race.roundStart=t+400; for(const r of race.riders) r.j=''; pushAll(); }
 function finish(){ const order=[...race.riders].sort((a,b)=>b.dist-a.dist||b.perfect-a.perfect), w=order[0], withBots=race.riders.some(r=>r.bot);
   // tiền thưởng: phí của mọi ngựa (nhà cái góp phần của bot) ×1,5 khi có bot; cược chia theo tỉ lệ, nhà cái bù thêm 20%
-  const prize=withBots?Math.round(fee()*race.riders.length*R.botMul):R.rent*race.riders.length, pool0=race.bets.reduce((a,b)=>a+b.amt,0), pool=withBots?Math.round(pool0*(1+R.houseBonus)):pool0;
+  // đua với bot: thưởng = phí × (số người + 1), mỗi ngày chỉ botWins lần thắng có thưởng (sau đó hoàn phí)
+  const humans=race.riders.filter(r=>!r.bot).length, wd=w.pl&&w.pl.prof?w.pl.prof.daily:null, botPaid=!withBots||!wd||(wd.raceBotW||0)<(R.botWins||99);
+  const prize=withBots?(botPaid?fee()*(humans+1):fee()):R.rent*race.riders.length, pool0=race.bets.reduce((a,b)=>a+b.amt,0), pool=withBots?Math.round(pool0*(1+R.houseBonus)):pool0;
   const wins=race.bets.filter(b=>b.on===w.idx), wsum=wins.reduce((a,b)=>a+b.amt,0);
-  if(w.pl&&players.has(w.pl.pid)){ require('./places').stat(w.pl,'raceW',1); give(w.pl,prize); reward(w.pl,{exp:R.winExp,kind:'game'},`Về nhất trường đua! +${fmt(prize)}`); }
+  if(w.pl&&players.has(w.pl.pid)){ require('./places').stat(w.pl,'raceW',1); if(withBots&&botPaid) wd.raceBotW=(wd.raceBotW||0)+1; give(w.pl,prize); reward(w.pl,{exp:R.winExp,kind:'game'},`Về nhất trường đua! +${fmt(prize)}${withBots&&!botPaid?` (hôm nay đã thắng bot ${R.botWins} lần có thưởng, lần này hoàn phí)`:''}`); }
   const payTo=(uid,v,msg)=>{ const q=C.byUid.get(uid); if(q){ give(q,v); note(q,msg,'vnd'); } };
   if(wsum>0) for(const b of wins) payTo(b.uid,Math.floor(pool*b.amt/wsum),`Cược trúng ${w.name}: +${fmt(Math.floor(pool*b.amt/wsum))}`);
   else if(!withBots) for(const b of race.bets) payTo(b.uid,b.amt,`Không ai cược trúng, hoàn ${fmt(b.amt)}`);

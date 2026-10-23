@@ -981,7 +981,7 @@ const MU={W:96,H:72,town:30,spawn:{x:22,y:27.4},altar:{x:22,y:6.6},arena:{x0:12,
   // mỗi người hạ mỗi boss tối đa bossPerDay lần / ngày (tính lúc boss chết, ai góp sát thương đều tính 1 lần); hạ đủ thì không gây sát thương, không có thưởng nữa: chống đánh hộ
   bossPerDay:0,   /* 0 = không giới hạn (đã bỏ giới hạn 5 lần / ngày) */
   // thưởng hạ boss ×bossRewardX: EXP, tiền, EXP MU, số Ngọc Cường Hoá / ngọc quý (đồ độc nhất như trang phục, vũ khí, Huy Hiệu, Trái Ác Quỷ giữ nguyên)
-  bossRewardX:20,bossGemX:5,bossVndX:20/3,   /* riêng Ngọc Cường Hoá ×5 (giảm 4 lần so với ×20), tiền ×6,7 (giảm 3 lần) */
+  bossRewardX:20,bossGemX:5,bossVndX:20/3,   /* giá trị cũ; khối "Cân bằng kinh tế" cuối file đặt lại: tiền ×1,2, EXP ×4, EXP MU ×6, ngọc quý ×3, 10 boss / ngày thưởng đủ */
   // phần thưởng boss phụ: ai góp sức đều có EXP + tiền, có tỉ lệ rơi trang phục / vũ khí riêng của boss, lần đầu hạ được thì lộ nhiệm vụ ẩn
   reward:{luffy:{exp:150,vnd:200000,mu:120,jewel:.35,fruitPer:10},naruto:{exp:100,vnd:120000,mu:80,costume:'mu_naruto',weapon:'vk_kunai',chance:.25,secret:'mu_cuontruc'},
     cuamay:{exp:100,vnd:120000,mu:80,costume:'mu_cuamay',weapon:'vk_cua',chance:.25,secret:'mu_banhmut'},duongvu_ma:{exp:110,vnd:130000,mu:85,costume:'mu_bongma',weapon:'vk_luoihai',chance:.25,secret:'mu_lua_ma'},
@@ -1813,8 +1813,38 @@ PLACES.mu_quan={name:'Quán Ăn Lục Địa Cát',where:'quảng trường MU',
 NPCS.push({id:'mu_cook',scene:'mu',x:15.5+MU.OX,y:17.4,place:'mu_quan'});
 NPC_LOOKS.mu_cook={name:'Bác Bếp Cát',look:{gender:'nam',hair:'swept',hairColor:'5a4a3a',skin:'f0c49a',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_den'},opts:{mouth:'smile'}}};
 MU.nap={x:27.5+MU.OX,y:15.6,price:50000,energy:50,cd:30};
+/* ======================= Cân bằng kinh tế (24/10): không cách nào kiếm tiền / EXP quá nhanh =======================
+   Mốc: cày liên tục (quái MU bậc cao, vườn, chuồng, bướm, đua ngựa) tối đa khoảng 1,5–2 triệu / giờ; việc hằng ngày cộng lại khoảng 3–5 triệu / ngày;
+   boss MU chỉ 10 lần hạ đầu mỗi ngày được thưởng đủ; tiền thắng bot (đua ngựa, pickleball, nhà giải trí) có trần mỗi ngày; tiền phạt tăng theo tiền trong ví */
+const ECON={questVnd:.6,cropSell:.6,fineRate:.01,fineMax:10,botWinDaily:1000000};
+// boss MU: tiền ×1,2 (trước ×6,7), EXP ×4 (trước ×20), EXP MU ×6 (trước ×20), ngọc quý ×3 (trước ×20), Ngọc Cường Hoá giữ ×5; hạ quá 10 boss / ngày thì thưởng còn 20%, không nhân ngọc
+Object.assign(MU,{bossVndX:1.2,bossExpX:4,bossMuX:6,bossJewelX:3,bossFull:10,bossTired:.2});
+Object.assign(MU.dday.reward.win,{vnd:500000,exp:400}); Object.assign(MU.dday.reward.lose,{vnd:80000,exp:100});
+// quái rừng: tiền rơi, EXP, EXP MU, giá chiến lợi phẩm, tỉ lệ rơi đều giảm (Chó Ba Đầu: 3,7k → 1,4k tiền, 57 → 25 EXP, Lông Lửa 33,9k → 6k)
+MU.forest.mat=.35; for(const m of Object.values(MU.forest.mobs)){ const L=m.lv; m.exp=Math.round(3+L*.5); m.vnd=100+L*30; m.mu=Math.round(2+L*.7); }
+MU.matPrice=Object.fromEntries(Object.values(MU.forest.mobs).map(m=>[m.mat,400+m.tier*m.tier*70]));
+MU.jewelSell={ngoc_uoc:50000,ngoc_tam_linh:70000,ngoc_hon_nguyen:120000};   /* Pháp sư Cát thu mua ngọc quý (trước 150k / 200k / 400k) */
+// nông sản bán còn 60% (hạt giống giữ giá: lãi mỗi ô từ ~78k xuống ~45k / giờ)
+for(const [k,c] of Object.entries(CROPS)){ c.sell=Math.round(c.sell*ECON.cropSell/500)*500; SELL[k]=c.sell; }
+// lợn: mua 350k (trước 1,5 triệu), thịt 500k (trước 2,4 triệu), lợn con 120k (trước 800k), lợn nái 2,5 triệu
+ANIMALS.lon.price=350000; ANIMALS.nai.price=2500000; Object.assign(SELL,{lon_thit:500000,lon_con:120000});
+// bướm bán 5k / 10k / 20k (trước 15k / 30k / 60k), 5 phút mới bay lại (trước 2 phút)
+BUTTERFLY.respawn=300; BUTTERFLY.sell={common:5000,uncommon:10000,rare:20000}; for(const [k,r] of Object.entries(BUTTERFLY.kinds)) SELL['buom_'+k]=BUTTERFLY.sell[r];
+// đồ cổ dưới hồ (8 món / ngày): kỳ vọng ~290k → ~120k mỗi món
+for(const [k,v] of Object.entries({dong_xu_co:40000,binh_gom:120000,ngoc_trai:200000,ruong_bau:800000})){ TREASURE.items[k].price=v; SELL[k]=v; }
+// trò chơi có bot / boss mini: tiền thưởng có trần mỗi ngày
+RACE.botWins=5; RACE.houseBonus=0;   /* đua với bot: thưởng = phí × (số người + 1), 5 lần thắng có thưởng mỗi ngày; cược không còn nhà cái bù 20% (cược đủ 6 ngựa là chắc lãi) */
+PICKLE.win.vnd=120000; PICKLE.paidWins=5;   /* pickleball: 5 trận thắng có tiền mỗi ngày */
+MEGATRON.prize=1000000; MEGATRON.daily=1; MCK.prize=1000000;   /* Megatron trước 3 triệu mỗi 2 phút: giờ 1 triệu, 1 lần / ngày; MCK 3 triệu → 1 triệu */
+WHEELIE.vnd=15000; LUMEN.pay=180000; DAS.teach.pay=300000;
+CLUB.botWinDaily=ECON.botWinDaily;   /* nhà giải trí: tiền thắng bot (cờ, poker, ma sói) tối đa 1 triệu / ngày */
+// nhiệm vụ: tiền thưởng còn 60% (tổng ~30,7 triệu → ~18 triệu), EXP giữ nguyên
+for(const q of Object.values(QUESTS)) if(q.reward&&q.reward.vnd) q.reward.vnd=Math.max(10000,Math.round(q.reward.vnd*ECON.questVnd/10000)*10000);
+// tiền phạt theo ví: phạt gốc + 1% tiền đang có (tối đa gấp 10 phạt gốc), làm tròn chục nghìn
+const fineOf=(base,money)=>base+Math.min(base*ECON.fineMax,Math.round(Math.max(0,money||0)*ECON.fineRate/10000)*10000);
+RULES.expMulCap=2;   /* tổng các buff EXP cộng dồn tối đa ×2 */
 return {T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  ECON,fineOf,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

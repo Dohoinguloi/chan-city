@@ -25,7 +25,8 @@ function begin(){ M.st='play'; M.score=[0,0]; M.win=-1; M.log='Bắt đầu! Đ�
     if(s&&s.pl){ const [x,y]=K.slots[i]; s.pl.x=x*T; s.pl.y=y*T; s.pl.budget=0; send(s.pl,{t:'pos',x:s.pl.x,y:s.pl.y}); } }); serve(0); }
 function end(team){ M.st='end'; M.win=team; M.ball=null; M.endAt=now()+7000; M.log=`Đội ${team?'B':'A'} thắng ${M.score[team]}–${M.score[1-team]}!`;
   M.seats.forEach((s,i)=>{ if(!s||!s.pl) return; C.track(s.pl,'match'); if(teamOf(i)===team){ const o=s.pl.prof.look&&s.pl.prof.look.outfit||{}, pr=S.PK_SETS.find(z=>z.premium&&Object.entries(z.items).every(([sl,k])=>o[sl]===k));   // mặc đủ set premium: ×1,5 EXP
-    reward(s.pl,{exp:Math.round(K.win.exp*(pr?1.5:1)),vnd:K.win.vnd},'Thắng trận pickleball 2 vs 2!'+(pr?` (set ${pr.name} ×1,5 EXP)`:'')); P.stat(s.pl,'pickle',1); } else reward(s.pl,{exp:K.lose.exp},'Thua trận pickleball, tập thêm nhé'); });
+    const d=s.pl.prof.daily, paid=(d.pkWin||0)<(K.paidWins||99); if(paid) d.pkWin=(d.pkWin||0)+1;   /* paidWins trận thắng có tiền mỗi ngày */
+    reward(s.pl,{exp:Math.round(K.win.exp*(pr?1.5:1)),vnd:paid?K.win.vnd:0},'Thắng trận pickleball 2 vs 2!'+(pr?` (set ${pr.name} ×1,5 EXP)`:'')+(paid?'':` (hôm nay đủ ${K.paidWins} trận có thưởng tiền)`)); P.stat(s.pl,'pickle',1); } else reward(s.pl,{exp:K.lose.exp},'Thua trận pickleball, tập thêm nhé'); });
   push(); }
 const won=()=>{ const [a,b]=M.score; return Math.max(a,b)>=K.cap||(Math.max(a,b)>=K.target&&Math.abs(a-b)>=2); };
 function botShot(){ const r=Math.random(); return r<.4?'drive':r<.75?'dink':'lob'; }

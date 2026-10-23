@@ -4,6 +4,17 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24c',title:'24/10 · Cân bằng kinh tế',items:[
+    'Cân bằng lại mọi cách kiếm tiền và EXP để không cách nào kiếm quá nhanh: cày liên tục tối đa khoảng 1,5–2 triệu / giờ, việc hằng ngày cộng lại khoảng 3–5 triệu / ngày',
+    'Boss MU: tiền ×1,2 (trước ×6,7), EXP ×4 (trước ×20), EXP MU ×6, ngọc quý ×3 (trước ×20). Vẫn đánh không giới hạn, nhưng 10 lần hạ boss đầu mỗi ngày mới được thưởng đủ, sau đó còn 20%',
+    'Pháp sư Cát thu mua ngọc quý 50k / 70k / 120k (trước 150k / 200k / 400k). D-Day thắng 500k, thua 80k',
+    'Quái rừng MU: tiền rơi, EXP, chiến lợi phẩm đều giảm (Chó Ba Đầu 3,7k → 1,4k, Lông Lửa 33,9k → 6k)',
+    'Vườn: nông sản bán còn 60%. Chuồng lợn: lợn giống 350k, thịt lợn 500k (trước 2,4 triệu), lợn con 120k, lợn nái 2,5 triệu',
+    'Bướm bán 5k / 10k / 20k, 5 phút mới bay lại. Đồ cổ dưới hồ rẻ lại (rương báu 800k)',
+    'Đua ngựa với bot: về nhất ăn phí × (số người + 1), 5 lần thắng bot có thưởng / ngày; bỏ nhà cái bù 20% tiền cược',
+    'Pickleball: 5 trận thắng có tiền / ngày. Megatron 1 triệu, 1 lần / ngày. MCK 1 triệu. Nhà giải trí: tiền thắng bot (cờ, poker, ma sói) tối đa 1 triệu / ngày',
+    'Lumen 180k / việc, đứng lớp DAS 300k / buổi, bốc đầu 15k / lần. Tiền thưởng nhiệm vụ còn 60%, EXP giữ nguyên',
+    'Tiền phạt theo ví: phạt gốc + 1% tiền đang có (tối đa gấp 10 phạt gốc), áp cho CSGT, tạm giữ ở đồn, phạt nơi công cộng, tè bể bơi. Các buff EXP cộng dồn tối đa ×2']},
   {v:'2026-10-24b',title:'24/10 · Xích Thố + Đại nhiệm vụ Tân Thế Giới Chande',items:[
     'Đại nhiệm vụ Tân Thế Giới Chande: truy tìm 3 món huyền thoại (Cái Pod của Kaixa, Cây Bút của Redtype, Airpod của VNPT), mỗi món 15 mảnh. Banner lúc vào game bấm vào từng món để xem đường đi',
     'Xích Thố của ông Trường Con: ngựa lửa thần thoại MẠNH HƠN mọi thú cưỡi thường (chỉ số hơn thần thú cùng bậc 30%). Làm xong 4 nhiệm vụ của ông ở Miếu (Hải Phòng) rồi gặp ông xin ngựa',

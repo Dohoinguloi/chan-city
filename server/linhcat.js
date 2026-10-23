@@ -130,9 +130,9 @@ function finish(pl,res,ev){ const p=pl.prof, b=pl.lcb, r=rec(p); pl.lcb=null; le
   if(res==='win'){ if(b&&b.paid) msg='Đã thả Lính Cát về với thiên nhiên'; else { const g=C.gainExp(pl,L.trainerExp); msg=`Thắng! +${g.exp} EXP huấn luyện viên`; } }
   if(res==='caught') msg='Thu phục thành công!'; if(res==='lose') msg='Lính Cát của bạn kiệt sức hết, về Trung tâm hồi máu nhé'; if(res==='run') msg='Đã rút lui';
   // thú bảo tồn: đấu xong 20% bị công an bắt vì làm hại động vật hoang dã
-  if(b&&b.kind==='park'&&Math.random()<L.jail.chance){ const J=L.jail; p.jail={until:now()+J.sec*1000,fine:J.fine,why:'Cho Lính Cát đánh thú bảo tồn ở vườn quốc gia'}; P.stat(pl,'jail',1);
+  if(b&&b.kind==='park'&&Math.random()<L.jail.chance){ const J=L.jail, jf=C.fineOf(pl,J.fine); p.jail={until:now()+J.sec*1000,fine:jf,why:'Cho Lính Cát đánh thú bảo tồn ở vườn quốc gia'}; P.stat(pl,'jail',1);
     ev.push({k:'arrest'}); markDirty(pl); setTimeout(()=>{ if(pl.prof) C.moveTo(pl,'doncongan',7,6); },2600);
-    note(pl,`🚓 Kiểm lâm báo công an: làm hại động vật hoang dã! Tạm giữ ${J.sec} giây, nộp ${fmt(J.fine)} để về sớm`,'lock'); }
+    note(pl,`🚓 Kiểm lâm báo công an: làm hại động vật hoang dã! Tạm giữ ${J.sec} giây, nộp ${fmt(jf)} để về sớm`,'lock'); }
   for(const k of Object.keys(r.gone)){ const per=+k.split(':').slice(-2)[0]; if(!(per>=Math.floor(now()/L.period)-1)) delete r.gone[k]; }   // khoá: map:chu kỳ:điểm
   markDirty(pl); return {ev,result:res,msg,battle:null}; }
 module.exports={view};
