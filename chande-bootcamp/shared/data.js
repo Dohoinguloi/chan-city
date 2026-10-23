@@ -391,7 +391,7 @@ const FORAGE=[
   ...[[24.6,48.6,'mang'],[33.2,65.8,'mang'],[20.4,46.6,'rau'],[27.2,57.8,'rau'],[31.4,66.6,'rau'],[47.6,82.4,'trung'],[38.6,78.6,'trung'],[48.6,38.8,'nam'],[50.4,31.6,'nam'],[55.2,37.6,'nam']]
     .map(([x,y,item],i)=>({id:'g'+i,item,x,y,respawn:360})),
 ];
-const KAYAK_SPOT={x:47.6,y:99.6}, BUOYS=[[27,104.5],[33,108],[40,109.5],[50,107],[57,104]];
+const KAYAK_SPOT={x:47.6,y:99.6}, BUOYS=[[27,104.5],[33,108],[40,109.5],[50,107],[58,107.5]];   /* phao 5 dời xuống nước (chỗ cũ bị bãi đỗ xe lấn ra hồ) */
 const CARS={car_low:{x:64.6,y:101.2,to:{x:47.5,y:43.6},price:0},car_top:{x:49.5,y:42.8,to:{x:62.5,y:102.4},price:CAR_PRICE}};   // xe 4 bánh dưới đỗ ở bãi đỗ trước cổng   // to: chỗ xuống xe ở đầu kia
 const BEAGLE_SPOT={x:51.4,y:28.8}, CHICKEN_HOME={x:35.5,y:36.6,r:2.4}, LAKE_Y=98.5;
 const SPAWN={retreat:{x:39.5,y:96.6},room:{x:4.5,y:7}};

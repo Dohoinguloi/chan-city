@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24i',title:'24/10 (sửa lỗi)',items:['Sửa phao vàng thứ 5 của nhiệm vụ Chèo kayak 5 phao nằm trên bờ (bãi đỗ xe): giờ phao nổi dưới mặt hồ, chèo tới chạm được']},
   {v:'2026-10-24h',title:'24/10 · Nông trại bác Trang đẹp hơn + bớt tiếng ồn',items:[
     'Nông trại bác Trang (Đà Lạt) làm mới cảnh quan: hàng mai anh đào hồng 2 bên đường (cánh hoa rơi), cột đèn Đà Lạt sáng ấm về đêm, cổng hoa vòm ở lối vào',
     'Cẩm tú cầu viền vườn hoa / vườn rau, đồng hướng dương + hoa dại, tổ ong, bù nhìn, bướm bay quanh vườn hoa; đồng cỏ ngựa, cỏ bò có hoa và máng nước',
