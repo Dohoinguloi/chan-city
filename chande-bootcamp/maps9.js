@@ -97,7 +97,7 @@ for(const k of M.jewels) GEM_SRC[k]=[['Mọi boss MU (Luffy, boss phụ, vùng b
 function luffyLeft(){ const b=U()&&U().boss(); if(!b) return ''; if((b.list||[]).some(x=>x.id==='luffy')) return '<b class="good">đang xuất hiện, tới đánh ngay!</b>'; const t=(b.next||{}).luffy; return t?`ra sau ${Math.max(1,Math.ceil((t-NET.now())/60000))} phút`:''; }
 const gemGuide=keys=>{ const it=G().items||{};
   return `<div class="gemguide"><h5>Tìm ngọc ở đâu?</h5>${keys.map(k=>`<div class="gg"><img src="${GAME.icon64(k)}" width="28" height="28" alt=""><b>${esc(SD.ITEMS[k].name)}</b> <small>(đang có ${it[k]||0})</small>
-    <ul>${(GEM_SRC[k]||[]).map(([w,how,xy])=>`<li><b>${esc(w)}</b>${w.includes('Luffy')?` · ${luffyLeft()}`:''}: ${esc(how)} ${xy?btn('gemgo','➜ Tới',{x:xy[0]+(M.OX||0),y:xy[1]}):''}</li>`).join('')}</ul></div>`).join('')}</div>`; };
+    <ul>${(GEM_SRC[k]||[]).map(([w,how,xy])=>`<li><b>${esc(w)}</b>${w.includes('Luffy')?` · ${luffyLeft()}`:''}: ${esc(how)} ${xy?btn('gemgo','➜ Tới',{x:xy[0]+(M.OX||0),y:xy[1]+(M.OY||0)}):''}</li>`).join('')}</ul></div>`).join('')}</div>`; };
 window.MU9={gemGuide,result:(r,name)=>enhResult(r,null,name),lack:gem=>enhNeed(gem)};   /* lc.js dùng thẻ kết quả khi Lính Cát ăn ngọc */
 UI.onAct('gemgo',d=>{ if(!here()){ toast('Gọi Grab (phím G) chọn MU Online rồi bấm lại','lock'); return; } UI.closeAll(); GAME.walkTo(+d.x,+d.y,'Tới chỗ tìm ngọc'); });
 

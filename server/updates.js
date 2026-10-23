@@ -4,6 +4,15 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24j',title:'24/10 · MU Đỉnh Bắc: 8 boss mới + giá đồ theo sức mạnh',items:[
+    'MU mở rộng lên phía Bắc: Đỉnh Bắc có 3 đấu trường boss. Đi qua cổng ĐỈNH BẮC ở tường trên quảng trường, hoặc chọn mục Đỉnh Bắc ở mọi cổng dịch chuyển',
+    '6 anh em Siêu Nhân (Căn cứ Siêu Nhân): ra trước 5 người, tổng máu còn 75% gọi Siêu Nhân Xanh Lá, tổng máu 6 người còn 50% gọi Megazord. Hạ hết cả nhóm mới ra lại',
+    'Thần Chết Ryuk (Thế giới Thần Chết): cứ 5 giây ghi tên 1 người vào Death Note, 2 giây sau người đó mất 50% máu và bị Ryuk lao tới đánh liên tục. Mưa Táo diện rộng: làm chậm, giảm hồi máu, đốt máu theo giây',
+    'Ryuk còn 50% máu gọi thần chết Rem: cả 2 cùng nhắm 1 người, đánh nhanh gấp 10 lần. Người bị nhắm (dấu ngắm đỏ trên đầu) chạy đi, người khác dồn sát thương',
+    'Yasuo (Thung lũng Gió Ionia): lướt liên tục, chém chí mạng, chém 2 lần liền gọi Lốc Xoáy hất tung + choáng, Tường Gió chặn mọi đòn của người chơi 3 giây. Còn 50% máu: chiêu cuối hất 1–2 người lên không, đáp xuống được giáp + kháng phép và chém nhanh gấp 10 lần',
+    'Yasuo còn 15% máu gọi Yone: sóng kiếm lao tới chỗ đông người nhất (choáng 1 giây) rồi chém lan 4 ô, thi thoảng phân thân (bóng mạnh 50%, máu 40%). Khi Yone có mặt, Yasuo và Yone gây sát thương chuẩn (xuyên giáp + thủ)',
+    'Giá đồ MU tính lại theo sức mạnh thật của từng món (công, máu, tốc đánh, chí mạng, hút máu, hiệu ứng riêng) và theo số tiền mọi người kiếm được: món càng mạnh càng đắt. Vũ khí 2,5–9 triệu, phụ kiện + giày 130k–5,6 triệu, món tay trái 4,6–11 triệu, set legacy 3,6–15 triệu',
+    'Bậc thần thú rẻ hơn (cả 8 bậc 63,5 → 20,9 triệu), Xích Thố cấp 11–15 rẻ hơn hẳn (lên cấp 15: 276 → 185 triệu), sách nội tại rẻ hơn (150k–740k/quyển). Ngọc quý vẫn cần như cũ']},
   {v:'2026-10-24i',title:'24/10 (sửa lỗi)',items:['Sửa phao vàng thứ 5 của nhiệm vụ Chèo kayak 5 phao nằm trên bờ (bãi đỗ xe): giờ phao nổi dưới mặt hồ, chèo tới chạm được']},
   {v:'2026-10-24h',title:'24/10 · Nông trại bác Trang đẹp hơn + bớt tiếng ồn',items:[
     'Nông trại bác Trang (Đà Lạt) làm mới cảnh quan: hàng mai anh đào hồng 2 bên đường (cánh hoa rơi), cột đèn Đà Lạt sáng ấm về đêm, cổng hoa vòm ở lối vào',

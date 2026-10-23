@@ -34,13 +34,14 @@ const pad=(q,f)=>A.sprite(48,40,24,34,(g,P)=>{ g.fillStyle=rgba('#000000',.25); 
   const fy=12+[0,-1,-2,-1][f%4]; P.rect(21,fy,6,10,q.col); P.rect(23,fy-3,2,16,q.col); P.rect(23,fy,1,8,'#ffffff'); g.fillStyle=rgba(q.col,.25); g.beginPath(); g.ellipse(24,fy+5,9,9,0,0,Math.PI*2); g.fill(); });
 const SPR={front,obel,strip,pad};
 const spr=(o,f)=>CR[o.pq.id+o.part+f]||(CR[o.pq.id+o.part+f]=SPR[o.part](o.pq,f));
-// gắn vào map MU (sau khi world8 ghép vùng phía Tây)
-const mw=WORLD.muWest; WORLD.muWest=m=>{ const r=mw(m);
-  for(const q of M.portals){ const add=(part,x,y,o={})=>{ const it={spr:SPR[part](q,0),x:Math.round(x*T),y:Math.round(y*T),anim:'portal',pq:q,part,...o}; r.obj.push(it); };
-    if(q.kind==='front') add('front',q.x,q.y);
-    else if(q.kind==='side'){ const y0=q.y-q.span/2; add('strip',q.x,y0+q.span,{sort:(y0-1)*T}); add('obel',q.x,y0); add('obel',q.x,y0+q.span+1); if(q.sign) r.obj.push({spr:A.label(q.sign,'#2a2026',q.col),x:Math.round(q.x*T),y:Math.round((y0-2.9)*T),flat:true}); }   /* biển tên nơi tới trên trụ */
-    else add('pad',q.x,q.y+.4,{sort:(q.y-1)*T}); }
-  return r; };
+// đặt 1 cổng q lên map r (toạ độ của q); north.js dùng lại cho cổng Đỉnh Bắc
+function addPortal(r,q){ const add=(part,x,y,o={})=>{ r.obj.push({spr:SPR[part](q,0),x:Math.round(x*T),y:Math.round(y*T),anim:'portal',pq:q,part,...o}); };
+  if(q.kind==='front') add('front',q.x,q.y);
+  else if(q.kind==='side'){ const y0=q.y-q.span/2; add('strip',q.x,y0+q.span,{sort:(y0-1)*T}); add('obel',q.x,y0); add('obel',q.x,y0+q.span+1); if(q.sign) r.obj.push({spr:A.label(q.sign,'#2a2026',q.col),x:Math.round(q.x*T),y:Math.round((y0-2.9)*T),flat:true}); }   /* biển tên nơi tới trên trụ */
+  else add('pad',q.x,q.y+.4,{sort:(q.y-1)*T}); }
+WORLD.addPortal=addPortal;
+// gắn vào map MU sau khi world8 ghép vùng phía Tây, bằng toạ độ trước khi mở rộng lên Bắc (north.js dời cả khối sau)
+const mw=WORLD.muWest; WORLD.muWest=m=>{ const r=mw(m); for(const q of (M.preOY||M).portals) addPortal(r,q); return r; };
 const a0=X.anim; X.anim=(o,clock)=>{ if(o.anim==='portal') return spr(o,Math.floor(clock*6)%4); return a0?a0(o,clock):null; };
 // bấm E ở gần cổng
 const spot=q=>[q.x*T,(q.kind==='front'?q.y-1:q.y)*T];
@@ -50,8 +51,9 @@ const c0=X.consider; X.consider=(consider,dist)=>{ c0(consider,dist); if(!here()
 const p0=X.pick; X.pick=async x=>{ if(x.k!=='portal') return p0(x); menu(); };
 function menu(){ const cur=atNow(); if(!cur) return; const lv=(window.MU8&&window.MU8.me&&window.MU8.me.lv)||0;
   UI.open('🌀 Cổng dịch chuyển',()=>{ const row=q=>`<div class="row"><span style="color:${q.col}">●</span><span><b>${esc(q.name)}</b>${q.lv&&lv&&lv<q.lv?` <small class="bad">quái cấp ${q.lv}, bạn cấp ${lv}</small>`:''}</span>${q.id===cur.id?'<small class="muted">đang ở đây</small>':UI.btn('pwarp','Đi',{to:q.id},'pri')}</div>`;
-    return `<p class="muted">Bước vào cổng là tới ngay, không tốn tiền. Cổng tím trong rừng đặt giữa mỗi khu quái.</p><h5>Lối trong thành</h5><div class="list">${M.portals.filter(q=>q.kind!=='pad').map(row).join('')}</div>
-      <h5>Bệ dịch chuyển rừng quái</h5><div class="list">${M.portals.filter(q=>q.kind==='pad').map(row).join('')}</div>`; },{wide:true}); }
+    return `<p class="muted">Bước vào cổng là tới ngay, không tốn tiền. Cổng tím trong rừng đặt giữa mỗi khu quái.</p><h5>Lối trong thành</h5><div class="list">${M.portals.filter(q=>q.kind!=='pad'&&!q.north).map(row).join('')}</div>
+      <h5>Bệ dịch chuyển rừng quái</h5><div class="list">${M.portals.filter(q=>q.kind==='pad'&&!q.north).map(row).join('')}</div>
+      <h5>Đỉnh Bắc · 3 đấu trường boss</h5><div class="list">${M.portals.filter(q=>q.north).map(row).join('')}</div>`; },{wide:true}); }
 UI.onAct('pwarp',async d=>{ const r=await GAME.act({t:'muw',op:'warp',to:d.to}); if(r&&!r.err){ UI.closeAll(); GAME.sfx('poof',.5); } });
 // minimap: chấm tím ở mỗi cổng
 const mi0=X.mini; X.mini=(dot,k)=>{ if(mi0) mi0(dot,k); if(k!=='mu') return; for(const q of M.portals) dot(q.x*T,(q.kind==='front'?q.y-1:q.y)*T,q.kind==='pad'?'#c8a0ff':'#7fe8ff',2); };

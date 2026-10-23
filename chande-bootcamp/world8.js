@@ -4,7 +4,7 @@
    đường dọc x 30–33 và đường ngang y 46–47 ở giữa. Toạ độ theo ô 16px. */
 (function(){
 const A=ART, T=A.T, SD=SHARED;
-function muWest(m){ const M=SD.MU, OX=M.OX, Wt=M.west, Z=Wt.zones, ME=Wt.meme, W=m.W+OX, H=m.H;
+function muWest(m){ const M=SD.MU, OX=M.OX, Wt=(M.preOY||M).west,   /* toạ độ trước khi MU mở rộng lên Bắc (north.js dời cả khối sau) */ Z=Wt.zones, ME=Wt.meme, W=m.W+OX, H=m.H;
   const inZ=(z,x,y)=>x>=z.x0&&x<=z.x1&&y>=z.y0&&y<=z.y1, edge=(z,x,y)=>x===z.x0||x===z.x1||y===z.y0||y===z.y1;
   // cổng trên tường bao: [phía, từ, tới] — n / s theo x, e / w theo y
   const gateAt=(z,x,y)=>(z.gates||[]).some(([d,a,b])=>(d==='n'&&y===z.y0||d==='s'&&y===z.y1)&&x>=a&&x<=b||(d==='e'&&x===z.x1||d==='w'&&x===z.x0)&&y>=a&&y<=b);

@@ -60,7 +60,7 @@ const radius=(b,B)=>(b.big?2.2:1.6)*Math.min(2.4,(B&&formOf(B).size)||1);
 const formOf=B=>(B.form&&(BS[B.id].forms||[]).find(f=>f.k===B.form))||{};   /* dạng đang hoá (Titan, Hung Thủ Áo Đen, Bạch Yêu) */
 const scOf=B=>BS[B.id].scene||'mu';
 function phaseOf(B){ const k=B.hp/B.max, P=BS[B.id].phases; return k<P[1]?3:k<P[0]?2:1; }
-function bossView(B){ const b=BS[B.id], F=formOf(B), t=now(), po=B.pochU>t; return {id:B.id,name:b.name,sprite:po?'pochita':F.sprite||b.sprite,big:po?0:b.big||0,scene:scOf(B),form:po?'pochita':B.form||'',fname:po?'Pochita':F.name||'',spin:B.spinU>t?B.spinU-t:0,gulp:B.gulp?B.gulp.pid:0,chick:B.chickU>t?B.chickU-t:0,sil:B.silU>t?B.silU-t:0,cup:B.cupU>t?B.cupU-t:0,spinR:b.spin?b.spin.r:0,guard:B.guardU>t?B.guardU-t:0,tint:F.tint||'',size:F.size||1,fly:B.buffU>t&&B.fly?1:0,ghost:B.ghostU>t?(B.ghostA.r||3):0,stun:B.stunU>t?B.stunU-t:0,dive:B.diveU>t?B.diveU-t:0,say:B.say&&t-B.say.t<3500?B.say.txt:'',ts:t,
+function bossView(B){ const b=BS[B.id], F=formOf(B), t=now(), po=B.pochU>t; return {id:B.id,name:b.name,sprite:po?'pochita':F.sprite||b.sprite,big:po?0:b.big||0,scene:scOf(B),form:po?'pochita':B.form||'',fname:po?'Pochita':F.name||'',spin:B.spinU>t?B.spinU-t:0,gulp:B.gulp?B.gulp.pid:0,chick:B.chickU>t?B.chickU-t:0,sil:B.silU>t?B.silU-t:0,cup:B.cupU>t?B.cupU-t:0,dn:B.dn?[B.dn.pid,Math.max(0,B.dn.at-t)]:0,ww:B.wwU>t?B.wwU-t:0,fast:B.fastU>t?B.fastU-t:0,air:B.ult?B.ult.pids:0,focus:B.focus&&B.focus.until>t?B.focus.pid:0,spinR:b.spin?b.spin.r:0,guard:B.guardU>t?B.guardU-t:0,tint:F.tint||b.tint||'',size:F.size||1,fly:B.buffU>t&&B.fly?1:0,ghost:B.ghostU>t?(B.ghostA.r||3):0,stun:B.stunU>t?B.stunU-t:0,dive:B.diveU>t?B.diveU-t:0,say:B.say&&t-B.say.t<3500?B.say.txt:'',ts:t,
   mins:(B.mins||[]).map(m=>[m.id,m.k,+m.x.toFixed(2),+m.y.toFixed(2),Math.round(m.hp/m.max*100)]),shots:(B.shots||[]).map(o=>[+o.x.toFixed(2),+o.y.toFixed(2),o.vx,o.vy,o.pk?1:0]),hp:Math.round(B.hp),max:B.max,x:B.x,y:B.y,phase:B.phase,anim:B.anim,until:B.until,slow:B.slow>now()?1:0,
   tele:B.tele.map(z=>({id:z.id,k:z.k,kind:z.kind,x:+z.x.toFixed(2),y:+z.y.toFixed(2),r:z.r,r0:z.r0,ang:z.ang,range:z.range,cone:z.cone,w:z.w,dash:z.dash,lock:z.lock,at:z.at,end:z.end||0,x0:z.x0,y0:z.y0,x1:z.x1,y1:z.y1,sx:z.sx,sy:z.sy,sr:z.sr}))}; }
 const allView=()=>({list:[...LIVE.values()].map(bossView),next:NEXT});
@@ -68,8 +68,8 @@ const pushBoss=()=>bcast({t:'muboss',v:allView()});
 const HARD=M.bossHard||{hp:1,dmg:1,warn:1,r:1,cd:1};
 function spawn(id,quiet){ const b=BS[id], n=inScene().filter(q=>q.scene===(b.scene||'mu')&&rec(q.prof).cls).length, max=Math.round((b.hp+b.perPlayer*Math.max(0,n-1))*HARD.hp), t=now();
   const B={id,hp:max,max,x:b.home.x,y:b.home.y,until:b.perma?t+3e10:t+b.life,dmg:new Map(),cd:{},tele:[],anim:{k:'spawn',t},phase:1,slow:0,mins:[],shots:[],fightAt:0,form:''};
-  b.attacks.forEach((a,i)=>B.cd[a.k]=t+(a.first?a.first*1000:2500+i*1500)); LIVE.set(id,B);
-  if(quiet) return; if(b.perma){ bcast({t:'note',msg:`⚔ ${b.name} đã xuất hiện ở ${S.MU.west.zones[Object.keys(S.MU.west.zones).find(k=>{ const z=S.MU.west.zones[k]; return b.home.x>=z.x0&&b.home.x<=z.x1&&b.home.y>=z.y0&&b.home.y<=z.y1; })]?.name||'Đất Phía Tây'}!`,kind:'quest'}); pushBoss(); return; }
+  b.attacks.forEach((a,i)=>B.cd[a.k]=t+(a.first?a.first*1000:2500+i*1500)); LIVE.set(id,B); if(b.group&&M.groups[b.group].lead===id) grpStart(b.group,B,t);
+  if(quiet) return; if(b.perma){ bcast({t:'note',msg:`⚔ ${b.name} đã xuất hiện ở ${b.zoneName||S.MU.west.zones[Object.keys(S.MU.west.zones).find(k=>{ const z=S.MU.west.zones[k]; return b.home.x>=z.x0&&b.home.x<=z.x1&&b.home.y>=z.y0&&b.home.y<=z.y1; })]?.name||'Đất Phía Tây'}!`,kind:'quest'}); pushBoss(); return; }
   C.broadcastAll({t:'note',msg:id==='luffy'?`👑 Boss tổng ${b.name} vừa xuất hiện ở MU Online! Gọi Grab "vào game" đánh boss, hạ được rơi Trái Ác Quỷ`:`⚔ Boss phụ ${b.name} vừa xuất hiện ở MU Online!`,kind:'quest'}); pushBoss(); }
 const alive=sc=>{ const t=now(); return inScene().filter(q=>(!sc||q.scene===sc)&&q.mus&&q.mus.dead<=t&&!(q.mus.safe>t)&&rec(q.prof).cls); };   /* safe: vừa hồi sinh, boss chưa đánh */
 // chọn mục tiêu trong khu của boss
@@ -82,14 +82,14 @@ const clampA=(b,x,y)=>[Math.max(b.area.x0+.5,Math.min(b.area.x1-.5,x)),Math.max(
 const lead=(B,q,sec)=>{ const v=q.bv||{vx:0,vy:0}, k=Math.min(sec,1.4)*.8; return clampA(BS[B.id],q.x/T+v.vx*k,q.y/T+v.vy*k); };
 function startAttack(B,a,t,mul){ const b=BS[B.id], F=formOf(B), warn=(a.warn||0)*HARD.warn*(B.slow>t?1.5:1), r=(a.r||0)*HARD.r, z={id:SEQ++,k:a.k,kind:a.kind,dmg:(a.dmg||0)*mul*HARD.dmg,pct:a.pct||0,at:t+warn*1000,then:a.then,fx:F.dot?{...(a.fx||{}),dot:F.dot}:a.fx,sw:a.swallow};
   if(a.say) B.say={txt:a.say[Math.floor(Math.random()*a.say.length)],t};
-  const RC=a.far||b.reach||0, RM=F.rangeMul||1, near=rg=>targets(B,rg*RM+RC).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0], any=()=>{ const L=targets(B,14); return L[Math.floor(Math.random()*L.length)]; };
+  const RC=a.far||b.reach||0, RM=F.rangeMul||1, fq=a.focus?focusOf(B,t):null, near=rg=>fq?(dist(fq,B.x,B.y)<=rg*RM+RC?fq:null):targets(B,rg*RM+RC).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0], any=()=>{ if(fq) return fq; const L=targets(B,14); return L[Math.floor(Math.random()*L.length)]; };   /* đang tập trung 1 người (Death Note): chỉ đánh người đó */
   if(a.kind==='single'){ const q=near(a.range); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); if(a.shot) B.lastShot={x0:B.x,y0:B.y,x1:x,y1:y,t}; }   /* nhớ đường đạn (Conan lướt theo) */
   else if(a.kind==='circle'||a.kind==='jump'){ const q=any(); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); }
   else if(a.kind==='chase'){ const q=any(); if(!q) return false; Object.assign(z,{x:q.x/T,y:q.y/T,r,tgt:q.pid,lock:z.at-a.lock*1000}); B.tele.push(z); }   /* bám theo người tới sát giờ nổ */
   else if(a.kind==='multi'){ const L=targets(B,14); if(!L.length) return false; for(let i=0;i<a.n;i++){ const q=L[i%L.length], [px,py]=lead(B,q,warn), j=i>=L.length; B.tele.push({...z,id:SEQ++,x:px+(j?(Math.random()-.5)*5:0),y:py+(j?(Math.random()-.5)*3:0),r}); } }
   else if(a.kind==='trail'){ const q=near(14); if(!q) return false; const [tx,ty]=lead(B,q,warn+a.n*a.step/2000), ang=Math.atan2(ty-B.y,tx-B.x), d=Math.max(3,Math.hypot(tx-B.x,ty-B.y)+2);
     for(let i=0;i<a.n;i++){ const [x,y]=clampA(b,B.x+Math.cos(ang)*d*(i+1)/a.n,B.y+Math.sin(ang)*d*(i+1)/a.n); B.tele.push({...z,id:SEQ++,kind:'circle',x,y,r,at:z.at+i*a.step}); } }
-  else if(a.kind==='line'){ const q=near(a.range+2); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range*RM+RC,w:a.w*HARD.r,dash:a.dash?1:0});
+  else if(a.kind==='line'){ const q=a.dense?densest(B,a.range+2):near(a.range+2); if(!q) return false; const [tx,ty]=lead(B,q,warn); Object.assign(z,{x:B.x,y:B.y,ang:Math.atan2(ty-B.y,tx-B.x),range:a.range*RM+RC,w:a.w*HARD.r,dash:a.dash?1:0});
     const L=a.alongShot&&B.lastShot; if(L&&t-L.t<5000){ const vx=L.x1-L.x0, vy=L.y1-L.y0, l2=vx*vx+vy*vy||1, k=Math.max(0,Math.min(1,((B.x-L.x0)*vx+(B.y-L.y0)*vy)/l2)); if(Math.hypot(B.x-(L.x0+vx*k),B.y-(L.y0+vy*k))<1.6){ z.ang=Math.atan2(vy,vx); z.guard=a.guard; } }   /* đang đứng trên đường đạn: lướt dọc theo nó, xong được hộ thể */
     B.tele.push(z); }
   else if(a.kind==='cross'){ const q=near(a.range+2); if(!q) return false; const n=a.n||4, a0=Math.atan2(q.y/T-B.y,q.x/T-B.x);
@@ -101,7 +101,12 @@ function startAttack(B,a,t,mul){ const b=BS[B.id], F=formOf(B), warn=(a.warn||0)
   else if(a.kind==='ghost'){ if(!targets(B,12).length) return false; B.ghostU=t+a.dur*1000; B.ghostA={r:r||a.r,dmg:a.dmg*mul*HARD.dmg,fx:a.fx,tick:a.tick*1000,next:t}; B.anim={k:a.k,t,at:t+300}; return true; }   /* bóng ma: miễn sát thương + toả độc */
   else if(a.kind==='gulp'){ if(B.gulp) return false; const q=any(); if(!q||!q.mus) return false; const F=q.mus.fx||(q.mus.fx={}); F.stun=t+a.dur*1000; F.imm=F.stun+1500;   /* nuốt chửng: giữ người trong bụng boss */
     B.gulp={pid:q.pid,until:t+a.dur*1000,next:t+1000,pct:a.pct,k:a.k}; holdIn(B,q); bcast({t:'mufx',k:'gulp',boss:B.id,to:q.pid,dur:a.dur}); bcast({t:'mufx',k:'pfx',to:q.pid,...fxOf(q.mus,t)}); note(q,`😱 Bị ${b.name} nuốt chửng! ${a.dur} giây nữa mới thoát`,'lock'); B.anim={k:a.k,t,at:t+300}; return true; }
-  else if(a.kind==='buff'){ if(!targets(B,12).length) return false; B.buffU=t+a.dur*1000; B.dodgeB=a.dodge||0; B.fly=a.fly?1:0; B.anim={k:a.k,t,at:t+300}; return true; }
+  else if(a.kind==='buff'){ if(!targets(B,12).length) return false; B.buffU=t+a.dur*1000; B.dodgeB=a.dodge||0; B.fly=a.fly?1:0; if(a.windwall){ B.wwU=B.buffU; bcast({t:'mufx',k:'windwall',boss:B.id,x:B.x,y:B.y,dur:a.dur}); } B.anim={k:a.k,t,at:t+300}; return true; }   /* Tường Gió: chặn mọi đòn của người chơi */
+  else if(a.kind==='ult'){ if(B.ult) return false; const L=targets(B,14).sort(()=>Math.random()-.5).slice(0,a.n||2); if(!L.length) return false; const dur=a.dur*1000;   /* hất 1–2 người lên không (choáng cả lúc đang miễn choáng), bay tới chém liên tục */
+    for(const q of L){ const m=st(q); if(!m) continue; const F0=m.fx||(m.fx={}); F0.stun=t+dur; F0.imm=F0.stun+1500; bcast({t:'mufx',k:'pfx',to:q.pid,...fxOf(m,t)}); note(q,`🌪 ${b.name} hất bạn lên không: ${a.name}!`,'lock'); }
+    B.ult={pids:L.map(q=>q.pid),n:a.hits*L.length,gap:dur/(a.hits*L.length),next:t+350,dmg:a.dmg*mul*HARD.dmg,k:a.k,buff:a.buff}; B.tele=B.tele.filter(z=>z.mob); bcast({t:'mufx',k:'airup',boss:B.id,to:B.ult.pids,dur:a.dur,name:a.name}); B.anim={k:a.k,t,at:t+300}; return true; }
+  else if(a.kind==='clone'){ const c=BS[a.clone]; if(!c||LIVE.has(a.clone)||!targets(B,14).length) return false; spawn(a.clone,true); const G=LIVE.get(a.clone); if(!G) return false;   /* phân thân: máu = hpPct máu tối đa của boss, tự tan sau life giây */
+    G.max=G.hp=Math.max(1,Math.round(B.max*a.hpPct)); G.until=t+a.life*1000; [G.x,G.y]=clampA(c,B.x-2,B.y+1); G.anim={k:'spawn',t}; bcast({t:'mufx',k:'bclone',boss:a.clone,from:B.id,x:G.x,y:G.y}); B.anim={k:a.k,t,at:t+300}; return true; }
   else if(a.kind==='grab'){ const q=near(6); if(!q) return false; const [x,y]=lead(B,q,warn); Object.assign(z,{x,y,r}); B.tele.push(z); }
   else if(a.kind==='flood'){ if(!targets(B,a.r).length) return false; Object.assign(z,{x:B.x,y:B.y,r}); B.tele.push(z); }
   else if(a.kind==='bullets'){ if(!targets(B,16).length) return false; const o=Math.random()*6.28; for(let i=0;i<a.n;i++){ const an=o+i*2*Math.PI/a.n; B.shots.push({x:B.x,y:B.y-.6,vx:+(Math.cos(an)*a.speed).toFixed(2),vy:+(Math.sin(an)*a.speed).toFixed(2),until:t+3500,dmg:a.dmg*mul*HARD.dmg,k:a.k}); } B.anim={k:a.k,t,at:t+200}; return true; }
@@ -114,6 +119,7 @@ function startAttack(B,a,t,mul){ const b=BS[B.id], F=formOf(B), warn=(a.warn||0)
 function applyFx(q,fx,t,B){ const m=st(q); if(!m||m.dead>t) return; const F=m.fx||(m.fx={}), dur=(fx.dur||3)*1000, stun=fx.stun&&(fx.stunChance==null||Math.random()<fx.stunChance)?fx.stun:0;
   if(stun&&!(F.imm>t)){ F.stun=t+stun*1000; F.imm=F.stun+1500; }
   if(fx.slow) F.slow={until:t+dur,mul:Math.min(fx.slow,F.slow&&F.slow.until>t?F.slow.mul:1)};
+  if(fx.gw) F.gw={until:t+dur,mul:Math.max(fx.gw,F.gw&&F.gw.until>t?F.gw.mul:0)};   /* giảm hồi máu */
   if(fx.aslow) F.aslow={until:t+dur,mul:Math.max(fx.aslow,F.aslow&&F.aslow.until>t?F.aslow.mul:1)};
   if(fx.dot){ const on=F.dot&&F.dot.until>t; F.dot={until:Math.max(t+fx.dot.dur*1000,on?F.dot.until:0),pct:fx.dot.pct,k:fx.dot.k,hits:on?F.dot.hits||0:0}; }
   bcast({t:'mufx',k:'pfx',to:q.pid,...fxOf(m,t)}); push(q); }
@@ -170,9 +176,9 @@ function bossTurn(pl,B){ if(B.dmg.has(pl.uid)) return true; const n=bossDay(pl.p
   if(M.bossPerDay&&n>=M.bossPerDay){ if(!pl.capWarn||now()-pl.capWarn>8000){ pl.capWarn=now(); note(pl,`🚫 Hôm nay bạn đã hạ ${name} đủ ${M.bossPerDay} lần: không gây sát thương, không nhận thưởng nữa. Mai quay lại nhé`,'lock'); } return false; }
   return true; }
 // mã hiện chữ khi đánh trượt: 1 né, 2 hết lượt hôm nay, 3 bóng ma (miễn sát thương)
-const missOf=d=>d>0?0:d===-1?2:d===-3?3:d===-4?4:d===-5?5:d===-6?6:1;
+const missOf=d=>d>0?0:d===-1?2:d===-3?3:d===-4?4:d===-5?5:d===-6?6:d===-7?7:1;
 // trả về sát thương thật: 0 = boss né, -1 = hết lượt đánh boss này hôm nay, -3 = đang hoá bóng ma
-function dmgBoss(B,pl,d,t,src){ if(!bossTurn(pl,B)) return -1; if(B.ghostU>t) return -3; if(B.diveU>t) return -4;   /* -4: đang lặn dưới nước */ if(B.cupU>t) return -6;   /* -6: đang trốn trong cốc mỳ */
+function dmgBoss(B,pl,d,t,src){ if(!bossTurn(pl,B)) return -1; if(B.ghostU>t) return -3; if(B.diveU>t) return -4;   /* -4: đang lặn dưới nước */ if(B.cupU>t) return -6;   /* -6: đang trốn trong cốc mỳ */ if(B.wwU>t) return -7;   /* -7: Tường Gió của Yasuo */
   const bs=BS[B.id]; if(bs.spin&&!(B.pochU>t)){ const S0=bs.spin; B.hitT=(B.hitT||[]).filter(x=>t-x<S0.win*1000); B.hitT.push(t); if(B.hitT.length>=S0.hits&&!(B.spinU>t)&&t>=(B.spinCd||0)){ B.spinU=t+S0.dur*1000; B.spinCd=B.spinU+S0.cd*1000; B.spinNext=t; B.hitT=[]; bcast({t:'mufx',k:'bspin',boss:B.id,x:B.x,y:B.y}); } }   /* bị đánh dồn: xoay cưa */
   if(bs.rage&&t>=(B.rageCd||0)){ const G0=bs.rage; B.rageT=(B.rageT||[]).filter(x=>t-x<G0.win*1000); B.rageT.push(t);   /* bị đánh dồn: ra đòn nổi giận (Doraemon: mưa bánh rán) */
     if(B.rageT.length>=G0.hits){ B.rageT=[]; B.rageCd=t+G0.cd*1000; if(startAttack(B,G0.atk,t,B.phase===3?bs.enrage.mul:1)){ bcast({t:'mufx',k:'brage',boss:B.id,name:G0.atk.name}); pushBoss(); } } }
@@ -223,15 +229,16 @@ function shotTick(B,t,dt){ if(!B.shots.length) return false; const b=BS[B.id], L
 const minHit=(B,m)=>(d,pl)=>{ if(m.hp<=0) return 'bm:'+m.id; m.hp-=d; B.dmg.set(pl.uid,(B.dmg.get(pl.uid)||0)+Math.round(d*.25)); if(m.hp<=0){ B.mins=B.mins.filter(x=>x!==m); bcast({t:'mufx',k:'bmdie',boss:B.id,id:m.id,x:m.x,y:m.y}); gainMu(pl,8); } return 'bm:'+m.id; };
 const asMin=(B,m,d)=>({id:m.id,x:m.x,y:m.y,d,max:m.max,def:M.minions[m.k].def||5,rad:.5,hit:minHit(B,m),slow:()=>{},stun:sec=>{ m.stun=now()+sec*1000; m.next=Math.max(m.next,m.stun); }});
 // trừ máu người chơi (đã trừ thủ), báo hiệu ứng trúng đòn; hết máu thì gục với lý do why
-function hurtP(q,d,why,fx){ const m=st(q); if(!m||m.dead>now()||m.safe>now()) return 0; const dd=Math.max(1,Math.round((d*(.9+Math.random()*.2)-m.def*.4)*(1-(m.armor||0)))); if(!q.muGod) m.hp-=dd;   /* giáp: giảm % sát thương quái / boss */   /* muGod: chỉ server test (dbggod) */ bcast({t:'mufx',k:'hurt',...fx,to:q.pid,dmg:dd});
+function hurtP(q,d,why,fx,tru){ const m=st(q); if(!m||m.dead>now()||m.safe>now()) return 0; const r0=d*(.9+Math.random()*.2), dd=Math.max(1,Math.round(tru?r0:(r0-m.def*.4)*(1-(m.armor||0))));   /* tru: sát thương chuẩn, xuyên thủ + giáp */ if(!q.muGod) m.hp-=dd;   /* giáp: giảm % sát thương quái / boss */   /* muGod: chỉ server test (dbggod) */ bcast({t:'mufx',k:'hurt',...fx,to:q.pid,dmg:dd});
   if(m.reflect&&(m.buff.giap||0)>now()) reflect(q,Math.round(d*m.reflect),fx);
   if(m.hp<=0) down(q,why); else push(q); return dd; }
 // đòn trừ theo % máu tối đa (Mưa Bom Vĩ Thú): xuyên thủ + giáp
 function hurtPct(B,q,pct,k){ const m=st(q); if(!m||m.dead>now()||m.safe>now()||q.muGod) return 0; const dd=Math.max(1,Math.round(m.max*pct)); if(!q.muGod) m.hp-=dd; bcast({t:'mufx',k:'hurt',ak:k,boss:B.id,to:q.pid,dmg:dd});
-  if(m.hp<=0) down(q,`Dính ${(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'} của ${BS[B.id].name}`); else push(q); return dd; }
-const AK_NAME={hhshot:'đạn của Anh tóc dài kakaka',spin:'Cưa Xoay Vòng Tròn',nuke:'Bom Hạt Nhân'};   /* tên đòn không nằm trong bảng attacks */
+  if(m.hp<=0) down(q,`Dính ${AK_NAME[k]||(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'} của ${BS[B.id].name}`); else push(q); return dd; }
+const AK_NAME={hhshot:'đạn của Anh tóc dài kakaka',spin:'Cưa Xoay Vòng Tròn',nuke:'Bom Hạt Nhân',dnote:'Death Note'};   /* tên đòn không nằm trong bảng attacks */
 const hurt=(B,q,d,k)=>{ const ps=BS[B.id].poisonStack, D=q.mus&&q.mus.fx&&q.mus.fx.dot; if(ps&&D&&D.until>now()&&(D.hits=(D.hits||0)+1)>=ps.hits){ D.hits=0; D.until+=ps.add*1000; }   /* trúng 3 đòn lúc đang độc: độc kéo dài thêm */
-  const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit, sm=B.spinU>now()?BS[B.id].spin.mul:1; return hurtP(q,(cr?d*1.5:d)*weakOf(B,now())*sm,`Dính ${AK_NAME[k]||(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0}); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
+  const cr=BS[B.id].crit&&Math.random()<BS[B.id].crit, sm=B.spinU>now()?BS[B.id].spin.mul:1, tw=BS[B.id].trueWith, tru=!!(tw&&LIVE.has(tw));   /* Yone có mặt: Yasuo + Yone gây sát thương chuẩn */
+  return hurtP(q,(cr?d*1.5:d)*weakOf(B,now())*sm,`Dính ${AK_NAME[k]||(BS[B.id].attacks.find(a=>a.k===k)||{}).name||'đòn'}${cr?' chí mạng':''} của ${BS[B.id].name}`,{ak:k,boss:B.id,crit:cr?1:0,tru:tru?1:0},tru); };   /* boss có tỉ lệ chí mạng (Luffy 75%) */
 // mục tiêu khác ngoài boss (quái rừng ở muforest.js): mỗi nguồn có nearest(pl) → {x,y,d,def,rad,hit(d,pl,sk) → mã mục tiêu} hoặc null
 const EXTRA=[];
 EXTRA.push({kind:'bm',nearest:pl=>{ let best=null, bd=1e9; for(const B of LIVE.values()) if(scOf(B)===pl.scene) for(const m of B.mins||[]){ const d=dist(pl,m.x,m.y); if(d<bd){ bd=d; best=[B,m]; } } return best&&bd<=14?asMin(best[0],best[1],bd):null; },
@@ -240,7 +247,7 @@ EXTRA.push({kind:'bm',nearest:pl=>{ let best=null, bd=1e9; for(const B of LIVE.v
 const nearestExtra=pl=>{ let best=null; for(const src of EXTRA){ const o=src.nearest(pl); if(o&&(!best||o.d<best.d)) best=o; } return best; };
 // vùng đánh có tính cả thân người (BODY ô): chạm mép là dính
 const BODY=.35, SELF=new Set(['ring','donut','line','cone','flood']);
-const NOTELE=new Set(['summon','buff','ghost','gulp']);   /* đòn toả từ chính boss: boss đứng yên lúc gồng */
+const NOTELE=new Set(['summon','buff','ghost','gulp','ult','clone']);   /* đòn toả từ chính boss: boss đứng yên lúc gồng */
 function inZone(z,x,y){ if(z.kind==='nuke') return x>=z.x0&&x<=z.x1&&y>=z.y0&&y<=z.y1&&Math.hypot(x-z.sx,y-z.sy)>z.sr;
   if(z.kind==='line'){ const dx=x-z.x, dy=y-z.y, c=Math.cos(z.ang), sn=Math.sin(z.ang), u=dx*c+dy*sn, v=-dx*sn+dy*c; return u>=-1&&u<=z.range+BODY&&Math.abs(v)<=z.w+BODY; }
   const d=Math.hypot(x-z.x,y-z.y); return z.kind==='donut'?d>=z.r0-BODY&&d<=z.r+BODY:d<=z.r+BODY; }
@@ -259,14 +266,38 @@ function resolve(B,z,t){ const b=BS[B.id];
   return true; }
 // boss đi áp sát người gần nhất trong khu, nhưng không rời chỗ đứng quá LEASH ô (khỏi mò xuống chỗ hồi sinh); hết người thì về chỗ cũ. Đang gồng đòn toả từ người nó thì đứng yên
 const LEASH=7;
-function walk(B,dt,speed){ speed*=formOf(B).move||1; const b=BS[B.id]; if(!b.move||B.tele.some(z=>SELF.has(z.kind))) return false; const q=targets(B,18).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0];
-  let tx=b.home.x, ty=b.home.y, stop=.2; if(q){ const hx=q.x/T-b.home.x, hy=q.y/T-b.home.y, hd=Math.hypot(hx,hy), k=hd>LEASH?LEASH/hd:1; tx=b.home.x+hx*k; ty=b.home.y+hy*k; stop=hd>LEASH?.2:1.6; }
+function walk(B,dt,speed){ speed*=formOf(B).move||1; const b=BS[B.id]; if(!b.move||B.tele.some(z=>SELF.has(z.kind))) return false; const fq=focusOf(B,now()), q=fq||targets(B,18).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0], LS=fq?99:b.leash||LEASH;   /* đấu trường kín (Đỉnh Bắc) cho đi xa hơn; đang tập trung thì bám tới cùng */
+  let tx=b.home.x, ty=b.home.y, stop=.2; if(q){ const hx=q.x/T-b.home.x, hy=q.y/T-b.home.y, hd=Math.hypot(hx,hy), k=hd>LS?LS/hd:1; tx=b.home.x+hx*k; ty=b.home.y+hy*k; stop=hd>LS?.2:1.6; }
   const dx=tx-B.x, dy=ty-B.y, d=Math.hypot(dx,dy); if(d<=stop+.05) return false; const st=Math.min(d-stop,b.move*speed*dt*(q?1:.6)); [B.x,B.y]=clampA(b,B.x+dx/d*st,B.y+dy/d*st); return true; }
-function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!b.summon&&!LIVE.has(id)&&t>=NEXT[id]){ NEXT[id]=t+b.life+b.every; spawn(id); }
+// mục tiêu tập trung (Death Note của Ryuk, 2 thần chết cùng đánh 1 người): còn sống, còn trong khu boss
+function focusOf(B,t){ const f=B.focus; if(!f||f.until<t) return null; const q=players.get(f.pid); return q&&q.mus&&q.mus.dead<=t&&!(q.mus.safe>t)&&q.scene===scOf(B)&&inArea(BS[B.id].area,q.x/T,q.y/T)?q:null; }
+function setFocus(B,q,t,sec){ B.focus={pid:q.pid,until:t+sec*1000}; const P2=BS[B.id].pair&&LIVE.get(BS[B.id].pair); if(P2) P2.focus={...B.focus}; }
+// người đứng giữa chỗ đông người nhất (Yone phóng sóng kiếm)
+function densest(B,range){ const L=targets(B,range); let best=null, bn=-1; for(const q of L){ const n=L.filter(o=>dist(o,q.x/T,q.y/T)<=3).length; if(n>bn){ bn=n; best=q; } } return best; }
+// Death Note: cứ every giây ghi tên 1 người, delay giây sau người đó mất pct máu, Ryuk lao tới bám đánh người đó focus giây. Bị choáng / khoá chiêu thì không ghi được
+function dnTick(B,b,t){ const D=b.dnote;
+  if(B.dn&&t>=B.dn.at){ const q=players.get(B.dn.pid); B.dn=null; if(q&&alive(scOf(B)).includes(q)&&inArea(b.area,q.x/T,q.y/T)){ hurtPct(B,q,D.pct,'dnote'); setFocus(B,q,t,D.focus); const ox=B.x, oy=B.y; [B.x,B.y]=clampA(b,q.x/T+(q.x/T<B.x?1.2:-1.2),q.y/T); bcast({t:'mufx',k:'dnhit',boss:B.id,to:q.pid,x:B.x,y:B.y,ox,oy}); } return true; }
+  if(B.dn||!B.fightAt||t<(B.dnNext||0)||B.stunU>t||B.silU>t) return false; B.dnNext=t+D.every*1000; const L=targets(B,40); if(!L.length) return false;
+  const q=L[Math.floor(Math.random()*L.length)]; B.dn={pid:q.pid,at:t+D.delay*1000}; bcast({t:'mufx',k:'dnote',boss:B.id,to:q.pid,name:q.prof.name,delay:D.delay});
+  note(q,`📓 ${b.name} vừa ghi tên bạn vào Death Note! ${D.delay} giây nữa mất ${Math.round(D.pct*100)}% máu`,'lock'); return true; }
+// 2 thần chết cùng có mặt: cả 2 bám đánh chung 1 người (người bị ghi tên gần nhất, không thì người gần nhất)
+function pairFocus(B,b,t){ const P2=LIVE.get(b.pair); if(!P2||focusOf(B,t)) return; const pf=focusOf(P2,t); if(pf){ B.focus={...P2.focus}; return; } const q=targets(B,40).sort((u,v)=>dist(u,B.x,B.y)-dist(v,B.x,B.y))[0]; if(q) setFocus(B,q,t,6); }
+// chiêu cuối Yasuo: bay qua lại giữa những người bị hất tung, mỗi nhịp 1 nhát; đáp xuống được giáp + kháng phép + chém nhanh
+function ultTick(B,b,t){ const U=B.ult; if(t<U.next) return; const L=U.pids.map(id=>players.get(id)).filter(q=>q&&alive(scOf(B)).includes(q));
+  if(U.n>0&&L.length){ U.n--; U.next=t+U.gap; const q=L[U.n%L.length]; [B.x,B.y]=clampA(b,q.x/T+(U.n%2?-.9:.9),q.y/T-.1); hurt(B,q,U.dmg,U.k); bcast({t:'mufx',k:'ulthit',boss:B.id,to:q.pid,x:B.x,y:B.y}); return; }
+  B.ult=null; const F0=U.buff||{}; if(F0.dur){ B.guardU=t+F0.dur*1000; B.guard={armor:F0.armor||0,resist:F0.resist||0}; B.fastU=B.guardU; B.fastX=F0.fast||1; B.fastDmg=F0.dmg||1; }
+  bcast({t:'mufx',k:'ultland',boss:B.id,x:B.x,y:B.y,armor:F0.armor||0,resist:F0.resist||0,fast:F0.fast||1}); }
+// nhóm boss (6 anh em Siêu Nhân): boss đầu nhóm ra thì cả nhóm ra; tổng máu cả nhóm còn ≤ mốc thì gọi thêm (mốc sau tính cả máu người mới vào). Cả nhóm bị hạ hết mới hồi lại
+const GRP={}, grpIds=g=>{ const G=M.groups[g]; return [G.lead,...G.members,...G.calls.map(c=>c[1])]; }, grpLive=g=>grpIds(g).some(k=>LIVE.has(k));
+function grpStart(g,L,t){ const G=M.groups[g]; for(const k of G.members) if(!LIVE.has(k)){ spawn(k,true); const B=LIVE.get(k); if(B) B.until=L.until; }
+  GRP[g]={max:[G.lead,...G.members].reduce((a,k)=>a+(LIVE.get(k)?LIVE.get(k).max:0),0),called:Object.fromEntries(G.calls.filter(([,k])=>LIVE.has(k)).map(([,k])=>[k,1]))}; }
+function grpTick(g,t){ const S0=GRP[g], G=M.groups[g]; if(!grpLive(g)){ delete GRP[g]; return false; } const k=grpIds(g).reduce((a,id)=>a+(LIVE.get(id)?LIVE.get(id).hp:0),0)/(S0.max||1);
+  for(const [h,ck] of G.calls){ if(S0.called[ck]) continue; if(k>h) return false; const by=LIVE.get(G.lead)||grpIds(g).map(x=>LIVE.get(x)).find(Boolean); S0.called[ck]=1; callBoss(by,ck,t); const C2=LIVE.get(ck); if(C2) S0.max+=C2.max; return true; } return false; }
+function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!b.summon&&!LIVE.has(id)&&t>=NEXT[id]&&!(b.group&&grpLive(b.group))){ NEXT[id]=t+b.life+b.every; spawn(id); }
   if(LIVE.size) track(t);
   let dirty=false;
   for(const B of [...LIVE.values()]){ const b=BS[B.id];
-    if(t>=B.until){ LIVE.delete(B.id); NEXT[B.id]=b.summon?null:t+b.every; bcast({t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }
+    if(t>=B.until){ LIVE.delete(B.id); NEXT[B.id]=b.summon?null:t+b.every; bcast(b.clone?{t:'mufx',k:'bfade',boss:B.id,x:B.x,y:B.y}:{t:'note',msg:`${b.name} bỏ đi rồi, lần sau rủ thêm người nhé!`,kind:'lock'}); dirty=true; continue; }   /* phân thân hết giờ: tan biến */
     const ph=phaseOf(B); if(ph!==B.phase){ B.phase=ph; dirty=true; bcast({t:'mufx',k:'phase',boss:B.id,phase:ph}); if(ph===3) bcast({t:'note',msg:`🔥 ${b.name} nổi giận! Đánh mạnh và nhanh hơn`,kind:'lock'}); }
     if(!B.fightAt&&targets(B,16).length) B.fightAt=t;
     if(b.forms&&!B.form) for(const f of b.forms) if((f.when.hp&&B.hp/B.max<=f.when.hp)||(f.when.t&&B.fightAt&&t-B.fightAt>=f.when.t*1000)){ transform(B,f,t); dirty=true; break; }
@@ -274,23 +305,29 @@ function bossTick(t){ for(const [id,b] of Object.entries(BS)) if(!b.summon&&!LIV
     if(b.cup&&B.hp/B.max<b.cup.hp&&t>=(B.cupNext||0)&&!(B.cupU>t)){ const U=b.cup; B.cupU=t+U.dur*1000; B.cupNext=t+U.every*1000; B.tele=B.tele.filter(z=>z.mob);   /* Nobita chui vào cốc mỳ: phòng thủ, hết giờ nổ choáng + độc */
       B.tele.push({id:SEQ++,k:'mycoc',kind:'ring',x:B.x,y:B.y,r:U.r,dmg:U.dmg*HARD.dmg,at:B.cupU,fx:U.fx}); bcast({t:'mufx',k:'bcup',boss:B.id,x:B.x,y:B.y}); dirty=true; }
     if(b.call&&!B.called&&B.hp/B.max<=b.call.hp){ B.called=1; callBoss(B,b.call.k,t); dirty=true; }
+    if(b.dnote&&dnTick(B,b,t)) dirty=true; if(b.pair&&LIVE.has(b.pair)) pairFocus(B,b,t);
+    if(B.ult){ ultTick(B,b,t); dirty=true; }
     if(b.dive&&B.hp/B.max<b.dive.hp&&t>=(B.diveNext||0)){ B.diveU=t+b.dive.dur*1000; B.diveNext=t+b.dive.every*1000; B.tele=B.tele.filter(z=>z.mob); bcast({t:'mufx',k:'dive',boss:B.id,x:B.x,y:B.y,dur:b.dive.dur}); dirty=true; }   /* lặn: bỏ đòn đang gồng */
     const F=formOf(B); if(F.regen&&B.hp<B.max){ B.hp=Math.min(B.max,B.hp+B.max*F.regen*.2*(B.gw&&B.gw.until>t?1-B.gw.mul:1)); dirty=true; }   /* bị giảm hồi máu thì hồi ít đi */   /* Titan hồi máu mỗi giây */
     const en=ph===3?b.enrage:{mul:1,speed:1}, speed=en.speed*(B.slow>t?.6:1), aspd=speed*(F.spd||1)*(b.spd||1), cap=[0,4,7,10][ph], own=B.tele.filter(z=>!z.mob);   /* giai đoạn sau nhiều đòn chồng lên nhau hơn; tia của trứng không tính */
     if(B.spinU>t&&t>=(B.spinNext||0)){ const S0=b.spin; B.spinNext=t+S0.tick*1000; for(const q of alive(scOf(B))) if(dist(q,B.x,B.y)<=S0.r+BODY) hurt(B,q,S0.dmg*HARD.dmg,'spin'); bcast({t:'mufx',k:'spulse',boss:B.id,x:B.x,y:B.y,r:S0.r}); }   /* xoay cưa: chém quanh người */
     if(b.pochita){ const P0=b.pochita, Rz=LIVE.get(b.call&&b.call.k); if(!Rz||scOf(Rz)!==scOf(B)) B.pochNext=Math.max(B.pochNext||0,t+P0.first*1000);
       else if(t>=(B.pochNext||0)&&!(B.pochU>t)){ B.pochU=t+P0.dur*1000; B.pochNext=t+P0.every*1000; B.spinU=0; B.tele=B.tele.filter(z=>z.mob); bcast({t:'mufx',k:'bpoch',boss:B.id,x:B.x,y:B.y}); nuke(Rz,B,P0.nuke,t); dirty=true; } }
-    const stn=B.stunU>t||B.diveU>t||B.pochU>t||B.cupU>t||B.chickU>t;   /* hoá gà (Cây Bút): đứng im */   /* bị choáng / đang lặn / đang là Pochita: không ra đòn mới, không đi */
-    if(!stn&&!(B.silU>t)) for(const a of b.attacks){ if(a.hpBelow&&B.hp/B.max>a.hpBelow) continue; const nt=NOTELE.has(a.kind); if((a.phase||1)>ph||(a.form&&B.form!==a.form)||t<(B.cd[a.k]||0)||(!nt&&own.length>=cap)) continue; if(!nt&&ph<2&&a.kind!=='single'&&own.some(z=>z.kind!=='single'&&z.at>t)) continue;   /* chiêu không có vùng cảnh báo (gọi lính, buff...) không bị giới hạn số vùng */
-      B.cd[a.k]=t+a.every*(b.exact||a.exact?1:HARD.cd)*1000/(a.noSpd?1:aspd); if(startAttack(B,a,t,en.mul)){ dirty=true; own.push(1); } }
+    const stn=B.stunU>t||B.diveU>t||B.pochU>t||B.cupU>t||B.chickU>t||!!B.ult;   /* hoá gà (Cây Bút): đứng im */   /* bị choáng / đang lặn / đang là Pochita: không ra đòn mới, không đi */
+    if(!stn&&!(B.silU>t)&&B.pend&&t>=B.pend.at&&own.length<cap){ const pa=b.attacks.find(x=>x.k===B.pend.k); B.pend=null; if(pa&&startAttack(B,pa,t,en.mul)){ dirty=true; own.push(1); bcast({t:'mufx',k:'brage',boss:B.id,name:pa.name}); } }   /* đòn nối sau combo (Yasuo chém 2 lần → Lốc Xoáy) */
+    if(!stn&&!(B.silU>t)) for(const a of b.attacks){ if(a.manual||(a.hpBelow&&B.hp/B.max>a.hpBelow)) continue; const nt=NOTELE.has(a.kind); if((a.phase||1)>ph||(a.form&&B.form!==a.form)||t<(B.cd[a.k]||0)||(!nt&&own.length>=cap)) continue; if(!nt&&ph<2&&a.kind!=='single'&&own.some(z=>z.kind!=='single'&&z.at>t)) continue;   /* chiêu không có vùng cảnh báo (gọi lính, buff...) không bị giới hạn số vùng */
+      const fX=a.focus&&b.pair&&LIVE.has(b.pair)&&focusOf(B,t)?b.focusX||1:1, fs=a.fast&&B.fastU>t?B.fastX||1:1;   /* 2 thần chết cùng đánh 1 người: nhanh ×focusX · Yasuo vừa đáp sau chiêu cuối: chém nhanh ×fastX */
+      B.cd[a.k]=t+a.every*(b.exact||a.exact?1:HARD.cd)*1000/((a.noSpd?1:aspd)*fX*fs); if(startAttack(B,a,t,en.mul*(fX>1?b.focusDmg||1:1)*(fs>1?B.fastDmg||1:1))){ dirty=true; own.push(1); if(a.combo&&(B.combo=(B.combo||0)+1)>=a.combo.n){ B.combo=0; B.pend={k:a.combo.k,at:t+450}; } } }
     if(minionTick(B,t,.2)) dirty=true; if(shotTick(B,t,.2)) dirty=true; gulpTick(B,t);
     if(B.ghostU>t&&t>=B.ghostA.next){ const G=B.ghostA; G.next=t+G.tick; for(const q of alive(scOf(B))) if(dist(q,B.x,B.y)<=G.r+BODY){ hurt(B,q,G.dmg,'bongma'); if(G.fx) applyFx(q,G.fx,t,B); } bcast({t:'mufx',k:'gpulse',boss:B.id,x:B.x,y:B.y,r:G.r}); }
     for(const z of B.tele) if(z.tgt&&t<z.lock){ const q=players.get(z.tgt); if(q&&inMu(q)&&inArea(b.area,q.x/T,q.y/T)){ z.x+=(q.x/T-z.x)*.7; z.y+=(q.y/T-z.y)*.7; dirty=true; } }   /* vùng đuổi theo người */
     if(!stn&&walk(B,.2,speed)) dirty=true;
     const before=B.tele.length; B.tele=B.tele.filter(z=>!resolve(B,z,t)); if(B.tele.length!==before) dirty=true; }
+  for(const g of Object.keys(GRP)) if(grpTick(g,t)) dirty=true;
   if(dirty) pushBoss(); }
 // hạ boss: chia thưởng theo phần sát thương
 function bossDie(B,killer){ if(!LIVE.has(B.id)) return; if(B.gulp){ B.gulp.until=0; gulpTick(B,now()); }   /* boss chết: nhổ người đang bị nuốt ra */ const b=BS[B.id], R=RW[b.drops]||{}; LIVE.delete(B.id); NEXT[B.id]=b.summon?null:now()+(b.perma?b.perma*1000:b.every);   /* hồi lại đủ thời gian mới ra tiếp */
+  if(b.group&&!grpLive(b.group)){ const G=M.groups[b.group]; NEXT[G.lead]=now()+BS[G.lead].perma*1000; delete GRP[b.group]; }   /* hạ hết cả nhóm mới hẹn giờ ra lại */
   const total=[...B.dmg.values()].reduce((a,v)=>a+v,0)||1, top=[...B.dmg.entries()].sort((a,c)=>c[1]-a[1]).filter(([u])=>C.byUid.get(u)), lines=[];
   // Trái Ác Quỷ (chỉ Luffy): số trái = 1/10 số người góp sức, tối thiểu 1; ai góp nhiều sát thương thì dễ được hơn
   const fruitTo=new Set(); if(B.id==='luffy'){ const n=Math.max(1,Math.ceil(top.length/(R.fruitPer||10))), pool=top.map(([u,d])=>({u,w:d})); for(let i=0;i<n&&pool.length;i++){ const sum=pool.reduce((a,x)=>a+x.w,0); let r=Math.random()*sum, k=0; while(k<pool.length-1&&(r-=pool[k].w)>0) k++; fruitTo.add(pool[k].u); pool.splice(k,1); } }
@@ -298,11 +335,11 @@ function bossDie(B,killer){ if(!LIVE.has(B.id)) return; if(B.gulp){ B.gulp.until
   const needJ=p=>!(p.horse&&(p.horse.myth||0)>=S.HORSE.myth.length); let jewelTo=null; for(const [u] of top.slice(0,3)){ const q=C.byUid.get(u); if(q&&q.prof&&needJ(q.prof)){ jewelTo=u; break; } }
   const luckyTo=top.length&&Math.random()<.2?top[Math.floor(Math.random()*top.length)][0]:null;
   top.forEach(([uid,d],rank)=>{ const pl=C.byUid.get(uid); if(!pl||!pl.prof) return; const p=pl.prof, sh=d/total, items={}, extra=[], hadCos=!!(R.costume&&p.owned[R.costume]);
-    let tired=1; { const BD=bossDay(p), n=BD.n[B.id]=(BD.n[B.id]||0)+1, all=BD.all=(BD.all||0)+1; if(M.bossPerDay) setTimeout(()=>{ if(pl.prof) note(pl,`⚔ Đã hạ ${b.name} ${n}/${M.bossPerDay} lần hôm nay${n>=M.bossPerDay?': đủ lượt, mai đánh tiếp':''}`,'quest'); },1500);   /* giới hạn tính theo lần hạ */
+    let tired=1; if(b.minor){ const BD=bossDay(p); if(M.bossFull&&(BD.all||0)>=M.bossFull) tired=M.bossTired||.2; } else { const BD=bossDay(p), n=BD.n[B.id]=(BD.n[B.id]||0)+1, all=BD.all=(BD.all||0)+1; if(M.bossPerDay) setTimeout(()=>{ if(pl.prof) note(pl,`⚔ Đã hạ ${b.name} ${n}/${M.bossPerDay} lần hôm nay${n>=M.bossPerDay?': đủ lượt, mai đánh tiếp':''}`,'quest'); },1500);   /* giới hạn tính theo lần hạ */
       if(M.bossFull&&all>M.bossFull){ tired=M.bossTired||.2; if(all===M.bossFull+1) setTimeout(()=>{ if(pl.prof) note(pl,`⚔ Hôm nay đã hạ ${M.bossFull} boss: từ giờ tới hết ngày thưởng boss còn ${Math.round(tired*100)}% (vẫn đánh thoải mái)`,'quest'); },1600); } }   /* quá bossFull lần hạ / ngày: thưởng giảm, không nhân ngọc */
-    { const gc=B.id==='luffy'?(rank===0?2:Math.random()<.6?1:0):(rank===0?1:Math.random()<.35?1:0); if(gc) items.ngoc_ch=(items.ngoc_ch||0)+gc; }   /* ngọc cường hoá */
-    if(rank===0&&Math.random()<.15) items.ngoc_ch_ht=(items.ngoc_ch_ht||0)+1;   /* top 1: 15% Ngọc Cường Hoá Huyền Thoại */
-    for(const got of [uid===jewelTo,uid===luckyTo]) if(got){ const j=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[j]=(items[j]||0)+1; if(uid===luckyTo&&got===(uid===luckyTo)&&uid!==jewelTo) extra.push('🍀 may mắn được ngọc quý'); }
+    if(!b.minor){ const gc=B.id==='luffy'?(rank===0?2:Math.random()<.6?1:0):(rank===0?1:Math.random()<.35?1:0); if(gc) items.ngoc_ch=(items.ngoc_ch||0)+gc; }   /* ngọc cường hoá */
+    if(!b.minor&&rank===0&&Math.random()<.15) items.ngoc_ch_ht=(items.ngoc_ch_ht||0)+1;   /* top 1: 15% Ngọc Cường Hoá Huyền Thoại */
+    for(const got of [uid===jewelTo,uid===luckyTo]) if(got&&!b.minor){ const j=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[j]=(items[j]||0)+1; if(uid===luckyTo&&got===(uid===luckyTo)&&uid!==jewelTo) extra.push('🍀 may mắn được ngọc quý'); }
     if(R.gems&&(rank===0||Math.random()<.5)) items.ngoc_ch=(items.ngoc_ch||0)+R.gems;
     if(R.jewels) for(let j=0;j<(rank===0?R.jewels:Math.random()<.5?1:0);j++){ const jk=M.jewels[Math.floor(Math.random()*M.jewels.length)]; items[jk]=(items[jk]||0)+1; }
     if(R.badge&&(rank<3||Math.random()<R.badgeChance)){ items[R.badge]=(items[R.badge]||0)+1; extra.push(`🏅 ${S.ITEMS[R.badge].name} (đổi 1 trong 3 thần thú ở Trung tâm Lính Cát)`); }
@@ -312,10 +349,10 @@ function bossDie(B,killer){ if(!LIVE.has(B.id)) return; if(B.gulp){ B.gulp.until
     if(R.weapon&&!C.has(pl,R.weapon)&&(rank===0&&hadCos||Math.random()<R.chance)){ items[R.weapon]=1; const r=rec(p), cur=(M.weapons[r.wep]||{}).atk||0; if(M.weapons[R.weapon].atk>cur) r.wep=R.weapon; extra.push(`vũ khí ${M.weapons[R.weapon].name}`); }
     if(R.secret&&!p.quests[R.secret]){ p.quests[R.secret]='active'; sec=R.secret; extra.push(`nhiệm vụ ẩn "${S.QUESTS[R.secret].title.replace('🔍 ','')}"`); }
     const RX=M.bossRewardX||1; if(tired===1) for(const k of ['ngoc_ch',...M.jewels]) if(items[k]) items[k]*=k==='ngoc_ch'?(M.bossGemX||RX):(M.bossJewelX||RX);   /* Ngọc Cường Hoá ×bossGemX (5), ngọc quý ×bossJewelX (3): ngọc nhân lên, đồ độc nhất giữ nguyên */
-    const got=reward(pl,{exp:Math.round((R.exp+Math.round(300*sh))*(M.bossExpX||RX)*tired),vnd:Math.round((R.vnd+Math.round((B.id==='luffy'?600000:300000)*sh))*(M.bossVndX||RX)*tired/1000)*1000,items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}${tired<1?` · quá ${M.bossFull} boss hôm nay, thưởng ${Math.round(tired*100)}%`:''}`), mu=Math.round((R.mu+Math.round(200*sh))*(M.bossMuX||RX)*tired); gainMu(pl,mu); { const rr=rec(p); rr.boss++; rr.bossK=rr.bossK||{}; rr.bossK[B.id]=(rr.bossK[B.id]||0)+1; }   /* đếm từng boss (thành tựu item huyền thoại) */
+    const got=reward(pl,{exp:Math.round((R.exp+Math.round((b.shareExp??300)*sh))*(M.bossExpX||RX)*tired),vnd:Math.round((R.vnd+Math.round((b.shareVnd??(B.id==='luffy'?600000:300000))*sh))*(M.bossVndX||RX)*tired/1000)*1000,items},`Hạ ${b.name}: góp ${Math.round(sh*100)}% sát thương${rank===0?' (top 1!)':''}${tired<1?` · quá ${M.bossFull} boss hôm nay, thưởng ${Math.round(tired*100)}%`:''}`), mu=Math.round((R.mu+Math.round((b.shareMu??200)*sh))*(M.bossMuX||RX)*tired); gainMu(pl,mu); { const rr=rec(p); rr.boss++; rr.bossK=rr.bossK||{}; rr.bossK[B.id]=(rr.bossK[B.id]||0)+1; }   /* đếm từng boss (thành tựu item huyền thoại) */
     send(pl,{t:'muloot',boss:B.id,name:b.name,rank:rank+1,n:top.length,share:Math.round(sh*100),exp:got.exp||0,vnd:got.vnd||0,mu,items:got.items||{},cos,sec});   // bảng tổng kết chiến lợi phẩm
     if(extra.length) note(pl,'🎁 Rơi ra: '+extra.join(', '),'item'); if(pl.mus) st(pl); push(pl); markDirty(pl); if(rank<3) lines.push(`${rank+1}. ${p.name} ${Math.round(sh*100)}%`); });
-  C.broadcastAll({t:'note',msg:`🏆 ${b.name} đã bị hạ${killer?` bởi ${killer.prof.name}`:''}! ${lines.join(' · ')}${fruitTo.size?` · rơi ${fruitTo.size} Trái Ác Quỷ`:''}`,kind:'quest'});
+  (b.minor?bcast:C.broadcastAll)({t:'note',msg:`🏆 ${b.name} đã bị hạ${killer?` bởi ${killer.prof.name}`:''}! ${lines.join(' · ')}${fruitTo.size?` · rơi ${fruitTo.size} Trái Ác Quỷ`:''}`,kind:'quest'});
   bcast({t:'mufx',k:'bossdie',boss:B.id,x:B.x,y:B.y}); pushBoss(); }
 // Xích Thố: người đang cưỡi trong MU cứ every giây phun lửa (theo hệ) vào boss / quái gần nhất trong range ô
 function xtTick(t){ const BR=S.XICHTHO.breath; for(const pl of inScene()){ const p=pl.prof, x=p&&p.xt, m=pl.mus; if(!x||!x.lv||!pl.riding||!p.look||p.look.mount!=='xichtho'||!m||m.dead>t||(pl.xtAt||0)>t) continue;
@@ -488,7 +525,7 @@ on('gear',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const r=rec(p), k=
   else if(m.op==='mount'){ const my=k&&S.mythOf(k,p), lv=(p.horse&&p.horse.myth)||0; if(!(p.horse&&p.horse.own)) return {err:'Chưa có ngựa riêng'}; if(k&&(!my||my.lv>lv)) return {err:'Chưa mở thần thú này'}; if(p.look) p.look.mount=k; }
   else return {err:'?'};
   syncWep(p); if(pl.mus) st(pl); markDirty(pl); C.refreshInfo(pl); if(inMu(pl)) push(pl); return {ok:true,look:p.look}; });
-C.hook('enter',pl=>{ if(pl.scene==='mu'&&pl.prof) pl.prof.muOX=S.MU.OX;   /* đánh dấu vị trí MU theo toạ độ mới */
+C.hook('enter',pl=>{ if(pl.scene==='mu'&&pl.prof){ pl.prof.muOX=S.MU.OX; pl.prof.muOY=S.MU.OY||0; }   /* đánh dấu vị trí MU theo toạ độ mới */
   if(MS.has(pl.scene)||EXTRA_SCENES.has(pl.scene)) setTimeout(()=>{ if(pl.prof){ send(pl,{t:'muboss',v:allView()}); push(pl); } },600); });
 // lực chiến của 1 hồ sơ (bảng xếp hạng Lực chiến): chỉ người đã chọn class MU
 const powerOf=p=>{ const r=p&&p.mu; if(!r||!r.cls) return 0; const ex=extraOf(p); return S.muPower(S.muStats(r.cls,r.lv,r.fruit,r.wep,lgOf(p),ex),{...ex,armor:ex.armor+(M.cls[r.cls].armor||0)}); };

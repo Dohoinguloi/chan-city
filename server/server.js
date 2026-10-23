@@ -101,7 +101,7 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='everfit') return at('everfit',S.OFFICE.spawn);
   if(sc==='dalat') return at('dalat',S.DALAT.spawn);
   if(sc==='das') return at('das',S.DAS.spawn);
-  if(sc==='mu'){ const OX=S.MU.OX, ME=S.MU.west.meme; if(pos&&pos.x&&(p.muOX||0)!==OX) pos.x+=OX-(p.muOX||0);   /* map MU mở rộng sang trái: vị trí lưu kiểu cũ dời theo */
+  if(sc==='mu'){ const OX=S.MU.OX, ME=S.MU.west.meme; if(pos&&pos.x&&(p.muOX||0)!==OX) pos.x+=OX-(p.muOX||0);   /* map MU mở rộng sang trái: vị trí lưu kiểu cũ dời theo */ const OY=S.MU.OY||0; if(pos&&pos.y!=null&&(p.muOY||0)!==OY) pos.y+=OY-(p.muOY||0);   /* mở rộng lên phía Bắc (Đỉnh Bắc): dời xuống theo */
     if(pos&&pos.x>=ME.x0-1&&pos.x<=ME.x1+1&&pos.y>=ME.y0-1&&pos.y<=ME.y1+1) return moveTo(pl,'mu',ME.booth.x+1.5,ME.booth.y+1.4);   /* thoát game trong Làng Meme: vào lại đứng ngoài quầy vé */
     return at('mu',S.MU.spawn); }
   if(sc==='muw') return moveTo(pl,'mu',S.MU.spawn.x,S.MU.spawn.y);
