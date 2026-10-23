@@ -708,9 +708,10 @@ function dailyHtml(){ const D=GAME.DQ, g=G(); if(!D) return '<p class="dim">Đan
   let body='';
   if(dChest) body+=`<div class="dchest pop">${ico('ruong_bau')}<div><b>Mở rương!</b><br>+${fmt(dChest.vnd)} · +${dChest.exp} EXP · ${ico(dChest.item)} ${esc((SD.ITEMS[dChest.item]||{name:dChest.item}).name)}</div></div>`;
   if(dTab==='login'){ const s=L.streak, done=i=>i<s-1||(i===s-1&&L.claimed);
-    body+=`<p class="dim">Vào game mỗi ngày để nhận quà, quà to dần tới ngày 7. Lỡ 1 ngày là quay về Ngày 1.</p><div class="d7">${SD.LOGIN7.map((r,i)=>{ const today=i===s-1, st=done(i)?'got':today?'now':'lock';
-      const ic=r.chest?ico('ruong_bau'):r.items?ico(Object.keys(r.items)[0]):ico('coin');
-      return `<div class="dday ${st}${r.chest?' big':''}"><span>Ngày ${i+1}</span>${ic}<b>${esc(r.label)}</b>${st==='got'?'<i>✔ Đã nhận</i>':today?btn('dlogin','Nhận quà',{},'pri'):'<i>🔒</i>'}</div>`; }).join('')}</div>`; }
+    const LG=SD.LOGIN30, nx=LG.findIndex((r,i)=>r.big&&i>=s-(L.claimed?0:1));
+    body+=`<p class="dim">Vào game mỗi ngày nhận 1 ô quà, quà to dần tới ngày ${LG.length}. Lỡ ngày không mất chuỗi: quay lại là nhận tiếp ô kế. Mốc lớn ngày 7 · 14 · 21 · 30 có rương${nx>=0?` · mốc tới: <b>Ngày ${nx+1}</b> (${esc(LG[nx].label)})`:''}.</p><div class="d7 d30">${LG.map((r,i)=>{ const today=i===s-1, st=done(i)?'got':today?'now':'lock';
+      const ic=r.chest?ico('ruong_bau'):r.icon?ico(r.icon):r.items?ico(Object.keys(r.items)[0]):ico('coin');
+      return `<div class="dday ${st}${r.big?' big':''}${r.big===2?' huge':''}"><span>Ngày ${i+1}</span>${ic}<b>${esc(r.label)}</b>${st==='got'?'<i>✔ Đã nhận</i>':today?btn('dlogin','Nhận quà',{},'pri'):'<i>🔒</i>'}</div>`; }).join('')}</div>`; }
   if(dTab==='quest'){ const nGot=q.list.filter(t=>t.got).length, all=q.list.length&&nGot===q.list.length, vn=SD.realTime(NET.now()), left=24*60-(vn.h*60+vn.m), cdn=`${Math.floor(left/60)} giờ ${left%60} phút`;
     body+=`<div class="dqhead"><div><b>VIỆC HÔM NAY</b><span>⏳ Làm mới sau ${cdn}</span></div><div class="dqpips">${q.list.map(t=>`<i class="${t.got?'on':t.ok?'ok':''}"></i>`).join('')}<em>${nGot}/${q.list.length}</em></div></div><div class="dq2">`+q.list.map((t,i)=>{ const def=SD.DAYQ.pool[t.id]; if(!def) return '';
       const pct=Math.round(t.n/def.goal*100), seg=def.goal<=10?def.goal:0, kk=v=>v>=1e6?(Math.round(v/1e5)/10+'tr'):v>=1000?Math.round(v/1000)+'K':String(v), num=t.id==='money'||t.id==='exp'?`${kk(t.n)}/${kk(def.goal)}`:`${t.n}/${def.goal}`, st=t.got?'got':t.ok?'ready':'';

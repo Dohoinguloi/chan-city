@@ -183,7 +183,12 @@ UI.onAct('eplact',d=>doAct(d));
 UI.onAct('eplq',async d=>{ const r=await GAME.act({t:'quest',id:d.id,op:d.op}); if(r&&!r.err){ GAME.sfx(d.op==='finish'?'quest_complete':'quest_accept',.6); toast(d.op==='finish'?`Hoàn thành: <b>${esc(SD.QUESTS[d.id].title)}</b>`:`Nhận nhiệm vụ: <b>${esc(SD.QUESTS[d.id].title)}</b>`,'quest'); } UI.refresh(); });
 // nút "đi tới" của nhiệm vụ Pháo Thủ: bay sang Anh, tới chỗ Huy Phan / sân Emirates
 const g0=X.go; X.go=id=>{ if(!/^ars_/.test(id)) return g0(id); if(!here()){ GAME.autoGo('epl',()=>GAME.questGo(id)); return true; }
-  const n=SD.NPCS.find(x=>x.id==='huyphan_epl'); GAME.walkTo(n.x,n.y+1.2,'Huy Phan'); return true; };
+  const at=k=>SD.NPCS.find(x=>x.id===k), w=(k,l)=>{ const n=at(k); GAME.walkTo(n.x,n.y+1.2,l); return true; }, g=GAME.G;
+  if(g.quests[id]!=='active'||GAME.canFinish(id)) return w('huyphan_epl','Huy Phan');   /* nhận / báo xong */
+  if(id==='ars_kit') return w('epl_shop_ars','Quầy áo đấu Arsenal');
+  if(id==='ars_goal'||id==='ars_coach') return w('epl_mgr_ars','Giám đốc Arsenal');
+  const F=FULL, lf=F&&F.live&&F.live.fx.find(f=>f.h==='ars'||f.a==='ars'), nf=F&&F.next.fx.find(([h,a])=>h==='ars'||a==='ars'), host=lf?lf.h:nf?nf[0]:'ars';   /* xem / có mặt trận Arsenal: quầy vé sân đang (sắp) có trận */
+  return w('epl_shop_'+host,'Quầy vé sân '+CL[host].stadium); };
 // minimap: chấm vàng ở cổng mỗi sân
 const mi0=X.mini; X.mini=(dot,k)=>{ if(mi0) mi0(dot,k); if(k!=='epl') return; for(const c of IDS){ const C0=CL[c]; dot((C0.bx+(E.gate[0]+E.gate[1]+1)/2)*T,(top(c)?C0.by+E.bh+1:C0.by-1)*T,'#ffd84a',2); } };
 })();

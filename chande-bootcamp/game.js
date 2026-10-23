@@ -625,17 +625,20 @@ document.addEventListener('click',e=>{ const b=e.target.closest('.qgo'); if(!b) 
 document.addEventListener('click',e=>{ const r=e.target.closest('#hudQuests .frow'); if(!r) return; const d=r.dataset;
   if(S.kind!==d.map){ toast(`${esc(d.n)} ở ${d.map==='dalat'?'nông trại Đà Lạt':'Ké Retreat'}: bấm G gọi Grab tới đó trước`,'lock'); return; } walkTo(+d.x,+d.y,d.n); });
 // BFS trên lưới ô (4 hướng); goals: danh sách ô đích, đi tới ô gần nhất theo đường đi
-function findPath(goals){ const W=S.W, H=S.H, sx=Math.floor(P.x/T), sy=Math.floor(P.y/T), start=sy*W+sx, gs=new Set(goals.map(([x,y])=>y*W+x)), prev=new Int32Array(W*H).fill(-1), q=[start]; prev[start]=start; let hitAt=-1;
+function findPath(goals,opt={}){ const W=S.W, H=S.H, sx=Math.floor(P.x/T), sy=Math.floor(P.y/T), start=sy*W+sx, gs=new Set(goals.map(([x,y])=>y*W+x)), prev=new Int32Array(W*H).fill(-1), q=[start]; prev[start]=start; let hitAt=-1;
   // NPC đứng yên cũng chắn đường (va chạm trong blocked()), nên coi ô của họ là tường
-  for(const n of npcs){ const nx=Math.floor(n.x/T), ny=Math.floor(n.y/T); for(const [ax,ay] of [[0,0],[-1,0],[1,0],[0,-1]]){ const i=(ny+ay)*W+nx+ax; if(i!==start&&!gs.has(i)) prev[i]=-2; } }
+  if(!opt.noNpc) for(const n of npcs){ const nx=Math.floor(n.x/T), ny=Math.floor(n.y/T); for(const [ax,ay] of [[0,0],[-1,0],[1,0],[0,-1]]){ const i=(ny+ay)*W+nx+ax; if(i!==start&&!gs.has(i)) prev[i]=-2; } }   /* noNpc: người đứng chắn lối hẹp thì vẫn tìm đường xuyên qua (tới gần họ sẽ né) */
   // nước bể bơi: ngựa / xe không lội được nên tìm đường vòng; đi bộ cũng tránh, trừ khi đích nằm trong bể
   const grid=S.map.grid, vehicle=P.riding||P.moto||P.pcar||P.opt, goalWet=goals.some(([x,y])=>grid[y]&&grid[y][x]==='L'), wet=n=>grid[(n/W)|0][n%W]==='L'&&(vehicle||!goalWet);
   for(let h=0;h<q.length;h++){ const c=q[h]; if(gs.has(c)){ hitAt=c; break; } const x=c%W, y=(c/W)|0;
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=W||ny>=H) continue; const n=ny*W+nx; if(prev[n]!==-1||((S.solid[n]||wet(n))&&!gs.has(n))) continue; prev[n]=c; q.push(n); } }
   if(hitAt<0) return null; const path=[]; for(let c=hitAt;c!==start;c=prev[c]) path.push({x:(c%W+.5)*T,y:((c/W|0)+.75)*T}); return path.reverse(); }
 // tự tìm đường tới (tx,ty) theo ô; then: chạy khi tới nơi
-function walkTo(tx,ty,label,then,opt={}){ const goals=[]; for(let r=1;r<=4&&!goals.length;r++) for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++){ const x=Math.floor(tx)+dx, y=Math.floor(ty)+dy; if(x>=0&&y>=0&&x<S.W&&y<S.H&&!S.solid[y*S.W+x]&&!((P.riding||P.moto||P.pcar||P.opt)&&S.map.grid[y][x]==='L')) goals.push([x,y]); }   // mục tiêu trong nhà/bị chặn thì nới dần ra ô đi được gần nhất (đang cưỡi ngựa / đi xe thì không lấy ô nước bể bơi)
-  const path=findPath(goals.length?goals:[[Math.floor(tx),Math.floor(ty)]]); if(!path){ toast('Không tìm được đường tới đó','lock'); return false; }
+function walkTo(tx,ty,label,then,opt={}){ if(S.kind==='mu'&&!opt.noPortal&&!opt.retries&&window.MUPORTAL&&window.MUPORTAL.route(tx,ty,label,then)) return true;   /* MU: đi xa thì qua cổng dịch chuyển (portal.js) */
+  const free=(x,y)=>x>=0&&y>=0&&x<S.W&&y<S.H&&!S.solid[y*S.W+x]&&!((P.riding||P.moto||P.pcar||P.opt)&&S.map.grid[y][x]==='L');   /* đang cưỡi ngựa / đi xe thì không lấy ô nước bể bơi */
+  // nới dần vòng quanh đích tới khi có ô vào được thật (đích giữa rừng cây: ô trống gần nhất hay là hốc kín giữa các gốc cây); vẫn không được thì tìm xuyên qua người đứng chắn lối hẹp
+  let path=null; for(const noNpc of [false,true]){ for(let r=1;r<=7&&!path;r++){ const goals=[]; for(let dy=-r;dy<=r;dy++) for(let dx=-r;dx<=r;dx++) if(free(Math.floor(tx)+dx,Math.floor(ty)+dy)) goals.push([Math.floor(tx)+dx,Math.floor(ty)+dy]); if(goals.length) path=findPath(goals,{noNpc}); } if(path) break; }
+  if(!path){ if(!(opt.quiet&&window.AUTOQ&&AUTOQ.on)) toast('Không tìm được đường tới đó','lock'); return false; }
   if(!path.length){ AUTO=null; if(then) then(); return true; }   /* đã đứng ở đích */
   AUTO={path,i:0,stuck:0,lx:P.x,ly:P.y,then:then||null,dest:[tx,ty],label,retries:opt.retries||0}; if(label&&!opt.quiet) toast(`Đang đi tới ${esc(label)}... (bấm phím đi để dừng)`,'item'); return true; }
 // đoạn thẳng (ax,ay)→(bx,by) có đi lọt không: thân rộng hơn hitbox 1 chút, không đụng tường / nước bể bơi / NPC (soát 4px một lần)

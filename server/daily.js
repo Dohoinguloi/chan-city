@@ -19,7 +19,7 @@ function dq(pl){ const p=pl.prof, d=today(); if(p.dq&&p.dq.day===d) return p.dq;
 
 /* ---------- điểm danh ---------- */
 function login(pl,touch){ const p=pl.prof, d=today(), L=p.login=p.login||{last:'',streak:0,claimed:''};
-  if(touch&&L.last!==d){ L.streak=L.last===S.addDays(d,-1)?(L.streak%7)+1:1; L.last=d; markDirty(pl); }   // lỡ 1 ngày là về ngày 1
+  if(touch&&L.last!==d){ L.streak=(L.streak%S.LOGIN30.length)+1; L.last=d; markDirty(pl); }   /* 30 ô, lỡ ngày không mất chuỗi (nhận tiếp ô kế), hết 30 ngày quay vòng */
   return {streak:L.streak||1,claimed:L.claimed===d}; }
 
 function state(pl){ const p=pl.prof; return {t:'dq',dq:dq(pl),login:login(pl,false),seen:p.seen||{},albumGot:p.albumGot||{},season:S.seasonOn('halloween')?'halloween':''}; }
@@ -47,8 +47,10 @@ hook('slow',()=>{ const d=today(); for(const pl of C.players.values()){ if(!pl.p
 
 on('dq',(pl,m)=>{ const p=pl.prof, op=m.op;
   if(op==='state'){ send(pl,state(pl)); return {ok:true}; }
-  if(op==='login'){ const L=login(pl,true); if(L.claimed) return {err:'Hôm nay điểm danh rồi, mai quay lại nhé'}; const r=S.LOGIN7[L.streak-1]||S.LOGIN7[0];
-    p.login.claimed=today(); const out=reward(pl,{vnd:r.vnd,exp:r.exp,items:r.items},`Điểm danh ngày ${L.streak}/7: ${r.label}`); let chest=null; if(r.chest) chest=openChest(pl,'Rương vàng ngày 7');
+  if(op==='login'){ const L=login(pl,true); if(L.claimed) return {err:'Hôm nay điểm danh rồi, mai quay lại nhé'}; const r=S.LOGIN30[L.streak-1]||S.LOGIN30[0];
+    p.login.claimed=today(); const out=reward(pl,{vnd:r.vnd,exp:r.exp,items:r.items},`Điểm danh ngày ${L.streak}/${S.LOGIN30.length}: ${r.label}`); let chest=null; if(r.chest) chest=openChest(pl,`Rương ngày ${L.streak}`);
+    if(r.buff){ p.dbuff={mul:r.buff.mul,until:C.now()+r.buff.min*60e3}; C.note(pl,`⚡ EXP ×${r.buff.mul} trong ${r.buff.min} phút`,'quest'); }   /* buff EXP điểm danh */
+    if(r.cloth&&S.CLOTHES[r.cloth]&&!p.owned[r.cloth]){ p.owned[r.cloth]=1; C.note(pl,`👕 Nhận ${S.CLOTHES[r.cloth].name}! Mở Tủ đồ (U) để mặc`,'item'); }
     markDirty(pl); push(pl); return {ok:true,day:L.streak,chest}; }
   if(op==='get'){ const q=dq(pl), t=q.list[m.i|0]; if(!t) return {err:'?'}; if(!t.ok) return {err:'Việc này chưa xong'}; if(t.got) return {err:'Nhận rồi'};
     const def=S.DAYQ.pool[t.id]; t.got=true; reward(pl,def.rw,`Thưởng việc hôm nay: ${def.name}`); markDirty(pl); push(pl); return {ok:true}; }

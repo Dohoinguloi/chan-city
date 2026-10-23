@@ -1666,8 +1666,23 @@ Object.assign(ITEMS,{bun:{name:'Bún tươi',icon:'dish'},cafe_bp:{name:'Cà ph�
    Việc mỗi ngày: 3 việc nhỏ đổi lúc 0h giờ VN (mỗi người một bộ khác nhau), xong đủ 3 việc mở Rương ngày.
    Sổ sưu tầm: lần đầu có 1 món là đánh dấu vào sổ; đủ một bộ nhận thưởng lớn.
    Sự kiện mùa: Lễ hội Bí ngô (20/10 – 3/11 hằng năm), bí ngô mọc rải khắp Ké & Đà Lạt, đổi quà với Cô Bí Ngô. */
-const LOGIN7=[{vnd:30000,label:'30K'},{items:{hat_rau_muong:3},label:'3 hạt rau muống'},{vnd:60000,exp:40,label:'60K · 40 EXP'},{items:{trung:2,nam:2},label:'Trứng & nấm'},
-  {vnd:120000,label:'120K'},{items:{khoga:1},exp:80,label:'Khô gà · 80 EXP'},{vnd:300000,exp:150,chest:true,label:'Rương vàng'}];
+// điểm danh 30 ngày: vào game mỗi ngày nhận 1 ô (lỡ ngày không mất chuỗi, quay lại nhận tiếp ô kế), hết 30 ngày quay vòng. Quà gấp 5 lần bản 7 ngày cũ rồi tăng dần;
+// ngày 7 / 14 / 21 / 30 là mốc lớn (rương + quà to), ngày 30 có Áo khoác Vàng Kim độc quyền. buff: EXP ×mul trong min phút (p.dbuff)
+const LOGIN30=[
+  {vnd:150000,label:'150K'},{items:{hat_dua_hau:5,hat_dau_tay:5},label:'10 hạt quý'},{vnd:300000,exp:200,label:'300K · 200 EXP'},{items:{bong_vang:3,thuoc_cat:3},label:'3 Bóng Vàng + thuốc'},
+  {vnd:600000,label:'600K'},{items:{ngoc_ch:2},label:'2 Ngọc Cường Hoá'},{vnd:1500000,exp:750,chest:true,big:1,label:'Rương vàng · 1,5 triệu'},
+  {items:{khoga:3,trung:6,nam:6},exp:150,label:'Giỏ quà quê'},{vnd:400000,buff:{mul:1.2,min:60},icon:'cup',label:'EXP ×1,2 · 1 giờ'},{items:{ngoc_uoc:1},label:'Ngọc Ước Nguyện'},
+  {items:{snt_cuongluc:1,snt_sinhluc:1},label:'2 sách nội tại'},{vnd:700000,exp:300,label:'700K · 300 EXP'},{items:{da_lua:1,da_nuoc:1,da_la:1},label:'3 đá tiến hoá'},
+  {vnd:2000000,exp:1000,items:{ngoc_ch:3},chest:true,big:1,label:'Rương vàng · 2 triệu'},
+  {items:{sach_kn5:2},label:'2 Đại Sách KN'},{vnd:800000,label:'800K'},{items:{ngoc_tam_linh:1},label:'Ngọc Tâm Linh'},{items:{ngoc_ch:3},label:'3 Ngọc Cường Hoá'},
+  {exp:500,buff:{mul:1.3,min:60},icon:'cup',label:'EXP ×1,3 · 1 giờ'},{vnd:1000000,label:'1 triệu'},
+  {vnd:2500000,exp:1500,items:{ngoc_hon_nguyen:1},chest:true,big:1,label:'Rương vàng · 2,5 triệu'},
+  {items:{bong_vang:5,sach_kn:3},label:'5 Bóng Vàng + 3 sách'},{items:{ngoc_ch_ht:1},label:'Ngọc CH Huyền Thoại'},{vnd:1200000,exp:600,label:'1,2 triệu · 600 EXP'},
+  {items:{snt_hoiphuc:2},label:'2 sách Hồi Phục'},{items:{ngoc_uoc:2,ngoc_tam_linh:1},label:'3 ngọc quý'},{vnd:1500000,label:'1,5 triệu'},{items:{ngoc_ch:5},label:'5 Ngọc Cường Hoá'},
+  {exp:1000,buff:{mul:1.5,min:120},icon:'cup',label:'EXP ×1,5 · 2 giờ'},
+  {vnd:5000000,exp:3000,items:{ngoc_hon_nguyen:2,ngoc_ch_ht:1},cloth:'ao_vangkim30',chest:true,big:2,label:'Rương kim cương · 5 triệu + áo Vàng Kim'}];
+const LOGIN7=LOGIN30;   /* tên cũ (bảng Hằng ngày, daily.js) */
+CLOTHES.ao_vangkim30={name:'Áo khoác Vàng Kim (điểm danh 30 ngày)',slot:'top',price:0,hidden:true,opts:{top:'jacket',chain:true},colors:{top:'e8b830',inner:'1c1516',gold:'fff3b0'}};
 const DAYQ={n:3,pool:{
   fish:{name:'Câu được 3 con cá',goal:3,rw:{vnd:60000,exp:40},lv:2},
   harvest:{name:'Thu hoạch 4 lần ngoài vườn',goal:4,rw:{vnd:60000,exp:40}},
@@ -2153,5 +2168,5 @@ MU.north={open:{x:[79,82]},road:{y0:24,y1:27},
 return {EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
-  ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
+  ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,LOGIN30,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};
 });

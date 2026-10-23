@@ -55,6 +55,13 @@ function menu(){ const cur=atNow(); if(!cur) return; const lv=(window.MU8&&windo
       <h5>Bệ dịch chuyển rừng quái</h5><div class="list">${M.portals.filter(q=>q.kind==='pad'&&!q.north).map(row).join('')}</div>
       <h5>Đỉnh Bắc · 3 đấu trường boss</h5><div class="list">${M.portals.filter(q=>q.north).map(row).join('')}</div>`; },{wide:true}); }
 UI.onAct('pwarp',async d=>{ const r=await GAME.act({t:'muw',op:'warp',to:d.to}); if(r&&!r.err){ UI.closeAll(); GAME.sfx('poof',.5); } });
+// tự đi xa trong MU (nút ➜, Auto, bấm chuột phải): nếu đi bộ tới cổng gần mình + dịch chuyển tới cổng gần đích ngắn hơn hẳn thì đi đường cổng
+const useAt=q=>[q.x,q.kind==='front'?q.y-.6:q.kind==='side'?q.y:q.y+.9], landAt=q=>q.kind==='front'?[q.x,q.y-1.6]:q.kind==='side'?[q.x-1.6,q.y]:[q.x,q.y+1.2];   /* đứng dùng cổng · chỗ đáp khi tới (server muwest.js) */
+window.MUPORTAL={route(tx,ty,label,then){ if(!here()) return false; const P=GAME.P, px=P.x/T, py=P.y/T, D=Math.hypot(tx-px,ty-py), ME=M.west.meme, inMeme=(x,y)=>x>=ME.x0&&x<=ME.x1&&y>=ME.y0&&y<=ME.y1; if(D<40||inMeme(px,py)||inMeme(tx,ty)) return false;
+  let best=null; for(const a of M.portals) for(const b of M.portals){ if(a===b) continue; const [ax,ay]=useAt(a), [bx,by]=landAt(b), cost=Math.hypot(ax-px,ay-py)+Math.hypot(tx-bx,ty-by)+8; if(cost<D*.7&&(!best||cost<best.cost)) best={a,b,cost}; }
+  if(!best) return false; const [ax,ay]=useAt(best.a);
+  return GAME.walkTo(ax,ay,'Cổng dịch chuyển · '+best.a.name.split(' · ')[0],async()=>{ const r=await GAME.act({t:'muw',op:'warp',to:best.b.id}); if(r&&!r.err) GAME.sfx('poof',.4);
+    setTimeout(()=>GAME.walkTo(tx,ty,label,then,{noPortal:true,quiet:true}),r&&!r.err?1200:250); },{noPortal:true,quiet:!label}); }};
 // minimap: chấm tím ở mỗi cổng
 const mi0=X.mini; X.mini=(dot,k)=>{ if(mi0) mi0(dot,k); if(k!=='mu') return; for(const q of M.portals) dot(q.x*T,(q.kind==='front'?q.y-1:q.y)*T,q.kind==='pad'?'#c8a0ff':'#7fe8ff',2); };
 })();

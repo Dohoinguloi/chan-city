@@ -4,6 +4,12 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24o',title:'24/10 · Auto thông minh hơn + Điểm danh 30 ngày',items:[
+    'Auto nhiệm vụ không còn kẹt: pin yếu ở ngoài thì tự xin sạc nhờ người gần nhất (hết lượt thì tự Grab về phòng sạc), buồn ngủ / bẩn thì tự Grab về phòng ngủ / tắm, không bấm nhầm cổng dịch chuyển, Grab lỗi (hết pin, thiếu tiền) thì tự xử lý hoặc bỏ qua',
+    'Việc phải chờ (vừa ăn món đó, chưa tới bữa, bướm chưa bay lại, "X phút nữa"...): Auto tự làm việc khác gần nhất trước, hết giờ chờ tự quay lại làm nốt. Việc ở map đang đứng và gần mình được làm trước',
+    'Tự đi (nút ➜, Auto): hết lỗi "Không tìm được đường tới đó" khi đích nằm giữa rừng cây hoặc có người đứng chắn lối; trong MU đi xa thì tự đi qua cổng dịch chuyển cho nhanh; đi mãi không tới thì tự đổi việc',
+    'Điểm danh nâng lên 30 ngày, quà gấp 5 lần: tiền, EXP, hạt giống quý, Bóng Cát Vàng, đá tiến hoá, sách kinh nghiệm, Ngọc Cường Hoá (cả Huyền Thoại), 3 loại ngọc quý, sách nội tại MU, buff EXP ×1,2 → ×1,5',
+    'Mốc lớn ngày 7 · 14 · 21 có rương vàng, ngày 30 Rương kim cương 5 triệu + Áo khoác Vàng Kim độc quyền. Lỡ ngày không mất chuỗi nữa: quay lại là nhận tiếp ô kế']},
   {v:'2026-10-24n',title:'24/10 · Map mới: Giải Ngoại Hạng Anh',items:[
     'Gọi Grab bay sang nước Anh (120.000đ): 6 sân bóng Emirates (Arsenal), Etihad (Man City), Anfield (Liverpool), Old Trafford (MU), Stamford Bridge (Chelsea), St James\' Park (Newcastle) quanh quảng trường Premier League có cúp vàng, xe buýt 2 tầng, bốt điện thoại đỏ',
     'Cứ 20 phút 1 vòng 3 trận, mỗi trận 3 phút = 90 phút bóng đá, ai cũng xem được 22 cầu thủ chạy trên sân. Bảng xếp hạng + Vua phá lưới ở giữa quảng trường (bảng Xếp hạng có thêm tab Vua phá lưới)',
