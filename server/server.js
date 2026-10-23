@@ -209,4 +209,7 @@ process.on('SIGINT',shutdown); process.on('SIGTERM',shutdown);
 // lỗi chưa bắt được ở đâu đó (hook, timer...): ghi log rồi chạy tiếp, không để 1 người chơi làm mọi người rớt mạng
 process.on('uncaughtException',e=>console.error('[uncaught]',e));
 
+// không mở được cổng (đang có server khác chạy...): báo rồi thoát, không treo im lặng (uncaughtException ở trên chỉ ghi log)
+const listenFail=e=>{ console.error('Không mở được cổng '+PORT+':',e.message); process.exit(1); };
+server.on('error',listenFail); wss.on('error',listenFail);   /* ws chuyển lỗi của http server sang wss: thiếu listener ở wss thì nó ném lỗi trước khi tới server.on */
 server.listen(PORT,()=>console.log(`Chan City server: http://localhost:${PORT}  (Google: ${GOOGLE_CLIENT_ID?'bật':'chưa cấu hình'}, đăng nhập bằng tên: ${NAME_LOGIN?'bật':'tắt'})`));

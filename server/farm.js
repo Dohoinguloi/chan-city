@@ -208,8 +208,9 @@ hook('login',pl=>{ const p=pl.prof, k=p&&GIFT_MOUNT[String(p.name||'').toLowerCa
 // điều chỉnh tài khoản theo yêu cầu admin (tên nhân vật viết thường → các lần điều chỉnh, làm lần lượt): money cộng trừ (không xuống âm), setMoney đặt thẳng số dư (âm = nợ),
 // items cộng trừ đồ. Áp dụng lần đăng nhập đầu sau cập nhật, id đánh dấu đã làm
 const ADJ_MEN=[{id:'2026-10-23a',money:-15000000,items:{ngoc_ch:-100}},{id:'2026-10-23b',setMoney:-30000000}];
-const ADJUST={'mèn mén':ADJ_MEN,'men men':ADJ_MEN};
-hook('login',pl=>{ const p=pl.prof, L=p&&ADJUST[String(p.name||'').normalize('NFC').toLowerCase()]; if(!L) return;
+// chỉ áp cho 1 tài khoản: chính chủ (tạo sớm nhất) mang tên Mèn Mén / Men Men, không phải ai trùng tên
+let menUid; const ADJUST=uid=>{ if(menUid===undefined) menUid=C.ownerOf(['mèn mén','men men']); return uid&&uid===menUid?ADJ_MEN:null; };
+hook('login',pl=>{ const p=pl.prof, L=p&&ADJUST(pl.uid); if(!L) return;
   for(const A of L){ if((p.adjDone||{})[A.id]) continue; if(A.money) p.money=Math.max(0,(p.money||0)+A.money); if(A.setMoney!=null) p.money=A.setMoney;
     for(const [k,n] of Object.entries(A.items||{})){ const v=Math.max(0,(p.items[k]||0)+n); if(v) p.items[k]=v; else delete p.items[k]; }
     p.adjDone={...(p.adjDone||{}),[A.id]:1}; markDirty(pl); console.log('[adjust]',p.name,A.id,'money',p.money,'items',JSON.stringify(A.items||{})); } });

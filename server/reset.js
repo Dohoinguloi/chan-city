@@ -11,7 +11,8 @@ const TEST=process.env.CHAN_TEST==='1';   /* chạy thử ở server test: RESET
 const R={id:TEST&&process.env.RESET_ID||'2026-10-23-1640',at:TEST&&+process.env.RESET_AT||Date.parse('2026-10-23T16:40:00+07:00'),keep:['kaixa'],level:10,money:3000000};
 const DIR=process.env.DATA_DIR||path.join(__dirname,'data'), DONE=path.join(DIR,`reset-${R.id}.done`);
 let done=fs.existsSync(DONE);
-const keepName=n=>R.keep.includes(String(n||'').normalize('NFC').trim().toLowerCase());
+// giữ theo tài khoản chính chủ (tạo sớm nhất) của tên Kaixa, không theo tên: ai đặt trùng tên Kaixa từ trước vẫn bị reset
+const keepers=()=>new Set(R.keep.map(n=>C.ownerOf([n])).filter(Boolean));
 // quà / điều chỉnh 1 lần của admin + đã qua phần mở đầu: giữ để khỏi phát lại. Quà sự kiện tài khoản mới cũng có (trang phục Halloween, ngọc Lính Cát) thì nhận lại như người mới
 const KEEP_FLAGS=['hello','called','arrived','freeRide','topup2m','menmen26','giftUoc1','gift10m','vip100','kaixaSkin','gemTest10','gift3m','gift2mBen','gift3mLeno','annieAsk'];
 const msg=`🔄 Server Chan City đã reset: bạn bắt đầu lại ở cấp ${R.level} với ${S.fmt(R.money)}. Game sẽ tải lại...`;
@@ -27,10 +28,9 @@ function run(){ if(done||now()<retryAt) return;
   // sao lưu trước, hỏng (đầy ổ, quyền ghi...) thì hoãn 1 phút rồi thử lại, chưa xoá gì cả
   const bk=path.join(DIR,`backup-${R.id}-${Date.now()}.db`); try{ db.backup(bk); if(!(fs.statSync(bk).size>0)) throw new Error('file sao lưu rỗng'); }catch(e){ console.error('[reset] sao lưu lỗi, hoãn reset 1 phút:',e.message); retryAt=now()+60e3; return; }
   done=true; try{ fs.writeFileSync(DONE,new Date().toISOString()); }catch(e){ console.error('[reset] done file',e.message); }
-  for(const pl of [...players.values()]) if(pl.prof&&!keepName(pl.prof.name)) kick(pl);
+  const keep=keepers(); for(const pl of [...players.values()]) if(pl.prof&&!keep.has(pl.uid)) kick(pl);
   setTimeout(wipe,3500); }
-function wipe(){ const all=db.allProfiles(), keepU=new Set(all.filter(p=>keepName(p.name)).map(p=>p._uid)); let n=0;
-  for(const pl of players.values()) if(pl.prof&&keepName(pl.prof.name)) keepU.add(pl.uid);
+function wipe(){ const all=db.allProfiles(), keepU=keepers(); let n=0;
   const online=new Map(); for(const pl of players.values()) if(pl.prof&&!keepU.has(pl.uid)) online.set(pl.uid,pl);
   for(const p of all){ const uid=p._uid; if(keepU.has(uid)) continue; delete p._uid; const q=online.get(uid);
     try{ if(q){ q.prof=fresh(q.prof); q.mus=null; q.riding=false; C.save(q); kick(q); } else db.saveProfile(uid,fresh(p)); n++; }catch(e){ console.error('[reset] hồ sơ',uid,e.message); } }   /* 1 hồ sơ lỗi không làm dừng giữa chừng */   /* ai lỡ vào lại trong lúc chờ: thay hồ sơ đang chơi rồi cho tải lại */

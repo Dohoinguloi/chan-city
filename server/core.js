@@ -70,6 +70,10 @@ function fixProfile(p,name){ const d=defaults(name); for(const k in d){ if(p[k]=
   return p; }
 // lộc của SIM số đẹp đang dùng (VNPT)
 const simPerk=p=>(p.sim&&S.VNPT.simPerks[p.sim.cat])||{};
+// tài khoản chính chủ của 1 tên nhân vật (giữ khi reset, điều chỉnh admin theo tên): tên trùng có từ trước khi cấm trùng tên thì lấy tài khoản tạo sớm nhất
+function ownerOf(names){ const want=new Set(names.map(n=>n.normalize('NFC').toLowerCase())); let best=null, at=Infinity;
+  for(const p of db.allProfiles()) if(p.look&&want.has(String(p.name||'').normalize('NFC').trim().toLowerCase())){ const u=db.user(p._uid), c=u&&u.created||Infinity; if(!best||c<at){ at=c; best=p._uid; } }
+  return best; }
 function markDirty(pl){ pl.dirty=true; if(!pl.saveAt) pl.saveAt=now()+4000; }
 function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
 // gửi hồ sơ cho chính người đó (kèm phần tính sẵn)
@@ -128,5 +132,5 @@ function moveTo(pl,id,x,y,extra={}){
 function runHook(f,...a){ try{ f(...a); }catch(e){ console.error('[hook]',e); } }
 
 module.exports={fineOf,stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  simPerk,defaults,fixProfile,runHook,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
+  simPerk,defaults,fixProfile,runHook,ownerOf,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};
