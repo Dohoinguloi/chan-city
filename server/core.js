@@ -83,7 +83,7 @@ function publicProfile(pl){ return {...pl.prof,pub:pl.pub,pid:pl.pid,extra:pl.ex
 // noTax: tiền chuyển cho người chơi khác (donate, cho vay, cược bàn, đền bù, mua chợ đồ cũ) hoặc mất trắng, không vào ngân khố
 // số không hợp lệ (NaN, chuỗi, Infinity) bị từ chối: trước đây take(NaN) trả true và biến tiền thành NaN
 function take(pl,v,noTax){ v=Math.round(v); if(!Number.isFinite(v)||v<0||!(pl.prof.money>=v)) return false; pl.prof.money-=v; markDirty(pl); if(!noTax) spent(pl,v); return true; }
-function spent(pl,v){ if(v>0) for(const f of hooks.spend) f(pl,v); }
+function spent(pl,v){ if(v>0) for(const f of hooks.spend) runHook(f,pl,v); }   /* ngân khố lỗi thì người mua vẫn nhận đồ (tiền đã trừ rồi) */
 function give(pl,v){ v=Math.round(v); if(Number.isFinite(v)&&v>0){ pl.prof.money+=v; markDirty(pl); for(const f of hooks.money) f(pl,v); } }
 // tiền tự kiếm (làm việc, thưởng, bán đồ): Lính Cát dạng Lv50 đầu đội có chỉ số gold thì được thêm %. Tiền chuyển giữa người chơi / hoàn tiền vẫn dùng give
 function earn(pl,v){ const a=S.lcLeadAsc(pl.prof); give(pl,(a&&a.gold?v*(1+a.gold):v)*(S.lcLeadBn(pl.prof)?S.LINHCAT.bn.mul:1)); }   /* Blacknut đầu đội: ×2 */

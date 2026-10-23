@@ -294,7 +294,7 @@ class MaSoi extends Table{
     else if(this.st==='day') this.toVote();
     else if(this.st==='vote') this.resolveVote();
     else if(this.st==='hunt') this.shoot(-1); }
-  view(pl){ const i=this.idx(pl), me=this.ps[i], over=this.st==='end', ghost=!me||!me.alive, M=CL.masoi, wolf=me&&me.role==='soi';
+  view(pl){ const i=this.idx(pl), me=this.ps[i], over=this.st==='end', ghost=!!me&&!me.alive,   /* chỉ người chơi đã chết thấy kênh Hồn ma (người xem / peek không thấy, người chết hay lộ vai) */ M=CL.masoi, wolf=me&&me.role==='soi';
     return {id:this.id,game:'masoi',name:this.def.name,st:this.st,fee:this.fee,pot:this.pot||0,day:this.day,me:i,left:this.end_?Math.max(0,this.end_-now()):0,winner:this.winner||null,
       phaseMs:(M[{night:'night',day:'day',vote:'vote',hunt:'hunt'}[this.st]]||0)*1000,roles:this.st!=='wait'&&this.ps.length?this.rolesFor(this.ps.length).map(r=>ROLE[r]):[],
       role:me&&me.role,roleName:me&&me.role&&ROLE[me.role],seen:me&&me.role==='tientri'?me.seen:[],lastGuard:me&&me.role==='baove'?this.lastGuard:-1,
