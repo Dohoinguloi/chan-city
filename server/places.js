@@ -7,7 +7,8 @@ const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
 const inRetreat=pl=>pl.scene==='retreat';
-const nearNpc=(pl,id,r=72)=>{ if(id==='duongvu'){ const t=now(); for(let k=0;k<=12;k+=3){ const w=S.dvWhere(t-k*1000); if(pl.scene===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Dương Vũ đổi map theo lịch
+const nearNpc=(pl,id,r=72)=>{ if(id==='kenny'){ const t=now(); for(const k of [0,8000]){ const w=S.kennyWhere(t-k); if(kindOf(pl.scene)===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Kenny Ho: lúc ở Ké, lúc ở Bearplus (S.kennyWhere)
+  if(id==='duongvu'){ const t=now(); for(let k=0;k<=12;k+=3){ const w=S.dvWhere(t-k*1000); if(pl.scene===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Dương Vũ đổi map theo lịch
   const n=npc(id); if(!n||kindOf(pl.scene)!==(n.scene||'retreat')) return false; if(!S.NPC_ROAM[id]) return near(pl,n.x,n.y,r);
   const t=now(); for(let k=0;k<=12;k++){ const q=S.roamPos(id,t-k*1000); if(near(pl,q.x,q.y,r)) return true; } return false; };   // NPC đi dạo: tính cả chỗ vài giây trước (đang nói chuyện thì NPC vẫn đi tiếp)
 
@@ -326,7 +327,7 @@ on('mk',(pl,m)=>{ const p=pl.prof;
   if(m.op==='buy'){ const l=LIST.find(l=>l.id===(m.id|0)); if(!l) return {err:'Món này vừa bán mất rồi'}; if(l.seller===pl.uid) return {err:'Món của bạn'};
     if(p.money<l.price) return {err:`Giá ${fmt(l.price)}, không đủ tiền`};
     const net=Math.round(l.price*(1-S.MARKET.fee));
-    db.tx(()=>{ db.delListing(l.id); take(pl,l.price); addItem(pl,l.item,l.n); C.save(pl);
+    db.tx(()=>{ db.delListing(l.id); take(pl,l.price,true); C.spent(pl,l.price-net); addItem(pl,l.item,l.n); C.save(pl);   /* người bán nhận net, phí sàn vào ngân khố */
       const sp=byUid.get(l.seller); if(sp){ give(sp,net); C.save(sp); note(sp,`${p.name} đã mua ${l.n} ${S.ITEMS[l.item].name} của bạn: +${fmt(net)}`,'vnd'); }
       else { const prof=db.profile(l.seller); if(prof){ prof.money+=net; (prof.inbox=prof.inbox||[]).push(`${p.name} đã mua ${l.n} ${S.ITEMS[l.item].name}: +${fmt(net)}`); db.saveProfile(l.seller,prof); } } });
     LIST=db.market(); return {item:l.item,n:l.n}; } });

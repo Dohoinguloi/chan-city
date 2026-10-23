@@ -349,5 +349,7 @@ Object.assign(C,{
 // trả về lưới đã nới lề + vẽ trang phục + viền
 // nw: người chơi đang cầm vũ khí của Thợ Rèn → không vẽ vũ khí có sẵn trong bộ đồ (vũ khí thật vẽ riêng trên tay)
 function apply(G,set,view,nw){ const P=pad(G), f=C[set]; if(f){ const u=api(P); u.nowep=!!nw; f(u,view); } outline(P); return P; }
-window.HWC={PX,PT,PAL,C,apply};
+// đồ phủ thường (wear.js: mũ, kính, khăn, hoạ tiết...): nới lề rồi để fn vẽ, viền đen phần vẽ thêm
+function over(G,view,fn){ const P=pad(G); fn(api(P),view); outline(P); return P; }
+window.HWC={PX,PT,PAL,KEYS,C,LG,apply,over};   /* KEYS, LG: wear.js / sets.js thêm màu, dùng chung bộ vẽ */
 })();

@@ -38,7 +38,7 @@ ACT.goto=d=>GAME.walkToNpc(d.id);
 async function req(m,ok){ const r=await GAME.act(m,ok); UI.refresh(); return r; }
 
 /* ---------- menu Esc ---------- */
-UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
+UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','🛍 Shopee Chande',{id:'btnShopee'})+btn('hudbtn','🛒 Chợ đồ cũ',{id:'btnShop'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
   ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('qlog','📖 Sổ nhiệm vụ')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
@@ -109,13 +109,14 @@ function outfitHtml(shop){ const g=G(), out=g.look.outfit||{};
       return `<div class="row ${on?'on':''}" data-a="preview" data-k="${k}"><img class="thumb" data-thumb="${k}" src="${thumbOf(k)}" alt=""><span>${esc(c.name)}</span><span>${own?(on?'đang mặc':'đã có'):fmt(c.price)}</span>${own?(on?(['top','bottom','shoes'].includes(sl)?'':btn('unequip','Cởi',{slot:sl})):btn('equip','Mặc',{k,slot:sl})):shop?btn('buyc','Mua',{k},'pri'):''}</div>`; }).join(''); }).join('')}</div></div>`; }
 // ảnh thu nhỏ từng món: dựng nhân vật của bạn mặc thử món đó, cắt đúng vùng (đầu / thân / chân), làm dần từng món cho khỏi giật
 const THUMB=new Map(), thumbQ=[]; let thumbBusy=false; const BLANK='data:image/gif;base64,R0lGODlhAQABAAAAACw=';
-const THUMB_CROP={head:[6,11,20,20],eyes:[6,11,20,20],neck:[6,22,20,20],top:[6,24,20,20],wrist:[6,26,20,20],bottom:[6,30,20,18],shoes:[6,32,20,16]};
+const THUMB_CROP={head:[4,4,24,24],eyes:[6,9,20,20],neck:[6,20,20,20],top:[6,24,20,20],wrist:[6,26,20,20],bottom:[6,30,20,18],shoes:[6,32,20,16],hairx:[2,2,28,28],face:[6,10,20,20],full:[2,4,28,44]};
 function thumbOf(k){ const key=k+'|'+JSON.stringify([G().look.gender,G().look.skin,G().look.hair,G().look.hairColor]); if(THUMB.has(key)) return THUMB.get(key);
   if(!thumbQ.some(q=>q.key===key)) thumbQ.push({k,key}); if(!thumbBusy){ thumbBusy=true; setTimeout(thumbWork,30); } return BLANK; }
 function thumbWork(){ const q=thumbQ.shift(); if(!q){ thumbBusy=false; return; } const c=SD.CLOTHES[q.k], lk=G().look, base={...(lk.outfit||{})};
   if(!['top','bottom','shoes'].includes(c.slot)) for(const s of ['eyes','head','neck','wrist']) delete base[s];
-  const av=AVATAR.build({...lk,outfit:{...base,[c.slot]:q.k}}), f=av.anims.idle_down.frames[0], [sx,sy,w,h]=THUMB_CROP[c.slot]||THUMB_CROP.top, cv=document.createElement('canvas'); cv.width=40; cv.height=40;
-  const g=cv.getContext('2d'); g.imageSmoothingEnabled=false; g.fillStyle='#f3ecdc'; g.fillRect(0,0,40,40); g.drawImage(f,sx,sy,w,h,Math.round((40-w*2)/2),Math.round((40-h*2)/2),w*2,h*2);
+  if(c.slot!=='top'&&SD.CLOTHES[base.top]&&SD.CLOTHES[base.top].set) base.top='tee_trang';   /* đang mặc set: set đè cả người, thay tạm áo trơn cho thấy món này */
+  const av=AVATAR.build({...lk,outfit:{...base,[c.slot]:q.k}}), f=av.anims.idle_down.frames[0], [sx,sy,w,h]=THUMB_CROP[c.full?'full':c.slot]||THUMB_CROP.top, cv=document.createElement('canvas'); cv.width=40; cv.height=40;
+  const g=cv.getContext('2d'), k=Math.min(2,40/Math.max(w,h)); g.imageSmoothingEnabled=false; g.fillStyle='#f3ecdc'; g.fillRect(0,0,40,40); g.drawImage(f,sx,sy,w,h,Math.round((40-w*k)/2),Math.round((40-h*k)/2),Math.round(w*k),Math.round(h*k));   /* vừa khung 40: mũ cao, full set cả người */
   const url=cv.toDataURL(); THUMB.set(q.key,url); document.querySelectorAll(`img[data-thumb="${q.k}"]`).forEach(im=>{ im.src=url; }); setTimeout(thumbWork,8); }
 let pvLook=null;
 function drawPreview(){ const c=$('#pv'); if(!c) return; const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.fillStyle='#f3ecdc'; g.fillRect(0,0,64,96);
@@ -230,7 +231,7 @@ let hubTab='market', market=[], who=[], ochLog=[];
 UI.hub=()=>{ open('Laptop',()=>hubHtml(),{wide:true}); loadMarket(); };
 UI.learn=()=>{ hubTab='learn'; UI.hub(); };   // mở thẳng tab Học kỹ năng
 async function loadMarket(){ const r=await NET.req({t:'mk',op:'list'}); market=r.list||[]; const w=await NET.req({t:'who'}); who=w.list||[]; UI.refresh(); }
-function hubHtml(){ const g=G(), tabs=[['market','Chợ online'],['learn','Học kỹ năng'],['chat','Chat online'],['work','Làm remote']];
+function hubHtml(){ const g=G(), tabs=[['market','Chợ đồ cũ'],['learn','Học kỹ năng'],['chat','Chat online'],['work','Làm remote']];
   let body='';
   if(hubTab==='market'){ const mine=market.filter(l=>l.mine), others=market.filter(l=>!l.mine);
     body=money()+`<h5>Đang bán</h5><div class="list">${others.map(l=>`<div class="row">${ico(l.item)}<span>${esc(SD.ITEMS[l.item]?SD.ITEMS[l.item].name:l.item)} ×${l.n} <small class="muted">của ${esc(l.s)}</small></span><span>${fmt(l.price)}</span>${btn('mkbuy','Mua',{id:l.id},'pri')}</div>`).join('')||'<p class="muted">Chưa ai bán gì</p>'}</div>
@@ -248,14 +249,82 @@ ACT.tab=d=>{ hubTab=d.k; if(d.k!=='work') loadMarket(); draw(); };
 ACT.mkbuy=async d=>{ const r=await GAME.act({t:'mk',op:'buy',id:+d.id}); if(!r.err) GAME.toast('Đã mua','item'); loadMarket(); };
 ACT.mkcancel=async d=>{ await GAME.act({t:'mk',op:'cancel',id:+d.id}); loadMarket(); };
 ACT.mksell=async()=>{ const r=await GAME.act({t:'mk',op:'sell',item:$('#mkItem').value,n:+$('#mkN').value,price:+$('#mkP').value}); if(!r.err) GAME.toast('Đã đăng bán','item'); loadMarket(); };
-/* ---------- cửa hàng online (nút bên phải, phím C): xem + mua đồ mọi người đang đăng bán ở bất cứ đâu; đăng bán / gỡ món vẫn ở laptop trong phòng ---------- */
+/* ---------- Chợ đồ cũ (nút bên phải, phím C): xem + mua đồ mọi người đang đăng bán ở bất cứ đâu; đăng bán / gỡ món vẫn ở laptop trong phòng; Shopee Chande là nút riêng ---------- */
 let shopQ='', shopSort='new';
-UI.shop=()=>{ open('Cửa hàng online',()=>shopHtml(),{wide:true}); loadMarket(); };
+UI.shop=()=>{ open('Chợ đồ cũ',()=>shopHtml(),{wide:true}); loadMarket(); };
+/* ---------- Shopee Chande (nút cam riêng ở HUD): thẻ món theo mục, bấm thẻ là mặc thử lên nhân vật, flash sale, giá sau ưu đãi, đồ đã mua + đơn hàng ---------- */
+{ const old=ART.icon, IC={sp_helmet:P=>{ P.rect(3,3,8,6,'#e8302a'); P.rect(2,6,10,3,'#c8201a'); P.rect(4,4,3,2,'#ff8a7a'); P.rect(8,7,4,2,'#7fd0ff'); P.rect(3,9,8,1,'#1c1820'); },
+    sp_food:P=>{ P.rect(3,2,8,10,'#e8a050'); P.rect(3,2,8,2,'#c8782a'); P.rect(5,5,4,4,'#f4f1ea'); P.px(6,6,'#8a5428'); P.px(7,7,'#8a5428'); P.px(6,8,'#8a5428'); P.rect(4,12,6,1,'#8a5428'); },
+    sp_4g:P=>{ P.rect(4,1,6,12,'#26242a'); P.rect(5,2,4,9,'#7fd0ff'); P.rect(6,12,2,1,'#8a8a96'); P.rect(5,3,1,1,'#1f5fcf'); P.rect(5,4,2,1,'#1f5fcf'); P.rect(5,5,3,1,'#1f5fcf'); P.rect(5,6,4,1,'#1f5fcf'); P.rect(6,8,2,2,'#ffffff'); }};
+  ART.icon=function(name,scale=1){ const f=IC[name]; if(!f) return old(name,scale); const c=ART.cv(14,14); f(ART.painter(c.getContext('2d'))); ART.outline(c);
+    if(scale===1) return c; const s=ART.cv(14*scale,14*scale), sg=s.getContext('2d'); sg.imageSmoothingEnabled=false; sg.drawImage(c,0,0,s.width,s.height); return s; }; }
+let spTab='hot', spPage=0, spTry={}, spOrders=null, spTimer=0;
+// ưu đãi giống server (perks.js): học / làm ở 1 trong 4 nơi là -20% (không cộng dồn), hảo sảng trừ tiếp
+const spPerks=g=>{ const at=[]; if(g.das&&((g.das.certs||[]).length||Object.keys(g.das.c||{}).length)) at.push('DAS'); if(g.quests.bp_brief==='done') at.push('Bearplus');
+  if(g.lumen&&g.lumen.hired) at.push('Lumen'); if(g.extra&&g.extra.job&&g.extra.job.hired) at.push('Everfit'); return at; };
+const spPay=(g,b)=>Math.round(b*(spPerks(g).length?.8:1)*(1-SD.hsBonus(g)));
+const spCat=k=>{ if(String(k).startsWith('pet:')||String(k).startsWith('aux:food_')) return 'pet'; if(String(k).startsWith('aux:')) return 'aux'; const c=SD.CLOTHES[k]; return c.full?'full':c.hot?'hot':['neck','wrist'].includes(c.slot)?'acc':c.slot; };
+const spCd=ms=>{ const s=Math.max(0,Math.floor(ms/1000)); return [Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(v=>String(v).padStart(2,'0')).join(':'); };
+const spPv=()=>{ const g=G(), o={...g.look.outfit,...spTry}; if(!spTry.top&&SD.CLOTHES[o.top]&&SD.CLOTHES[o.top].set) o.top='tee_trang';   /* thử món khác khi đang mặc set: bỏ set ra mới thấy */
+  pvLook=Object.keys(spTry).length?{...g.look,outfit:o}:null; };
+UI.shopee=tab=>{ if(tab) spTab=tab; spPage=0; spTry={}; open('Shopee Chande',()=>shopeeHtml(),{xwide:true}); startPreview(); if(spTab==='mine') spLoad();
+  clearInterval(spTimer); let slot=SD.SHOPEE.flash(NET.now()).end; spTimer=setInterval(()=>{ const el=$('#spCd'); if(!el) return clearInterval(spTimer); const t=NET.now(); el.textContent=spCd(slot-t); if(t>=slot){ slot=SD.SHOPEE.flash(t).end; UI.refresh(); } },1000); };
+async function spLoad(){ const r=await NET.req({t:'shopee',op:'orders'}); spOrders=r.orders||[]; UI.refresh(); }
+// cột trái tab Thú cưng: các bé đang nuôi, no / đói / dỗi, gói hạt còn lại
+function petMine(){ const g=G(), t=NET.now(), list=Object.keys(g.pets||{});
+  const st=k=>{ const h=(t-(g.pets[k].fed||0))/3600e3; return h<SD.PETCFG.full?`<span class="good">no · còn ${Math.ceil(SD.PETCFG.full-h)} giờ</span>`:h<SD.PETCFG.leave?'<span class="bad">đói, cho ăn đi</span>':'<span class="bad">dỗi ở nhà</span>'; };
+  return `<div class="spPerk"><h5>🐾 Thú cưng của bạn (${list.length})</h5>${list.length?list.map(k=>`<p><b>${esc(SD.PETS[k].name)}</b>${g.pet===k?' · đang theo':''}<br><small>${st(k)}</small></p>`).join('')+(g.pet?btn('petuse','Cho ở nhà',{k:''}):''):'<p class="muted">Chưa nuôi bé nào. No thì đi theo bạn, +3% EXP.</p>'}
+    <p class="muted">Hạt: ${Object.entries(SD.PETFOOD).map(([k,f])=>`${esc(f.name.replace('Gói hạt ','').replace('Gói thức ăn ',''))} ×${g.items['petfood_'+k]||0}`).join(' · ')}</p></div>`; }
+ACT.petuse=async d=>{ const r=await GAME.act({t:'pet',op:'use',k:d.k}); if(!r.err) GAME.toast(esc(r.msg),'item'); UI.refresh(); };
+ACT.petfeed=async d=>{ const r=await GAME.act({t:'pet',op:'feed',k:d.k}); if(!r.err){ GAME.sfx('item_pickup',.5); GAME.toast(esc(r.msg),'quest'); } UI.refresh(); };
+function shopeeHtml(){ const g=G(), SP=SD.SHOPEE, t=NET.now(), fl=SP.flash(t), at=spPerks(g), hs=SD.hsTier(g), out=g.look.outfit||{}, ids=SP.ids();
+  const card=k=>{ const it=SP.item(k); if(!it) return ''; if(String(k).startsWith('pet:')) return petCard(k,it); const aux=String(k).startsWith('aux:'), o=!aux&&!!g.owned[k], pay=spPay(g,SP.base(k,t)), fla=fl.ids.includes(k), pct=Math.round((1-pay/it.price)*100);
+    const img=aux?`<img src="${GAME.icon64(it.item||it.icon)}" alt="">`:`<img data-thumb="${k}" src="${thumbOf(k)}" alt="">`;
+    return `<div class="spCard ${!aux&&spTry[it.slot]===k?'try':''} ${o?'own':''}" ${aux?'':`data-a="sptry" data-k="${k}"`}>${fla?'<i class="spFlash">⚡ FLASH</i>':it.shopee?'<i class="spNew">Độc quyền</i>':''}${!o&&pct>0?`<i class="spOff">-${pct}%</i>`:''}
+      ${img}<b>${esc(it.name)}</b>${aux?`<small>${esc(it.desc)}</small>`:''}
+      ${o?(out[it.slot]===k?'<small class="spOn">✔ Đang mặc</small>':btn('equip','Mặc',{k,slot:it.slot})):`<span class="spPrice">${pay<it.price?`<s>${fmt(it.price)}</s>`:''}<em>${fmt(pay)}</em></span>${btn('spbuy','Mua ngay',{k},g.money>=pay?'pri':'')}`}</div>`; };
+  // thẻ thú cưng: ảnh con vật, ăn loại hạt nào; nuôi rồi thì cho đi theo / cho ăn
+  const petCard=(k,it)=>{ const pk=k.slice(4), e=(g.pets||{})[pk], pay=spPay(g,SP.base(k,t)), fla=fl.ids.includes(k), pct=Math.round((1-pay/it.price)*100), food=SD.PETFOOD[it.food], fn=(g.items['petfood_'+it.food]||0);
+    return `<div class="spCard ${e?'own':''}">${fla?'<i class="spFlash">⚡ FLASH</i>':''}${!e&&pct>0?`<i class="spOff">-${pct}%</i>`:''}<img src="${window.PETART?window.PETART.icon(pk):''}" alt=""><b>${esc(it.name)}</b><small>Ăn: ${esc(food.name.replace('Gói ',''))}</small>
+      ${e?`${g.pet===pk?'<small class="spOn">✔ Đang đi theo</small>':btn('petuse','Cho đi theo',{k:pk})}${btn('petfeed',`Cho ăn (còn ${fn})`,{k:pk},fn?'pri':'')}`:`<span class="spPrice">${pay<it.price?`<s>${fmt(it.price)}</s>`:''}<em>${fmt(pay)}</em></span>${btn('spbuy','Nuôi ngay',{k},g.money>=pay?'pri':'')}`}</div>`; };
+  const tryIds=Object.values(spTry), need=tryIds.filter(k=>!g.owned[k]), cost=need.reduce((a,k)=>a+spPay(g,SP.base(k,t)),0);
+  const tabName=(SP.tabs.find(x=>x[0]===spTab)||['',''])[1].replace(/^\S+ /,'');
+  const mine=Object.keys(g.owned).filter(k=>SD.CLOTHES[k]&&(spTab==='hot'||spTab==='mine'||spCat(k)===spTab||(spTab==='acc'&&['neck','wrist'].includes(SD.CLOTHES[k].slot))));
+  const auxMine=[['bong_cat','Bóng Cát'],['bong_vang','Bóng Cát Vàng'],['thuoc_cat','Thuốc hồi máu']].map(([k,n])=>`<div class="row"><span>${n}</span><span>×${g.items[k]||0}</span></div>`).join('')
+    +`<div class="row"><span>Mũ bảo hiểm</span><span>${g.helmet?'✔ có':'chưa có'}</span></div><div class="row"><span>4G VNPT</span><span>${g.data&&g.data.until>t?'tới '+SD.vnTime(g.data.until).day.split('-').reverse().slice(0,2).join('/'):g.sim?'chưa đăng ký':'chưa có SIM'}</span></div>`;
+  const left=`<div class="spL"><div class="spPv"><canvas id="pv" width="64" height="96"></canvas></div>
+    <p class="muted spTryTxt">${tryIds.length?'Đang thử: '+tryIds.map(k=>esc(SD.CLOTHES[k].name)).join(', '):'Bấm vào thẻ món đồ để mặc thử lên người'}</p>
+    <div class="spTryBtn">${tryIds.length?btn('sptryclear','Bỏ thử'):''}${need.length?btn('spbuyall',`Mua ${need.length} món đang thử · ${fmt(cost)}`,{},'pri'):''}</div>
+    <div class="spPerk"><h5>🎓 Ưu đãi của bạn</h5>${['DAS','Bearplus','Lumen','Everfit'].map(n=>`<span class="${at.includes(n)?'on':''}">${at.includes(n)?'✔':'✗'} ${n}</span>`).join('')}
+      <p>${at.length?`Đang được <b>-20%</b> mọi món nhờ ${at.join(', ')}`:'Học ở DAS, làm ở Bearplus / Lumen / Everfit là được -20% mọi món'}${hs.lv?` · hảo sảng ${esc(hs.name)} -${Math.round(hs.b*100)}%`:''}</p></div>
+    ${spTab==='pet'?petMine():''}<div class="spBought" ${spTab==='pet'?'hidden':''}><h5>🧺 Đã mua${spTab==='hot'||spTab==='mine'?'':' · '+esc(tabName)} ${spTab==='aux'?'':` (${mine.length})`}</h5><div class="list rows spMine">${spTab==='aux'?auxMine:mine.map(k=>{ const c=SD.CLOTHES[k];
+      return `<div class="row"><span>${esc(c.name)}</span>${out[c.slot]===k?'<small class="spOn">đang mặc</small>':btn('equip','Mặc',{k,slot:c.slot})}</div>`; }).join('')||'<p class="muted">Chưa có món nào</p>'}</div></div></div>`;
+  let body;
+  if(spTab==='mine') body=`<h5>📦 Đơn hàng gần đây</h5>${spOrders===null?'<p class="muted">Đang tải...</p>':spOrders.length?`<div class="list rows">${spOrders.map(o=>{ const it=SP.item(o.k), d=SD.vnTime(o.at);
+      return `<div class="row"><span>${esc(it?it.name:o.k)}</span><span><small class="muted">${d.day.split('-').reverse().slice(0,2).join('/')} ${String(d.h).padStart(2,'0')}:${String(d.m).padStart(2,'0')}</small></span><span>${fmt(o.pay)}${o.pay<o.full?` <small class="good">tiết kiệm ${fmt(o.full-o.pay)}</small>`:''}</span></div>`; }).join('')}</div>`:'<p class="muted">Chưa có đơn nào trên Shopee</p>'}
+    <h5>👕 Tủ đồ của bạn (${mine.length} món)</h5><div class="spGrid">${mine.map(card).join('')}</div>`;
+  else { const fulls=ids.filter(k=>spCat(k)==='full'), off=Math.floor(t/(SP.flashH*3600e3))%Math.max(1,fulls.length);   /* Nổi bật: flash sale, set hot, đồ Đôn Chề, 3 full set đổi theo khung giờ flash */
+    const list=spTab==='hot'?[...new Set([...fl.ids,...ids.filter(k=>spCat(k)==='hot'),...ids.filter(k=>SD.CLOTHES[k]&&SD.CLOTHES[k].dc),...[0,1,2].map(i=>fulls[(off+i)%fulls.length]).filter(Boolean)])]:ids.filter(k=>spCat(k)===spTab);
+    const pages=Math.max(1,Math.ceil(list.length/SP.perPage)); spPage=Math.min(spPage,pages-1);
+    body=`<div class="spGrid">${list.slice(spPage*SP.perPage,(spPage+1)*SP.perPage).map(card).join('')}</div>${pages>1?`<div class="spPg">${btn('sppg','◀',{d:-1})}<span>${spPage+1}/${pages}</span>${btn('sppg','▶',{d:1})}</div>`:''}`; }
+  return `<div class="sp">${left}<div class="spR"><div class="spHead"><b>🛍 Shopee Chande</b><span>Freeship mọi map · Ví <b>${fmt(g.money)}</b></span></div>
+    <div class="spFl"><b>⚡ FLASH SALE -${Math.round(SP.flashOff*100)}%</b><span>${fl.ids.map(k=>esc(SP.item(k).name)).join(' · ')}</span><span>kết thúc sau <i id="spCd">${spCd(fl.end-t)}</i></span></div>
+    <div class="tabs spTabs">${SP.tabs.map(([k,n])=>`<button class="tab ${k===spTab?'on':''}" data-a="sptab" data-k="${k}">${n}</button>`).join('')}</div>${body}</div></div>`; }
+ACT.shopee=()=>UI.shopee();
+ACT.sptab=d=>{ spTab=d.k; spPage=0; if(d.k==='mine'){ spOrders=null; spLoad(); } draw(); };
+ACT.sppg=d=>{ spPage=Math.max(0,spPage+(+d.d)); draw(); };
+ACT.sptry=d=>{ const c=SD.CLOTHES[d.k]; if(!c) return; if(spTry[c.slot]===d.k) delete spTry[c.slot]; else spTry[c.slot]=d.k; spPv(); draw(); };
+ACT.sptryclear=()=>{ spTry={}; spPv(); draw(); };
+async function spBuy(k){ const r=await GAME.act({t:'shopee',op:'buy',k}); if(r.err) return false; GAME.sfx('coin',.5);
+  GAME.toast(`🛍 Đặt hàng Shopee thành công: <b>${esc(r.name)}</b> · ${fmt(r.pay)}${r.pay<r.full?` (tiết kiệm ${fmt(r.full-r.pay)})`:''} · freeship`,'vnd');
+  const c=SD.CLOTHES[k]; if(c){ await GAME.act({t:'equip',slot:c.slot,id:k}); if(spTry[c.slot]===k) delete spTry[c.slot]; spPv(); } return true; }
+ACT.spbuy=async d=>{ await spBuy(d.k); if(spTab==='mine') spLoad(); UI.refresh(); };
+ACT.spbuyall=async()=>{ for(const k of Object.values(spTry).filter(k=>!G().owned[k])) if(!await spBuy(k)) break; UI.refresh(); };
 function shopHtml(){ const q=shopQ.trim().toLowerCase(), nm=l=>SD.ITEMS[l.item]?SD.ITEMS[l.item].name:l.item, mine=market.filter(l=>l.mine);
   const L=market.filter(l=>!l.mine&&(!q||nm(l).toLowerCase().includes(q)||String(l.s).toLowerCase().includes(q)));
   if(shopSort==='cheap') L.sort((a,b)=>a.price-b.price); else if(shopSort==='dear') L.sort((a,b)=>b.price-a.price);
   const sorts=[['new','Mới đăng'],['cheap','Rẻ nhất'],['dear','Đắt nhất']], each=l=>l.n>1?`<small class="muted">· ${fmt(Math.round(l.price/l.n))}/cái</small>`:'';
-  return money()+`<div class="form"><input id="shopQ" maxlength="30" value="${esc(shopQ)}" placeholder="Tìm tên món hoặc người bán..." aria-label="Tìm">${btn('shopq','Tìm','','pri')}${shopQ?btn('shopq','Xoá tìm',{clear:1}):''}</div>
+  return money()+`<p class="muted">Chợ đồ cũ: đồ mọi người tự đăng bán lại.</p><div class="form"><input id="shopQ" maxlength="30" value="${esc(shopQ)}" placeholder="Tìm tên món hoặc người bán..." aria-label="Tìm">${btn('shopq','Tìm','','pri')}${shopQ?btn('shopq','Xoá tìm',{clear:1}):''}</div>
     <div class="tabs">${sorts.map(([k,n])=>`<button class="tab ${k===shopSort?'on':''}" data-a="shopsort" data-k="${k}">${n}</button>`).join('')}</div>
     <h5>Đang bán (${L.length})</h5><div class="list">${L.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n} <small class="muted">của ${esc(l.s)}</small></span><span>${fmt(l.price)} ${each(l)}</span>${btn('mkbuy','Mua',{id:l.id},G().money>=l.price?'pri':'')}</div>`).join('')||`<p class="muted">${q?'Không thấy món nào khớp':'Chưa ai bán gì'}</p>`}</div>
     ${mine.length?`<h5>Bạn đang bán (${mine.length}/${SD.MARKET.maxListings})</h5><div class="list">${mine.map(l=>`<div class="row">${ico(l.item)}<span>${esc(nm(l))} ×${l.n}</span><span>${fmt(l.price)}</span></div>`).join('')}</div>`:''}
@@ -1007,7 +1076,11 @@ PLACE.sv=n=>GAME.say([[n.id,['Học ở đây vui lắm, thầy Huy Tạ giảng
 // bảng Vườn & chuồng: mọi ô rau đang trồng và vật nuôi của mình, thanh thời gian tới lúc thu / cho ăn (tự cập nhật mỗi giây)
 const left=ms=>{ const s=Math.max(0,Math.ceil(ms/1000)); return s>=3600?`${Math.floor(s/3600)} giờ ${Math.floor(s%3600/60)} phút`:s>=60?`${Math.floor(s/60)} phút ${s%60}s`:`${s}s`; };
 const tline=(k,col,txt)=>`<div class="tline"><i style="width:${Math.round(Math.max(0,Math.min(1,k))*100)}%;background:${col}"></i><span>${txt}</span></div>`;
-UI.farm=()=>{ open('Vườn & chuồng',farmHtml,{wide:true}); clearInterval(UI._farmT); UI._farmT=setInterval(()=>{ if(cur&&cur.t==='Vườn & chuồng') draw(); else clearInterval(UI._farmT); },1000); };
+UI.farm=()=>{ open('Vườn & chuồng',farmHtml,{wide:true}); stlLoad(); clearInterval(UI._farmT); UI._farmT=setInterval(()=>{ if(cur&&cur.t==='Vườn & chuồng') draw(); else clearInterval(UI._farmT); },1000); };
+let STL=null;   /* vay vốn nhà nước: hạn mức, khoản đang vay, ngân khố (haosang.js op stloan) */
+async function stlLoad(){ const r=await NET.req({t:'hs',op:'stloan',view:1}); if(r&&!r.err){ STL=r; UI.refresh(); } }
+ACT.stlget=async d=>{ const r=await GAME.act({t:'hs',op:'stloan',amt:+d.v,days:+d.d}); if(!r.err){ GAME.sfx('coin',.5); GAME.toast(esc(r.msg),'vnd'); } stlLoad(); };
+ACT.stlpay=async d=>{ const r=await GAME.act({t:'hs',op:'repay',id:+d.id}); if(!r.err) GAME.toast(esc(r.msg),'vnd'); stlLoad(); };
 function farmHtml(){ const g=G(), now=NET.now(), P=GAME.plots||{}, mine=Object.entries(P).filter(([id,p])=>p.o===NET.pub);
   const plotRow=([id,p])=>{ const c=SD.CROPS[p.c], ke=id[0]==='k', d=ke?SD.FARM.plots[+id.slice(1)]:SD.DALAT.plots[+id.slice(1)], ripe=p.at+c.grow*1000, grace=(p.g||SD.FARM.grace)*1000, st=SD.plotState(p,now);
     const [k,col,txt]=now<ripe?[1-(ripe-now)/(c.grow*1000),'#7de07a',`chín sau ${left(ripe-now)}`]:ke&&now<ripe+grace?[1,'#ffd84a',`CHÍN RỒI · thu trong ${left(ripe+grace-now)} kẻo bị cướp`]:[1,ke?'#ff6a55':'#ffd84a',ke?'quá giờ, người khác cướp được!':'chín rồi, ra thu hoạch'];
@@ -1015,8 +1088,12 @@ function farmHtml(){ const g=G(), now=NET.now(), P=GAME.plots||{}, mine=Object.e
   const aniRow=(a,i)=>{ const A=SD.ANIMALS[a.k], total=A.cycle*1000, ke=a.loc==='ke';
     const [k,col,txt]=!a.cyc?[0,'#ff6a55','đói · cần cho ăn '+SD.FEED[A.feed].name.toLowerCase()]:now<a.cyc?[1-(a.cyc-now)/total,'#7fe0ff',`${A.feeds?`lứa ${a.fed+1}/${A.feeds} · `:''}xong sau ${left(a.cyc-now)}`]:[1,'#ffd84a','xong lứa, ra thu'];
     return `<div class="row">${ico(A.product)}<span><b>${esc(A.name)}</b> <small class="muted">${ke?'sân gà Ké':'Đà Lạt'}</small>${tline(k,col,txt)}</span></div>`; };
-  const an=g.animals||[];
-  return `<h5>Rau đang trồng (${mine.length})</h5><div class="list">${mine.sort((a,b)=>a[1].at+SD.CROPS[a[1].c].grow*1000-(b[1].at+SD.CROPS[b[1].c].grow*1000)).map(plotRow).join('')||'<p class="muted">Chưa trồng gì. Mua hạt ở tiệm cô Ké (Ké) hoặc bác Trang (Đà Lạt).</p>'}</div>
+  const an=g.animals||[], SL=SD.STATE_LOAN, L=STL&&STL.cur&&STL.cur[0], tr=STL&&STL.tr;
+  const stl=`<h5>🏦 Vay vốn nhà nước</h5><div class="stl">${!STL?'<p class="muted">Đang tải...</p>':L?`<p>Đang vay <b>${fmt(L.amt)}</b> · còn nợ <b class="${L.late?'bad':''}">${fmt(L.owed)}</b> · ${L.late?'QUÁ HẠN, có tiền trong ví là tự trừ':'hạn còn '+Math.max(1,Math.ceil((L.due-now)/3600e3))+' giờ'}</p>${btn('stlpay','Trả hết '+fmt(L.owed),{id:L.id},'pri')}`
+    :g.level<SL.minLv?`<p class="muted">Từ cấp ${SL.minLv} được vay vốn nhà nước để mua hạt giống, vật nuôi, thuê đất.</p>`:`<p>Vốn mua hạt giống, vật nuôi, thuê đất · lãi ${Math.round(SL.rate*100)}%/ngày · quá hạn tự trừ trong ví · hạn mức cấp ${g.level}: <b>${fmt(STL.cap)}</b></p>
+      <div class="stlAmts">${SL.amts.filter(v=>v<=STL.cap).map(v=>SL.days.map(d=>btn('stlget',`${fmt(v)} · ${d} ngày<small>trả ${fmt(Math.round(v*(1+SL.rate*d)/1000)*1000)}</small>`,{v,d})).join('')).join('')}</div>`}
+    ${tr&&tr.name?`<p class="muted">Ngân khố nhà nước · ${esc(tr.tag)} ${esc(tr.name)}: <b>${fmt(tr.bal)}</b> · thu hôm nay ${fmt(tr.today)} · đang cho vay ${fmt(tr.lent)}</p>`:''}</div>`;
+  return stl+`<h5>Rau đang trồng (${mine.length})</h5><div class="list">${mine.sort((a,b)=>a[1].at+SD.CROPS[a[1].c].grow*1000-(b[1].at+SD.CROPS[b[1].c].grow*1000)).map(plotRow).join('')||'<p class="muted">Chưa trồng gì. Mua hạt ở tiệm cô Ké (Ké) hoặc bác Trang (Đà Lạt).</p>'}</div>
     <p class="muted">Chỉ thấy ô ở map bạn đã ghé gần đây.</p>
     <h5>Vật nuôi (${an.length})</h5><div class="list">${an.map(aniRow).join('')||'<p class="muted">Chưa nuôi con nào. Mua ở trại chú Sáu (Đà Lạt), gà ở tiệm cô Ké.</p>'}</div>`; }
 /* ---------- khu mở rộng: thuê xe, cafe, siêu thị, quán nhậu, tiệm net, bảo tàng, chùa, vườn quốc gia ---------- */

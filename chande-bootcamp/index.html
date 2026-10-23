@@ -513,6 +513,73 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 @media (prefers-reduced-motion:reduce){ .toast,#banner,#evBanner,#enhRes,#bigtext,#fade{animation:none!important;transition:none!important} }
 #muMe .musub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 8px;margin:3px 0 2px;font-size:12px;line-height:1.2;color:#d8d0e8}#muMe .musub b{color:#ffd84a}#muMe .musub .z{opacity:.45}
 #muHud .mutg,#muBoss .mutg{display:block;background:none;border:0;padding:0 0 2px;color:#a8a0c0;font:inherit;font-size:12px;cursor:pointer;text-align:left;pointer-events:auto}#muHud .mutg:hover,#muBoss .mutg:hover{color:#ffd84a}
+
+/* Shopee Chande */
+.spDot{font-style:normal;font-size:13px;background:#fff;color:#ee4d2d;padding:0 4px;margin-left:2px;animation:spPulse 1.4s steps(2) infinite;display:inline-block}
+#hudNav .spBtn{background:linear-gradient(100deg,#ee4d2d,#ff6633 60%,#ffa63a);border-color:#ffb199;color:#fff;position:relative;overflow:hidden;text-shadow:1px 1px 0 #8a250f} #hudNav .spBtn:hover{filter:brightness(1.1)}
+#hudNav .spBtn::after{content:"";position:absolute;top:0;left:-40%;width:30%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:spShine 2.6s linear infinite;pointer-events:none}
+@keyframes spShine{to{left:130%}} @keyframes spPulse{50%{transform:scale(1.08)}}
+.sp{display:grid;grid-template-columns:230px 1fr;gap:12px;align-items:start}
+.spL{background:var(--panel2);border:2px solid var(--line);padding:8px;display:grid;gap:6px}
+.spPv{background:#fdeee8;border:2px solid #ee4d2d;display:grid;place-items:center;padding:6px} .spPv canvas{width:128px;height:192px;image-rendering:pixelated;border:0}
+.spTryTxt{margin:0;font-size:16px} .spTryBtn{display:flex;flex-wrap:wrap;gap:4px}
+.spPerk h5,.spL h5{margin:4px 0 2px} .spPerk span{display:inline-block;margin:0 8px 2px 0;font-size:16px;color:var(--muted)} .spPerk span.on{color:var(--green)} .spPerk p{margin:2px 0;font-size:16px}
+.spMine{max-height:230px;overflow:auto} .spMine .row{padding:2px 4px;font-size:16px} .spOn{color:var(--green)}
+.spHead{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#ee4d2d;color:#fff;padding:6px 10px;font-size:18px} .spHead b{font-weight:400} .spHead>b{font-size:26px}
+.spFl{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;background:#1c1516;color:#ffe2a8;padding:4px 10px;margin:6px 0;font-size:16px} .spFl b{font-weight:400;color:#ff7337;font-size:19px} .spFl span:first-of-type{flex:1;min-width:0}
+#spCd{font-style:normal;background:#ee4d2d;color:#fff;padding:0 6px;letter-spacing:1px}
+.spTabs{margin-bottom:8px}
+.spGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px} @media (max-width:1100px){ .spGrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.spCard{position:relative;background:#fffaf6;color:#2a1c18;border:2px solid #f3c9bb;padding:20px 6px 8px;display:grid;gap:3px;justify-items:center;align-content:start;text-align:center;cursor:pointer}
+.spCard:hover{border-color:#ee4d2d} .spCard.try{border-color:#ee4d2d;box-shadow:0 0 0 2px #ee4d2d;background:#fff0ea} .spCard.own{background:#f2f7f0;border-color:#bfd8b8}
+.spCard img{width:64px;height:64px;image-rendering:pixelated;background:#f3ecdc}
+.spCard b{font-weight:400;font-size:17px;line-height:1.05} .spCard small{font-size:14px;color:#7a6258;line-height:1.05}
+.spPrice s{color:#9a8a84;font-size:14px;margin-right:4px} .spPrice em{font-style:normal;color:#ee4d2d;font-size:20px}
+.spFlash,.spNew,.spOff{position:absolute;top:3px;font-style:normal;font-size:13px;padding:0 4px;color:#fff}
+.spFlash{left:3px;background:#ee4d2d} .spNew{left:3px;background:#26aa99} .spOff{right:3px;background:#ffd84a;color:#8a250f}
+.spPg{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:8px}
+@media (max-width:760px){ .sp{grid-template-columns:1fr} .spPv canvas{width:96px;height:144px} .spCard b{font-size:15px} .spCard img{width:52px;height:52px} }
+
+/* phòng poker: nền club + mặt bàn da tán đinh (ảnh Magnific, img/), bảng tên ghế kiểu casino */
+.pokerfs{background:radial-gradient(ellipse at 50% 55%,rgba(8,4,6,.15),rgba(8,4,6,.72) 80%),url(img/poker_room.webp) center/cover no-repeat,#140c0e}
+.pokerfs .ptop{padding:6px 10px;background:linear-gradient(rgba(10,6,8,.85),rgba(10,6,8,0))} .pinfo{background:rgba(10,6,8,.75);border:2px solid #8a6a2a;padding:2px 12px;color:#ffe2a8}
+.ptable{margin:18px 6% 26px;min-height:380px}
+.pfelt{inset:4% 2%;border:0;border-radius:0;box-shadow:none;background:url(img/poker_table.webp) center/100% 100% no-repeat;filter:drop-shadow(0 22px 26px rgba(0,0,0,.65))}
+.pwait{color:#e8d8a8;font-size:24px;text-shadow:2px 2px 0 rgba(0,0,0,.6);letter-spacing:1px}
+.ppot{background:rgba(8,20,12,.55);border:2px solid #c8a24a;padding:2px 16px;border-radius:16px;color:#ffe2a8}
+.pname{background:linear-gradient(#2a1c18,#140c0e);border:3px solid #8a6a2a;border-radius:10px;box-shadow:0 4px 0 rgba(0,0,0,.45);color:#f4e6c8}
+.pname b{color:#ffd84a}
+.pseat .pface.round{border:3px solid #c8a24a;box-shadow:0 0 0 3px #1c1012,0 6px 10px rgba(0,0,0,.5)}
+.pseat.empty .pname{background:rgba(20,12,14,.55);border:2px dashed rgba(200,162,74,.55);color:#bfae88;box-shadow:none}
+.pseat.empty .pface.round{background:rgba(20,12,14,.45);border:2px dashed rgba(200,162,74,.55);box-shadow:none}
+.pseat.mine .pname{border-color:#ffd84a;box-shadow:0 0 0 2px #1c1012,0 0 14px rgba(255,216,74,.45)}
+.pseat.act .pname{animation:spPulse 1s steps(2) infinite}
+.pdeal{background:#f4e6c8;border-color:#8a6a2a}
+.pstages span{background:rgba(20,12,14,.8);border-color:#5a3a22;color:#bfae88} .pstages span.done{background:#2a5a34;color:#d8f0c4} .pstages span.cur{background:#ffd84a;color:#1c1516;border-color:#fff} .pstages b{background:#5a3a22}
+.pbar{background:linear-gradient(rgba(24,14,12,.92),rgba(12,8,8,.96));border-top:3px solid #8a6a2a;box-shadow:0 -6px 16px rgba(0,0,0,.5)}
+
+/* phòng cờ: hiên gỗ Ké Retreat nhìn ra hồ Hoà Bình lúc hoàng hôn (ảnh Magnific, img/chess_ke.webp) */
+.chessfs{background:linear-gradient(rgba(12,8,6,.18),rgba(12,8,6,.5)),url(img/chess_ke.webp) center/cover no-repeat,#2a1a12}
+.chessfs #board{box-shadow:0 0 0 4px #3a2414,0 0 0 8px #8a6a2a,0 18px 30px rgba(0,0,0,.6)}
+.chessfs .cside2{background:rgba(20,12,10,.82);border:3px solid #8a6a2a;backdrop-filter:blur(2px)}
+
+/* ma sói: ngồi vòng quanh đống lửa, cột trái chat giãn hết chiều cao, ô nhập luôn ở đáy */
+.mside{display:flex;flex-direction:column} .mside .mchat{flex:1 1 auto;min-height:60px;overflow:auto} .mside .form{margin-top:auto}
+.mring{position:relative;min-height:0;height:100%}
+.mring .mcard{position:absolute;transform:translate(-50%,-50%);width:clamp(100px,9.5vw,156px);transition:left .4s,top .4s}
+.mring .mcard .pface.big{width:min(88px,7.5vw);height:min(88px,7.5vw)}
+.mcard.mempty{background:rgba(10,14,20,.38);border:3px dashed rgba(255,240,200,.4);display:grid;place-items:center;align-content:center;padding:0;color:rgba(255,240,200,.7);font-size:18px;box-shadow:none}
+.mring .mcard.me{box-shadow:0 0 0 3px #ffd84a,0 0 18px rgba(255,216,74,.55)}
+.mnarr{box-shadow:0 6px 18px rgba(0,0,0,.45)}
+@media (max-width:800px){ .mring{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;height:auto;overflow:auto} .mring .mcard{position:relative;left:auto!important;top:auto!important;transform:none;width:auto} }
+
+/* vay vốn nhà nước (bảng Vườn & chuồng) */
+.stl{background:rgba(232,184,58,.08);border:2px solid #8a6a2a;padding:6px 10px;margin-bottom:8px} .stl p{margin:4px 0}
+.stlAmts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px} .stlAmts .btn small{display:block;font-size:14px;opacity:.8}
+
+/* tooltip xông hơi lâu (maps4.js) ngay trên thanh item */
+#steamTip{padding:4px 14px;font-size:17px;white-space:nowrap;max-width:calc(100vw - 24px);color:#ffe8c8;background:rgba(60,30,20,.9);border:2px solid #d8a46a;text-align:center;display:grid;gap:2px;justify-items:center;box-shadow:0 0 14px rgba(255,170,90,.35)} #steamTip[hidden]{display:none}
+body.steam #prompt{transform:translate(-50%,-62px)} #steamTip b{color:#ffd84a;font-weight:400} #steamTip small{font-size:14px;color:#e8c8a0} #steamTip .stbar{display:block;width:220px;height:6px;background:#2a1810;border:1px solid #8a5a32} #steamTip .stbar i{display:block;height:100%;background:linear-gradient(90deg,#ff9a3a,#ffd84a)}
 </style>
 <link rel="stylesheet" href="/pixel.css">
 </head>
@@ -535,7 +602,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
-  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><button id="btnShop" class="panel muteBtn" type="button" title="Xem và mua đồ mọi người đang đăng bán">🛒 Cửa hàng online <kbd>C</kbd></button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
+  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><button id="btnShopee" class="panel muteBtn spBtn" type="button" title="Shopee Chande: quần áo, giày dép, mũ kính, phụ kiện, đồ phụ trợ · freeship, flash sale">🛍 Shopee Chande <i class="spDot">SALE</i></button><button id="btnShop" class="panel muteBtn" type="button" title="Chợ đồ cũ: xem và mua đồ mọi người đăng bán lại">🛒 Chợ đồ cũ <kbd>C</kbd></button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
 <div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
@@ -638,6 +705,8 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world9.js"></script>
 <script src="avatar.js?v=8"></script>
 <script src="hw.js"></script>
+<script src="wear.js"></script>
+<script src="sets.js"></script>
 <script src="net.js?v=7"></script>
 <script src="music.js"></script>
 <script src="ambient.js"></script>
@@ -661,6 +730,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="farm.js"></script>
 <script src="north.js"></script>
 <script src="epl.js"></script>
+<script src="pets.js"></script>
 <script src="art22.js"></script>
 <script src="homeui.js"></script>
 <script src="auto.js"></script>

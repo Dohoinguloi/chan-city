@@ -4,6 +4,16 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24t',title:'24/10 · Shopee Chande, ngân khố nhà nước, thú cưng',items:[
+    '🛍 Shopee Chande (nút cam riêng cạnh Chợ đồ cũ): mua ở đâu cũng được, freeship, Flash Sale -30% đổi mỗi 3 tiếng, bấm thẻ là mặc thử lên người, giá hiện sẵn ưu đãi Lumen / Bearplus / DAS / Everfit -20%',
+    'Hàng mới: 30 áo (có áo + hoodie logo Lumen Studio, DAS), 30 quần / váy, 30 giày dép, 50 mũ (nón lá, mũ phớt, vương miện, tai mèo...), 30 kính, khăn / nơ / cà vạt, 14 kiểu tóc, 17 kiểu mặt; đủ bộ đồ của Đôn Chề',
+    '🦸 Tab Full set: 57 bộ nhân vật anime, hoạt hình, phim (Goku, Naruto, Luffy, Pikachu, Doraemon, Mario, Elsa, Người Nhện, Người Sắt, Harry, Jack Sparrow, Người chơi 456...)',
+    '🐾 Tab Thú cưng: 30 bé (chó, mèo, thỏ, hamster, sóc, nhím, gấu trúc, cáo, vẹt, cánh cụt, rùa...) đi theo bạn khắp map; cho ăn đúng gói hạt thì no 6 giờ, +3% EXP; bỏ đói quá 24 giờ là dỗi ở nhà',
+    'Cửa hàng online đổi tên thành Chợ đồ cũ (đồ mọi người bán lại); giá quần áo cân lại theo thu nhập người chơi',
+    '⚜ Ngân khố nhà nước = tài khoản kaixa (Quân triều đình): mọi tiền mua đồ, dịch vụ, vé, phí, tiền phạt đều nộp về ngân khố. Vay vốn nhà nước để trồng trọt, chăn nuôi ở bảng Vườn & chuồng (F): 500K × cấp, tối đa 10 triệu, lãi 1%/ngày',
+    'Phòng xông hơi Nghiện Motion: ngồi trong phòng là tự lên EXP, ngồi liên tục càng lâu càng nhiều, tối đa 6 giờ game / ngày, có bảng theo dõi ngay trên thanh đồ',
+    'Kenny Ho lúc ở Ké Retreat, lúc sang Bearplus quay content (đổi mỗi giờ) · MCK trâu gấp 50 lần',
+    'Phòng poker mới (club gỗ, bàn bọc da), phòng cờ nhìn ra hồ Hoà Bình, Ma sói ngồi thành vòng quanh đống lửa']},
   {v:'2026-10-24s',title:'24/10 (sửa lỗi)',items:['Cờ vua: sửa lỗi bàn cờ trống trơn (mất hết ô và quân) mỗi khi có tiền vào / thông báo làm bảng vẽ lại']},
   {v:'2026-10-24r',title:'24/10 (nhỏ)',items:['Nút ➜ ở việc Giải toả giờ chạy: ở phòng thì mở luôn điện thoại; pin dưới 50% thì tự tới ổ cạnh giường sạc rồi mở; ở ngoài thì tự về phòng (phòng thuê ở Ké hoặc Grab về Hà Nội)','Auto làm được việc Giải toả: tự mở điện thoại, tự giữ thanh trong vùng xanh, xong thì về báo Pháp']},
   {v:'2026-10-24q',title:'24/10 · Sổ nhiệm vụ',items:['Bấm 📖 cạnh Việc cần làm (hoặc Esc → Sổ nhiệm vụ) để xem đủ mọi nhiệm vụ: đang làm, nhận được ngay, chờ việc trước, việc ẩn, đã xong, chia theo từng map','Bảng Việc cần làm có thêm dòng Nhận được: N việc, gợi ý người giao gần nhất; bấm ➜ là tự đi tới (khác map thì tự gọi Grab)','Sửa lỗi gọi Grab sang map khác xong đứng im: giờ tới nơi tự đi tiếp tới chỗ làm / người giao']},

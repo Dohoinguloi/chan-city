@@ -1294,7 +1294,8 @@ const PCAR={owner:'chika phú',name:'Xe của Chika Phú',speed:2.8,seats:3,park
 // MCK vung mic cận chiến, phóng sóng âm từ xa; máu boss tăng theo số người đánh; hạ được thì chia thưởng theo sát thương; gục thì mất năng lượng, bị đẩy ra cổng đấu trường
 // boss khó: máu ×40, đòn ×15; ra đòn dày hơn, đạn nhanh hơn để khó né
 const BOSS_X=15, BOSS_HP=40;
-const MCK={arena:{x0:5,y0:5,x1:30,y1:25},stage:{x:17.5,y:7.4},gate:{x:17.5,y:28},hp:160*BOSS_HP,hpPer:90*BOSS_HP,playerHp:100,speed:2.6,melee:9*BOSS_X,meleeCd:900,wave:11*BOSS_X,waveCd:1900,waveSpeed:10,
+const MCK={arena:{x0:5,y0:5,x1:30,y1:25},stage:{x:17.5,y:7.4},gate:{x:17.5,y:28},hp:160*BOSS_HP*50,hpPer:90*BOSS_HP*50,   /* máu ×50 (24/10, chủ game yêu cầu) */
+  playerHp:100,speed:2.6,melee:9*BOSS_X,meleeCd:900,wave:11*BOSS_X,waveCd:1900,waveSpeed:10,
   punch:5,punchCd:420,idle:20,cd:180,prize:3000000,exp:400,loseEnergy:20,lines:['Ê! Ai là boss ở đây?','Nghe cho rõ này!','Còn non lắm!','Lên sân khấu mà đòi đấu à?','Mic check, một hai!']};
 const MEGATRON={hp:110*BOSS_HP,optHp:100,speed:2.4,melee:10*BOSS_X,meleeCd:1000,shot:12*BOSS_X,shotCd:2100,shotSpeed:11,punch:4,punchCd:420,ram:7,ramCd:900,cd:120,winExp:300,prize:3000000,loseEnergy:30};
 // thú hoang ngẫu nhiên: khủng long trong rừng (5 loài, chụp ảnh được thưởng, bạo chúa đến gần thì bị đớp), cá sấu dưới hồ đớp người chèo kayak
@@ -1528,7 +1529,10 @@ function otTask(uid,day){ if(isWeekend(day)) return null; let h=2166136261; for(
 /* ---------- Group Nghiện Motion (Hà Nội): làm motion, lắp mô hình, chơi game, phòng xông hơi chung ---------- */
 const NMOTION={W:34,H:24,spawn:{x:17,y:22},desks:[[9,7.4],[13.4,7.4],[17.8,7.4],[9,12],[13.4,12],[17.8,12]],tv:{x:5.6,y:2.1},kanban:{x:24,y:5.6},shelf:{x:30.6,y:5.4},
   model:{x:26.4,y:11.4},game:{x:6,y:18.6},snack:{x:15.4,y:18.3},gundam:{x:29.4,y:11.6},eva:{x:10.4,y:18.8},sauna:{x0:22,y0:15,x1:32,y1:22},benches:[[27,17.2],[27,19.6]],heater:{x:30.6,y:21.2},
-  saunaDur:15,saunaMax:3,saunaEnergy:30,crowd:{n:2,mul:1.1,min:30}};
+  saunaDur:15,saunaMax:3,saunaEnergy:30,crowd:{n:2,mul:1.1,min:30},
+  // ngồi lâu trong phòng xông hơi: EXP tự lên mỗi giây, xông liên tục càng lâu mỗi phút càng nhiều (base + ramp × phút, trần max), ra khỏi phòng là tính lại từ đầu.
+  // Mỗi ngày game tối đa 6 giờ game = 90 phút thật (timeScale 4); xông đủ 90 phút liền ≈ 1.100 EXP gốc (trước buff)
+  steam:{base:4,ramp:.2,max:20,capSec:5400}};
 Object.assign(QUESTS,{
   nm_ball:{giver:'trong',title:'Quả bóng nảy',desc:'Bài nhập môn của Giáo chủ: ngồi 1 bàn làm animation quả bóng nảy đúng 12 nguyên tắc (15 giây).',prog:1,reward:{exp:200,vnd:250000}},
   nm_easing:{giver:'trong',after:'nm_ball',title:'Easing mượt như bơ',desc:'Chỉnh graph editor 3 lần cho chuyển động mượt (mỗi lần 6 giây ở bàn làm việc).',prog:3,reward:{exp:240,vnd:300000}},
@@ -2168,7 +2172,232 @@ MU.north={open:{x:[79,82]},road:{y0:24,y1:27},
     rem:{exp:90,vnd:100000,mu:70},yasuo:{exp:140,vnd:180000,mu:110,jewels:1},yone:{exp:110,vnd:130000,mu:85},yone_bong:{exp:10,vnd:5000,mu:5}});   /* Luffy 200k là mốc cao nhất */
   MU.portals.push({id:'bac',north:1,name:'Đỉnh Bắc · lối lên 3 đấu trường boss mới',kind:'front',x:81,y:32,span:4,col:'#ffd84a',sign:'DINH BAC'},
     {id:'n_ranger',north:1,name:'Căn cứ Siêu Nhân · 5 anh em Siêu Nhân',kind:'pad',x:27,y:25.2,col:'#e8302a'},{id:'n_yasuo',north:1,name:'Thung lũng Gió · Yasuo',kind:'pad',x:93,y:25.2,col:'#7ab8f0'},{id:'n_ryuk',north:1,name:'Thế giới Thần Chết · Ryuk',kind:'pad',x:132,y:25.2,col:'#9a5ae8'}); }
-return {EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
+/* ---------- Shopee Chande: shop online trong Chợ đồ cũ (nút C), mua ở đâu cũng được, freeship ----------
+   Bán đồ Shop Chande + hàng độc quyền Shopee (ẩn ở Shop Chande, mua rồi thì hiện trong tủ đồ) + đồ phụ trợ. Flash Sale: mỗi 3 tiếng 4 món -30%, chọn theo khung giờ (máy khách và server tính giống nhau).
+   Sau giá flash vẫn trừ tiếp ưu đãi DAS / Bearplus / Lumen / Everfit -20% và hảo sảng (perks.js). */
+const SHOPEE={flashH:3,flashN:4,flashOff:.3,perPage:15,   /* 15 món / trang: 5 cột × 3 hàng (màn hẹp 3 × 5), trang chưa cuối luôn kín ô */
+ 
+  tabs:[['hot','🔥 Nổi bật'],['full','🦸 Full set'],['pet','🐾 Thú cưng'],['top','👕 Áo'],['bottom','👖 Quần / váy'],['shoes','👟 Giày dép'],['head','🧢 Mũ'],['eyes','🕶 Kính'],['acc','💍 Phụ kiện'],['hairx','💇 Kiểu tóc'],['face','🙂 Khuôn mặt'],['aux','🧰 Phụ trợ'],['mine','🧺 Đã mua']],
+  aux:{bong_cat5:{name:'Combo 5 Bóng Cát',item:'bong_cat',n:5,price:5*LINHCAT.shop.bong_cat,desc:'Ném bắt Lính Cát hoang'},
+    bong_vang3:{name:'Combo 3 Bóng Cát Vàng',item:'bong_vang',n:3,price:3*LINHCAT.shop.bong_vang,desc:'Bắt dễ gấp '+LINHCAT.ball.bong_vang+' lần'},
+    thuoc5:{name:'Combo 5 Thuốc hồi máu Lính Cát',item:'thuoc_cat',n:5,price:5*LINHCAT.shop.thuoc_cat,desc:'Mỗi lọ hồi '+LINHCAT.potion+' máu'},
+    helmet:{name:'Mũ bảo hiểm',helmet:1,price:MOTO.helmet,icon:'sp_helmet',desc:'Lên xe máy tự đội, khỏi bị CSGT phạt lỗi mũ'},
+    data_ngay:{name:'4G VNPT '+VNPT.packs.ngay.name,pack:'ngay',price:VNPT.packs.ngay.price,icon:'sp_4g',desc:'Pin hao chậm trong 1 ngày · cần SIM VNPT'},
+    data_tuan:{name:'4G VNPT '+VNPT.packs.tuan.name,pack:'tuan',price:VNPT.packs.tuan.price,icon:'sp_4g',desc:'Pin hao chậm trong 7 ngày · cần SIM VNPT'},
+    data_thang:{name:'4G VNPT '+VNPT.packs.thang.name,pack:'thang',price:VNPT.packs.thang.price,icon:'sp_4g',desc:'Pin hao chậm trong 30 ngày · cần SIM VNPT'}}};
+for(const [k,name,slot,price,opts,colors] of [
+  ['sp_tee_cam','Áo thun cam Shopee Chande','top',129000,{top:'tee',print:true},{top:'ee4d2d',print:'fff3e8',line:'b8331a'}],
+  ['sp_tee_tim','Áo thun tím lavender','top',159000,{top:'tee'},{top:'c8b6e8'}],
+  ['sp_tee_chu','Áo thun be in chữ','top',189000,{top:'tee',print:true},{top:'e9dcc4',print:'3a2f2a',line:'c4382e'}],
+  ['sp_chambi','Áo chấm bi đen trắng','top',219000,{top:'tee',polka:true},{top:'1e1c22',print:'f2f0ea'}],
+  ['sp_soc_navy','Áo sọc dọc navy','top',239000,{top:'tee',vstripe:true},{top:'f2f4f8',print:'1f3a6b'}],
+  ['sp_somi_baby','Sơ mi xanh baby','top',279000,{top:'long'},{top:'b9d3ee'}],
+  ['sp_len_mint','Áo len cổ lọ xanh mint','top',360000,{top:'long',turtle:true},{top:'9fd6c2'}],
+  ['sp_cardigan_kem','Cardigan kem + cổ lọ nâu','top',450000,{top:'cardigan',turtle:true},{top:'e8dcc2',inner:'6b4a3a'}],
+  ['sp_khoac_reu','Khoác kaki xanh rêu','top',590000,{top:'jacket'},{top:'6b7350',inner:'f1f1ee'}],
+  ['sp_khoac_biker','Khoác da biker đen','top',890000,{top:'jacket'},{top:'1c1b20',inner:'8e2b2c'}],
+  ['sp_jogger','Quần jogger đen','bottom',290000,{bottom:'pants'},{pants:'2a2a30'}],
+  ['sp_jean_den','Jean đen rách gối','bottom',480000,{bottom:'pants',rips:true},{pants:'2b2c33'}],
+  ['sp_short_jean','Quần short jean','bottom',220000,{bottom:'shorts'},{pants:'6d90bb'}],
+  ['sp_vay_hong','Chân váy hồng pastel','bottom',320000,{bottom:'skirt'},{pants:'f2b8c6'}],
+  ['sp_vay_kem','Chân váy kem','bottom',320000,{bottom:'skirt'},{pants:'e8dcc2'}],
+  ['sp_sneaker_cam','Sneaker cam','shoes',590000,null,{shoes:'ee4d2d'}],
+  ['sp_sneaker_navy','Sneaker xanh navy','shoes',590000,null,{shoes:'2b3f6b'}],
+  ['sp_boot_nau','Boot da nâu','shoes',990000,null,{shoes:'6b4a32'}],
+  ['sp_dep_lao','Dép lào xanh','shoes',49000,null,{shoes:'3a78c8'}],
+  ['sp_mu_cam','Mũ lưỡi trai cam Shopee','head',99000,{hair:'cap',capPattern:true},{cap:'ee4d2d'}],
+  ['sp_mu_den','Mũ lưỡi trai đen','head',119000,{hair:'cap'},{cap:'1e1d22'}],
+  ['sp_mu_reu','Mũ lưỡi trai xanh rêu','head',119000,{hair:'cap'},{cap:'5a7d4a'}],
+  ['sp_kinh_mau','Kính tròng màu','eyes',290000,{glasses:'tint'},null],
+  ['sp_kinh_cam','Kính tròng cam','eyes',320000,{glasses:'tint',lensO:true},null],
+  ['sp_day_hong','Dây chuyền vàng hồng','neck',2200000,{chain:true},{gold:'e8a08a'}],
+  ['sp_dongho_trang','Đồng hồ dây trắng','wrist',1200000,{watch:true},{watch:'f0eee8'}],
+  ['sp_vong_bac','Vòng tay bạc','wrist',900000,{bracelet:true},{gold:'c0c6ce'}]])
+  CLOTHES[k]={name,slot,price,hidden:true,shopee:true,...(opts?{opts}:{}),...(colors?{colors}:{})};
+/* ---------- Shopee mở rộng (24/10): áo, quần / váy, giày dép, mũ, kính, khăn, kiểu tóc, khuôn mặt — vẽ bằng đồ phủ wear.js (opts hat / gl / scarf / pat / pat2 / shoe / hx / fc) ---------- */
+SLOTS.push(['hairx','Kiểu tóc'],['face','Khuôn mặt']);
+{ const add=(k,name,slot,price,opts,colors)=>{ CLOTHES[k]={name,slot,price,hidden:true,shopee:true,opts:opts||{},colors:colors||{}}; };
+  /* 30 áo: [id, tên, giá, dáng, hoạ tiết, màu áo, màu phụ, màu phụ 2, thêm opts] */
+  for(const [k,n,p,top,pat,c,a,a2,x] of [
+    ['soc_ngang','Áo thun sọc ngang navy',160000,'tee','hs','f4f4f2','1f3a6b'],['soc_do','Áo thun sọc đỏ đen',160000,'tee','hs','2b282e','c4382e'],
+    ['block','Áo thun phối 2 màu',180000,'tee','block','2a62c8','f2c43d'],['raglan','Áo raglan tay đen',180000,'tee','rag','f1f1ee','2b282e'],
+    ['baseball','Áo baseball số 10',220000,'tee','rag+jersey','f1f1ee','c4382e'],['jersey','Áo bóng đá số 10',250000,'tee','jersey+collar','2a62c8','f4f1ea'],
+    ['caro','Sơ mi caro đỏ đen',280000,'long','check','c4382e','1c1820'],['camo','Áo rằn ri',260000,'tee','camo','5a6a3a','3a4a2a','8a7a4a'],
+    ['tiedye','Áo loang tie-dye',230000,'tee','tiedye','f2a6b8','7fd0ff','ffe27a'],['tim','Áo thun in tim',170000,'tee','heart','f1f1ee','e8304a'],
+    ['sao','Áo thun ngôi sao',170000,'tee','star','2b282e','ffd84a'],['tui','Áo thun túi ngực',170000,'tee','pocket','7a9a6a','5a7a4a'],
+    ['ringer','Áo cổ viền ringer',170000,'tee','collar','f4f1ea','c4382e'],['hoodie_xam','Hoodie xám',380000,'long','hood+pocket','8a8e96','6a6e76'],
+    ['hoodie_den','Hoodie đen',380000,'long','hood','2a2a30','4a4a52'],['hoodie_hong','Hoodie hồng pastel',380000,'long','hood','f2b8c6','e898ae'],
+    ['the_thao','Áo khoác thể thao kéo khoá',420000,'long','zip+rag','2a62c8','f4f1ea','c8ccd4'],['bomber','Áo bomber xanh rêu',650000,'jacket','collar','4a5a3a','2b282e',null,{inner:'f2802a'}],
+    ['varsity','Áo varsity đỏ đô',700000,'jacket','rag','7a1a2a','f4f1ea',null,{inner:'f4f1ea'}],['gile','Áo len gile caro',450000,'cardigan','check','8a6a4a','6a4a2a',null,{inner:'f1f1ee'}],
+    ['polo_soc','Áo polo sọc xanh',230000,'tee','hs','f4f1ea','2a8a6a',null,{polo:true}],['breton','Áo dài tay sọc Breton',260000,'long','hs','f1f1ee','2b282e'],
+    ['lumen','Áo thun Lumen Studio',200000,'tee','lumen','fff3d6'],['lumen_den','Áo thun Lumen Studio (đen)',200000,'tee','lumen','1c1a20'],
+    ['das','Áo thun DAS',200000,'tee','das','1c1516'],['das_trang','Áo thun DAS (trắng)',200000,'tee','das','f4f2ec'],
+    ['hoodie_lumen','Hoodie Lumen Studio',420000,'long','hood+lumen','2b5e4e'],['hoodie_das','Hoodie DAS',420000,'long','hood+das','1c1516'],
+    ['phoi_tang','Áo phối 2 tầng xanh',190000,'tee','low','7fd0ff','2a62c8'],['ke_doc','Sơ mi kẻ sọc dọc xanh',290000,'long','','f4f6fa',null,null,{vstripe:true,print:'2a62c8'}]])
+    add('sp_a_'+k,n,'top',p,{top,...(pat?{pat}:{}),...(x&&x.polo?{polo:true}:{}),...(x&&x.vstripe?{vstripe:true}:{})},{top:c,...(a?{acc:a}:{}),...(a2?{acc2:a2}:{}),...(x&&x.inner?{inner:x.inner}:{}),...(x&&x.print?{print:x.print}:{})});
+  /* 30 quần / váy: [id, tên, giá, dáng, hoạ tiết, màu, màu phụ, rách / da] */
+  for(const [k,n,p,b,pat,c,a,m] of [
+    ['track_den','Quần thể thao đen sọc trắng',260000,'pants','side','1c1820','f4f1ea'],['track_navy','Quần thể thao navy sọc đỏ',260000,'pants','side','1f3a6b','c4382e'],
+    ['cargo_be','Quần túi hộp be',320000,'pants','cargo','b8a07a','8a7a5a'],['cargo_reu','Quần túi hộp xanh rêu',320000,'pants','cargo','5a6a3a','3a4a2a'],
+    ['caro','Quần caro xám',300000,'pants','check','6a6a7a','3a3a48'],['jean_bac','Jean bạc gối',400000,'pants','wash','4d6a8a','8aa8c8'],
+    ['jean_xan','Jean xắn gấu',380000,'pants','cuff','4d6a8a','7a98b8'],['jean_trang','Jean trắng',380000,'pants','','e8e6e0'],
+    ['kaki_den','Kaki đen xắn gấu',300000,'pants','cuff','2a2a30','4a4a52'],['tay_xam','Quần tây xám',350000,'pants','','6b6e76'],
+    ['do_do','Quần đỏ đô',300000,'pants','','7a1a2a'],['mu_tat','Quần vàng mù tạt',300000,'pants','','c8a032'],
+    ['ong_rong','Quần ống rộng kem',330000,'pants','cuff','e8dcc2','d4c4a2'],['jogger_xam','Jogger xám sọc đen',260000,'pants','side','8a8e96','2b282e'],
+    ['da_nau','Quần da nâu',650000,'pants','','6b4a32',null,'leather'],['short_tt','Short thể thao sọc',170000,'shorts','side','2a62c8','f4f1ea'],
+    ['short_kaki','Short kaki be',160000,'shorts','','c2a77d'],['short_caro','Short caro xanh',180000,'shorts','check','5a7d4a','3a5a2a'],
+    ['short_rach','Short đen rách',190000,'shorts','','2b282e',null,'rips'],['short_tui','Short túi hộp',190000,'shorts','cargo','6a6a5a','4a4a3a'],
+    ['short_trang','Short trắng',160000,'shorts','','f1f1ee'],['v_xep_ly','Chân váy xếp ly navy',280000,'skirt','pleat','1f3a6b'],
+    ['v_caro_do','Chân váy caro đỏ',300000,'skirt','check','c4382e','7a1a2a'],['v_caro_xam','Chân váy caro xám đồng phục',300000,'skirt','check','6a6e7a','3a3e4a'],
+    ['v_jean','Chân váy jean',280000,'skirt','','6d90bb'],['v_da','Chân váy da đen',450000,'skirt','','1c1820',null,'leather'],
+    ['v_trang','Chân váy trắng',260000,'skirt','','f4f1ea'],['v_vang','Chân váy vàng',260000,'skirt','','f2c43d'],
+    ['v_mint','Chân váy xanh mint',260000,'skirt','','9fd6c2'],['v_tim','Chân váy tím xếp ly',280000,'skirt','pleat','8a6ac8']])
+    add('sp_q_'+k,n,'bottom',p,{bottom:b,...(pat?{pat2:pat}:{}),...(m?{[m]:true}:{})},{pants:c,...(a?{pacc:a}:{})});
+  /* 30 giày dép: [id, tên, giá, màu, kiểu, màu phụ] */
+  for(const [k,n,p,c,s,a] of [
+    ['den_de_trang','Sneaker đen đế trắng',450000,'2a2a30','sole','f4f1ea'],['do_de_trang','Sneaker đỏ đế trắng',450000,'c4382e','sole','f4f1ea'],
+    ['xanh_de_trang','Sneaker xanh dương đế trắng',450000,'2a62c8','sole','f4f1ea'],['hong_de_trang','Sneaker hồng đế trắng',450000,'f2a6b8','sole','f4f1ea'],
+    ['vang_soc','Sneaker vàng sọc đen',480000,'f2c43d','stripe','2b282e'],['trang_3soc','Sneaker trắng 3 sọc',480000,'f4f1ea','stripe','2b282e'],
+    ['den_3soc','Sneaker đen 3 sọc trắng',480000,'2b282e','stripe','f4f1ea'],['day_nau','Giày buộc dây nâu',420000,'8a5a32','lace','e8dcc2'],
+    ['vai_xanh','Giày vải xanh buộc dây',300000,'3a5a8a','lace','f4f1ea'],['high_do','Giày cổ cao đỏ',520000,'c4382e','high','f4f1ea'],
+    ['high_den','Giày cổ cao đen',520000,'2b282e','high','f4f1ea'],['high_trang','Giày cổ cao trắng',520000,'f1f1ee','high','c8ccd4'],
+    ['boot_den','Boot đen',750000,'1c1820','boot','3a3a40'],['boot_bo','Boot da bò nâu',800000,'7a4a2a','boot','5a3a1e'],
+    ['boot_vang','Boot vàng đi rừng',780000,'c8902a','boot','8a5a1a'],['boot_do','Boot đỏ',780000,'8a1a22','boot','5a1016'],
+    ['sandal_nau','Sandal nâu',220000,'8a5a32','sandal','6a4222'],['sandal_den','Sandal đen',220000,'2b282e','sandal','1c1820'],
+    ['sandal_hong','Sandal hồng',220000,'f2a6b8','sandal','c87a8a'],['xo_ngon','Dép xỏ ngón xanh',90000,'3a78c8','sandal','2a5898'],
+    ['mui_trang','Giày đen mũi trắng',480000,'2b282e','toe','f4f1ea'],['oxford','Giày oxford nâu',650000,'6b4a32','toe','8a6a4a'],
+    ['loafer','Giày lười đen đế nâu',600000,'1c1820','sole','6b4a32'],['cam_de_den','Giày thể thao cam đế đen',450000,'ee4d2d','sole','2b282e'],
+    ['xanh_la','Sneaker xanh lá đế trắng',450000,'4aa84a','sole','f4f1ea'],['tim_day','Giày tím buộc dây trắng',420000,'8a6ac8','lace','f4f1ea'],
+    ['bac','Sneaker bạc sọc xám',520000,'c8ccd4','stripe','6a6e76'],['gold','Sneaker vàng gold',700000,'e8b83a','sole','8a6a1a'],
+    ['ung_mua','Ủng đi mưa vàng',260000,'f2d23a','boot','c8a020'],['bup_be','Giày búp bê hồng',380000,'f2b8c6','toe','f4f1ea']])
+    add('sp_g_'+k,n,'shoes',p,{shoe:s},{shoes:c,sacc:a});
+  /* 50 mũ: [kiểu, tên, giá, màu, màu phụ] */
+  const HT=[['beanie','Mũ len đỏ',150000,'c4382e'],['beanie','Mũ len xám',150000,'8a8e96'],['beanie_pom','Mũ len quả bông xanh',180000,'2a62c8','f4f1ea'],['beanie_pom','Mũ len quả bông hồng',180000,'f2a6b8','f4f1ea'],
+    ['bucket','Mũ bucket be',160000,'c2a77d'],['bucket','Mũ bucket đen',160000,'2b282e'],['bucket','Mũ bucket xanh rêu',160000,'5a6a3a'],['fedora','Mũ phớt nâu',280000,'6b4a32','2b282e'],['fedora','Mũ phớt đen',280000,'1c1820','c4382e'],
+    ['cowboy','Mũ cao bồi nâu',300000,'8a5a32','3a2418'],['cowboy','Mũ cao bồi đen',300000,'1c1820','c8a24a'],['tophat','Mũ chóp cao đen',350000,'1c1820','c4382e'],['tophat','Mũ chóp cao tím',350000,'5a3a8a','f2c43d'],
+    ['straw','Mũ rơm băng đỏ',150000,'e8c070','c4382e'],['straw','Mũ rơm băng xanh',150000,'e8c070','2a62c8'],['nonla','Nón lá Việt Nam',90000,'e8d090'],['beret','Mũ nồi đỏ',200000,'c4382e'],['beret','Mũ nồi đen',200000,'1c1820'],
+    ['helmet','Mũ bảo hiểm thời trang trắng',250000,'f4f1ea','c4382e'],['helmet','Mũ bảo hiểm thời trang đen',250000,'2b282e','f2c43d'],['hardhat','Mũ công trường vàng',160000,'f2c43d'],['crown','Vương miện vàng',1500000,'c4382e'],
+    ['tiara','Vương miện công chúa',800000,'7fd0ff'],['headband','Băng đô đỏ',90000,'c4382e'],['headband','Băng đô trắng',90000,'f4f1ea'],['bandana','Khăn bandana đỏ',120000,'c4382e','f4f1ea'],['bandana','Khăn bandana xanh',120000,'2a62c8','f4f1ea'],
+    ['chef','Mũ đầu bếp',200000,'f4f1ea'],['santa','Mũ ông già Noel',150000,'c4382e'],['catear','Tai mèo đen',160000,'1c1820','f2a6b8'],['catear','Tai mèo hồng',160000,'f2b8c6','ffffff'],
+    ['bunny','Tai thỏ trắng',170000,'f4f1ea','f2a6b8'],['bunny','Tai thỏ hồng',170000,'f2a6b8','ffffff'],['halo','Vòng hào quang thiên thần',400000,'ffd84a'],['horns','Sừng ác quỷ đỏ',220000,'c4382e'],
+    ['grad','Mũ tốt nghiệp',250000,'1c1820','f2c43d'],['viking','Mũ Viking',450000,'8a8e96','c8a24a'],['sombrero','Mũ Sombrero Mexico',350000,'e8c070','c4382e'],['snap','Mũ snapback đen',180000,'1c1820','c4382e'],
+    ['snap','Mũ snapback đỏ',180000,'c4382e','f4f1ea'],['snap','Mũ snapback xanh',180000,'2a62c8','f4f1ea'],['visor','Mũ nửa đầu trắng',120000,'f4f1ea'],['visor','Mũ nửa đầu hồng',120000,'f2a6b8'],
+    ['pirate','Mũ hải tặc',300000,'1c1820'],['turban','Khăn turban trắng',220000,'f4f1ea','c4382e'],['turban','Khăn turban tím',220000,'6a3a8a','f2c43d'],['earmuff','Bịt tai lông hồng',160000,'f2b8c6','8a5a6a'],
+    ['flower','Vòng hoa cài tóc',180000,'f2a6b8','ffd84a'],['police','Mũ cảnh sát',300000,'1f2a4a','1c1820'],['bucket','Mũ bucket xanh mint',160000,'9fd6c2']];
+  HT.forEach(([h,n,p,c,a],i)=>add('sp_m_'+String(i+1).padStart(2,'0'),n,'head',p,{hat:h},{hat:c,...(a?{hat2:a}:{})}));
+  /* 30 kính: 15 kiểu × 2 màu [kiểu, tên, giá, gọng, tròng, tròng trong] */
+  const GLS=[['round','Kính tròn',220000],['square','Kính vuông',220000],['cat','Kính mắt mèo',260000],['avi','Kính phi công',320000],['heart','Kính trái tim',200000],['star','Kính ngôi sao',200000],
+    ['visor','Kính chắn liền',300000],['mono','Kính một mắt quý tộc',350000],['3d','Kính 3D',150000],['goggle','Kính bơi / trượt tuyết',280000],['rimless','Kính không gọng',300000],['half','Kính nửa gọng',260000],
+    ['clear','Kính tròn trong suốt',220000],['nerd','Kính mọt sách dán băng',180000],['oval','Kính oval mảnh',240000]];
+  const GCOL=[['đen','1c1820','2a3442'],['màu','c4382e','e87a2a']];
+  GLS.forEach(([s,n,p],i)=>GCOL.forEach(([cn,fr,ln],j)=>add(`sp_k_${s}_${j}`,`${n} ${s==='3d'?(j?'đỏ':'trắng'):cn==='màu'?({heart:'hồng',star:'vàng',visor:'cam',goggle:'xanh'}[s]||'đỏ'):'đen'}`,'eyes',p,{gl:s},{frame:s==='3d'&&!j?'f4f1ea':fr,lens:s==='heart'&&j?'e8304a':s==='star'&&j?'f2c43d':s==='goggle'&&j?'3a78c8':ln})));
+  /* khăn, nơ, cà vạt, chuỗi ngọc (ô Cổ) */
+  for(const [k,n,p,s,c,a] of [['quang_do','Khăn quàng đỏ',180000,'wrap','c4382e'],['quang_xam','Khăn quàng len xám',200000,'knit','8a8e96'],['quang_soc','Khăn quàng sọc đỏ trắng',220000,'stripe','c4382e','f4f1ea'],
+    ['quang_caro','Khăn quàng caro be',280000,'check','c2a77d','7a1a2a'],['quang_dai','Khăn len dài xanh',240000,'long','2a62c8','f4f1ea'],['quang_nau','Khăn len nâu đan',220000,'knit','8a5a32'],
+    ['bandana_co','Khăn bandana cổ đỏ',120000,'bandana','c4382e'],['no_den','Nơ cổ đen',150000,'bow','1c1820','3a3a40'],['no_do','Nơ cổ đỏ',150000,'bow','c4382e','8a1a22'],
+    ['cavat_do','Cà vạt đỏ',200000,'tie','c4382e','f2c43d'],['cavat_xanh','Cà vạt xanh navy',200000,'tie','1f3a6b','c8ccd4'],['ngoc_trai','Chuỗi ngọc trai',900000,'pearl','f4f1ea']])
+    add('sp_c_'+k,n,'neck',p,{scarf:s},{scarf:c,...(a?{scarf2:a}:{})});
+  /* kiểu tóc (màu theo tóc của bạn) */
+  for(const [k,n,p,base] of [['spiky','Tóc dựng anime',300000],['mohawk','Tóc mohican',280000,'buzz'],['twin','Tóc buộc 2 bên',260000],['odango','Tóc búi 2 củ tỏi',260000],
+    ['mullet','Tóc mullet',250000],['curly','Tóc xoăn bồng',280000],['wavy','Tóc dài gợn sóng',320000],['pomp','Tóc pompadour',300000],['bun','Tóc búi củ hành',220000],
+    ['dread','Tóc tết dreadlock',350000],['emo','Tóc emo che mắt',240000],['hime','Tóc mái bằng công chúa',300000],['braid','Tóc tết đuôi sam',260000],['side','Tóc mái lệch',200000]])
+    add('sp_t_'+k,n,'hairx',p,{hx:k,...(base?{hair:base}:{})});
+  /* khuôn mặt */
+  for(const [k,n,p,c,c2] of [['blush','Má hồng',80000,'f08a96'],['freckle','Tàn nhang',60000],['beard','Râu quai nón',150000],['goatee','Râu dê',120000],['stache','Ria mép',100000],['stubble','Râu lún phún',90000],
+    ['scar','Vết sẹo ngầu',100000,'a83a3a'],['paint','Vẽ mặt cổ động',90000,null,'3a78c8'],['mole','Nốt ruồi duyên',50000],['bandaid','Băng cá nhân',50000],['whisker','Ria mèo',70000],
+    ['tear','Hình xăm giọt lệ',120000,null,'2a62c8'],['lip','Son môi đỏ',90000,'d8283a'],['bigeye','Mắt to long lanh',180000],['sleepy','Mắt lim dim',120000],['wink','Nháy mắt',120000],['hearteye','Mắt trái tim',160000]])
+    add('sp_f_'+k,n,'face',p,{fc:k},{...(c?{fc:c}:{}),...(c2?{fc2:c2}:{})}); }
+/* 57 full set nhân vật (sets.js vẽ, tab Full set): [id, tên, giá, màu áo, quần, giày] — màu nền dưới lớp vẽ set */
+for(const [k,n,p,t,pa,sh] of [['goku','Set Goku (Dragon Ball)',2200000,'f2802a','f2802a','2e62c8'],['vegeta','Set Vegeta giáp Saiyan',2400000,'2e62c8','2e62c8','f4f2ec'],['naruto','Set Naruto ninja làng Lá',2000000,'f2802a','f2802a','18203f'],
+  ['sasuke','Set Sasuke',2000000,'f4f2ec','18203f','18203f'],['kakashi','Set Kakashi thầy ninja',2100000,'6e743c','18203f','18203f'],['luffy','Set Luffy mũ rơm',2000000,'d62830','2e62c8','f0c4a0'],
+  ['zoro','Set Zoro tam kiếm',2100000,'f4f2ec','1e1a20','1e1a20'],['sailormoon','Set Thuỷ thủ Mặt Trăng',2200000,'f4f2ec','2e62c8','d62830'],['conan','Set Thám tử Conan',1800000,'2e62c8','969aa2','3c2a20'],
+  ['ash','Set Nhà huấn luyện Pokémon',1800000,'2e62c8','4a6896','1e1a20'],['pikachu','Bộ đồ Pikachu',1900000,'f8ce30','f8ce30','f8ce30'],['totoro','Bộ đồ Totoro',1900000,'969aa2','969aa2','565862'],
+  ['doraemon','Bộ đồ Doraemon',2000000,'2e62c8','2e62c8','f4f2ec'],['saitama','Set Saitama anh hùng 1 đấm',2000000,'f8ce30','f8ce30','d62830'],['tanjiro','Set Kiếm sĩ Tanjiro',2300000,'1e1a20','1e1a20','f4f2ec'],
+  ['nezuko','Set Nezuko',2300000,'f896be','f896be','f4f2ec'],['gojo','Set Thầy Gojo',2500000,'18203f','18203f','1e1a20'],['levi','Set Trinh sát binh Levi',2400000,'825430','f4f2ec','54341e'],
+  ['ichigo','Set Thần chết Ichigo',2300000,'1e1a20','1e1a20','f4f2ec'],['L','Set Thám tử L',1600000,'f4f2ec','4a6896','f0c4a0'],['edward','Set Giả kim thuật sư Edward',2300000,'d62830','1e1a20','1e1a20'],
+  ['kirito','Set Kiếm sĩ áo đen Kirito',2400000,'1e1a20','1e1a20','121016'],['gon','Set Thợ săn Gon',1900000,'3ca046','3ca046','f2802a'],['mickey','Bộ đồ Chuột Mickey',1900000,'1e1a20','d62830','f8ce30'],
+  ['mario','Set Thợ sửa ống nước Mario',2000000,'d62830','2e62c8','825430'],['luigi','Set Luigi',2000000,'3ca046','1c3882','825430'],['spongebob','Set Bọt Biển vui vẻ',1800000,'f8ce30','825430','1e1a20'],
+  ['patrick','Set Sao Biển hồng',1600000,'f896be','96d63c','f896be'],['shin','Set Cậu bé bút chì',1500000,'d62830','f8ce30','f4f2ec'],['elsa','Set Nữ hoàng băng giá',2600000,'bee2fa','bee2fa','bee2fa'],
+  ['snowwhite','Set Bạch Tuyết',2400000,'1c3882','f8ce30','f8ce30'],['buzz','Set Phi hành gia Buzz',2500000,'f4f2ec','f4f2ec','3ca046'],['woody','Set Cao bồi Woody',2300000,'f8ce30','4a6896','825430'],
+  ['shrek','Set Chằn tinh xanh Shrek',2200000,'f2e2be','825430','54341e'],['minion','Bộ đồ Minion',1900000,'f8ce30','2e62c8','1e1a20'],['kitty','Bộ đồ Mèo Kitty',1900000,'f896be','f896be','f4f2ec'],
+  ['pooh','Bộ đồ Gấu Pooh',1900000,'d62830','e8b83a','e8b83a'],['spider','Set Người Nhện',2800000,'d62830','2e62c8','d62830'],['ironman','Giáp Người Sắt',3500000,'d62830','d62830','e8b83a'],
+  ['captain','Set Đội trưởng Mỹ',2800000,'2e62c8','2e62c8','d62830'],['hulk','Set Người khổng lồ xanh',2600000,'5aaa3c','783caa','5aaa3c'],['thor','Set Thần Sấm',3000000,'565862','1e1a20','565862'],
+  ['harry','Set Phù thuỷ Harry',2500000,'1e1a20','1e1a20','1e1a20'],['vader','Set Chúa tể bóng tối',3200000,'1e1a20','1e1a20','1e1a20'],['trooper','Giáp lính áo trắng',2600000,'f4f2ec','f4f2ec','f4f2ec'],
+  ['sparrow','Set Thuyền trưởng Jack',2600000,'f4f2ec','54341e','1e1a20'],['joker','Set Gã hề Joker',2600000,'783caa','783caa','825430'],['wonder','Set Nữ chiến binh',2800000,'d62830','2e62c8','d62830'],
+  ['neo','Set Neo Ma trận',2400000,'1e1a20','1e1a20','1e1a20'],['chaplin','Set Vua hề Chaplin',1800000,'1e1a20','565862','1e1a20'],['456','Set Người chơi 456',1700000,'289696','289696','f4f2ec'],
+  ['guard','Set Lính hồng trò chơi',1900000,'ec3c8c','ec3c8c','1e1a20'],['heist','Set Phi vụ triệu đô',2000000,'d62830','d62830','1e1a20'],['deadpool','Set Lính đánh thuê mồm to',2800000,'d62830','d62830','1e1a20'],
+  ['batgirl','Set Nữ hiệp dơi',2600000,'46226e','46226e','783caa'],['ninjaturtle','Set Ninja rùa',2200000,'96d63c','3ca046','3ca046'],['mulan','Set Nữ tướng Mộc Lan',2600000,'d62830','8c161e','1e1a20']])
+  CLOTHES['fs_'+k]={name:n,slot:'top',price:p,hidden:true,shopee:true,full:1,set:'fs_'+k,opts:{top:'long',bottom:'pants'},colors:{top:t,pants:pa,shoes:sh}};
+/* đồ của Đôn Chề (NPC Ké): mũ lưới, khẩu trang, điếu thuốc, sơ mi caro, quần, giày đỏ — mua đủ là mặc giống y Đôn Chề */
+Object.assign(CLOTHES,{sp_dc_mu:{name:'Mũ lưỡi trai lưới (Đôn Chề)',slot:'head',price:180000,hidden:true,shopee:true,dc:1,opts:{hair:'cap',capPattern:true,capWeb:true},colors:{cap:'b49b78'}},
+  sp_dc_somi:{name:'Sơ mi caro (Đôn Chề)',slot:'top',price:280000,hidden:true,shopee:true,dc:1,opts:{top:'long',plaid:true},colors:{top:'c8a77d',print:'b4473c',line:'554850'}},
+  sp_dc_quan:{name:'Quần xanh đen (Đôn Chề)',slot:'bottom',price:300000,hidden:true,shopee:true,dc:1,opts:{bottom:'pants'},colors:{pants:'303846'}},
+  sp_dc_giay:{name:'Giày đỏ (Đôn Chề)',slot:'shoes',price:450000,hidden:true,shopee:true,dc:1,colors:{shoes:'a5302b'}},
+  sp_dc_khau:{name:'Khẩu trang xám (Đôn Chề)',slot:'face',price:60000,hidden:true,shopee:true,dc:1,opts:{mask:true},colors:{mask:'9ea1a7'}},
+  sp_dc_thuoc:{name:'Khẩu trang + điếu thuốc (Đôn Chề)',slot:'face',price:90000,hidden:true,shopee:true,dc:1,opts:{mask:true,cigarette:true},colors:{mask:'9ea1a7'}}});
+/* giá quần áo theo thu nhập (24/10): người mới kiếm ~0,5–0,8 triệu/giờ, người cày ~1,5 triệu/giờ (đo trên server sau reset).
+   Đồ cơ bản ≈ 10 phút chơi, đồ đẹp ≈ 20–40 phút, đồ xịn ≈ 1 giờ, trang sức / set hot là đồ chơi sang ≈ 2–6 giờ. Áp cho Shop Chande và Shopee */
+{ const PR={tee_trang:120000,tee_den:120000,tee_xanh:150000,tee_hong:150000,tee_do:150000,polo_vnpt:200000,somi_dai:250000,somi_hoa:300000,somi_caro:280000,khoac_jean:550000,cardigan:450000,vest:1200000,len_colo:350000,
+    jean:380000,jean_rach:420000,kaki:280000,quan_da:700000,short_xam:150000,vay_do:300000,vay_den:300000,giay_trang:480000,giay_den:480000,giay_luoi:650000,dep_to_ong:40000,
+    kinh_can:250000,kinh_ram:200000,mu_be:100000,mu_do:100000,day_vang:5000000,day_bac:900000,dong_ho:1500000,vong_vang:3000000,set_superman:1990000,set_batman:2490000,
+    sp_tee_cam:99000,sp_tee_tim:130000,sp_tee_chu:180000,sp_chambi:200000,sp_soc_navy:200000,sp_somi_baby:250000,sp_len_mint:330000,sp_cardigan_kem:420000,sp_khoac_reu:550000,sp_khoac_biker:780000,
+    sp_jogger:250000,sp_jean_den:400000,sp_short_jean:180000,sp_vay_hong:280000,sp_vay_kem:280000,sp_sneaker_cam:450000,sp_sneaker_navy:450000,sp_boot_nau:800000,sp_dep_lao:35000,
+    sp_mu_cam:79000,sp_mu_den:100000,sp_mu_reu:100000,sp_kinh_mau:250000,sp_kinh_cam:280000,sp_day_hong:2000000,sp_dongho_trang:1200000,sp_vong_bac:700000};
+  for(const [k,v] of Object.entries(PR)) if(CLOTHES[k]) CLOTHES[k].price=v; }
+// Kenny Ho đi quay content: mỗi giờ (giờ thật) đứng ở Ké Retreat (khu trên) hoặc Bearplus Studio (góc họp), chọn theo khung giờ nên máy khách và server tính giống nhau
+const KENNY={h:1,ke:{scene:'retreat',x:21.3,y:41.6},bp:{scene:'bearplus',x:24.6,y:15.6}};
+const kennyWhere=(ms=Date.now())=>{ const slot=Math.floor(ms/(KENNY.h*3600e3)); let x=Math.imul(slot^(slot>>>16),0x45d9f3b); x=Math.imul(x^(x>>>16),0x45d9f3b); const bp=((x^(x>>>16))&1)===1; return {...(bp?KENNY.bp:KENNY.ke),end:(slot+1)*KENNY.h*3600e3}; };
+/* thú cưng (Shopee tab Pet): đi theo chủ khắp map, mỗi loài ăn đúng 1 loại hạt (gói 10 bữa). Cho ăn no: +3% EXP trong 6 giờ, quá 6 giờ thì đói (hết buff),
+   quá 24 giờ không ăn thì dỗi ở nhà không theo nữa, cho ăn lại là theo. Hình vẽ ở pets.js theo art (màu B thân / b bóng / W bụng / K mắt mũi, tai, đuôi, hoạ tiết) */
+const PETCFG={full:6,leave:24,buff:1.03};
+const PETFOOD={cho:{name:'Gói hạt cho chó',n:10,price:60000},meo:{name:'Gói hạt cho mèo',n:10,price:60000},nho:{name:'Gói hạt thú nhỏ (thỏ, chuột, sóc...)',n:10,price:50000},
+  chim:{name:'Gói hạt cho chim',n:10,price:45000},dac:{name:'Gói thức ăn đặc biệt (gấu trúc, cáo, rùa...)',n:10,price:90000}};
+for(const [k,f] of Object.entries(PETFOOD)){ ITEMS['petfood_'+k]={name:f.name,icon:'sp_food'}; SHOPEE.aux['food_'+k]={name:f.name,item:'petfood_'+k,n:f.n,price:f.price,icon:'sp_food',desc:`${f.n} bữa cho thú cưng`}; }
+const PETS={
+  corgi:{name:'Chó Corgi',price:1800000,food:'cho',art:{B:'e8823a',b:'c0602a',W:'f6f1ea',ear:'up',tail:'stub',short:1}},
+  shiba:{name:'Chó Shiba Inu',price:1800000,food:'cho',art:{B:'e09a4a',b:'b8763a',W:'f6ecd8',ear:'up',tail:'curl'}},
+  husky:{name:'Chó Husky',price:2200000,food:'cho',art:{B:'7a808c',b:'565c68',W:'f4f2ec',ear:'up',tail:'fluffy',pat:'mask2'}},
+  poodle:{name:'Chó Poodle trắng',price:2000000,food:'cho',art:{B:'f4f1ea',b:'d8d2c6',W:'ffffff',ear:'flop',tail:'puff',pat:'curly'}},
+  golden:{name:'Chó Golden',price:2000000,food:'cho',art:{B:'e8b04a',b:'c08a30',W:'f0cc78',ear:'flop',tail:'fluffy'}},
+  dalmatian:{name:'Chó đốm Dalmatian',price:2000000,food:'cho',art:{B:'f4f1ea',b:'d8d2c6',W:'ffffff',K:'2a2a30',ear:'flop',tail:'long',pat:'spots'}},
+  pug:{name:'Chó Pug',price:1600000,food:'cho',art:{B:'e8d0a0',b:'c8a878',W:'f0e0c0',ear:'small',tail:'curl',pat:'mask',snout:'short'}},
+  chihuahua:{name:'Chó Chihuahua',price:1400000,food:'cho',art:{B:'d8a868',b:'b8884a',W:'f0dcb8',ear:'big',tail:'long',small:1}},
+  samoyed:{name:'Chó Samoyed',price:2600000,food:'cho',art:{B:'fbfaf6',b:'e0dccf',W:'ffffff',ear:'up',tail:'fluffy',pat:'fluff'}},
+  doberman:{name:'Chó Doberman',price:2400000,food:'cho',art:{B:'2a2228',b:'1a1418',W:'b8743a',ear:'up',tail:'stub',pat:'tan'}},
+  muop:{name:'Mèo mướp',price:900000,food:'meo',art:{B:'b8a07a',b:'8a7454',W:'e8dcc2',ear:'cat',tail:'long',pat:'stripes',cat:1}},
+  meoden:{name:'Mèo mun đen',price:1000000,food:'meo',art:{B:'2a2630',b:'1a1620',W:'3a3642',K:'f2c43d',ear:'cat',tail:'long',cat:1}},
+  meotrang:{name:'Mèo trắng',price:1000000,food:'meo',art:{B:'f4f2ec',b:'dcd8cc',W:'ffffff',ear:'cat',tail:'long',cat:1}},
+  tamthe:{name:'Mèo tam thể',price:1200000,food:'meo',art:{B:'f4f2ec',b:'dcd8cc',W:'ffffff',ear:'cat',tail:'long',pat:'calico',cat:1}},
+  xiem:{name:'Mèo Xiêm',price:1500000,food:'meo',art:{B:'eedcbe',b:'d4bc98',W:'f8ecd8',ear:'cat',tail:'longdark',pat:'siamese',cat:1}},
+  aln:{name:'Mèo Anh lông ngắn',price:1800000,food:'meo',art:{B:'8a90a0',b:'6a7080',W:'a8aebc',K:'e8a83a',ear:'round',tail:'long',cat:1}},
+  meocam:{name:'Mèo cam',price:1000000,food:'meo',art:{B:'f0943a',b:'c8702a',W:'f8d8a8',ear:'cat',tail:'long',pat:'stripes',cat:1}},
+  batu:{name:'Mèo Ba Tư',price:2200000,food:'meo',art:{B:'e8dccc',b:'c8bcaa',W:'f8f2ea',ear:'cat',tail:'fluffy',pat:'fluff',cat:1,snout:'short'}},
+  thotrang:{name:'Thỏ trắng',price:700000,food:'nho',art:{B:'f6f4ee',b:'dcd8ce',W:'ffffff',K:'e8607a',ear:'rabbit',tail:'puff',small:1,hop:1}},
+  thonau:{name:'Thỏ nâu',price:700000,food:'nho',art:{B:'a87a54',b:'86603e',W:'e8d8c0',ear:'rabbit',tail:'puff',small:1,hop:1}},
+  hamster:{name:'Chuột hamster',price:400000,food:'nho',art:{kind:'hamster',B:'e8a85a',b:'c88a40',W:'f8f0e0'}},
+  soc:{name:'Sóc nâu',price:800000,food:'nho',art:{B:'b8743a',b:'8a5428',W:'f0dcb8',ear:'round',tail:'squirrel',small:1,hop:1}},
+  nhim:{name:'Nhím kiểng',price:900000,food:'nho',art:{kind:'hedgehog',B:'8a6a4a',b:'5a4430',W:'f0dcc0'}},
+  chon:{name:'Chồn sương',price:1200000,food:'nho',art:{B:'e8dcc4',b:'c0b090',W:'f8f2e6',ear:'round',tail:'long',pat:'mask',long:1}},
+  gautruc:{name:'Gấu trúc',price:5000000,food:'dac',art:{B:'f4f2ec',b:'d8d4ca',W:'ffffff',ear:'round',tail:'stub',pat:'panda',big:1}},
+  cao:{name:'Cáo đỏ',price:2800000,food:'dac',art:{B:'e8702a',b:'c0501a',W:'f8f0e4',ear:'up',tail:'fox',pat:'socks'}},
+  gaumeo:{name:'Gấu mèo',price:2500000,food:'dac',art:{B:'8a8e96',b:'6a6e76',W:'d8dce2',ear:'round',tail:'ring',pat:'raccoon'}},
+  vet:{name:'Vẹt đuôi dài',price:1800000,food:'chim',art:{kind:'parrot',B:'3aa84a',b:'2a7a36',W:'e8402a',K:'f2c43d'}},
+  canhcut:{name:'Chim cánh cụt',price:3000000,food:'dac',art:{kind:'penguin',B:'2a2630',b:'1a1620',W:'f4f2ec',K:'f29a2a'}},
+  rua:{name:'Rùa cảnh',price:900000,food:'dac',art:{kind:'turtle',B:'5aa84a',b:'3a7a32',W:'c8b878',K:'2a3a22'}}};
+const petState=(p,t=Date.now())=>{ const e=p&&p.pets&&p.pets[p.pet]; if(!e) return ''; const h=(t-(e.fed||0))/3600e3; return h<PETCFG.full?'full':h<PETCFG.leave?'hungry':'sulk'; };   /* pet đang theo: no / đói / dỗi */
+// vay vốn nhà nước (bảng Vườn & chuồng): tiền lấy từ ngân khố = ví kaixa, để mua hạt giống, vật nuôi, thuê đất. Hạn mức 500K × cấp, tối đa 10 triệu, 1 khoản 1 lúc, lãi 1%/ngày
+const STATE_LOAN={minLv:3,per:500000,max:10000000,amts:[500000,1000000,2000000,5000000,10000000],rate:.01,days:[3,7]};
+STATE_LOAN.cap=lv=>Math.min(STATE_LOAN.max,STATE_LOAN.per*lv);
+// món bán trên Shopee: đồ Shop Chande (có giá, không ẩn) + hàng độc quyền; đồ phụ trợ có tiền tố aux:
+SHOPEE.ids=()=>Object.keys(CLOTHES).filter(k=>CLOTHES[k].price>0&&(!CLOTHES[k].hidden||CLOTHES[k].shopee)).concat(Object.keys(SHOPEE.aux).map(k=>'aux:'+k));
+SHOPEE.item=k=>String(k).startsWith('aux:')?SHOPEE.aux[String(k).slice(4)]:CLOTHES[k];
+SHOPEE.flash=(ms=Date.now())=>{ const slot=Math.floor(ms/(SHOPEE.flashH*3600e3)), ids=SHOPEE.ids(), out=[]; let s=slot%2147483646+1;
+  for(let i=0;i<60&&out.length<Math.min(SHOPEE.flashN,ids.length);i++){ s=s*16807%2147483647; const k=ids[s%ids.length]; if(!out.includes(k)) out.push(k); }
+  return {ids:out,end:(slot+1)*SHOPEE.flashH*3600e3}; };
+SHOPEE.base=(k,ms)=>{ const c=SHOPEE.item(k); if(!c) return 0; return SHOPEE.flash(ms).ids.includes(k)?Math.round(c.price*(1-SHOPEE.flashOff)/1000)*1000:c.price; };   /* giá sau flash sale, trước ưu đãi */
+// thú cưng bán trên Shopee: tiền tố pet:
+{ const ids0=SHOPEE.ids, item0=SHOPEE.item; SHOPEE.ids=()=>ids0().concat(Object.keys(PETS).map(k=>'pet:'+k)); SHOPEE.item=k=>String(k).startsWith('pet:')?PETS[String(k).slice(4)]:item0(k); }
+return {PETS,PETFOOD,PETCFG,petState,KENNY,kennyWhere,STATE_LOAN,SHOPEE,EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,LOGIN30,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};

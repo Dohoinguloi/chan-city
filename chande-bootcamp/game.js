@@ -177,7 +177,9 @@ function sceneData(kind,room){ if(kind==='room') return prep(buildMap(kind,room)
 function officeOpen(){ const t=vn(), wd=!SD.isWeekend(t.day); if(wd&&t.hf>=SD.JOB.hours[0]&&t.hf<SD.JOB.hours[1]) return true;
   const j=G&&G.extra&&G.extra.job; return !!(j&&j.hired&&j.today&&j.today.ot&&!j.today.otDone&&t.hf>=SD.JOB.ot.from&&t.hf<SD.JOB.ot.to); }
 function sceneNpcs(kind){ const open=kind==='everfit'?officeOpen():true; if(S) S.closed=!open;
-  return SD.NPCS.filter(n=>!n.obj&&(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)&&(!n.season||SD.seasonOn(n.season,NET.now()))).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
+  const kw=SD.kennyWhere(NET.now()); KENNY_END=kw.end;
+  return SD.NPCS.map(n=>n.id==='kenny'?{...n,scene:kw.scene,x:kw.x,y:kw.y}:n).filter(n=>!n.obj&&(n.scene||'retreat')===kind&&(kind!=='everfit'||!!n.closed===!open)&&(!n.season||SD.seasonOn(n.season,NET.now()))).map(n=>({...n,x:n.x*T,y:n.y*T,view:'down',face:1,t:Math.random()*2,act:null,actT:0,av:STORY[n.id]?null:AVATAR.build(SD.NPC_LOOKS[n.id].look)})); }
+let KENNY_END=0;   /* hết khung giờ Kenny đổi chỗ (Ké ↔ Bearplus): dựng lại NPC của map */
 let CSGT_POST=null, CSGT_STOP=null, IMPOUNDS=[], CRASHES=[], OPT_ON=0, MEGA=null, ramAt=0, WDINO=null, WCROC=null;
 const DINOSPR={}, dinoSpr=(k,f,o)=>DINOSPR[k+f+(o?'o':'')]||(DINOSPR[k+f+(o?'o':'')]=k==='croc'?A.croc(f,o):({bronto:A.dino,trice:A.trice,ptero:A.ptero,rexpink:A.rexPink,rex:A.rexGreen}[k]||A.dino)(f));
 // CR7 + Messi đi dạo ngoài phố (vị trí tính theo giờ nên ai cũng thấy giống nhau), lại gần thì ăn mừng / khoe
@@ -474,7 +476,7 @@ function runRoute(){ if(!ROUTE||!ROUTE.length){ ROUTE=null; return; } const st=R
   if(st.npc){ walkToNpc(st.npc); return; } walkTo(st.x,st.y,st.label,st.then); }
 // đi tới map khác: cùng điểm đến (đang ở trong nhà / quán của map đó) thì làm luôn, khác thì tự gọi Grab, tới nơi chạy tiếp then()
 let GOAFTER=null;
-const destOf=sc=>SD.SCENE_DEST[sc]||(SD.DEST[sc]?sc:null), npcScene=id=>{ const n=SD.NPCS.find(x=>x.id===id); return n?(n.scene||'retreat'):null; };
+const destOf=sc=>SD.SCENE_DEST[sc]||(SD.DEST[sc]?sc:null), npcScene=id=>{ if(id==='kenny') return SD.kennyWhere(NET.now()).scene; const n=SD.NPCS.find(x=>x.id===id); return n?(n.scene||'retreat'):null; };
 const sceneName=sc=>((SD.PLACES[sc]||SD.DEST[destOf(sc)]||{}).name||sc||'').split(' (')[0].split(' · ')[0];   /* tên map ngắn: 120 Yên Lãng, DAS, MU Online... */
 async function autoGo(scene,then){ const want=destOf(scene); if(!want||destOf(S.kind)===want){ then&&then(); return true; }
   const xt=(G.xt&&G.xt.lv||0)>=SD.XICHTHO.tele;   /* Xích Thố cấp 15: dịch chuyển thay Grab */
@@ -728,6 +730,7 @@ $('#btnLb').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI
 $('#btnWard').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.wardrobe(); });
 $('#btnFarm').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.farm(); });
 $('#btnShop').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.shop(); });
+$('#btnShopee').addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.shopee(); });
 for(const id of ['#btnDaily','#mDaily']) $(id).addEventListener('click',e=>{ e.currentTarget.blur(); if(started) UI.daily(); });
 
 /* ---------- chuyển cảnh ---------- */
@@ -841,6 +844,7 @@ function update(dt){
     return; }
   if(S.kind==='phongbay'&&DANCE&&DANCE.st==='play'&&DANCE.me>=0){ $('#prompt').hidden=true; UI.keys(pressed,keys); return; }
   if(CSGT_STOP){ $('#prompt').hidden=true; AUTO=null; P.moving=false; P.anim=P.view==='side'?'idle':'idle_'+P.view; P.t+=dt; if(!UI.isOpen()) UI.csgt(CSGT_STOP); return; }
+  if(KENNY_END&&NET.now()>=KENNY_END&&(S.kind==='retreat'||S.kind==='bearplus')) npcs=sceneNpcs(S.kind);
   if(S.kind==='everfit'){ officeT-=dt; if(officeT<=0){ officeT=2; const was=S.closed; npcs=sceneNpcs('everfit'); if(was!==S.closed&&!S.closed) toast('Văn phòng đã mở cửa','item'); } }
   // đang đua ngựa: phím mũi tên + Space dùng để chấm nhịp, không đi lại
   if(S.kind==='track'&&RACE&&RACE.st==='run'&&RACE.me>=0){ $('#prompt').hidden=true; UI.keys(pressed,keys); return; }

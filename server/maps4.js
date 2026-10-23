@@ -4,6 +4,15 @@ const C=require('./core'), P=require('./places');
 const {S,on,now,near,markDirty,note,give,addItem}=C;
 const pr=p=>p.qprog=p.qprog||{}, active=(p,id)=>p.quests[id]==='active';
 
+// phòng xông hơi: đứng / ngồi trong phòng là tự lên EXP, liên tục càng lâu EXP / phút càng tăng; mỗi ngày game tối đa N.steam.capSec giây thật
+const inSauna=pl=>{ if(pl.scene!=='nghienmotion') return false; const Z=S.NMOTION.sauna, x=pl.x/C.T, y=pl.y/C.T; return x>=Z.x0&&x<=Z.x1+1&&y>=Z.y0&&y<=Z.y1+1; };
+C.hook('slow',()=>{ const t=now(), H=S.NMOTION.steam; for(const pl of C.players.values()){ const p=pl.prof; if(!p||!p.daily) continue;
+  if(!inSauna(pl)){ if(pl.steam){ pl.steam=null; C.send(pl,{t:'steam',off:1}); } continue; }
+  const d=p.daily, s=pl.steam||(pl.steam={at:t,exp:0,acc:0}), used=d.steam||0;
+  if(used>=H.capSec){ C.send(pl,{t:'steam',full:1,used,cap:H.capSec,exp:s.exp}); continue; }
+  d.steam=used+1; const min=(t-s.at)/60000, rate=Math.min(H.max,H.base+H.ramp*min); s.acc+=rate/60;
+  if(s.acc>=1){ const n=Math.floor(s.acc); s.acc-=n; s.exp+=C.gainExp(pl,n,'steam').exp; }
+  markDirty(pl); C.send(pl,{t:'steam',min,rate,used:d.steam,cap:H.capSec,exp:s.exp}); } });
 on('nm',(pl,m)=>{ const p=pl.prof, N=S.NMOTION, q=pr(p), op=m.op, d=p.daily; if(pl.scene!=='nghienmotion') return {err:'Việc này ở Group Nghiện Motion (Hà Nội)'};
   const job=(id,sec,label,anim='work',fin)=>P.startTask(pl,'work',sec,()=>{ q[id]=(q[id]||0)+1; markDirty(pl); return fin?fin():{msg:`Xong: ${label}. Báo lại người giao việc nhé`}; },{anim,name:label});
   if(op==='desk'){ const dk=N.desks[m.i|0]; if(!dk||!near(pl,dk[0],dk[1]+.9,40)) return {err:'Ngồi vào 1 bàn làm motion'};

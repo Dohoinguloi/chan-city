@@ -106,11 +106,11 @@ function timer(v){ const tot=SD.CLUB.poker.turn*1000, k=Math.max(0,Math.min(1,v.
 function stages(v){ const n=v.board.length, cur=v.st!=='play'&&n===5?4:n>=5?3:n===4?2:n===3?1:0, L=['Preflop','Flop','Turn','River','Lật bài'];
   return `<div class="pstages">${L.map((l,i)=>`<span class="${i<cur?'done':i===cur&&(v.st==='play'||i===4)?'cur':''}">${l}</span>`).join('<b></b>')}</div>`; }
 function pokerHtml(v){ const me=v.me, s=v.seats[me], myTurn=v.st==='play'&&v.toAct===me, need=s?v.cur-s.bet:0, n=v.seats.length, base=me>=0?me:0;
-  const seat=(x,i)=>{ const [L,T]=SEAT_POS[(i-base+n)%n]; if(!x) return `<div class="pseat empty" style="left:${L}%;top:${T}%"><span class="pname">trống</span></div>`;
+  const seat=(x,i)=>{ const [L,T]=SEAT_POS[(i-base+n)%n]; if(!x) return `<div class="pseat empty" style="left:${L}%;top:${T}%"><span class="pface round empty"></span><span class="pname">Ghế trống</span></div>`;
     const mine=i===me, cards=(x.cards||[]).map(c=>card(c,mine?'':'sm')).join('');
-    return `<div class="pseat ${i===v.toAct&&v.st==='play'?'act':''} ${x.fold?'fold':''} ${mine?'mine':''} ${T<50?'top':''}" style="left:${L}%;top:${T}%">
+    return `<div class="pseat ${i===v.toAct&&v.st==='play'?'act':''} ${x.fold&&v.st==='play'?'fold':''} ${mine?'mine':''} ${T<50?'top':''}" style="left:${L}%;top:${T}%">
       <div class="pcards">${mine?'':cards}</div>${face(x.name,'round')}<div class="pname"><b>${esc(x.name)}</b>${fmt(x.chips)}</div>
-      ${i===v.dealer?'<span class="pdeal">D</span>':''}${x.allin?'<span class="pbadge">ALL-IN</span>':x.fold?'<span class="pbadge">BỎ</span>':''}${x.hand?`<em class="phand">${esc(x.hand)}</em>`:''}
+      ${i===v.dealer?'<span class="pdeal">D</span>':''}${x.allin?'<span class="pbadge">ALL-IN</span>':x.fold&&v.st==='play'?'<span class="pbadge">BỎ</span>':''}${x.hand?`<em class="phand">${esc(x.hand)}</em>`:''}
       ${i===v.toAct&&v.st==='play'?timer(v):''}${x.bet?`<span class="pbet"><img src="${chipsURL(x.bet)}" alt="">${fmt(x.bet)}</span>`:''}</div>`; };
   return `<div class="fsg pokerfs"><div class="ptop">${btn('tleave','⟵ Rời bàn (đổi chip ra tiền)')}${s&&v.st!=='play'&&v.seats.filter(Boolean).length<SD.CLUB.poker.seats?btn('pk','Thêm bot vào bàn',{op:'bots'}):''}${s&&s.chips<v.blinds[1]&&v.st!=='play'?btn('pk','Mua thêm 200.000đ chip',{op:'rebuy'}):''}
       <span class="pinfo">Mù ${fmt(v.blinds[0])}/${fmt(v.blinds[1])}${v.st==='play'?' · lượt còn '+Math.ceil(v.left/1000)+'s':v.st==='wait'?' · đợi đủ 2 người':''}</span></div>
@@ -204,6 +204,8 @@ function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, 
   const banner=key!==lastPhase&&v.st!=='wait'?`<div class="mphase">${night?'🌙 ĐÊM '+v.day:v.st==='day'?'☀️ TRỜI SÁNG · NGÀY '+v.day:v.st==='vote'?'⚖️ BỎ PHIẾU':v.winner==='soi'?'🐺 SÓI THẮNG':'🏡 DÂN LÀNG THẮNG'}</div>`:''; lastPhase=key;
   const roleKey=name=>Object.keys(ROLE_INFO).find(k=>ROLE_INFO[k][0]===name)||'dan';
   const list=v.st==='end'&&v.reveal?v.reveal.map(r=>({name:r.name,alive:r.alive,role:r.role,win:r.win})):v.players;
+  // ngồi thành vòng quanh đống lửa: mình ở giữa cạnh dưới, đang đợi thì hiện cả ghế trống tới đủ số người tối đa
+  const n=Math.max(list.length,v.st==='wait'?v.max||0:0), base=me>=0?me:0, pos=i=>{ const a=Math.PI/2+((i-base+n)%n)/n*2*Math.PI; return [50+Math.cos(a)*40,50+Math.sin(a)*35]; };
   masoiSound(v,key); const scene=wolfSceneURL(v.st==='end'?(v.winner==='soi'?'endsoi':'enddan'):v.st);
   return `<div class="fsg masoifs ph-${v.st}" style="background:url(${scene}) center bottom/cover no-repeat">${banner}<aside class="mside"><div class="mhead"><b>${ph}</b><span>Ngày ${v.day}${v.left?' · '+Math.ceil(v.left/1000)+'s':''}</span></div>
       ${RI?`<div class="mrole"><img src="${roleIcon(v.role)}" alt=""><div><b>Bạn là ${esc(v.roleName||RI[0])}</b><small>${RI[1]}${alive?'':' · bạn đã chết'}</small></div></div>`:''}
@@ -212,10 +214,11 @@ function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, 
       <div class="mchat">${v.log.slice(-6).map(l=>`<div class="sys">${esc(l)}</div>`).join('')}${v.chat.slice(-10).map(c=>`<div class="${c.to==='soi'?'bad':''}"><b>${esc(c.n)}:</b> ${esc(c.m)}</div>`).join('')}</div>
       ${alive?`<div class="form"><input id="msIn" maxlength="100" placeholder="${night?(v.role==='soi'?'Nói với bầy sói...':'Ban đêm im lặng'):'Nói với cả làng...'}" aria-label="Nói">${btn('mschat','Gửi')}</div>`:''}</aside>
     <div class="mstage"><div class="mnarr"><img src="${GAME.portrait('quantro')?GAME.portrait('quantro').toDataURL():''}" alt=""><div><b>Quản trò</b><p>${esc(say)}</p></div></div>
-    <main class="mgrid">${list.map((p,i)=>`<div class="mcard ${p.alive?'':'dead'} ${v.myAct===i?'pick':''} ${i===me?'me':''} ${p.win?'win':''}" style="background-image:url(${forestURL(night)})">
+    <main class="mring">${Array.from({length:n},(_,i)=>{ const [L,T]=pos(i), p=list[i]; if(!p) return `<div class="mcard mempty" style="left:${L}%;top:${T}%"><span>Ghế trống</span></div>`;
+      return `<div class="mcard ${p.alive?'':'dead'} ${v.myAct===i?'pick':''} ${i===me?'me':''} ${p.win?'win':''}" style="left:${L}%;top:${T}%;background-image:url(${forestURL(night)})">
         <div class="mname">${i+1} ${esc(p.name)}</div>${face(p.name,'big')}${p.role?`<span class="mtag"><img src="${roleIcon(roleKey(p.role))}" alt="">${esc(p.role)}</span>`:''}
         ${votes(i)?`<span class="mvote">${votes(i)} phiếu</span>`:''}${p.alive?'':'<span class="mdead">ĐÃ CHẾT</span>'}${p.win?'<span class="mwin">THẮNG</span>':''}
-        ${v.st!=='end'&&alive&&act&&p.alive&&i!==me&&!(v.role==='soi'&&p.soi&&night)?btn('ms',act[1],{op:act[0],target:i},'pri'):''}</div>`).join('')||'<p class="muted">Bàn trống</p>'}</main></div>
+        ${v.st!=='end'&&alive&&act&&p.alive&&i!==me&&!(v.role==='soi'&&p.soi&&night)?btn('ms',act[1],{op:act[0],target:i},'pri'):''}</div>`; }).join('')||'<p class="muted">Bàn trống</p>'}</main></div>
     <div class="mbar">${v.st==='vote'&&alive?btn('ms','Bỏ qua lượt treo',{op:'vote',target:-1}):''}${(v.st==='wait'||v.st==='end')&&me>=0&&v.players.length<SD.CLUB.bots.masoiSize?btn('ms',`Thuê quản trò tìm người (${fmt(SD.CLUB.bots.masoiHire)} · thắng ×${SD.CLUB.bots.masoiBonus}, thua mất ×${SD.CLUB.bots.masoiBonus})`,{op:'hire'},'pri'):''}${(v.st==='wait'||v.st==='end')&&v.players.length>=v.min?btn('ms','Bắt đầu ván',{op:'start'},'pri'):''}${btn('tleave','Rời bàn')}</div></div>`; }
 
 /* ---------- màn câu cá toàn màn hình ---------- */

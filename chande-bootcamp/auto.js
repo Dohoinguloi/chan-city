@@ -23,7 +23,7 @@ const skipped=id=>(skip.get(id)||0)>performance.now();
 const LOG=[], log=s=>{ LOG.push(Math.round(performance.now()/1000)+'s '+(GAME.S?GAME.S.kind:'')+' '+s); if(LOG.length>60) LOG.shift(); };
 const npcHere=id=>GAME.npcs.find(n=>n.id===id), dist=n=>Math.hypot(n.x-GAME.P.x,n.y-GAME.P.y);
 const nearGiver=q=>{ if(q.giver==='oii'){ const o=GAME.oii; return o&&o.on&&Math.hypot(o.x-GAME.P.x,o.y-GAME.P.y)<56; } const n=npcHere(q.giver); return n&&dist(n)<56; };
-const sceneOfNpc=id=>{ const d=SD.NPCS.find(n=>n.id===id); return d?(d.scene||'retreat'):null; };
+const sceneOfNpc=id=>{ if(id==='kenny') return SD.kennyWhere(NET.now()).scene; const d=SD.NPCS.find(n=>n.id===id); return d?(d.scene||'retreat'):null; };
 function set(on,why=''){ log((on?'BẬT':'TẮT')+' '+why); ON=on; skip.clear(); CUR=null; for(const k in waited) delete waited[k]; for(const k in tries) delete tries[k]; for(const k in prog) delete prog[k]; wait=0; GAME.renderHUD();
   toast(on?'🤖 <b>Auto nhiệm vụ: BẬT</b> · tự nhận việc, tự đi làm, tự báo cáo. Bấm phím đi để tắt':'🤖 Auto nhiệm vụ: TẮT',on?'quest':'lock'); }
 document.addEventListener('click',e=>{ if(!e.target.closest('#qAuto')) return; e.stopPropagation(); e.preventDefault(); set(!ON,'nút'); },true);

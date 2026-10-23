@@ -129,7 +129,7 @@ const aslowOf=(m,t)=>m.fx&&m.fx.aslow&&m.fx.aslow.until>t?m.fx.aslow.mul:1, stun
 function dotTick(pl,m,t){ const D=m.fx&&m.fx.dot; if(!D||D.until<=t||m.safe>t) return false; const d=Math.max(1,Math.round(m.max*D.pct*.5)); m.hp-=d; bcast({t:'mufx',k:'hurt',to:pl.pid,dmg:d,dot:D.k});
   if(m.hp<=0){ down(pl,D.k==='doc'?'Trúng độc':'Bị thiêu đốt'); return true; } push(pl); return false; }
 // Titan bắt người nuốt chửng: rơi mất tiền + gục
-function swallow(B,q,z){ const p=q.prof, [a0,a1]=z.sw||[200000,500000], loss=Math.min(p.money,Math.round((a0+Math.random()*(a1-a0))/1000)*1000); if(loss>0) take(q,loss);
+function swallow(B,q,z){ const p=q.prof, [a0,a1]=z.sw||[200000,500000], loss=Math.min(p.money,Math.round((a0+Math.random()*(a1-a0))/1000)*1000); if(loss>0) take(q,loss,true);
   bcast({t:'mufx',k:'swallow',boss:B.id,to:q.pid,loss}); down(q,`Bị ${formOf(B).name||BS[B.id].name} bắt nuốt chửng${loss?`, rơi mất ${fmt(loss)}`:''}`); markDirty(q); }
 // choáng mục tiêu (Đập Choáng của Đại Tượng, phát bắn Tiên Nữ): boss đứng im, thôi ra đòn mới, hết choáng thì miễn choáng 4 giây; quái / lính / người đội kia qua X0.stun.
 // mobOnly: chỉ choáng quái, không choáng người (D-Day)
