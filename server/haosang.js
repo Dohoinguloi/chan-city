@@ -57,11 +57,11 @@ on('hs',(pl,m)=>{ const p=pl.prof, t=now(), op=m.op, q=m.to!=null?players.get(m.
     if(a.kind==='loan'){ if(owes(pl.uid).length>=LN.maxActive) return {err:`Bạn đang nợ ${LN.maxActive} khoản rồi`}; if(!take(A,a.amt)) { note(A,'Không đủ tiền cho vay nữa'); return {err:A.prof.name+' không còn đủ tiền'}; }
       give(pl,a.amt); const L={from:A.uid,fromName:A.prof.name,to:pl.uid,toName:p.name,amt:a.amt,rate:a.rate,days:a.days,start:t,due:t+a.days*864e5,paid:0,st:'open'}; L.id=db.addLoan(L); LOANS.set(L.id,L); markDirty(A); markDirty(pl);
       note(A,`🤝 ${p.name} đã nhận khoản vay ${fmt(a.amt)}, lãi ${Math.round(a.rate*100)}% / ngày, hạn ${a.days} ngày`,'vnd'); return {msg:`Đã vay ${A.prof.name} ${fmt(a.amt)}: hạn ${a.days} ngày, quá hạn là tự trừ tiền trong ví`}; }
-    if(a.kind==='home'){ if(busyHome(A)||busyHome(pl)) return {err:'Đang bận, không về được'}; const sp=S.ROOMS.tro.spawn, home='room:'+A.uid;
+    if(a.kind==='home'){ if(busyHome(A)||busyHome(pl)) return {err:'Đang bận, không về được'}; if(!nearP(A,pl)) return {err:`${A.prof.name} đã đi chỗ khác rồi`};   /* không kéo người mời ra khỏi trận / việc đang làm */ const sp=S.ROOMS.tro.spawn, home='room:'+A.uid;
       if(A.scene!==home) C.moveTo(A,home,sp.x,sp.y); C.moveTo(pl,home,sp.x+1.2,sp.y,{host:A.prof.name,hostPid:A.pid});
       const d=A.prof.daily, seen=d.hsGuests=d.hsGuests||{}; if(!seen[pl.uid]&&Object.keys(seen).length<H.hostDay){ seen[pl.uid]=1; const h=rec(A.prof), before=S.hsTier(A.prof).lv; if((h.host||0)<H.hostMax){ h.host=(h.host||0)+1; bump(A,before); } }   /* tiếp khách: 1 điểm / khách / ngày */
       markDirty(A); note(A,`🏠 ${p.name} tới nhà bạn chơi`,'quest'); return {}; } }
-  if(op==='repay'){ const L=LOANS.get(m.id|0); if(!L||L.to!==pl.uid||L.st!=='open') return {err:'Không có khoản nợ này'}; const owed=S.loanOwed(L,t), v=Math.min(owed,Math.round(+m.amt||owed));
+  if(op==='repay'){ if(t-(pl.repayAt||0)<2000) return {err:'Chờ chút rồi trả tiếp'}; pl.repayAt=t; const L=LOANS.get(m.id|0);   /* mỗi lần trả là ghi DB (người cho vay offline thì đọc / ghi cả hồ sơ): 2 giây 1 lần */ if(!L||L.to!==pl.uid||L.st!=='open') return {err:'Không có khoản nợ này'}; const owed=S.loanOwed(L,t), v=Math.min(owed,Math.round(+m.amt||owed));
     if(p.money<v) return {err:`Cần ${fmt(v)}, trong ví còn ${fmt(p.money)}`}; const got=repay(L,pl,v,false); return {msg:`Đã trả ${L.fromName} ${fmt(got)}${L.st==='done'?' · hết nợ':''}`,owe:owes(pl.uid).map(x=>loanView(x,t))}; }
   if(op==='home'){ if(C.kindOf(pl.scene)!=='room'||pl.scene==='room:'+pl.uid) return {err:'Bạn đang không ở nhà người khác'}; const sp=S.ROOMS.tro.spawn; C.moveTo(pl,'room:'+pl.uid,sp.x,sp.y); return {}; }
   return {err:'?'}; });

@@ -40,6 +40,7 @@ function clientVer(){ const t=Date.now(); if(t-verAt<10000) return verVal; verAt
 // Kèm ETag: trình duyệt hỏi lại mà file chưa đổi thì chỉ trả 304 (không gửi lại cả file).
 const ZIP=new Set(['.html','.js','.json','.css','.svg']), GZ=new Map();
 function gzFile(file,st){ const k=st.size+':'+st.mtimeMs, c=GZ.get(file); if(c&&c.k===k) return c.z; const z=zlib.gzipSync(fs.readFileSync(file)); GZ.set(file,{k,z}); return z; }
+const IDX=new Map();   // trang chủ đã dựng: tên miền → {at, html, gz}
 const wantGz=req=>/\bgzip\b/.test(String(req.headers['accept-encoding']||''));
 /* ---------- HTTP ---------- */
 function json(res,code,obj){ res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(obj)); }
@@ -81,9 +82,13 @@ function serveStatic(req,res,url){
     if(rel===path.join('chande-bootcamp','index.html')){   // ảnh xem trước link (og:image) cần đường dẫn tuyệt đối theo tên miền đang chạy
       const h0=String(req.headers['x-forwarded-host']||req.headers.host||''), host=/^[a-z0-9.\-]+(:\d+)?$|^\[[0-9a-f:]+\](:\d+)?$/i.test(h0)?h0:'localhost', proto=String(req.headers['x-forwarded-proto']||'').split(',')[0].trim()==='http'||(!req.headers['x-forwarded-proto']&&/^(localhost|127\.|\[::1\])/.test(host))?'http':'https';
       // script / css gắn mã phiên bản của file (?h=): trình duyệt giữ luôn, không hỏi lại server; file sửa thì mã đổi, tự tải bản mới
+      // trang chủ dựng sẵn giữ 5 giây theo tên miền: mỗi lần dựng đọc file, stat ~60 file và nén, bị spam tải trang thì game giật
+      const ik=proto+'://'+host, ic=IDX.get(ik); if(ic&&Date.now()-ic.at<5000){ const body=wantGz(req)?ic.gz:ic.html, enc=body===ic.html?{}:{'Content-Encoding':'gzip'};
+        res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
       const html=Buffer.from(fs.readFileSync(file,'utf8').replace(/__ORIGIN__/g,proto+'://'+host).replace(/(<script src="|<link rel="stylesheet" href=")([^"?#:]+)(?:\?v=\d+)?"/g,(m0,a,src)=>{
         const f=fileFor(new URL(src,'http://x/').pathname); let fs0; try{ fs0=f&&fs.statSync(f); }catch(e){ fs0=null; } return fs0?`${a}${src}?h=${verTag(fs0)}"`:m0; }));
-      const body=wantGz(req)?zlib.gzipSync(html):html, enc=body===html?{}:{'Content-Encoding':'gzip'};
+      const gz=zlib.gzipSync(html); if(IDX.size>20) IDX.clear(); IDX.set(ik,{at:Date.now(),html,gz});
+      const body=wantGz(req)?gz:html, enc=body===html?{}:{'Content-Encoding':'gzip'};
       res.writeHead(200,{'Content-Type':TYPES['.html'],'Content-Length':body.length,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',Vary:'Accept-Encoding',...enc}); return res.end(req.method==='HEAD'?undefined:body); }
     const tag='"'+verTag(st)+'"', pinned=url.searchParams.get('h')===verTag(st);
     const head={'Content-Type':TYPES[ext]||'application/octet-stream','Cache-Control':pinned?'public, max-age=31536000, immutable':dyn?'no-cache':'public, max-age=3600','X-Content-Type-Options':'nosniff',ETag:tag,Vary:'Accept-Encoding'};
@@ -124,6 +129,7 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
 // tên nhân vật → uid: tên không được trùng (quà admin, quyền Kaixa... tính theo tên nhân vật)
 const nameKey=n=>String(n||'').normalize('NFC').toLowerCase().replace(/\s+/g,' ').trim();
 const NAMES=new Map(); for(const p of db.allProfiles()) if(p.look&&p.name&&!NAMES.has(nameKey(p.name))) NAMES.set(nameKey(p.name),p._uid);
+let welcomeAt=0;   // chào thành viên mới trên kênh chung tối đa 10 giây 1 lần (tạo acc hàng loạt không xả kênh chat)
 handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nhân vật'};
   const L=S.LOOK, g=L.genders.some(x=>x.id===m.gender)?m.gender:null, name=nameOk(m.name);
   if(!g||!name) return {err:'Chọn giới tính và đặt tên (2–16 ký tự)'};
@@ -133,7 +139,7 @@ handlers.create=(pl,m)=>{ const p=pl.prof; if(p.look) return {err:'Đã tạo nh
   const outfit={...(g==='nu'&&st.nu?st.nu:st.items)};
   NAMES.set(nk,pl.uid); p.name=name; p.look={gender:g,hair:m.hair,hairColor:m.hairColor,skin:m.skin,outfit}; for(const id of Object.values(outfit)) p.owned[id]=1;
   markDirty(pl); save(pl); place(pl);
-  if(!/^bot\b/i.test(name)) setTimeout(()=>require('./world').sysChat(`🎉 Chào mừng ${name} vừa gia nhập Chan City! Mọi người nhớ chỉ đường cho bạn mới nhé 👋`),1500);   /* kênh chat chào thành viên mới */
+  if(!/^bot\b/i.test(name)&&now()-welcomeAt>10000&&(welcomeAt=now())) setTimeout(()=>require('./world').sysChat(`🎉 Chào mừng ${name} vừa gia nhập Chan City! Mọi người nhớ chỉ đường cho bạn mới nhé 👋`),1500);   /* kênh chat chào thành viên mới */
   return {prof:publicProfile(pl)}; };
 // ping đo bằng giờ server gửi đi (client chỉ được gửi lại đúng số đó), không tin số client tự khai
 handlers.pong=(pl,m)=>{ if(m.s&&m.s===pl.pngAt){ pl.rtt=Math.max(10,Math.min(1000,now()-m.s)); pl.pngAt=0; } };

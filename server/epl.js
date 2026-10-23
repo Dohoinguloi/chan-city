@@ -72,9 +72,9 @@ function finish(t){ const L=LIVE; LIVE=null;
       r.apps++; p.needs.energy=Math.max(0,p.needs.energy-MT.energy); P.stat(q,'eplApps',1); const sp=ST.players[uid]||(ST.players[uid]={n:p.name,c:r.club,apps:0}); sp.apps++; sp.c=r.club;
       reward(q,{exp:PY.exp+x.g*PY.goalExp,vnd:paid?PY.wage+(won?PY.win:0)+x.g*PY.goal:0},`⚽ ${line} · ${won?'thắng':res<0?'hoà':'thua'}${x.g?` · bạn ghi ${x.g} bàn`:''}${paid?'':` (đủ ${E.pay.paidPerDay} trận có lương hôm nay)`}`);
       if(arsWin&&r.club==='ars') qp(q,'ars_big'); markDirty(q); }
-    // HLV: có mặt ở sân ≥ 60 giây
+    // HLV: có mặt ở sân ≥ 60 giây (tên CLB lấy theo trận: HLV có thể vừa nghỉ việc giữa trận, r.club đã rỗng)
     for(const [uid,x] of Object.entries(f.coach)){ const q=byUid.get(uid); if(!q||!q.prof||x.sec<60) continue; const p=q.prof, r=rec(p), won=res===x.team, CO=E.pay.coach, paid=paidOk(p);
-      r.apps++; reward(q,{exp:CO.exp,vnd:paid?CO.wage+(won?CO.win:0):0},`📋 HLV ${CL[r.club].name}: ${line}${paid?'':' (hết lượt có lương hôm nay)'}`); if(won&&r.club==='ars') qp(q,'ars_coach'); if(arsWin&&r.club==='ars') qp(q,'ars_big'); markDirty(q); }
+      r.apps++; reward(q,{exp:CO.exp,vnd:paid?CO.wage+(won?CO.win:0):0},`📋 HLV ${CL[x.team?f.a:f.h].name}: ${line}${paid?'':' (hết lượt có lương hôm nay)'}`); if(won&&r.club==='ars') qp(q,'ars_coach'); if(arsWin&&r.club==='ars') qp(q,'ars_big'); markDirty(q); }
     // cổ động viên có vé: cổ vũ đủ số lần
     for(const [uid,x] of Object.entries(f.tix)){ const q=byUid.get(uid); if(!q||!q.prof) continue; const p=q.prof, FA=E.pay.fan, side=x.side==='a'?1:0, club=side?f.a:f.h, won=res===side;
       P.stat(q,'eplFan',1); const sf=ST.fans[uid]||(ST.fans[uid]={n:p.name,c:club,att:0}); sf.att++; sf.c=club;

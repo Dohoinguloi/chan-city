@@ -22,15 +22,18 @@ function fresh(p){ const d=C.defaults(p.name), L=S.LOOK, g=(p.look&&p.look.gende
     opts:p.opts||d.opts,inbox:p.inbox||[],flags,money:R.money,exp,level:S.levelOf(exp),muOX:S.MU.OX,muOY:S.MU.OY||0,reset:R.id};
   if(p.giftMount) n.giftMount=p.giftMount; if(p.adjDone) n.adjDone=p.adjDone; return n; }
 const kick=pl=>{ send(pl,{t:'reset',done:1,msg}); setTimeout(()=>{ try{ pl.ws&&pl.ws.close(4000,'reset'); }catch(e){} },1500); };
-function run(){ if(done) return; done=true; try{ fs.writeFileSync(DONE,new Date().toISOString()); }catch(e){ console.error('[reset] done file',e.message); }
-  try{ db.backup(path.join(DIR,`backup-${R.id}-${Date.now()}.db`)); }catch(e){ console.error('[reset] backup',e.message); }
+let retryAt=0;
+function run(){ if(done||now()<retryAt) return;
+  // sao lưu trước, hỏng (đầy ổ, quyền ghi...) thì hoãn 1 phút rồi thử lại, chưa xoá gì cả
+  const bk=path.join(DIR,`backup-${R.id}-${Date.now()}.db`); try{ db.backup(bk); if(!(fs.statSync(bk).size>0)) throw new Error('file sao lưu rỗng'); }catch(e){ console.error('[reset] sao lưu lỗi, hoãn reset 1 phút:',e.message); retryAt=now()+60e3; return; }
+  done=true; try{ fs.writeFileSync(DONE,new Date().toISOString()); }catch(e){ console.error('[reset] done file',e.message); }
   for(const pl of [...players.values()]) if(pl.prof&&!keepName(pl.prof.name)) kick(pl);
   setTimeout(wipe,3500); }
 function wipe(){ const all=db.allProfiles(), keepU=new Set(all.filter(p=>keepName(p.name)).map(p=>p._uid)); let n=0;
   for(const pl of players.values()) if(pl.prof&&keepName(pl.prof.name)) keepU.add(pl.uid);
   const online=new Map(); for(const pl of players.values()) if(pl.prof&&!keepU.has(pl.uid)) online.set(pl.uid,pl);
   for(const p of all){ const uid=p._uid; if(keepU.has(uid)) continue; delete p._uid; const q=online.get(uid);
-    if(q){ q.prof=fresh(q.prof); q.mus=null; q.riding=false; C.save(q); kick(q); } else db.saveProfile(uid,fresh(p)); n++; }   /* ai lỡ vào lại trong lúc chờ: thay hồ sơ đang chơi rồi cho tải lại */
+    try{ if(q){ q.prof=fresh(q.prof); q.mus=null; q.riding=false; C.save(q); kick(q); } else db.saveProfile(uid,fresh(p)); n++; }catch(e){ console.error('[reset] hồ sơ',uid,e.message); } }   /* 1 hồ sơ lỗi không làm dừng giữa chừng */   /* ai lỡ vào lại trong lúc chờ: thay hồ sơ đang chơi rồi cho tải lại */
   const gone=uid=>!!uid&&!keepU.has(uid); for(const f of hooks.reset) try{ f(gone); }catch(e){ console.error('[reset] hook',e.message); }   /* ô ruộng, đất, chó, phòng thuê, chợ, việc làm, khoản vay */
   console.log(`[reset] ${R.id}: reset ${n} tài khoản, giữ ${keepU.size}`);
   require('./world').sysChat(`🔄 Server Chan City đã reset! Mọi người bắt đầu lại từ cấp ${R.level} với ${S.fmt(R.money)}. Chúc cả nhà chơi vui! 🎉`); }

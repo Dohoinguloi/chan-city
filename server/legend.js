@@ -18,7 +18,7 @@ on('legend',(pl,m)=>{ const p=pl.prof; if(!p) return {err:'?'}; const t=L.tasks.
   if(m.op==='answer'){ if(!t||t.t!=='puz') return {err:'?'}; if(rec(p).f[t.id]) return {err:'Đã giải câu này rồi'}; if(!near(pl,t)) return {err:'Lại gần phiến đá câu đố đã'};
     const tn=now(); if(pl.legTry&&tn<pl.legTry) return {err:'Bình tĩnh nghĩ đã, 3 giây nữa trả lời tiếp'}; if(!correct(t.id,m.a)){ pl.legTry=tn+3000; return {err:'Sai rồi! Nghĩ lại xem'}; }   /* chống dò đáp án */
     grant(pl,t); return {ok:1,msg:'Chính xác! +1 mảnh'}; }
-  if(m.op==='group'){ if(!t||t.t!=='grp') return {err:'?'}; if(!near(pl,t)) return {err:'Đứng vào vòng sáng nhiệm vụ nhóm đã'}; const g=GRP[t.id]||(GRP[t.id]=new Map()), tn=now(); g.set(pl.pid,tn);
+  if(m.op==='group'){ if(!t||t.t!=='grp') return {err:'?'}; if(now()-(pl.grpAt||0)<2500) return {err:'Đang chờ mọi người'}; pl.grpAt=now();   /* mỗi lần bấm báo cho cả vùng: 2,5 giây 1 lần */ if(!near(pl,t)) return {err:'Đứng vào vòng sáng nhiệm vụ nhóm đã'}; const g=GRP[t.id]||(GRP[t.id]=new Map()), tn=now(); g.set(pl.pid,tn);
     for(const [pid,at] of g) if(tn-at>15000||!near(players.get(pid),t)) g.delete(pid);
     if(g.size>=t.n){ const got=[]; for(const pid of g.keys()){ const q=players.get(pid); if(q&&grant(q,t)) got.push(q.prof.name); } g.clear();
       for(const q of C.sceneOf(t.sc)) if(near(q,t)) note(q,`👥 ${t.label}: xong! ${got.length?got.join(', ')+' nhận mảnh':'(mọi người đã có mảnh này)'}`,'quest'); return {ok:1,msg:'Cả nhóm hoàn thành!'}; }

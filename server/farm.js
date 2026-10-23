@@ -59,12 +59,12 @@ on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=n
   if(st!=='open') return {err:`Rau của ${pt.n}. Chủ còn ${Math.max(0,Math.ceil((pt.at+(c.grow+S.FARM.grace)*1000-t)/1000))} giây để thu`};
   if(pt.s) return {err:'Ô này bị cướp một lần rồi'}; if(pt.blk>t) return {err:'Con chó vẫn đang gầm gừ, chưa dám lại gần'};
   const owner=byUid.get(pt.o), dd=id[0]==='k'&&DOGOF.get(pt.o), D=dd&&S.DOGS[dd.k], dn=D?D.name:''; let extra='';
-  if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.min(pl.prof.money,S.FARM.trang.comp); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
+  if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.max(0,Math.min(pl.prof.money,S.FARM.trang.comp));   /* ví âm thì đền 0, không trừ vào chủ vườn */ take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
     if(owner) note(owner,`Bác Trang bắt quả tang ${pl.prof.name} định cướp rau của bạn! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); markDirty(pl); return {err:`Bác Trang quát: "Rau của ${pt.n} mà dám hái trộm à!" Bị bắt đền ${fmt(v)}`}; }
   if(D&&D.block&&Math.random()<D.block){ pt.blk=t+30000; if(owner) note(owner,`${dn} của bạn vừa doạ ${pl.prof.name} chạy mất dép!`,'quest'); return {err:`${dn} của ${pt.n} sủa ầm lên, bạn sợ quá bỏ chạy!`}; }
   const n=Math.max(1,Math.floor(c.yield*(D&&D.steal||S.FARM.steal))); pt.s=n; pt.th=pl.prof.name; addItem(pl,pt.c,n); P.stat(pl,'harvest',n); P.stat(pl,'stolenVeg',n); const g=C.gainExp(pl,S.FARM.stealExp);
   if(D&&D.drain){ pl.prof.needs.energy=Math.max(0,pl.prof.needs.energy-D.drain); extra+=` · ${dn} vờn bạn mệt lả (-${D.drain} năng lượng)`; }
-  if(D&&D.bite&&Math.random()<D.bite){ const v=Math.min(pl.prof.money,D.fine); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); extra+=` · bị ${dn} cắn, đền chủ vườn ${fmt(v)}`;
+  if(D&&D.bite&&Math.random()<D.bite){ const v=Math.max(0,Math.min(pl.prof.money,D.fine)); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); extra+=` · bị ${dn} cắn, đền chủ vườn ${fmt(v)}`;
     if(owner) note(owner,`${dn} cắn ${pl.prof.name} khi cướp rau! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); broadcastScene('retreat',{t:'ev',k:'bite',id:pl.pid}); }
   if(owner) note(owner,`${pl.prof.name} vừa cướp ${n} ${c.name.toLowerCase()} ở vườn của bạn${D&&D.alert?' (Beagle đánh hơi báo ngay)':' vì để quá giờ'}!`,'lock');
   markDirty(pl); push(id); return {item:pt.c,n,exp:g.exp,stole:true,msg:extra?extra.slice(3):''}; });

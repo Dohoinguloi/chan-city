@@ -67,7 +67,8 @@ module.exports={
   addLoan(L){ return Number(st.addLoan.run(JSON.stringify(L)).lastInsertRowid); },
   saveLoan(L){ if(L.st==='done') st.delLoan.run(L.id); else st.putLoan.run(JSON.stringify(L),L.id); },
   // cộng tiền cho người đang offline (sửa thẳng hồ sơ đã lưu): đền tiền chủ vườn, trả nợ cho người cho vay
-  addMoney(uid,v){ const r=st.getProfile.get(uid); if(!r) return false; const p=JSON.parse(r.data); p.money=(p.money||0)+Math.round(v); st.putProfile.run(uid,JSON.stringify(p),Date.now()); return true; },
+  addMoney(uid,v){ v=Math.round(v); if(!Number.isFinite(v)||v<=0) return false; const r=st.getProfile.get(uid);   // chỉ cộng tiền (số âm / NaN từ chỗ gọi lỗi không được trừ tiền người offline)
+    if(!r) return false; const p=JSON.parse(r.data); p.money=(p.money||0)+Math.round(v); st.putProfile.run(uid,JSON.stringify(p),Date.now()); return true; },
   // sao lưu cả DB ra 1 file (VACUUM INTO, không khoá lâu): trước khi reset server
   backup(file){ db.exec(`VACUUM INTO '${String(file).replace(/'/g,"''")}'`); },
   // chạy nhiều lệnh trong 1 giao dịch (mua bán chợ online)
