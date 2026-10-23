@@ -4,6 +4,7 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24e',title:'24/10 (sửa lỗi)',items:['Sửa lỗi làm xong 4 việc của ông Trường Con mà không nhận được Xích Thố: giờ mở bảng ông Trường Con là có nút 🐎 Nhận ngựa Xích Thố (thẻ ở Người Thuần Thú có nút Tới nhận Xích Thố)','Cổng Ké Retreat · Chande Bootcamp về lại như cũ (trước bị cổng Miếu vẽ đè)']},
   {v:'2026-10-24d',title:'24/10 · Hảo sảng: donate, cho vay, mời về nhà',items:[
     'Chuột phải vào người chơi khác: 🙌 Tương tác · 💸 Donate tiền · 🤝 Cho vay · 🏠 Mời về nhà. Chuột phải vào chính mình: 💛 Hảo sảng của tôi',
     'Cho vay: tự chọn số tiền, lãi 1–10% / ngày, hạn 1–7 ngày; người vay đồng ý mới chuyển tiền. Quá hạn mà chưa trả thì cứ có tiền là bị tự trừ trả người cho vay (kể cả lúc người cho vay offline)',

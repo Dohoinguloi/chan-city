@@ -52,7 +52,8 @@ function puzzle(id){ const t=L.tasks.find(x=>x.id===id), I=L.items[t.it]; UI.ope
 document.addEventListener('submit',async e=>{ const f=e.target.closest('.lgans'); if(!f) return; e.preventDefault(); const a=f.querySelector('input').value.trim(); if(!a) return; const r=await GAME.act({t:'legend',op:'answer',id:f.dataset.id,a}); if(r&&!r.err){ UI.closeAll(); toast(esc(r.msg),'item'); } });
 // ông Trường Con ở Miếu: xin Xích Thố (xong 4 nhiệm vụ của ông thì ông trao ngựa)
 { const c1=X.consider; X.consider=(consider,dist)=>{ c1(consider,dist); const S=GAME.S, n=SD.NPCS.find(x=>x.id==='truongcon'); if(!S||S.kind!=='mieu'||!n||(G().xt&&G().xt.lv)) return; const d=dist(n.x*T,n.y*T); if(d<2.6*T) consider(d*.6+4,{type:'mapx',k:'xtclaim',label:'🐎 Xin ông Trường Con cưỡi Xích Thố'}); };
-  const p1=X.pick; X.pick=async x=>{ if(x.k!=='xtclaim') return p1(x); const r=await GAME.act({t:'xichtho',op:'claim'}); if(r&&!r.err){ const g=GAME.G; if(r.horse) g.horse=r.horse; if(r.look) g.look=r.look; if(r.xt) g.xt=r.xt; GAME.bigText('XÍCH THỐ!'); GAME.sfx('level_up',.8); toast(esc(r.msg),'item'); } }; }
+  window.XT_CLAIM=async()=>{ const r=await GAME.act({t:'xichtho',op:'claim'}); if(r&&!r.err){ const g=GAME.G; if(r.horse) g.horse=r.horse; if(r.look) g.look=r.look; if(r.xt) g.xt=r.xt; UI.closeAll(); GAME.bigText('XÍCH THỐ!'); GAME.sfx('level_up',.8); toast(esc(r.msg),'item'); } return r; };   /* dùng chung: phím E cạnh ông, nút trong bảng ông Trường Con */
+  const p1=X.pick; X.pick=async x=>{ if(x.k!=='xtclaim') return p1(x); window.XT_CLAIM(); }; }
 // hiệu ứng: gà thay boss / quái (2 giây), khiên bất tử Airpod (3 giây), bút loé sáng
 const CHICK=[], AIR=new Map();
 NET.listen('mufx',e=>{ const t=performance.now(); if(e.k==='chick'&&!e.boss) CHICK.push({x:e.x*T,y:e.y*T,end:t+e.dur*1000}); if(e.k==='chick'){ GAME.sfx('poof',.5); } if(e.k==='airpod'){ AIR.set(e.to,t+e.dur*1000); if(e.to===NET.pid) GAME.bigText('AIRPOD: BẤT TỬ!'); } });

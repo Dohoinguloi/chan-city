@@ -70,7 +70,7 @@ function buildMieu(){ const M=SD.MIEU, W=M.W, H=M.H, K=kit(), {put,block,act}=K;
   put(A.banyan(),M.banyan.x,M.banyan.y,{tree:true}); block(5,14,9,16); act(M.wish.x,M.wish.y,'Cây đa: buộc dải lụa ước nguyện',{do:'mieu:wish'},26);
   for(const [x,y,v] of [[31.4,14.6,0],[33.6,15.4,1],[32.2,17.2,0],[34.6,18,0],[31,19,1],[34.2,16.6,1]]) put(A.lotus(v),x,y);
   for(const [x,y] of [[16.6,22.4],[23.4,22.4],[16.6,18.4],[23.4,18.4]]) put(A.flag5(0),x,y,{anim:'flag'});
-  put(A.gate(0),M.gate.x,M.gate.y,{anim:'gate'}); block(15,22,18,23); block(22,22,25,23); block(10,23,14,23); block(26,23,30,23);
+  put(A.mieuGate(0),M.gate.x,M.gate.y,{anim:'gate'});   /* cổng Miếu riêng tên, không đè cổng Ké Retreat (art.js gate) */ block(15,22,18,23); block(22,22,25,23); block(10,23,14,23); block(26,23,30,23);
   for(const [x,y] of [[6,21.8],[34,21.8]]){ put(A.plumeria(),x,y,{tree:true}); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   for(const [x,y] of [[17.6,12.4],[22.4,12.4]]){ put(A.stoneLantern(),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }
   for(const [x,y] of [[11.6,11.4],[28.4,11.4],[5.2,11.6],[35,11.6]]){ put(A.bonsaiPot('#4f8a3a'),x,y); block(Math.floor(x),Math.floor(y)-1,Math.floor(x),Math.floor(y)-1); }

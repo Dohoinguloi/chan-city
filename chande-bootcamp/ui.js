@@ -633,7 +633,10 @@ PLACE.mieu=()=>open('Ông Từ · Miếu ông Trường Con',()=>{ const M=SD.MI
     ${mb?`<p class="good">Đang có phúc bình an: +${Math.round((g.mbuff.mul-1)*100)}% EXP · còn ${Math.ceil((g.mbuff.until-NET.now())/60000)} phút</p>`:''}${qRow('mieu_cauan')}`; });
 let tcJoke=-1;
 PLACE.truongcon=()=>open('Ông Trường Con',()=>{ const J=SD.MIEU.jokes; return `<p>${tcJoke<0?'"Ơ kìa, khách quý về miếu đấy à? Ngồi đây ông kể cho nghe, mà nghe xong cười thì nhớ thả tim nhé! Mới Trường Con là như vậy!"':'"'+esc(J[tcJoke])+'"'}</p>${btn('tcjoke','😂 Nghe Ông Trường Con kể chuyện',{},'pri')}${qRow('tc_luocga')}${qRow('tc_raubun')}${qRow('tc_antruc')}${qRow('tc_clip')}
+  ${(()=>{ const X=SD.XICHTHO, g=G(); if(g.xt&&g.xt.lv) return ''; const left=X.quests.filter(q=>(g.quests||{})[q]!=='done').length;   /* Xích Thố: xong 4 việc thì nhận ngay trong bảng của ông */
+    return left?`<p class="muted">🐎 Giúp ông xong ${left} việc nữa, ông trao ngựa Xích Thố.</p>`:`<p class="good">🐎 Con giúp ông đủ 4 việc rồi, Xích Thố là của con!</p>${btn('xtclaim','🐎 Nhận ngựa Xích Thố',{},'pri big')}`; })()}
   <p class="muted">Xong việc thì mỗi ngày vẫn quay được 1 clip cùng Trường Con ở đèn vòng (+${SD.MIEU.clip.exp} EXP).</p>`; });
+ACT.xtclaim=()=>window.XT_CLAIM&&window.XT_CLAIM();
 ACT.tcjoke=()=>{ const J=SD.MIEU.jokes; let k; do{ k=Math.floor(Math.random()*J.length); }while(J.length>1&&k===tcJoke); tcJoke=k; GAME.sayLine(J[k],.7,'vi'); UI.refresh(); };
 // Group Nghiện Motion
 const TR_SAY=['Keyframe ít thôi, quan trọng là timing. Chuyển động đẹp nằm ở graph editor!','Ease in ease out không phải để trang trí. Vật nào cũng có khối lượng của nó.','Render lỗi không sao, mất file project mới đáng sợ. Save, save, save!','Motion đẹp là motion có chủ đích. Mỗi khung hình phải kể được câu chuyện.','Làm xong vào xông hơi 15 phút là đầu óc thông suốt, ý tưởng tự đến.'];

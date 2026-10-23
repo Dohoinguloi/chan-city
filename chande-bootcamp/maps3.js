@@ -83,7 +83,7 @@ MAPX.anim=(o,clock)=>{ const a=o.anim;
   if(a==='charger'){ const f=Math.floor(clock*2)%4; return cached('cg'+f,()=>A.chargeStation(f)); }
   if(a==='rack'){ const f=(Math.floor(clock*3)+Math.round(o.x/16))%6; return cached('rk'+f,()=>A.serverRack(f)); }
   if(a==='shrine'){ const f=Math.floor(clock*5)%3; return cached('sh'+f,()=>A.shrine(f)); }
-  if(a==='gate'){ const f=Math.floor(clock*2)%4; return cached('gt'+f,()=>A.gate(f)); }
+  if(a==='gate'){ const f=Math.floor(clock*2)%4; return cached('gt'+f,()=>A.mieuGate(f)); }
   if(a==='flag'){ const f=(Math.floor(clock*6)+Math.round(o.x/16))%4; return cached('fl'+f,()=>A.flag5(f)); }
   return null; };
 

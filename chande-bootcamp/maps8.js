@@ -607,10 +607,10 @@ function xtCard(g,h,cur,it){ const X=SD.XICHTHO, x=g.xt||{}, has=x.lv>0, my=has?
       <div class="mulgb">${cur==='xichtho'?'<small class="good">✔ Đang cưỡi</small>':btn('mythpick','Cưỡi',{k:'xichtho'},'pri')}${c?`${need?`<small class="muted">Cần ${esc(need)}</small>`:''}${btn('xtup','Lên cấp '+(x.lv+1)+' · '+SD.fmt(c.vnd),{},'pri')}`:'<small class="good">Cấp tối đa</small>'}</div>
       ${gal}${x.el?'<small class="muted">đổi hệ: 1 Ngọc Hỗn Nguyên</small>':''}`
     :`<small class="bad">🔒 Chưa mở: làm xong 4 nhiệm vụ của ông Trường Con ở Miếu (Hải Phòng) rồi gặp ông xin ngựa</small>${gal}<ul class="xtq">${qs}</ul>
-      <div class="mulgb">${btn('xtgo','➜ Tới gặp ông Trường Con',{},'pri')}</div>`}</div>`; }
+      <div class="mulgb">${btn('xtgo',X.quests.every(q=>(g.quests||{})[q]==='done')?'🐎 Tới nhận Xích Thố':'➜ Tới gặp ông Trường Con',{},'pri')}</div>`}</div>`; }
 UI.onAct('xtup',async()=>{ const r=await GAME.act({t:'xichtho',op:'up'}); if(r&&!r.err){ GAME.sfx('level_up',.8); GAME.bigText('XÍCH THỐ CẤP '+r.xt.lv+'!'); } mythDone(r); });
 UI.onAct('xtel',async d=>mythDone(await GAME.act({t:'xichtho',op:'el',el:d.el})));
-UI.onAct('xtgo',()=>{ UI.closeAll(); GAME.autoGo('mieu',()=>GAME.walkToNpc('truongcon')); });
+UI.onAct('xtgo',()=>{ UI.closeAll(); GAME.autoGo('mieu',()=>GAME.walkToNpc('truongcon')); });   /* tới nơi mở bảng ông Trường Con, xong 4 việc thì có nút Nhận ngựa Xích Thố */
 UI.onAct('mythup',async()=>{ const r=await GAME.act({t:'horse',op:'mythup'}); if(r&&!r.err){ GAME.sfx('level_up',.8); const m=SD.mythOf(r.look&&r.look.mount); if(m) GAME.bigText(m.name.toUpperCase()+'!'); } mythDone(r); });
 UI.onAct('mythpick',async d=>mythDone(await GAME.act({t:'horse',op:'mythpick',k:d.k})));
 /* ======================= thách đấu + nhặt đồ nhiệm vụ ẩn ======================= */
