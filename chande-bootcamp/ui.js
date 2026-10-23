@@ -6,7 +6,7 @@ const UI={}; let cur=null;                              // bảng đang mở: {e
 const box=$('#panel'), inner=$('#panelInner'), title=$('#panelTitle');
 function open(t,render,o={}){ cur={render,t,o}; box.hidden=false; box.classList.toggle('wide',!!o.wide); box.classList.toggle('xwide',!!o.xwide); box.classList.toggle('full',!!o.full); title.textContent=t; draw(); }
 // vẽ lại bảng nhưng giữ ô đang gõ/kéo (chat ma sói, thanh tố poker) khỏi bị reset mỗi lần server gửi trạng thái mới
-function draw(){ if(!cur) return; const a=document.activeElement, keep=a&&inner.contains(a)&&a.id?{id:a.id,v:a.value,s:a.selectionStart}:null; inner.innerHTML=cur.render(); thumbify(inner);
+function draw(){ if(!cur) return; const a=document.activeElement, keep=a&&inner.contains(a)&&a.id?{id:a.id,v:a.value,s:a.selectionStart}:null; inner.innerHTML=cur.render(); thumbify(inner); if(cur.o.after) cur.o.after();
   if(keep){ const b=document.getElementById(keep.id); if(b){ if(b.type!=='range'||(+keep.v>=+b.min&&+keep.v<=+b.max)) b.value=keep.v; b.focus(); try{ if(keep.s!=null) b.setSelectionRange(keep.s,keep.s); }catch(e){} if(b.id==='raiseTo'){ const l=document.getElementById('raiseLbl'); if(l) l.textContent=fmt(+b.value); } } } }
 UI.refresh=()=>{ if(cur&&!cur.o.static) draw(); };
 // mọi thẻ trong cửa sổ đều có ảnh thumbnail: thẻ có icon thì đóng khung nền màu; thẻ chưa có thì chọn ảnh theo nội dung
@@ -449,7 +449,7 @@ ACT.join=async d=>{ const m={t:'tbl',op:'join',id:d.id}; if(d.bet!==undefined) m
   const r=await GAME.act(m); if(!r.err){ tableId=d.id; const v=(await NET.req({t:'tbl',op:'peek',id:d.id})).v; UI.tableView(v); } };
 ACT.tleave=async()=>{ await NET.req({t:'tbl',op:'leave'}); tableId=null; UI.closeAll(); };
 UI.tableView=v=>{ if(!tableId||v.id!==tableId) return; const t={chess:'Cờ vua',poker:'Poker',masoi:'Ma sói'}[v.game]+' · '+v.name;
-  if(!cur||cur.t!==t){ open(t,()=>tableHtml(GAME.TABLE&&GAME.TABLE.id===tableId?GAME.TABLE:v),{full:true}); } else draw(); if(v.game==='chess') setTimeout(drawBoard,0); };
+  if(!cur||cur.t!==t){ open(t,()=>tableHtml(GAME.TABLE&&GAME.TABLE.id===tableId?GAME.TABLE:v),{full:true,after:()=>{ if(GAME.TABLE&&GAME.TABLE.game==='chess') drawBoard(); }});   /* bảng vẽ lại (tiền, thông báo...) là canvas mới: vẽ lại bàn cờ ngay */ } else draw(); if(v.game==='chess') setTimeout(drawBoard,0); };
 function tableHtml(v){ if(v.game==='chess') return GAMES.chessHtml(v); if(v.game==='poker') return GAMES.pokerHtml(v); return GAMES.masoiHtml(v); }
 const log=v=>`<div class="tlog">${(v.log||[]).slice(-6).map(l=>`<div>${esc(l)}</div>`).join('')}</div>`;
 // cờ vua
