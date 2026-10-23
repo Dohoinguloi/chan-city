@@ -8,7 +8,7 @@ const players=new Map();       // pid → người chơi
 const byUid=new Map();         // uid → người chơi
 const scenes=new Map();        // id cảnh → Set người chơi
 const handlers={};             // loại tin → hàm xử lý
-const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[],reset:[]};   /* reset: reset.js gọi (gone(uid) → tài khoản bị reset) để mỗi module dọn bộ nhớ theo người chơi */   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
+const hooks={leave:[],enter:[],tick:[],slow:[],login:[],logout:[],day:[],item:[],money:[],exp:[],stat:[],reset:[],spend:[]};   /* spend: tiền trả cho hệ thống → ngân khố (treasury.js) */   /* reset: reset.js gọi (gone(uid) → tài khoản bị reset) để mỗi module dọn bộ nhớ theo người chơi */   // item/money/exp/stat: việc mỗi ngày, sổ sưu tầm đếm theo
 let nextPid=1;
 
 const on=(t,fn)=>{ handlers[t]=fn; };
@@ -80,21 +80,25 @@ function save(pl){ db.saveProfile(pl.uid,pl.prof); pl.saveAt=0; }
 function publicProfile(pl){ return {...pl.prof,pub:pl.pub,pid:pl.pid,extra:pl.extra?pl.extra():null}; }
 
 /* ---------- tiền, đồ, EXP ---------- */
+// noTax: tiền chuyển cho người chơi khác (donate, cho vay, cược bàn, đền bù, mua chợ đồ cũ) hoặc mất trắng, không vào ngân khố
 // số không hợp lệ (NaN, chuỗi, Infinity) bị từ chối: trước đây take(NaN) trả true và biến tiền thành NaN
-function take(pl,v){ v=Math.round(v); if(!Number.isFinite(v)||v<0||!(pl.prof.money>=v)) return false; pl.prof.money-=v; markDirty(pl); return true; }
+function take(pl,v,noTax){ v=Math.round(v); if(!Number.isFinite(v)||v<0||!(pl.prof.money>=v)) return false; pl.prof.money-=v; markDirty(pl); if(!noTax) spent(pl,v); return true; }
+function spent(pl,v){ if(v>0) for(const f of hooks.spend) f(pl,v); }
 function give(pl,v){ v=Math.round(v); if(Number.isFinite(v)&&v>0){ pl.prof.money+=v; markDirty(pl); for(const f of hooks.money) f(pl,v); } }
+// tiền tự kiếm (làm việc, thưởng, bán đồ): Lính Cát dạng Lv50 đầu đội có chỉ số gold thì được thêm %. Tiền chuyển giữa người chơi / hoàn tiền vẫn dùng give
+function earn(pl,v){ const a=S.lcLeadAsc(pl.prof); give(pl,(a&&a.gold?v*(1+a.gold):v)*(S.lcLeadBn(pl.prof)?S.LINHCAT.bn.mul:1)); }   /* Blacknut đầu đội: ×2 */
 function has(pl,k,n=1){ return (pl.prof.items[k]||0)>=n; }
 function addItem(pl,k,n=1){ n=Math.round(n); if(typeof k!=='string'||k in Object.prototype||!Number.isFinite(n)||!n) return; const it=pl.prof.items; it[k]=(it[k]||0)+n; if(it[k]<=0) delete it[k]; markDirty(pl); if(n>0) for(const f of hooks.item) f(pl,k,n); }
 // báo một việc vừa làm (đi Grab, ăn bữa, chụp ảnh...) cho các module đếm tiến độ
 function track(pl,k,n=1){ for(const f of hooks.stat) f(pl,k,n); }
 function hungerLevel(pl){ return S.hunger(pl.prof.meals); }
 function expMul(pl){ const p=pl.prof, t=now(); let m=S.RULES.hungryExp[hungerLevel(pl)];
-  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.ebuff&&p.ebuff.until>t) m*=p.ebuff.mul; /* ebuff: đội mình cổ vũ thắng (Ngoại Hạng Anh) */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; m*=1+S.hsBonus(p); /* bậc hảo sảng */ return Math.min(S.RULES.expMulCap||9,m); }   /* buff cộng dồn tối đa ×expMulCap */
+  if(p.buff&&p.buff.until>t) m*=p.buff.mul; if(p.rbuff&&p.rbuff.until>t) m*=p.rbuff.mul; if(p.lbuff&&p.lbuff.until>t) m*=p.lbuff.mul; /* lbuff: phúc ở chùa */ if(p.mbuff&&p.mbuff.until>t) m*=p.mbuff.mul; /* mbuff: cầu an ở miếu ông Trường Con */ if(p.ebuff&&p.ebuff.until>t) m*=p.ebuff.mul; /* ebuff: đội mình cổ vũ thắng (Ngoại Hạng Anh) */ if(p.dbuff&&p.dbuff.until>t) m*=p.dbuff.mul; /* dbuff: quà điểm danh */ m*=1+(simPerk(p).exp||0); /* SIM số đẹp */ if(p.sbuff&&p.sbuff.until>t) m*=p.sbuff.mul; /* xông hơi tập thể */ if(p.needs.clean<20) m*=.85; if(S.petState(p,t)==='full') m*=S.PETCFG.buff; /* thú cưng no đi theo */ m*=1+S.hsBonus(p); /* bậc hảo sảng */ return Math.min(S.RULES.expMulCap||9,m); }   /* buff cộng dồn tối đa ×expMulCap */
 // tiền phạt theo ví người bị phạt (data.js fineOf)
 const fineOf=(pl,base)=>S.fineOf(base,pl&&pl.prof?pl.prof.money:0);
 function speedMul(pl){ return S.RULES.hungrySpeed[hungerLevel(pl)]*(pl.prof.needs.energy<20?.8:1)*S.lvSpeed(pl.prof.level); }
 // cộng EXP; kind 'game' bị giới hạn mỗi ngày
-function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
+function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl)*(S.lcLeadBn(p)?S.LINHCAT.bn.mul:1);   /* Blacknut đầu đội: EXP ×2 */
   if(kind==='game'){ a=Math.max(0,Math.min(S.RULES.gameExpCap-p.daily.gameExp,a)); p.daily.gameExp+=a; }
   a=Math.round(a); if(a<=0) return {exp:0};
   p.exp+=a; for(const f of hooks.exp) f(pl,a); const lv=S.levelOf(p.exp), out={exp:a};
@@ -102,7 +106,7 @@ function gainExp(pl,base,kind){ const p=pl.prof; let a=base*expMul(pl);
 // thưởng + báo cho client hiện thông báo
 function reward(pl,r,msg){ const out={t:'rw',msg:msg||''};
   if(r.exp){ const g=gainExp(pl,r.exp,r.kind); out.exp=g.exp; if(g.level){ out.level=g.level; levelUp(pl); } }
-  if(r.vnd){ give(pl,r.vnd); out.vnd=r.vnd; }
+  if(r.vnd){ earn(pl,r.vnd); out.vnd=r.vnd; }
   if(r.items) for(const [k,n] of Object.entries(r.items)){ addItem(pl,k,n); (out.items=out.items||{})[k]=n; }
   if(r.item){ addItem(pl,r.item,1); (out.items=out.items||{})[r.item]=1; }
   if(r.skill){ pl.prof.skills[r.skill]=true; out.skill=r.skill; markDirty(pl); }
@@ -115,7 +119,7 @@ function note(pl,msg,kind){ send(pl,{t:'note',msg,kind:kind||''}); }
 
 /* ---------- cảnh ---------- */
 // thông tin hiển thị của 1 người (gửi cho người khác lần đầu thấy, hoặc khi đổi đồ)
-function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():'',bn:(pl.prof.items.den_bingo||0)>0?1:0,rk:module.exports.rankOf?module.exports.rankOf(pl.uid):0}; }   // rk: hạng top 10 đại gia (lb.js)   // bn: có đèn bí ngô theo chân
+function info(pl){ return {t:'pj',id:pl.pid,n:pl.prof.name,l:pl.prof.look,lv:pl.prof.level,tag:pl.tag?pl.tag():'',pt:S.petState(pl.prof,now())==='sulk'?'':pl.prof.pet||'',bn:(pl.prof.items.den_bingo||0)>0?1:0,rk:module.exports.rankOf?module.exports.rankOf(pl.uid):0}; }   // rk: hạng top 10 đại gia (lb.js)   // bn: có đèn bí ngô theo chân
 function refreshInfo(pl){ for(const q of players.values()) if(q.sent&&q.sent.has(pl.pid)) q.sent.delete(pl.pid); }
 // chuyển người chơi sang cảnh khác; x,y theo ô
 function moveTo(pl,id,x,y,extra={}){
@@ -131,6 +135,6 @@ function moveTo(pl,id,x,y,extra={}){
 // 1 hook lỗi không được làm hỏng các hook sau hay làm sập server (vd. dữ liệu cũ hỏng trong hồ sơ)
 function runHook(f,...a){ try{ f(...a); }catch(e){ console.error('[hook]',e); } }
 
-module.exports={fineOf,stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
-  simPerk,defaults,fixProfile,runHook,ownerOf,markDirty,save,publicProfile,take,give,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
+module.exports={spent,fineOf,stats,S,T,db,players,byUid,scenes,handlers,hooks,on,hook,today,now,send,sceneOf,kindOf,nearby,broadcastNear,broadcastScene,broadcastAll,dist,near,
+  simPerk,defaults,fixProfile,runHook,ownerOf,markDirty,save,publicProfile,take,give,earn,has,addItem,track,hungerLevel,expMul,speedMul,gainExp,reward,note,beatOff,info,refreshInfo,moveTo,
   newPid:()=>nextPid++};

@@ -7,7 +7,8 @@ const {S,T,db,on,hook,send,now,today,near,dist,moveTo,markDirty,note,reward,take
 const fmt=S.fmt;
 const npc=id=>S.NPCS.find(n=>n.id===id);
 const inRetreat=pl=>pl.scene==='retreat';
-const nearNpc=(pl,id,r=72)=>{ if(id==='duongvu'){ const t=now(); for(let k=0;k<=12;k+=3){ const w=S.dvWhere(t-k*1000); if(pl.scene===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Dương Vũ đổi map theo lịch
+const nearNpc=(pl,id,r=72)=>{ if(id==='kenny'){ const t=now(); for(const k of [0,8000]){ const w=S.kennyWhere(t-k); if(kindOf(pl.scene)===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Kenny Ho: lúc ở Ké, lúc ở Bearplus (S.kennyWhere)
+  if(id==='duongvu'){ const t=now(); for(let k=0;k<=12;k+=3){ const w=S.dvWhere(t-k*1000); if(pl.scene===w.scene&&near(pl,w.x,w.y,r)) return true; } return false; }   // Dương Vũ đổi map theo lịch
   const n=npc(id); if(!n||kindOf(pl.scene)!==(n.scene||'retreat')) return false; if(!S.NPC_ROAM[id]) return near(pl,n.x,n.y,r);
   const t=now(); for(let k=0;k<=12;k++){ const q=S.roamPos(id,t-k*1000); if(near(pl,q.x,q.y,r)) return true; } return false; };   // NPC đi dạo: tính cả chỗ vài giây trước (đang nói chuyện thì NPC vẫn đi tiếp)
 
@@ -36,8 +37,11 @@ on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Khô
     for(const [k,n] of Object.entries(q.need||{})) addItem(pl,k,-n);
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
     if(q.cloth&&S.CLOTHES[q.cloth]){ p.owned[q.cloth]=1; C.note(pl,`Nhận trang phục ${S.CLOTHES[q.cloth].name}! Mở Tủ đồ (U) để mặc`,'item'); }   // nhiệm vụ thưởng trang phục
-    p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title);
-    if(q.secret){ addItem(pl,'ngoc_ch',1); C.note(pl,'🔮 Nhiệm vụ ẩn tặng thêm 1 Ngọc Cường Hoá (khắc lỗ ở Phù Thuỷ Cường Hoá, MU)','item'); }   /* nhiệm vụ ẩn ở mọi map rơi ngọc cường hoá */
+    const LCQ=String(m.id).startsWith('lcq_'), again=LCQ&&!!(p.flags.lcqAgain||{})[m.id];   /* nhiệm vụ NPC rừng Đà Bắc: làm lại mỗi ngày (thưởng nửa EXP), lần nào xong cũng 25% rơi Mảnh Triệu Hồi */
+    p.quests[m.id]='done'; reward(pl,again?{exp:Math.round((q.reward.exp||0)/2)}:q.reward,'Hoàn thành: '+q.title);
+    if(LCQ){ (p.daily.lcqd=p.daily.lcqd||{})[m.id]=1; (p.flags.lcqAgain=p.flags.lcqAgain||{})[m.id]=1; const DR=S.LINHCAT.dragon;
+      if(Math.random()<DR.chance){ addItem(pl,DR.item,1); C.note(pl,`🐉 ${S.NPC_LOOKS[q.giver].name.split(' (')[0]} tặng thêm 1 ${S.ITEMS[DR.item].name}! (${p.items[DR.item]}/${DR.need}) Đủ ${DR.need} mảnh mang tới Tế đàn Rồng Thần`,'item'); } }
+    if(q.secret&&!again){ addItem(pl,'ngoc_ch',1); C.note(pl,'🔮 Nhiệm vụ ẩn tặng thêm 1 Ngọc Cường Hoá (khắc lỗ ở Phù Thuỷ Cường Hoá, MU)','item'); }   /* nhiệm vụ ẩn ở mọi map rơi ngọc cường hoá */
     markDirty(pl); return {}; }
   return {err:'?'}; });
 // hết pin ở ngoài (không gọi được Grab về phòng): xin cắm sạc nhờ người gần đó: chủ quán, nhân viên, người quen. Map không có ai thì nhờ người qua đường
@@ -77,16 +81,16 @@ function achCheck(pl){ const p=pl.prof, s=p.stats||{}; p.ach=p.ach||{};
   for(const [k,a] of Object.entries(S.ACH)){ if(p.ach[k]) continue; const v=a.stat==='money'?p.money:s[a.stat]||0; if(v>=a.n){ p.ach[k]=now(); reward(pl,{exp:a.exp},`${a.hidden?'Thành tích ẩn':'Thành tích'}: ${a.name}!`); send(pl,{t:'ev',k:'ach',id:k}); } } }
 /* ---------- vào/ra nhà ---------- */
 on('enter',(pl,m)=>{ const pc=S.PLACES[m.place]; if(!pc||!pc.door) return {err:'Không có cửa'}; if(kindOf(pl.scene)!==(pc.map||'retreat')||!near(pl,pc.door.x,pc.door.y,44)) return {err:'Đứng trước cửa đã'};
-  const I=S.INTERIORS[pc.scene]; if(!I) return {err:'Có bản cập nhật mới, bấm F5 tải lại trang rồi bấm E ở cửa tiệm'}; moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
+  const I=S.INTERIORS[pc.scene]; if(!I) return {err:'Có bản cập nhật mới, bấm F5 tải lại trang rồi bấm E ở cửa tiệm'}; if(pc.scene==='club') pl.prof.clubFrom=m.place;   /* Nhà giải trí có cửa ở mọi map: nhớ cửa đã vào */
+  moveTo(pl,pc.scene,I.spawn.x,I.spawn.y); return {}; });
 // chỗ đứng khi ra khỏi nhà: đúng điểm cửa (luôn đi được), phòng thuê thì cửa đã dùng để vào
 function doorOf(kind,stayType,pl){ if(kind==='stay'){ const d=(pl&&pl.stayDoor)||S.ROOMS[stayType].doors[0]; return {x:d[0],y:d[1]}; }
   if(kind==='track') return {x:S.DALAT.track.x,y:S.DALAT.track.y};
-  const pc=S.PLACES[kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y}:S.SPAWN.retreat; }
+  const pc=S.PLACES[kind==='club'&&pl&&S.PLACES[pl.prof.clubFrom]?pl.prof.clubFrom:kind]; return pc&&pc.door?{x:pc.door.x,y:pc.door.y}:S.SPAWN.retreat; }
 function nearestDoor(pl,room){ let best=null, bd=1e18; for(const d of S.ROOMS[room].doors){ const dd=Math.hypot(pl.x-d[0]*T,pl.y-d[1]*T); if(dd<bd){ bd=dd; best=d; } } return best; }
 on('exit',pl=>{ const k=kindOf(pl.scene); if(!['stay','track'].includes(k)&&!S.INTERIORS[k]) return {err:'Không ở trong nhà'};
-  if(k==='phongbay'){ moveTo(pl,'club',S.DANCE.door.x+1,S.DANCE.door.y); return {}; }
   if(k==='doncongan'&&jailed(pl)) return {err:`Đang bị tạm giữ, còn ${Math.ceil((pl.prof.jail.until-now())/1000)} giây. Nộp phạt để về sớm`};
-  const d=doorOf(k,pl.stayType,pl); moveTo(pl,k==='track'?'dalat':(S.INTERIORS[k]&&S.INTERIORS[k].map)||'retreat',d.x,d.y); return {}; });
+  const d=doorOf(k,pl.stayType,pl), from=k==='club'&&S.PLACES[pl.prof.clubFrom]; moveTo(pl,k==='track'?'dalat':from?from.map||'retreat':(S.INTERIORS[k]&&S.INTERIORS[k].map)||'retreat',d.x,d.y); return {}; });
 
 /* ---------- ăn uống ---------- */
 on('eat',(pl,m)=>{ const pc=S.PLACES[m.place], f=S.FOOD[m.id], p=pl.prof; if(!pc||!pc.menu||!f||!pc.menu.includes(m.id)) return {err:'Quán không có món này'};
@@ -197,7 +201,7 @@ on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, 
     return startTask(pl,'songao',def.dur,()=>{ p.photos.splice(i,1); n.battery-=def.battery; p.daily.posts++;
       const outfit=Object.values(p.look.outfit||{}).reduce((a,id)=>a+(S.CLOTHES[id]?S.CLOTHES[id].price:0),0);
       const likes=Math.round((15+p.level*6+outfit/20000+Math.random()*20)*ph.mul*(.8+r.wifi*.2));
-      const vnd=likes*250, g=C.gainExp(pl,likes/4); give(pl,vnd); markDirty(pl);
+      const vnd=likes*250, g=C.gainExp(pl,likes/4); C.earn(pl,vnd); markDirty(pl);
       return {msg:`Ảnh "${ph.name}" được ${likes} like · nhãn hàng tài trợ ${fmt(vnd)} · +${g.exp} EXP`,likes,vnd,exp:g.exp}; },{anim:'phone',name:'Up ảnh sống ảo'}); }
   return {err:'?'}; });
 // chụp ảnh sống ảo (P)
@@ -298,7 +302,7 @@ function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||item i
   if(nearNpc(pl,'quancom')) return item in S.FISH; if(nearNpc(pl,'bactrang')) return item in S.SELL; return false; }
 on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items[item]||0,Math.max(1,m.n|0||p.items[item]||0));
   if(!(item in S.SELL)) return {err:'Món này không ai mua'}; if(!buyerOk(pl,item)) return {err:'Người này không mua món đó'}; if(!n) return {err:'Không có'};
-  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))*(1+S.hsBonus(p))), v=price*n;   /* bậc hảo sảng: bán được giá hơn */   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
+  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))*(1+S.hsBonus(p))), v=price*n;   /* bậc hảo sảng: bán được giá hơn */   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); C.earn(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
 // hạt giống: rau Ké ở tiệm cô Ké, cây Đà Lạt ở bác Trang
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};
@@ -326,7 +330,7 @@ on('mk',(pl,m)=>{ const p=pl.prof;
   if(m.op==='buy'){ const l=LIST.find(l=>l.id===(m.id|0)); if(!l) return {err:'Món này vừa bán mất rồi'}; if(l.seller===pl.uid) return {err:'Món của bạn'};
     if(p.money<l.price) return {err:`Giá ${fmt(l.price)}, không đủ tiền`};
     const net=Math.round(l.price*(1-S.MARKET.fee));
-    db.tx(()=>{ db.delListing(l.id); take(pl,l.price); addItem(pl,l.item,l.n); C.save(pl);
+    db.tx(()=>{ db.delListing(l.id); take(pl,l.price,true); C.spent(pl,l.price-net); addItem(pl,l.item,l.n); C.save(pl);   /* người bán nhận net, phí sàn vào ngân khố */
       const sp=byUid.get(l.seller); if(sp){ give(sp,net); C.save(sp); note(sp,`${p.name} đã mua ${l.n} ${S.ITEMS[l.item].name} của bạn: +${fmt(net)}`,'vnd'); }
       else { const prof=db.profile(l.seller); if(prof){ prof.money+=net; (prof.inbox=prof.inbox||[]).push(`${p.name} đã mua ${l.n} ${S.ITEMS[l.item].name}: +${fmt(net)}`); db.saveProfile(l.seller,prof); } } });
     LIST=db.market(); return {item:l.item,n:l.n}; } });

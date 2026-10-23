@@ -59,12 +59,12 @@ on('harvest',(pl,m)=>{ const id=String(m.id||''), d=defOf(id), pt=PLOTS[id], t=n
   if(st!=='open') return {err:`Rau của ${pt.n}. Chủ còn ${Math.max(0,Math.ceil((pt.at+(c.grow+S.FARM.grace)*1000-t)/1000))} giây để thu`};
   if(pt.s) return {err:'Ô này bị cướp một lần rồi'}; if(pt.blk>t) return {err:'Con chó vẫn đang gầm gừ, chưa dám lại gần'};
   const owner=byUid.get(pt.o), dd=id[0]==='k'&&DOGOF.get(pt.o), D=dd&&S.DOGS[dd.k], dn=D?D.name:''; let extra='';
-  if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.max(0,Math.min(pl.prof.money,S.FARM.trang.comp));   /* ví âm thì đền 0, không trừ vào chủ vườn */ take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
+  if(id[0]==='d'&&Math.random()<S.FARM.trang.catch){ const v=Math.max(0,Math.min(pl.prof.money,S.FARM.trang.comp));   /* ví âm thì đền 0, không trừ vào chủ vườn */ take(pl,v,true); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); pt.blk=t+30000;
     if(owner) note(owner,`Bác Trang bắt quả tang ${pl.prof.name} định cướp rau của bạn! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); markDirty(pl); return {err:`Bác Trang quát: "Rau của ${pt.n} mà dám hái trộm à!" Bị bắt đền ${fmt(v)}`}; }
   if(D&&D.block&&Math.random()<D.block){ pt.blk=t+30000; if(owner) note(owner,`${dn} của bạn vừa doạ ${pl.prof.name} chạy mất dép!`,'quest'); return {err:`${dn} của ${pt.n} sủa ầm lên, bạn sợ quá bỏ chạy!`}; }
   const n=Math.max(1,Math.floor(c.yield*(D&&D.steal||S.FARM.steal))); pt.s=n; pt.th=pl.prof.name; addItem(pl,pt.c,n); P.stat(pl,'harvest',n); P.stat(pl,'stolenVeg',n); const g=C.gainExp(pl,S.FARM.stealExp);
   if(D&&D.drain){ pl.prof.needs.energy=Math.max(0,pl.prof.needs.energy-D.drain); extra+=` · ${dn} vờn bạn mệt lả (-${D.drain} năng lượng)`; }
-  if(D&&D.bite&&Math.random()<D.bite){ const v=Math.max(0,Math.min(pl.prof.money,D.fine)); take(pl,v); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); extra+=` · bị ${dn} cắn, đền chủ vườn ${fmt(v)}`;
+  if(D&&D.bite&&Math.random()<D.bite){ const v=Math.max(0,Math.min(pl.prof.money,D.fine)); take(pl,v,true); if(owner) give(owner,v); else db.addMoney&&db.addMoney(pt.o,v); extra+=` · bị ${dn} cắn, đền chủ vườn ${fmt(v)}`;
     if(owner) note(owner,`${dn} cắn ${pl.prof.name} khi cướp rau! Bạn nhận ${fmt(v)} tiền đền`,'vnd'); broadcastScene('retreat',{t:'ev',k:'bite',id:pl.pid}); }
   if(owner) note(owner,`${pl.prof.name} vừa cướp ${n} ${c.name.toLowerCase()} ở vườn của bạn${D&&D.alert?' (Beagle đánh hơi báo ngay)':' vì để quá giờ'}!`,'lock');
   markDirty(pl); push(id); return {item:pt.c,n,exp:g.exp,stole:true,msg:extra?extra.slice(3):''}; });
@@ -141,10 +141,10 @@ on('animal',(pl,m)=>{ const p=pl.prof, t=now();
     // chó nhà canh hoặc đội chó thuê canh: lấy bên canh chắc hơn
     const cD=D0?(D0.block||D0.bite||R.dogGuard):0, cG=GP?GP.block:0, D=cG>cD?{name:gk==='k9'?'Đội Béc-giê K9':'Chó canh thuê',bite:GP.bite?1:0,fine:GP.bite||0}:D0;
     if(D&&Math.random()<Math.max(cD,cG)){ let msg=`${D.name} nhà ${oname} sủa ầm lên, bạn bỏ chạy không kịp dắt ${an1}!`;   // chó canh cả chuồng lợn, bò, gà, vịt
-      if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm ${an1}! Nhận ${fmt(v)} tiền đền`,'vnd'); }
+      if(D.bite){ const v=Math.min(p.money,D.fine); take(pl,v,true); give(o,v); msg=`${D.name} nhà ${oname} cắn bạn, đền ${fmt(v)}!`; note(o,`${D.name} của bạn cắn ${me} khi định trộm ${an1}! Nhận ${fmt(v)} tiền đền`,'vnd'); }
       else note(o,`${D.name} của bạn vừa đuổi ${me} đang định trộm ${an1}!`,'quest');
       if(D.drain) p.needs.energy=Math.max(0,p.needs.energy-D.drain); markDirty(pl); return {msg}; }
-    if(Math.random()>=R.chance){ const v=Math.min(p.money,R.comp); take(pl,v); give(o,v);                                   // bị bắt quả tang: bồi thường cho chủ + vào đồn
+    if(Math.random()>=R.chance){ const v=Math.min(p.money,R.comp); take(pl,v,true); give(o,v);                                   // bị bắt quả tang: bồi thường cho chủ + vào đồn
       const jf=C.fineOf(pl,R.fine); p.jail={until:t+R.jail*1000,fine:jf,why:`Trộm ${an1} của ${oname} bị bắt quả tang`}; P.stat(pl,'jail',1); markDirty(pl);
       note(o,`Bắt quả tang ${me} trộm ${an1}! Đã giải lên đồn, ${me} bồi thường bạn ${fmt(v)}`,'vnd'); broadcastScene(pl.scene,{t:'ev',k:'pigBust',id:pl.pid,name:me,by:oname});
       C.moveTo(pl,'doncongan',7,6); return {msg:`Bị ${oname} bắt quả tang! Bồi thường ${fmt(v)}, tạm giữ ${R.jail} giây (nộp ${fmt(jf)} để về sớm)`}; }

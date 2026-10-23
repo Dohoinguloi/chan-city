@@ -105,27 +105,45 @@ function timer(v){ const tot=SD.CLUB.poker.turn*1000, k=Math.max(0,Math.min(1,v.
 // dải vòng chơi: Preflop → Flop → Turn → River → Lật bài
 function stages(v){ const n=v.board.length, cur=v.st!=='play'&&n===5?4:n>=5?3:n===4?2:n===3?1:0, L=['Preflop','Flop','Turn','River','Lật bài'];
   return `<div class="pstages">${L.map((l,i)=>`<span class="${i<cur?'done':i===cur&&(v.st==='play'||i===4)?'cur':''}">${l}</span>`).join('<b></b>')}</div>`; }
+// bong bóng hành động trên ghế, lá mới lật có hiệu ứng lật, người thắng sáng vàng + số tiền ăn, 5 lá làm nên bài sáng lên, tố nhanh theo pot, chọn trước hành động khi chưa tới lượt
+const ACTN={fold:'Bỏ bài',check:'Xem',call:'Theo',raise:'Tố',allin:'ALL-IN',sb:'Mù nhỏ',bb:'Mù lớn'}, kfmt=v=>v>=1e6?(Math.round(v/1e5)/10+'').replace('.',',')+'tr':v>=1000?Math.round(v/1000)+'K':String(v);
+let PK_SEEN={id:'',hand:0,n:0}, PRE='', RAISE={k:'',v:0}, RKEY='';   /* mức tố đang kéo: giữ qua các lần bảng vẽ lại trong cùng 1 vòng cược */
 function pokerHtml(v){ const me=v.me, s=v.seats[me], myTurn=v.st==='play'&&v.toAct===me, need=s?v.cur-s.bet:0, n=v.seats.length, base=me>=0?me:0;
-  const seat=(x,i)=>{ const [L,T]=SEAT_POS[(i-base+n)%n]; if(!x) return `<div class="pseat empty" style="left:${L}%;top:${T}%"><span class="pname">trống</span></div>`;
-    const mine=i===me, cards=(x.cards||[]).map(c=>card(c,mine?'':'sm')).join('');
-    return `<div class="pseat ${i===v.toAct&&v.st==='play'?'act':''} ${x.fold?'fold':''} ${mine?'mine':''} ${T<50?'top':''}" style="left:${L}%;top:${T}%">
-      <div class="pcards">${mine?'':cards}</div>${face(x.name,'round')}<div class="pname"><b>${esc(x.name)}</b>${fmt(x.chips)}</div>
-      ${i===v.dealer?'<span class="pdeal">D</span>':''}${x.allin?'<span class="pbadge">ALL-IN</span>':x.fold?'<span class="pbadge">BỎ</span>':''}${x.hand?`<em class="phand">${esc(x.hand)}</em>`:''}
+  const W=v.winners||[], wOf=i=>W.find(w=>w.i===i), best=new Set(W.flatMap(w=>w.best||[])), mineBest=new Set(v.st==='play'&&v.mine&&v.mine.best||[]);
+  const fresh=PK_SEEN.id===v.id&&PK_SEEN.hand===v.hand?PK_SEEN.n:0; PK_SEEN={id:v.id,hand:v.hand,n:v.board.length}; if(!myTurn&&!(s&&s.inHand&&!s.fold)) PRE='';
+  const seat=(x,i)=>{ const [L,T]=SEAT_POS[(i-base+n)%n]; if(!x) return `<div class="pseat empty" style="left:${L}%;top:${T}%"><span class="pface round empty"></span><span class="pname">Ghế trống</span></div>`;
+    const mine=i===me, w=wOf(i), shown=v.st==='show'&&x.hand, cards=(x.cards||[]).map(c=>card(c,(shown?'':'sm ')+(best.has(c)?'hi':''))).join('');
+    const bub=x.act&&v.st!=='wait'?`<span class="pbub k-${x.act.k}">${ACTN[x.act.k]||''}${x.act.v&&!['check','fold'].includes(x.act.k)?' '+kfmt(x.act.v):''}</span>`:'';
+    return `<div class="pseat ${i===v.toAct&&v.st==='play'?'act':''} ${x.fold&&v.st==='play'?'fold':''} ${mine?'mine':''} ${T<50?'top':''} ${w?'win':''}" style="left:${L}%;top:${T}%">
+      ${bub}<div class="pcards">${mine?'':cards}</div>${face(x.name,'round')}<div class="pname"><b>${esc(x.name)}</b>${fmt(x.chips)}</div>
+      ${i===v.dealer?'<span class="pdeal">D</span>':''}${x.allin&&v.st==='play'?'<span class="pbadge">ALL-IN</span>':''}${x.hand?`<em class="phand">${esc(x.hand)}</em>`:''}${w?`<span class="pwon">+${fmt(w.v)}</span>`:''}
       ${i===v.toAct&&v.st==='play'?timer(v):''}${x.bet?`<span class="pbet"><img src="${chipsURL(x.bet)}" alt="">${fmt(x.bet)}</span>`:''}</div>`; };
-  return `<div class="fsg pokerfs"><div class="ptop">${btn('tleave','⟵ Rời bàn (đổi chip ra tiền)')}${s&&v.st!=='play'&&v.seats.filter(Boolean).length<SD.CLUB.poker.seats?btn('pk','Thêm bot vào bàn',{op:'bots'}):''}${s&&s.chips<v.blinds[1]&&v.st!=='play'?btn('pk','Mua thêm 200.000đ chip',{op:'rebuy'}):''}
-      <span class="pinfo">Mù ${fmt(v.blinds[0])}/${fmt(v.blinds[1])}${v.st==='play'?' · lượt còn '+Math.ceil(v.left/1000)+'s':v.st==='wait'?' · đợi đủ 2 người':''}</span></div>
-    ${v.st!=='wait'?stages(v):'<div class="pstages"></div>'}<div class="ptable"><div class="pfelt"><div class="pboard">${v.board.map(c=>card(c)).join('')||'<span class="pwait">Chưa lật bài</span>'}</div>
-      <div class="ppot">${v.pot?`<img src="${chipsURL(v.pot)}" alt="">`:''}Pot: <b>${fmt(v.pot)}</b></div></div>${v.seats.map(seat).join('')}</div>
-    <div class="pbar"><div class="pmine">${s?(s.cards||[]).map(c=>card(c,'big')).join(''):''}${s&&s.hand?`<em>${esc(s.hand)}</em>`:''}</div>
-      ${myTurn?`<div class="pact">${btn('pk','Bỏ bài',{op:'fold'})}${need>0?btn('pk','Theo '+fmt(Math.min(need,s.chips)),{op:'call'},'pri'):btn('pk','Xem bài',{op:'check'},'pri')}
-        <label class="praise">Tố lên <b id="raiseLbl">${fmt(v.cur+v.minRaise)}</b><input id="raiseTo" type="range" step="5000" min="${v.cur+v.minRaise}" max="${Math.max(v.cur+v.minRaise,s.chips+s.bet)}" value="${v.cur+v.minRaise}" aria-label="Tố lên"></label>${btn('pk','Tố',{op:'raise'})}${btn('pk','All-in',{op:'allin'},'bad')}</div>`:`<div class="pact muted">${v.st==='play'?'Đợi lượt...':''}</div>`}
-      <div class="tlog ptl">${(v.log||[]).slice(-6).map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>`; }
+  const big=v.blinds[1], buys=big>=50000?[500000,1000000,2000000]:[100000,200000,500000], canBuy=s&&!(s.inHand&&!s.fold&&v.st==='play')&&s.chips<v.buy[1];
+  let act;
+  if(myTurn){ const pot=v.pot, minTo=v.cur+v.minRaise, maxTo=s.chips+s.bet, rnd=x=>Math.min(maxTo,Math.max(minTo,Math.round(x/v.blinds[0])*v.blinds[0]));
+    const qk=[['Min',minTo],['½ Pot',rnd(v.cur+pot/2)],['¾ Pot',rnd(v.cur+pot*.75)],['Pot',rnd(v.cur+pot)]]; RKEY=v.hand+':'+v.board.length+':'+v.cur; const rv0=RAISE.k===RKEY?Math.min(maxTo,Math.max(minTo,RAISE.v)):minTo;
+    act=`<div class="pact turn">${btn('pk','Bỏ bài <kbd>F</kbd>',{op:'fold'},'pfold')}${need>0?btn('pk',`Theo ${fmt(Math.min(need,s.chips))} <kbd>C</kbd>`,{op:'call'},'pri'):btn('pk','Xem bài <kbd>C</kbd>',{op:'check'},'pri')}
+      ${maxTo>minTo?`<div class="praise2"><div class="pqk">${qk.map(([l,x])=>`<button class="btn sm" type="button" data-a="pkset" data-v="${x}">${l}</button>`).join('')}</div>
+        <label class="praise">Tố lên <b id="raiseLbl">${fmt(rv0)}</b><input id="raiseTo" type="range" step="${v.blinds[0]}" min="${minTo}" max="${maxTo}" value="${rv0}" aria-label="Tố lên"></label></div>${btn('pk','Tố <kbd>R</kbd>',{op:'raise'})}`:''}
+      ${btn('pk','All-in <kbd>A</kbd>',{op:'allin'},'bad')}<small class="podds">${need>0?`Theo ${fmt(Math.min(need,s.chips))} để tranh pot ${fmt(pot+need)} · cần thắng ≥ ${Math.round(need/(pot+need)*100)}%`:'Chưa ai tố: xem bài miễn phí'}</small></div>`; }
+  else if(s&&s.inHand&&!s.fold&&v.st==='play'){ const who=v.seats[v.toAct]; act=`<div class="pact pre"><span class="muted">Đợi ${esc(who?who.name:'')}... chọn trước:</span>${[['checkfold','Tự xem / bỏ'],['call','Tự theo'],['check','Tự xem']].map(([k,l])=>`<button class="btn sm ${PRE===k?'pri':''}" type="button" data-a="pkpre" data-k="${k}">${PRE===k?'☑':'☐'} ${l}</button>`).join('')}</div>`; }
+  else act=`<div class="pact muted">${v.st==='show'?'Ván mới bắt đầu sau vài giây...':v.st==='wait'?'Đợi đủ 2 người có chip (bấm Thêm bot nếu vắng)':s?'Bạn đã bỏ bài, đợi ván sau':'Đang xem bàn'}</div>`;
+  const winTxt=W.length?`<div class="pwinner">🏆 ${W.map(w=>`<b>${esc(v.seats[w.i]?v.seats[w.i].name:'?')}</b> ăn ${fmt(w.v)}${w.hand?' · '+esc(w.hand):''}`).join(' · ')}</div>`:'';
+  return `<div class="fsg pokerfs"><div class="ptop">${btn('tleave','⟵ Rời bàn (đổi chip ra tiền)')}${s&&v.st!=='play'&&v.seats.filter(Boolean).length<SD.CLUB.poker.seats?btn('pk','🤖 Thêm bot',{op:'bots'}):''}
+      ${canBuy?`<span class="pbuy">Mua thêm chip:${buys.map(b=>btn('pk',kfmt(b),{op:'rebuy',buy:b})).join('')}</span>`:''}
+      <span class="pinfo">${esc(v.stakes||'')}${v.stakes?' · ':''}Mù ${fmt(v.blinds[0])}/${fmt(v.blinds[1])}${v.hand?' · ván #'+v.hand:''}${v.st==='play'?' · lượt còn '+Math.ceil(v.left/1000)+'s':''}</span></div>
+    ${v.st!=='wait'?stages(v):'<div class="pstages"></div>'}<div class="ptable"><div class="pfelt"><div class="pboard">${v.board.map((c,k)=>card(c,(k>=fresh?'flip ':'')+(best.has(c)?'hi':mineBest.has(c)?'mine':''))).join('')||'<span class="pwait">Chưa lật bài</span>'}</div>
+      <div class="ppot">${v.pot?`<img src="${chipsURL(v.pot)}" alt="">`:''}Pot: <b>${fmt(v.pot)}</b></div>${winTxt}</div>${v.seats.map(seat).join('')}</div>
+    <div class="pbar"><div class="pmine">${s?(s.cards||[]).map(c=>card(c,'big '+(best.has(c)||mineBest.has(c)?'hi':''))).join(''):''}${v.mine&&s&&!(s.fold&&v.st==='play')?`<div class="pmyhand"><small>Bài của bạn</small><b>${esc(v.mine.name)}</b></div>`:''}</div>
+      ${act}<div class="tlog ptl">${(v.log||[]).slice(-7).map(l=>`<div>${esc(l)}</div>`).join('')}</div></div></div>`; }
 
 /* ---------- ma sói ---------- */
-const ROLE_INFO={soi:['Sói','Đêm cắn 1 người, ngày giả làm dân'],dan:['Dân làng','Tìm ra sói, treo cổ chúng'],tientri:['Tiên tri','Mỗi đêm soi 1 người xem có phải sói'],baove:['Bảo vệ','Mỗi đêm che chắn 1 người khỏi bị cắn']};
+const ROLE_INFO={soi:['Sói','Đêm cắn 1 người, ngày giả làm dân'],dan:['Dân làng','Tìm ra sói, treo cổ chúng'],tientri:['Tiên tri','Mỗi đêm soi 1 người xem có phải sói'],baove:['Bảo vệ','Mỗi đêm che chắn 1 người khỏi bị cắn (không che 1 người 2 đêm liền)'],
+  phuthuy:['Phù thuỷ','1 bình cứu người bị sói cắn + 1 bình độc giết 1 người, mỗi bình dùng 1 lần'],thosan:['Thợ săn','Khi chết được bắn chết 1 người theo mình']};
 const ROLE_ICON={soi:['..X...X.','.XXX.XXX','.XXXXXXX','XX.XX.XX','XXXXXXXX','.XXXXXX.','..X..X..','...XX...'],dan:['...XX...','..XXXX..','..XXXX..','...XX...','.XXXXXX.','XXXXXXXX','XXXXXXXX','.XX..XX.'],
-  tientri:['........','..XXXX..','.X....X.','X..XX..X','X.XXXX.X','X..XX..X','.X....X.','..XXXX..'],baove:['XXXXXXXX','XXXXXXXX','XX.XX.XX','XXXXXXXX','.XXXXXX.','.XXXXXX.','..XXXX..','...XX...']};
-const ROLE_COL={soi:'#e04848',dan:'#e8c070',tientri:'#a882ff',baove:'#5ab0f0'};
+  tientri:['........','..XXXX..','.X....X.','X..XX..X','X.XXXX.X','X..XX..X','.X....X.','..XXXX..'],baove:['XXXXXXXX','XXXXXXXX','XX.XX.XX','XXXXXXXX','.XXXXXX.','.XXXXXX.','..XXXX..','...XX...'],
+  phuthuy:['...XX...','..XXXX..','...XX...','..X..X..','.XXXXXX.','XXX.XXXX','XXXXXXXX','.XXXXXX.'],thosan:['X.......','.X....X.','..X..XX.','...XXX..','...XXX..','..XX..X.','.XX....X','XX......']};
+const ROLE_COL={soi:'#e04848',dan:'#e8c070',tientri:'#a882ff',baove:'#5ab0f0',phuthuy:'#5fd08a',thosan:'#e8843a'};
 const roleIcon=r=>once('ri:'+r,()=>{ const k=cv(10,10), g=k.getContext('2d'); mask(g,ROLE_ICON[r]||ROLE_ICON.dan,1,1,ROLE_COL[r]||'#ccc'); A.outline(k); return up(k,3).toDataURL(); });
 // nền thẻ: rặng thông + đồi, ban ngày trời xanh, ban đêm trời tối có trăng sao
 const forestURL=night=>once('forest'+(night?'n':'d'),()=>{ const W=60, H=48, k=cv(W,H), g=k.getContext('2d'); g.fillStyle=night?'#1e2a48':'#6fa2c8'; g.fillRect(0,0,W,H); g.fillStyle=night?'#26355a':'#8cb8d8'; g.fillRect(0,0,W,10);
@@ -193,30 +211,59 @@ function masoiSound(v,key){ const S=GAME.snd; if(!S) return; const prev=msPrev; 
 // quản trò dẫn chuyện: ban đêm lần lượt gọi Sói → Tiên tri → Bảo vệ theo thời gian còn lại của đêm
 function narrate(v){ const last=(v.log||[]).slice(-1)[0]||'';
   if(v.st==='wait') return ['', 'Quản trò: đợi đủ người là bắt đầu. Ít người thì thuê tôi tìm thêm (bot) nhé!'];
-  if(v.st==='night'){ const k=1-(v.left||0)/(v.nightMs||30000); return k<.2?['','Màn đêm buông xuống... cả làng nhắm mắt đi ngủ.']:k<.5?['soi','Sói ơi, hãy thức dậy! Chọn một người để cắn.']:k<.75?['tientri','Tiên tri ơi, hãy thức dậy! Chỉ tay vào người muốn soi.']:['baove','Bảo vệ ơi, hãy thức dậy! Chọn người cần che chở đêm nay.']; }
+  if(v.st==='night'){ const k=1-(v.left||0)/(v.nightMs||30000); return k<.15?['','Màn đêm buông xuống... cả làng nhắm mắt đi ngủ.']:k<.4?['soi','Sói ơi, hãy thức dậy! Chọn một người để cắn.']:k<.6?['tientri','Tiên tri ơi, hãy thức dậy! Chỉ tay vào người muốn soi.']:k<.8?['baove','Bảo vệ ơi, hãy thức dậy! Chọn người cần che chở đêm nay.']:['phuthuy','Phù thuỷ ơi, sói vừa cắn một người. Cứu, đầu độc, hay im lặng?']; }
   if(v.st==='day') return ['','Trời sáng rồi! '+last+' · Cả làng bàn bạc xem ai là sói.'];
-  if(v.st==='vote') return ['','Đến giờ bỏ phiếu! Chỉ tay vào người bạn nghi là sói.'];
+  if(v.st==='vote') return ['','Đến giờ bỏ phiếu! Chỉ tay vào người bạn nghi là sói. Phiếu công khai.'];
+  if(v.st==='hunt') return ['thosan',`Thợ săn ${v.hunt?v.hunt.name:''} gục xuống, giương cung lần cuối... ai sẽ bị kéo theo?`];
   return ['',v.winner==='soi'?'Phe SÓI đã thắng! Làng chìm trong bóng tối...':'Phe DÂN LÀNG đã thắng! Sói đã bị diệt sạch.']; }
-let lastPhase='';
-function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, ph={wait:'Đợi người',night:'BAN ĐÊM',day:'BAN NGÀY · bàn bạc',vote:'BỎ PHIẾU TREO CỔ',end:'HẾT VÁN'}[v.st];
-  const act=v.st==='night'?{soi:['kill','Cắn'],tientri:['see','Soi'],baove:['guard','Bảo vệ']}[v.role]:v.st==='vote'?['vote','Treo']:null, votes=i=>v.votes?Object.values(v.votes).filter(x=>x===i).length:0;
+let lastPhase='', SEEN_N=0;
+// gợi ý việc cần làm ngay theo pha + vai (hiện to ở cột trái)
+function msHint(v,alive){ const R=v.role;
+  if(v.st==='wait'||v.st==='end') return v.players.length>=v.min?'Đủ người rồi: bấm Bắt đầu ván.':`Cần ít nhất ${v.min} người. Vắng thì thuê quản trò tìm người.`;
+  if(v.st==='hunt') return v.hunt&&v.hunt.me?'🏹 Bạn đã gục! Bấm Bắn trên thẻ 1 người để kéo theo.':`🏹 Thợ săn ${esc(v.hunt?v.hunt.name:'')} đang chọn người để bắn...`;
+  if(!alive) return '👻 Bạn đã chết: xem cả làng chơi, nói chuyện với các hồn ma khác.';
+  if(v.st==='night'){ if(v.myAct!=null&&v.myAct!==undefined&&R!=='phuthuy') return '✔ Đã chọn. Chờ trời sáng...';
+    return {soi:'🐺 Bấm Cắn trên thẻ 1 dân làng (bầy sói nên cắn cùng 1 người).',tientri:'🔮 Bấm Soi trên thẻ 1 người để biết họ có phải sói.',baove:'🛡 Bấm Bảo vệ trên thẻ người cần che chở đêm nay.',
+      phuthuy:v.witch&&v.witch.done?'✔ Đêm nay đã quyết. Chờ trời sáng...':'🧪 Đợi sói chọn xong rồi quyết: cứu người bị cắn, đầu độc ai đó, hoặc bỏ qua.'}[R]||'😴 Bạn đang ngủ. Chờ trời sáng...'; }
+  if(v.st==='day') return v.iReady?`✔ Đã sẵn sàng (${v.ready}/${v.readyNeed}). Đủ người là bỏ phiếu sớm.`:'💬 Bàn bạc xem ai là sói. Xong thì bấm Sẵn sàng bỏ phiếu.';
+  if(v.st==='vote') return v.votes&&v.votes[v.me]!==undefined?'✔ Đã bỏ phiếu (đổi được tới hết giờ).':'⚖ Bấm Treo trên thẻ người bạn nghi là sói, hoặc bỏ qua.';
+  return ''; }
+function masoiHtml(v){ const me=v.me, alive=v.players[me]&&v.players[me].alive, ph={wait:'Đợi người',night:'BAN ĐÊM',day:'BAN NGÀY · bàn bạc',vote:'BỎ PHIẾU TREO CỔ',hunt:'THỢ SĂN BẮN',end:'HẾT VÁN'}[v.st];
+  const witchCan=v.role==='phuthuy'&&v.witch&&v.st==='night'&&!v.witch.done&&v.witch.poison;
+  const act=v.st==='hunt'?(v.hunt&&v.hunt.me?['shoot','🏹 Bắn']:null):v.st==='night'?(v.role==='phuthuy'?(witchCan?['poison','☠ Đầu độc']:null):{soi:['kill','🐺 Cắn'],tientri:['see','🔮 Soi'],baove:['guard','🛡 Bảo vệ']}[v.role]):v.st==='vote'?['vote','⚖ Treo']:null;
+  const votes=i=>v.votes?Object.values(v.votes).filter(x=>x===i).length:0, canAct=(v.st==='hunt'?!!act:alive&&act);
   const RI=ROLE_INFO[v.role], night=v.st==='night', [calling,say]=narrate(v), key=v.st+v.day;
-  const banner=key!==lastPhase&&v.st!=='wait'?`<div class="mphase">${night?'🌙 ĐÊM '+v.day:v.st==='day'?'☀️ TRỜI SÁNG · NGÀY '+v.day:v.st==='vote'?'⚖️ BỎ PHIẾU':v.winner==='soi'?'🐺 SÓI THẮNG':'🏡 DÂN LÀNG THẮNG'}</div>`:''; lastPhase=key;
+  const lastTxt=v.lastNight?v.lastNight.length?v.lastNight.map(d=>`${esc(d.name)} ${esc(d.why)}`).join(' · '):'Đêm qua không ai chết':'';
+  const banner=key!==lastPhase&&v.st!=='wait'?`<div class="mphase">${night?'🌙 ĐÊM '+v.day:v.st==='day'?'☀️ TRỜI SÁNG · NGÀY '+v.day:v.st==='vote'?'⚖️ BỎ PHIẾU':v.st==='hunt'?'🏹 THỢ SĂN':v.winner==='soi'?'🐺 SÓI THẮNG':'🏡 DÂN LÀNG THẮNG'}${v.st==='day'&&lastTxt?`<small>${lastTxt}</small>`:''}</div>`:''; lastPhase=key;
   const roleKey=name=>Object.keys(ROLE_INFO).find(k=>ROLE_INFO[k][0]===name)||'dan';
-  const list=v.st==='end'&&v.reveal?v.reveal.map(r=>({name:r.name,alive:r.alive,role:r.role,win:r.win})):v.players;
-  masoiSound(v,key); const scene=wolfSceneURL(v.st==='end'?(v.winner==='soi'?'endsoi':'enddan'):v.st);
+  const list=v.st==='end'&&v.reveal?v.reveal.map(r=>({name:r.name,alive:r.alive,role:r.role,win:r.win,why:r.why})):v.players;
+  const n=Math.max(list.length,v.st==='wait'?v.max||0:0), base=me>=0?me:0, pos=i=>{ const a=Math.PI/2+((i-base+n)%n)/n*2*Math.PI; return [50+Math.cos(a)*40,50+Math.sin(a)*36]; };
+  if((v.seen||[]).length>SEEN_N&&GAME.toast){ const s0=v.seen[v.seen.length-1]; GAME.toast(`🔮 Soi ${esc(s0.n)}: ${s0.soi?'<b class="bad">LÀ SÓI!</b>':'<b class="good">không phải sói</b>'}`,s0.soi?'lock':'quest'); } SEEN_N=(v.seen||[]).length;
+  masoiSound(v,key); const scene=wolfSceneURL(v.st==='end'?(v.winner==='soi'?'endsoi':'enddan'):v.st==='hunt'?'vote':v.st);
+  const k=v.phaseMs?Math.max(0,Math.min(1,v.left/v.phaseMs)):0, tcol=k>.5?'#7de07a':k>.2?'#ffd84a':'#ff6a55';
+  const status=v.role==='phuthuy'&&v.witch?`<div class="mstat">🧪 Bình cứu: ${v.witch.save?'<b class="good">còn</b>':'<s>đã dùng</s>'} · ☠ Bình độc: ${v.witch.poison?'<b class="good">còn</b>':'<s>đã dùng</s>'}</div>`
+    :v.role==='tientri'&&(v.seen||[]).length?`<div class="mstat">${v.seen.map(x=>`<span class="${x.soi?'bad':'good'}">${esc(x.n)}: ${x.soi?'SÓI':'dân'}</span>`).join('')}</div>`:v.role==='baove'&&v.lastGuard>=0&&v.players[v.lastGuard]?`<div class="mstat">Đêm trước đã che: ${esc(v.players[v.lastGuard].name)} (đêm nay không che lại được)</div>`:'';
+  const witchBox=v.role==='phuthuy'&&v.st==='night'&&alive&&v.witch&&!v.witch.done?`<div class="mwitch">${v.witch.target>=0?`Sói đang nhắm <b>${esc(v.witch.targetName)}</b>`:'Sói chưa chọn xong...'}
+    <div class="col">${v.witch.save&&v.witch.target>=0?btn('ms','💚 Cứu '+esc(v.witch.targetName),{op:'save',target:v.witch.target},'pri'):''}${btn('ms','Bỏ qua đêm nay',{op:'wskip',target:-1})}</div>${v.witch.poison?'<small>Muốn đầu độc: bấm ☠ trên thẻ người đó</small>':''}</div>`:'';
+  const voteBox=v.st==='vote'&&v.votes?`<div class="mvotes"><b>Phiếu công khai</b>${Object.entries(v.votes).map(([a,b])=>`<div>${esc(v.players[a]?v.players[a].name:'?')} → ${b>=0&&v.players[b]?'<b>'+esc(v.players[b].name)+'</b>':'<i>bỏ qua</i>'}</div>`).join('')||'<div class="muted">Chưa ai bỏ phiếu</div>'}</div>`:'';
+  const chan=!alive&&me>=0?'👻 Kênh hồn ma':night?(v.role==='soi'?'🐺 Kênh bầy sói':'🌙 Ban đêm im lặng'):'💬 Cả làng';
   return `<div class="fsg masoifs ph-${v.st}" style="background:url(${scene}) center bottom/cover no-repeat">${banner}<aside class="mside"><div class="mhead"><b>${ph}</b><span>Ngày ${v.day}${v.left?' · '+Math.ceil(v.left/1000)+'s':''}</span></div>
-      ${RI?`<div class="mrole"><img src="${roleIcon(v.role)}" alt=""><div><b>Bạn là ${esc(v.roleName||RI[0])}</b><small>${RI[1]}${alive?'':' · bạn đã chết'}</small></div></div>`:''}
-      <div class="mroles">${Object.keys(ROLE_INFO).map(r=>`<span class="${calling===r?'call':''}" title="${ROLE_INFO[r][1]}"><img src="${roleIcon(r)}" alt="">${ROLE_INFO[r][0]}</span>`).join('')}</div>
-      <p class="muted">Phí ${fmt(v.fee)} · pot ${fmt(v.pot)}${v.seen&&v.seen.length?' · đã soi: '+v.seen.map(s=>esc(s.n)+(s.soi?' (SÓI)':' (dân)')).join(', '):''}</p>
-      <div class="mchat">${v.log.slice(-6).map(l=>`<div class="sys">${esc(l)}</div>`).join('')}${v.chat.slice(-10).map(c=>`<div class="${c.to==='soi'?'bad':''}"><b>${esc(c.n)}:</b> ${esc(c.m)}</div>`).join('')}</div>
-      ${alive?`<div class="form"><input id="msIn" maxlength="100" placeholder="${night?(v.role==='soi'?'Nói với bầy sói...':'Ban đêm im lặng'):'Nói với cả làng...'}" aria-label="Nói">${btn('mschat','Gửi')}</div>`:''}</aside>
+      ${v.phaseMs&&v.left?`<div class="mtimer"><i style="width:${Math.round(k*100)}%;background:${tcol}"></i></div>`:''}
+      ${RI?`<div class="mrole"><img src="${roleIcon(v.role)}" alt=""><div><b>Bạn là ${esc(v.roleName||RI[0])}</b><small>${RI[1]}${alive?'':' · bạn đã chết'}</small></div></div>`:''}${status}
+      <div class="mhint">${msHint(v,alive)}</div>${witchBox}${voteBox}
+      ${v.roles&&v.roles.length?`<div class="mroles">${[...new Set(v.roles)].map(r=>{ const kk=roleKey(r), c=v.roles.filter(x=>x===r).length; return `<span class="${calling===kk?'call':''}" title="${esc(ROLE_INFO[kk][1])}"><img src="${roleIcon(kk)}" alt="">${esc(r)}${c>1?' ×'+c:''}</span>`; }).join('')}</div>`:''}
+      <p class="muted">Phí ${fmt(v.fee)} · pot ${fmt(v.pot)}${v.st==='day'?` · sẵn sàng ${v.ready}/${v.readyNeed}`:''}</p>
+      <div class="mchat">${v.log.slice(-6).map(l=>`<div class="sys">${esc(l)}</div>`).join('')}${v.chat.slice(-12).map(c=>`<div class="${c.to==='soi'?'bad':c.to==='dead'?'ghost':''}"><b>${c.to==='dead'?'👻 ':c.to==='soi'?'🐺 ':''}${esc(c.n)}:</b> ${esc(c.m)}</div>`).join('')}</div>
+      ${me>=0&&(alive||v.st!=='wait')?`<div class="form"><input id="msIn" maxlength="100" placeholder="${chan}..." aria-label="Nói" ${alive&&night&&v.role!=='soi'?'disabled':''}>${btn('mschat','Gửi')}</div>`:''}</aside>
     <div class="mstage"><div class="mnarr"><img src="${GAME.portrait('quantro')?GAME.portrait('quantro').toDataURL():''}" alt=""><div><b>Quản trò</b><p>${esc(say)}</p></div></div>
-    <main class="mgrid">${list.map((p,i)=>`<div class="mcard ${p.alive?'':'dead'} ${v.myAct===i?'pick':''} ${i===me?'me':''} ${p.win?'win':''}" style="background-image:url(${forestURL(night)})">
+    <main class="mring">${Array.from({length:n},(_,i)=>{ const [L,T]=pos(i), p=list[i]; if(!p) return `<div class="mcard mempty" style="left:${L}%;top:${T}%"><span>Ghế trống</span></div>`;
+      const target=v.wolfTarget===i||(v.witch&&v.witch.target===i&&v.st==='night');
+      return `<div class="mcard ${p.alive?'':'dead'} ${v.myAct===i?'pick':''} ${i===me?'me':''} ${p.win?'win':''} ${target?'tgt':''}" style="left:${L}%;top:${T}%;background-image:url(${forestURL(night)})">
         <div class="mname">${i+1} ${esc(p.name)}</div>${face(p.name,'big')}${p.role?`<span class="mtag"><img src="${roleIcon(roleKey(p.role))}" alt="">${esc(p.role)}</span>`:''}
-        ${votes(i)?`<span class="mvote">${votes(i)} phiếu</span>`:''}${p.alive?'':'<span class="mdead">ĐÃ CHẾT</span>'}${p.win?'<span class="mwin">THẮNG</span>':''}
-        ${v.st!=='end'&&alive&&act&&p.alive&&i!==me&&!(v.role==='soi'&&p.soi&&night)?btn('ms',act[1],{op:act[0],target:i},'pri'):''}</div>`).join('')||'<p class="muted">Bàn trống</p>'}</main></div>
-    <div class="mbar">${v.st==='vote'&&alive?btn('ms','Bỏ qua lượt treo',{op:'vote',target:-1}):''}${(v.st==='wait'||v.st==='end')&&me>=0&&v.players.length<SD.CLUB.bots.masoiSize?btn('ms',`Thuê quản trò tìm người (${fmt(SD.CLUB.bots.masoiHire)} · thắng ×${SD.CLUB.bots.masoiBonus}, thua mất ×${SD.CLUB.bots.masoiBonus})`,{op:'hire'},'pri'):''}${(v.st==='wait'||v.st==='end')&&v.players.length>=v.min?btn('ms','Bắt đầu ván',{op:'start'},'pri'):''}${btn('tleave','Rời bàn')}</div></div>`; }
+        ${votes(i)?`<span class="mvote">${votes(i)} phiếu</span>`:''}${p.alive?'':`<span class="mdead">☠${p.why?' '+esc(p.why):' ĐÃ CHẾT'}</span>`}${p.win?'<span class="mwin">THẮNG</span>':''}${target?'<span class="mtg">🐺 bị nhắm</span>':''}
+        ${v.st!=='end'&&canAct&&p.alive&&i!==me&&!(v.role==='soi'&&p.soi&&night)?btn('ms',act[1],{op:act[0],target:i},'pri'):''}</div>`; }).join('')||'<p class="muted">Bàn trống</p>'}</main></div>
+    <div class="mbar">${v.st==='day'&&alive?btn('ms',v.iReady?`✔ Đã sẵn sàng (${v.ready}/${v.readyNeed})`:`✋ Sẵn sàng bỏ phiếu (${v.ready}/${v.readyNeed})`,{op:'ready',target:-1},v.iReady?'':'pri'):''}${v.st==='vote'&&alive?btn('ms','Bỏ qua lượt treo',{op:'vote',target:-1}):''}
+      ${(v.st==='wait'||v.st==='end')&&me>=0&&v.players.length<SD.CLUB.bots.masoiSize?btn('ms',`Thuê quản trò tìm người (${fmt(SD.CLUB.bots.masoiHire)} · thắng ×${SD.CLUB.bots.masoiBonus}, thua mất ×${SD.CLUB.bots.masoiBonus})`,{op:'hire'},'pri'):''}${(v.st==='wait'||v.st==='end')&&v.players.length>=v.min?btn('ms','Bắt đầu ván',{op:'start'},'pri'):''}${btn('tleave','Rời bàn')}</div></div>`; }
 
 /* ---------- màn câu cá toàn màn hình ---------- */
 // hồ chiếm phần trên, bờ + cầu gỗ ở dưới; logic toạ độ cá vẫn theo khung 360×220 của ui.js, chỉ phóng ra màn hình
@@ -261,5 +308,5 @@ function drawReel(c,FS,F,over){ const W=c.width, H=c.height, g=c.getContext('2d'
   const f=A.fish(FISHK[FS.size]||'ca_ro').c, fy=Y+BH*(1-FS.fy); g.drawImage(f,X+16-f.width,fy-f.height,f.width*2,f.height*2);
   g.fillStyle=OUT; g.fillRect(X+40,Y-2,14,BH+4); g.fillStyle='#3a2f40'; g.fillRect(X+42,Y,10,BH); g.fillStyle=FS.p>.66?'#7de07a':FS.p>.33?'#ffd84a':'#ff6a55'; g.fillRect(X+42,Y+BH*(1-FS.p),10,BH*FS.p); }
 
-window.GAMES={chessHtml,pokerHtml,masoiHtml,drawBoard,boardSquare,boardXY,drawFishScene,drawReel,portraitURL,cardURL,chipsURL};
+window.GAMES={get pre(){ return PRE; },set pre(k){ PRE=k; },set raise(x){ RAISE={k:RKEY,v:x}; },chessHtml,pokerHtml,masoiHtml,drawBoard,boardSquare,boardXY,drawFishScene,drawReel,portraitURL,cardURL,chipsURL};
 })();

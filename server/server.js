@@ -5,6 +5,11 @@ const http=require('http'), fs=require('fs'), path=require('path'), zlib=require
 const {WebSocketServer}=require('ws');
 const C=require('./core');
 require('./world'); const P=require('./places'); require('./farm'); require('./job'); require('./club'); require('./race'); require('./stunt'); require('./dance'); require('./lb'); require('./kejob'); require('./das'); require('./town'); require('./wild'); require('./oii'); require('./lumen'); require('./yenlang'); require('./pickle'); require('./design'); require('./mck'); require('./updates'); const DIEP=require('./diep'); require('./daily'); require('./maps3'); require('./maps4'); require('./maps5'); require('./linhcat'); require('./lavi'); require('./duongvu'); require('./mu'); require('./muforest'); require('./muwest'); require('./dday'); require('./legend'); require('./haosang'); require('./home'); require('./event');
+require('./treasury');   /* ngân khố nhà nước = ví kaixa */
+require('./shopee');
+require('./pets');
+require('./lcquest');
+require('./gear');   /* đồ mang theo: sạc dự phòng, túi ngủ, lương khô */   /* nhiệm vụ ẩn Lính Cát của 15 NPC rừng Đà Bắc */   /* thú cưng */   /* Shopee Chande: shop online trong Chợ đồ cũ */
 require('./epl');   /* Giải Ngoại Hạng Anh */
 require('./reset');   /* reset toàn server 23/10 16:40 (chủ game cho phép): đếm ngược + chạy đúng 1 lần */
 const {verifyGoogle}=require('./auth');
@@ -120,7 +125,6 @@ function place(pl){ const p=pl.prof, pos=p.pos, sc=p.scene;
   if(sc==='lumen') return at('lumen',S.LUMEN.spawn); if(sc==='yenlang') return at('yenlang',S.YENLANG.spawn); if(sc==='pickle') return moveTo(pl,'pickle',S.PICKLE.spawn.x,S.PICKLE.spawn.y); if(sc==='epl') return at('epl',S.EPL.spawn);
   if(sc==='diep'&&!DIEP.canVisit(p)) return at('diep',S.DIEP.spawn);
   if(sc==='track') return moveTo(pl,'dalat',S.DALAT.track.x,S.DALAT.track.y);
-  if(sc==='phongbay'){ const I=S.INTERIORS.club; return moveTo(pl,'club',I.spawn.x,I.spawn.y); }
   if(sc==='deo') return moveTo(pl,'retreat',S.NPCS.find(n=>n.id==='donche').x+1,90.4);
   if(S.INTERIORS[sc]){ const I=S.INTERIORS[sc]; return moveTo(pl,sc,I.spawn.x,I.spawn.y); }
   if(sc==='stay'){ if(p.stay&&p.stay.paid===today()){ const r=S.ROOMS[p.stay.room]; pl.stayType=p.stay.room; return moveTo(pl,'stay:'+pl.uid,r.spawn.x,r.spawn.y,{room:p.stay.room,host:p.name,own:true}); }

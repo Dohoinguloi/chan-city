@@ -86,7 +86,7 @@ A.linhcat=(id,fr=0,flip=false)=>{ const k=id+fr+flip; if(LCC.has(k)) return LCC.
   let out=sp; if(fr||flip){ const c=A.cv(28,28), g=c.getContext('2d'); if(flip){ g.translate(28,0); g.scale(-1,1); } g.drawImage(sp.c,0,fr?-1:0); out={c,ax:14,ay:27}; }
   LCC.set(k,out); return out; };
 /* ---------- Bóng Cát: 0 đóng, 1 hé mở, 2 mở bung (gold: Bóng Cát Vàng) ---------- */
-A.lcBall=(fr=0,gold=false)=>{ const top=gold?'#f2c43d':'#e8302a', topD=gold?'#c8901a':'#b81a1a';
+A.lcBall=(fr=0,gold=false)=>{ const top=gold==='ht'?'#9a4ae8':gold?'#f2c43d':'#e8302a', topD=gold==='ht'?'#5a1a9a':gold?'#c8901a':'#b81a1a';   /* gold 'ht': Bóng Huyền Thoại tím */
   return S(14,14,7,13,(g,P)=>{ if(fr===0){ ell(P,7,7,6,6,'#f4f4f2'); for(let y=1;y<7;y++){ const w=Math.round(6*Math.sqrt(1-((y-7)*(y-7))/36)); P.rect(7-w,y,w*2+1,1,y<4?top:topD); }
       P.rect(1,7,13,1,K); P.disc(7,7,2,K); P.disc(7,7,1,'#ffffff'); P.rect(4,2,2,1,'#ffb0a8'); P.rect(2,10,10,1,'#c8ccd2'); return; }
     if(fr===1){ ell(P,7,8,6,5,'#f4f4f2'); ell(P,7,8,4,3,'#2a1a1c'); for(let y=1;y<5;y++) P.rect(2+y%2,y,10,1,y<3?top:topD); P.rect(5,4,3,1,'#ffffff'); P.rect(2,11,10,1,'#c8ccd2'); return; }
@@ -112,6 +112,7 @@ A.lcEmblem=()=>S(64,40,32,20,(g,P)=>{ ell(P,32,20,30,18,'rgba(210,58,46,.28)'); 
 /* ---------- icon túi đồ ---------- */
 const ST={hoa:'#ff7a3a',thuy:'#4ab0ff',loi:'#f2c43d',moc:'#5fae46',bang:'#7fd8f0',tien:'#ff8ad2',am:'#5a4a6a',than:'#e86ab8'};
 const ICONS9={lcball:P=>{ ell(P,7,7,5,5,'#f4f4f2'); for(let y=2;y<7;y++){ const w=Math.round(5*Math.sqrt(1-((y-7)*(y-7))/25)); P.rect(7-w,y,w*2+1,1,'#e8302a'); } P.rect(2,7,11,1,K); P.disc(7,7,1,'#ffffff'); },
+  lcball3:P=>{ ell(P,7,7,5,5,'#f4f4f2'); for(let y=2;y<7;y++){ const w=Math.round(5*Math.sqrt(1-((y-7)*(y-7))/25)); P.rect(7-w,y,w*2+1,1,y<4?'#b87aff':'#8a3ad8'); } P.rect(2,7,11,1,K); P.disc(7,7,1,'#ffffff'); P.px(4,3,'#f4e8ff'); P.px(10,4,'#f2c43d'); P.px(3,5,'#f2c43d'); },
   lcball2:P=>{ ell(P,7,7,5,5,'#f4f4f2'); for(let y=2;y<7;y++){ const w=Math.round(5*Math.sqrt(1-((y-7)*(y-7))/25)); P.rect(7-w,y,w*2+1,1,'#f2c43d'); } P.rect(2,7,11,1,K); P.disc(7,7,1,'#ffffff'); P.px(4,3,'#fff3b0'); },
   lcpotion:P=>{ P.rect(5,2,4,2,'#e8ecef'); P.rect(4,4,6,8,'#7ad8a8'); P.rect(5,5,1,5,'#c8ffe8'); P.rect(6,7,2,1,'#ffffff'); P.rect(6,6,1,3,'#ffffff'); }};
 for(const [k,c] of Object.entries(ST)) ICONS9['lcstone_'+k]=P=>{ P.rect(4,3,6,9,c); P.rect(3,5,8,5,c); P.rect(5,4,2,3,'#ffffff'); P.px(9,9,'rgba(0,0,0,.3)'); };

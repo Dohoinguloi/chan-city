@@ -30,7 +30,7 @@ function roll(pl){ const j=JOBS[pl.uid]; if(!j) return; const d=today();
   j.checked=S.addDays(d,-1);
   if(j.miss>=J.fireAfter){ delete JOBS[pl.uid]; saveJob(pl.uid); note(pl,`Everfit: bạn đã nghỉ ${J.fireAfter} ngày làm liền không báo, công ty cho thôi việc`,'lock'); C.refreshInfo(pl); markDirty(pl); return; }
   if(d>=S.addDays(j.lastPay,J.payEvery)){ const v=Math.round(j.accrued); j.accrued=0; j.lastPay=d;
-    if(v>0){ give(pl,v); note(pl,`Everfit chuyển lương: +${fmt(v)}`,'vnd'); } }
+    if(v>0){ C.earn(pl,v); note(pl,`Everfit chuyển lương: +${fmt(v)}`,'vnd'); } }
   saveJob(pl.uid); markDirty(pl); }
 let lastDay=today(); hook('slow',()=>{ const d=today(); if(d!==lastDay){ lastDay=d; for(const pl of players.values()) roll(pl); } });
 

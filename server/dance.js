@@ -12,7 +12,8 @@ function view(pl){ return {st:room.st,song:room.song,songName:room.song&&songOf(
   lobbyLeft:room.st==='lobby'?Math.max(0,room.lobbyEnd-now()):0,dancers:room.dancers.map(d=>({name:d.name,score:d.score,pf:d.perfect,combo:d.combo,j:d.j||''})),
   me:di(pl),seq:room.st==='play'?room.seq:null,roundStart:room.roundStart,beat:room.roundStart+room.beatAt,roundMs:room.roundMs,startAt:room.startAt,results:room.results}; }
 const push=()=>{ for(const pl of sceneOf('phongbay')) send(pl,{t:'dance',v:view(pl)}); };
-on('enterBay',pl=>{ if(pl.scene!=='club'||!near(pl,D.door.x,D.door.y,40)) return {err:'Lại cửa Phòng Bay trong Nhà giải trí'};
+hook('enter',(pl,id)=>{ if(id==='phongbay') setTimeout(()=>{ if(pl.prof&&pl.scene==='phongbay') send(pl,{t:'dance',v:view(pl)}); },300); });   /* Phòng Bay là nhà riêng ở phố Đà Bắc (cửa thường) */
+on('enterBay',pl=>{ if(pl.scene!=='club'||!near(pl,D.door.x,D.door.y,40)) return {err:'Phòng Bay đã dời ra nhà riêng ở phố Đà Bắc, cạnh đường Hà Phạm'};
   const I=S.INTERIORS.phongbay; moveTo(pl,'phongbay',I.spawn.x,I.spawn.y); send(pl,{t:'dance',v:view(pl)}); return {}; });
 on('dance',(pl,m)=>{ if(pl.scene!=='phongbay') return {err:'Vào Phòng Bay đã'}; const t=now();
   if(m.op==='view') return {v:view(pl)};

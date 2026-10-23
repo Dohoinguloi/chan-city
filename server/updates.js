@@ -4,6 +4,42 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24x',title:'24/10 · Poker, Ma sói mới · Nhà giải trí ở mọi map',items:[
+    '🎲 Map nào cũng có Nhà giải trí (Đà Lạt, MU, Ngoại Hạng Anh, Miếu, DAS, Bearplus, Lavi, VNPT, Lumen, Everfit, 120 Yên Lãng, Nghiện Motion, Pickleball): vào chung 1 nhà, ra cửa là về đúng map đã vào',
+    '🪩 Phòng Bay tách ra thành nhà riêng ở phố Đà Bắc, cạnh đường Hà Phạm',
+    '🃏 Poker: 2 bàn 2 mức (Bình dân 5K/10K, VIP 25K/50K); bong bóng hiện ai vừa theo / tố / bỏ; bài của bạn hiện rõ (Đôi K, Hai đôi A và 7, Sảnh tới 9...); lúc lật bài người thắng sáng vàng, 5 lá làm nên bài sáng lên; tố nhanh Min / ½ Pot / ¾ Pot / Pot; chọn trước Tự xem / bỏ, Tự theo; phím tắt F C R A; mua thêm chip nhiều mức; bot chơi khôn hơn (tính tỉ lệ pot, bài chờ, thỉnh thoảng tố lừa)',
+    '🐺 Ma sói: thêm Phù thuỷ (1 bình cứu + 1 bình độc) và Thợ săn (chết thì bắn 1 người); ô gợi ý việc cần làm, đồng hồ pha, phiếu công khai ai chỉ ai, Sẵn sàng bỏ phiếu để bỏ phiếu sớm, kênh Hồn ma cho người đã chết, tiên tri soi xong hiện kết quả ngay; bot sói dồn cùng 1 mục tiêu, tiên tri bot lên tiếng khi thấy sói']},
+  {v:'2026-10-24w',title:'24/10 (cân bằng)',items:['Mọi boss giảm 40% máu (trừ Pepe): Luffy và các boss MU, 5 anh em Siêu Nhân, Megazord, Đỉnh Bắc, MCK ở Ké, Megatron. Boss đang sống giữ máu cũ tới lần xuất hiện sau']},
+  {v:'2026-10-24v',title:'24/10 · Lính Cát 200 loài, võ đài, rồng thần, Ngoại Hạng Anh',items:[
+    '🐾 Lính Cát lên 200 loài: 41 họ tiến hoá mới, nhiều loài mang 2 hệ (khắc hệ nhân cả 2). Lính Cát hoang ra nhiều hơn ở Ké (thêm 40 điểm, vùng 4 sâu trong vườn quốc gia Lv20–32) và trang trại bác Trang (16 điểm + ao). Trên tên con hoang có nhãn hệ',
+    '👑 Đủ Lv50 mọi loài (trừ huyền thoại) thức tỉnh dạng Huyền Thoại: to hơn, ánh hologram, vòng aura dưới chân, chỉ số ×1,2 và bộ chỉ số phụ theo lối 1 tướng Dota (hút máu, trừ giáp, trói, giảm sát thương, đánh lan; cho chủ: giảm hồi chiêu, mana, sát thương, hút máu, tốc đánh, kháng phép 2 giây, chạy nhanh, thêm % tiền)',
+    '🏟 15 CLB Lính Cát ở chỗ vắng trong rừng Bắc và vườn quốc gia: 12 võ đài (đội HLV nhiều con, phải tính khắc hệ, không nhận thần thú), thắng nhận Huy hiệu Chande; đủ 12 huy hiệu chọn 1 trong 5 vũ khí tối thượng (Rapier, Aegis, Satanic, Butterfly, Aghanim). 3 CLB luyện tập đấu lấy EXP',
+    '🐉 Hắc Long và Bạch Long: gom 7 Mảnh Triệu Hồi (15 NPC rừng Đà Bắc tặng 25% mỗi lần xong việc, việc của họ làm lại được mỗi ngày), mang tới Tế đàn Rồng Thần trên thác. Cả server mỗi con chỉ có 1 chủ',
+    '💩 Mèn Mén (Huyền Thoại / Motion) thi thoảng lang thang rừng Ké: mạnh theo cấp chủ, Ném Cứt độc cộng dồn 10 tầng, làm chậm, giảm hồi máu. 🐱 Blacknut ghé nơi làm việc 10 giây rồi biến, chỉ Bóng Huyền Thoại bắt được; đứng đầu đội thì chỉ số chủ ×1,2, tiền + EXP ×2',
+    '🎒 Shopee Chande bán đồ mang theo: sạc dự phòng (10 lần/ngày), lương khô (4 bữa), túi ngủ di động (ngủ ở đâu cũng được). Dùng ở Túi đồ, nút cạnh cảnh báo chỉ số; Auto cũng tự dùng',
+    '⚽ Ngoại Hạng Anh: chọn đội hâm mộ (đổi 1 lần/ngày), mỗi ngày 7 nhiệm vụ cho đội, điểm trung thành lên bậc. Thanh trên cùng có dòng tỉ số: vòng tới đếm ngược, LIVE, kết quả, có bàn thắng là báo',
+    '📖 Poke Deck (sổ tay mọi loài, họ tiến hoá, huyền thoại, thẻ dạng Lv50) · Lính Cát cá, hải sản, rồng nước sống dưới sông hồ · Trung tâm Lính Cát dời cạnh Khu tâm linh · thêm nhiều đường rừng đi tắt ở Đà Bắc · chữ trong game to hơn · thú cưng và Lính Cát không đè nhau']},
+  {v:'2026-10-24u',title:'24/10 (sửa lỗi)',items:['Bấm các nút bên phải (Shopee, Chợ đồ cũ, Kỹ năng, Hằng ngày, Tủ đồ...) không còn tự bật / tắt tiếng nữa']},
+  {v:'2026-10-24t',title:'24/10 · Shopee Chande, ngân khố nhà nước, thú cưng',items:[
+    '🛍 Shopee Chande (nút cam riêng cạnh Chợ đồ cũ): mua ở đâu cũng được, freeship, Flash Sale -30% đổi mỗi 3 tiếng, bấm thẻ là mặc thử lên người, giá hiện sẵn ưu đãi Lumen / Bearplus / DAS / Everfit -20%',
+    'Hàng mới: 30 áo (có áo + hoodie logo Lumen Studio, DAS), 30 quần / váy, 30 giày dép, 50 mũ (nón lá, mũ phớt, vương miện, tai mèo...), 30 kính, khăn / nơ / cà vạt, 14 kiểu tóc, 17 kiểu mặt; đủ bộ đồ của Đôn Chề',
+    '🦸 Tab Full set: 57 bộ nhân vật anime, hoạt hình, phim (Goku, Naruto, Luffy, Pikachu, Doraemon, Mario, Elsa, Người Nhện, Người Sắt, Harry, Jack Sparrow, Người chơi 456...)',
+    '🐾 Tab Thú cưng: 30 bé (chó, mèo, thỏ, hamster, sóc, nhím, gấu trúc, cáo, vẹt, cánh cụt, rùa...) đi theo bạn khắp map; cho ăn đúng gói hạt thì no 6 giờ, +3% EXP; bỏ đói quá 24 giờ là dỗi ở nhà',
+    'Cửa hàng online đổi tên thành Chợ đồ cũ (đồ mọi người bán lại); giá quần áo cân lại theo thu nhập người chơi',
+    '⚜ Ngân khố nhà nước = tài khoản kaixa (Quân triều đình): mọi tiền mua đồ, dịch vụ, vé, phí, tiền phạt đều nộp về ngân khố. Vay vốn nhà nước để trồng trọt, chăn nuôi ở bảng Vườn & chuồng (F): 500K × cấp, tối đa 10 triệu, lãi 1%/ngày',
+    'Phòng xông hơi Nghiện Motion: ngồi trong phòng là tự lên EXP, ngồi liên tục càng lâu càng nhiều, tối đa 6 giờ game / ngày, có bảng theo dõi ngay trên thanh đồ',
+    'Kenny Ho lúc ở Ké Retreat, lúc sang Bearplus quay content (đổi mỗi giờ) · MCK trâu gấp 50 lần',
+    'Phòng poker mới (club gỗ, bàn bọc da), phòng cờ nhìn ra hồ Hoà Bình, Ma sói ngồi thành vòng quanh đống lửa']},
+  {v:'2026-10-24s',title:'24/10 (sửa lỗi)',items:['Cờ vua: sửa lỗi bàn cờ trống trơn (mất hết ô và quân) mỗi khi có tiền vào / thông báo làm bảng vẽ lại']},
+  {v:'2026-10-24r',title:'24/10 (nhỏ)',items:['Nút ➜ ở việc Giải toả giờ chạy: ở phòng thì mở luôn điện thoại; pin dưới 50% thì tự tới ổ cạnh giường sạc rồi mở; ở ngoài thì tự về phòng (phòng thuê ở Ké hoặc Grab về Hà Nội)','Auto làm được việc Giải toả: tự mở điện thoại, tự giữ thanh trong vùng xanh, xong thì về báo Pháp']},
+  {v:'2026-10-24q',title:'24/10 · Sổ nhiệm vụ',items:['Bấm 📖 cạnh Việc cần làm (hoặc Esc → Sổ nhiệm vụ) để xem đủ mọi nhiệm vụ: đang làm, nhận được ngay, chờ việc trước, việc ẩn, đã xong, chia theo từng map','Bảng Việc cần làm có thêm dòng Nhận được: N việc, gợi ý người giao gần nhất; bấm ➜ là tự đi tới (khác map thì tự gọi Grab)','Sửa lỗi gọi Grab sang map khác xong đứng im: giờ tới nơi tự đi tiếp tới chỗ làm / người giao']},
+  {v:'2026-10-24p',title:'24/10 (nhỏ)',items:['Việc hôm nay thưởng gấp đôi: mỗi việc 80–160K + 60–120 EXP, rương ngày (nhận đủ 3 việc) 240–640K + 240 EXP']},
+  {v:'2026-10-24o',title:'24/10 · Auto thông minh hơn + Điểm danh 30 ngày',items:[
+    'Auto nhiệm vụ không còn kẹt: pin yếu ở ngoài thì tự xin sạc nhờ người gần nhất (hết lượt thì tự Grab về phòng sạc), buồn ngủ / bẩn thì tự Grab về phòng ngủ / tắm, không bấm nhầm cổng dịch chuyển, Grab lỗi (hết pin, thiếu tiền) thì tự xử lý hoặc bỏ qua',
+    'Việc phải chờ (vừa ăn món đó, chưa tới bữa, bướm chưa bay lại, "X phút nữa"...): Auto tự làm việc khác gần nhất trước, hết giờ chờ tự quay lại làm nốt. Việc ở map đang đứng và gần mình được làm trước',
+    'Tự đi (nút ➜, Auto): hết lỗi "Không tìm được đường tới đó" khi đích nằm giữa rừng cây hoặc có người đứng chắn lối; trong MU đi xa thì tự đi qua cổng dịch chuyển cho nhanh; đi mãi không tới thì tự đổi việc',
+    'Điểm danh nâng lên 30 ngày, quà gấp 5 lần: tiền, EXP, hạt giống quý, Bóng Cát Vàng, đá tiến hoá, sách kinh nghiệm, Ngọc Cường Hoá (cả Huyền Thoại), 3 loại ngọc quý, sách nội tại MU, buff EXP ×1,2 → ×1,5',
+    'Mốc lớn ngày 7 · 14 · 21 có rương vàng, ngày 30 Rương kim cương 5 triệu + Áo khoác Vàng Kim độc quyền. Lỡ ngày không mất chuỗi nữa: quay lại là nhận tiếp ô kế']},
   {v:'2026-10-24n',title:'24/10 · Map mới: Giải Ngoại Hạng Anh',items:[
     'Gọi Grab bay sang nước Anh (120.000đ): 6 sân bóng Emirates (Arsenal), Etihad (Man City), Anfield (Liverpool), Old Trafford (MU), Stamford Bridge (Chelsea), St James\' Park (Newcastle) quanh quảng trường Premier League có cúp vàng, xe buýt 2 tầng, bốt điện thoại đỏ',
     'Cứ 20 phút 1 vòng 3 trận, mỗi trận 3 phút = 90 phút bóng đá, ai cũng xem được 22 cầu thủ chạy trên sân. Bảng xếp hạng + Vua phá lưới ở giữa quảng trường (bảng Xếp hạng có thêm tab Vua phá lưới)',

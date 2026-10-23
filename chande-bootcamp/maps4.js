@@ -15,6 +15,13 @@ X.nm=async(op,it)=>{ if(op==='snack') return UI.place('nm_tuck',{id:'nm_tuck'});
   if(r.msg) return toast(esc(r.msg),'quest');
   if(r.sec){ if(op==='sauna') GAME.sfx('splash',.35); toast(START[op]||'Đang làm...','quest'); } };
 
+/* ---------- xông hơi lâu: tooltip ngay trên thanh item (server gửi 'steam' mỗi giây khi đang trong phòng) ---------- */
+{ const tip=document.createElement('div'); tip.id='steamTip'; tip.className='panel'; tip.hidden=true; document.getElementById('hudBottom').prepend(tip);
+  const hm=s=>{ const g=Math.round(s*SD.RULES.timeScale/60); return Math.floor(g/60)+'g'+String(g%60).padStart(2,'0'); };   /* giây thật → giờ game */
+  NET.listen('steam',m=>{ document.body.classList.toggle('steam',!m.off); if(m.off){ tip.hidden=true; return; } tip.hidden=false; const k=Math.min(1,m.used/m.cap);
+    tip.innerHTML=m.full?`<div>🧖 Hôm nay xông đủ ${hm(m.cap)} rồi, mai quay lại nhé · đã nhận <b>+${m.exp} EXP</b></div>`
+      :`<div>🧖 Xông hơi <b>${Math.floor(m.min)} phút</b> liên tục · <b>+${m.rate.toFixed(1)} EXP/phút</b>${m.rate<N.steam.max?' (càng lâu càng tăng)':' (tối đa)'} · đã nhận <b>+${m.exp} EXP</b></div><i class="stbar"><i style="width:${Math.round(k*100)}%"></i></i><small>Hôm nay ${hm(m.used)} / ${hm(m.cap)} · ra khỏi phòng là tính lại từ đầu</small>`; }); }
+
 /* ---------- Gundam / Eva (vật thể, không phải avatar) ---------- */
 const c0=X.consider, p0=X.pick, g0=X.go, a0=X.anim, d0=X.draw;
 X.consider=(consider,dist)=>{ c0(consider,dist); if(!here()) return;

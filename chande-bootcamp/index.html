@@ -36,10 +36,14 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 #hudQuests li{display:grid;font-size:19px} #hudQuests li b{font-weight:400} #hudQuests li span{color:var(--muted);font-size:17px}
 #hudQuests li.ready b{color:var(--green)} #hudQuests li.ready b::before{content:'✔ '}
 .qgo{font:16px var(--f);background:#2f5fb0;border:1px solid #7aa8ff;color:#fff;cursor:pointer;padding:0 6px;margin-left:4px;pointer-events:auto} .qgo:hover{background:#3f7ae0} #hudQuests .fhead{margin-top:8px} #fOpen{font:18px var(--f);background:none;border:1px solid var(--line);color:var(--cream);cursor:pointer;padding:0 6px} body.qmin #hudQuests .flist{display:none}
+#qLog{font:16px var(--f);background:none;border:1px solid var(--line);color:var(--muted);cursor:pointer;padding:0 5px;margin-left:4px;pointer-events:auto;vertical-align:middle} #qLog:hover{color:var(--gold);border-color:var(--gold)} body.touch #qLog{font-size:14px} #hudQuests li.qnew b{color:var(--gold)}
 #hudQuests li.frow{cursor:pointer;pointer-events:auto} #hudQuests li.frow:hover b{color:var(--gold)} #hudQuests li.frow{grid-template-columns:auto 1fr auto;gap:6px;align-items:center;font-size:17px} #hudQuests li.frow span{font-size:15px;white-space:nowrap} #hudQuests li.frow.ready b::before{content:''}
 .fbar{position:relative;display:block;height:8px;background:#1c1516;border:1px solid #0c0a10;min-width:40px} .fbar>i{position:absolute;left:0;top:0;bottom:0}
 #hudRight{position:fixed;right:12px;top:12px;gap:6px;justify-items:end;display:none}
 .hudTop{display:flex;gap:6px;align-items:stretch}
+#hudEpl{display:flex;align-items:center;max-width:360px;overflow:hidden;white-space:nowrap;color:#fff3d6;font:inherit;cursor:var(--cur-hand),pointer} #hudEpl[hidden]{display:none} #hudEpl.live{border-color:#e8302a;box-shadow:0 0 0 1px #e8302a inset} #hudEpl .lv{color:#ff5a4a;margin-right:4px;animation:keyPulse 1.2s steps(2) infinite} #hudEpl.goal{animation:eplGoal .5s steps(2) 6} #hudEpl .fav{color:#ffd84a}
+@keyframes eplGoal{50%{background:#f2c43d;color:#1c1516}}
+.eplfq .row small{display:block} .btn.dis{opacity:.45} @media (max-width:700px){#hudEpl{max-width:170px}} .eplclubs{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}
 .muteBtn{font:19px var(--f);color:var(--cream);display:flex;align-items:center;gap:6px;padding:2px 10px;cursor:pointer}
 .muteBtn:hover,.muteBtn:focus-visible{border-color:var(--gold);outline:none}
 .muteBtn .spk{width:14px;height:12px;position:relative;display:inline-block}
@@ -72,17 +76,17 @@ body.qmin #hudQuests ul{display:none} body.qmin #hudQuests h4{margin:0}
 body.touch #game,body.touch #ui{touch-action:none}
 body.touch #minimap,body.touch #hudNav,body.touch #btnSkills,body.touch #hudSkills,body.touch #chatHint{display:none!important}
 @media (max-height:540px),(max-width:760px){
-  #hudQuests{width:min(230px,34vw);font-size:14px;max-height:46vh;overflow:auto} #hudQuests li span{font-size:12px}
+  #hudQuests{width:min(230px,34vw);font-size:14px;max-height:46vh;overflow:auto} #hudQuests li span{font-size:14px}
   .hudTop .panel{font-size:14px;padding:2px 7px} .muteBtn .lbl{display:none}
-  #hudLvlBox,#hudNeeds{width:150px;font-size:13px;padding:2px 7px} .need{grid-template-columns:70px 1fr 22px;font-size:13px}
+  #hudLvlBox,#hudNeeds{width:150px;font-size:14px;padding:2px 7px} .need{grid-template-columns:70px 1fr 22px;font-size:14px}
   #hudItems{transform:scale(.82);transform-origin:bottom center} #toasts{top:auto;bottom:150px;width:min(300px,46vw)} .toast{font-size:14px}
   #panel{max-height:92vh} #keyHint{bottom:70px;font-size:15px;gap:8px;padding:4px 10px}
 }
 /* cảm ứng: HUD gọn để không đè lên cần điều khiển và cụm nút */
 body.touch #hudQuests{width:min(220px,32vw);max-height:40vh;padding:4px 8px;left:calc(8px + env(safe-area-inset-left));top:8px}
-body.touch #hudQuests h4{font-size:17px} body.touch #hudQuests li{font-size:14px} body.touch #hudQuests li span{font-size:12px} body.touch .qgo{font-size:13px}
+body.touch #hudQuests h4{font-size:17px} body.touch #hudQuests li{font-size:14px} body.touch #hudQuests li span{font-size:14px} body.touch .qgo{font-size:14px}
 body.touch #hudRight{right:calc(8px + env(safe-area-inset-right));top:8px;gap:4px}
-body.touch #hudLvlBox,body.touch #hudNeeds{width:144px;font-size:13px;padding:2px 7px} body.touch #hudMeals{display:none} body.touch #hudBuffs{font-size:12px;max-width:144px}
+body.touch #hudLvlBox,body.touch #hudNeeds{width:144px;font-size:14px;padding:2px 7px} body.touch #hudMeals{display:none} body.touch #hudBuffs{font-size:14px;max-width:144px}
 body.touch #tbtns{grid-template-columns:repeat(4,42px) 60px;gap:5px;right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}
 body.touch #tbtns button{width:42px;height:42px;font-size:19px;border-radius:10px} body.touch #tbtns button.big{grid-column:5;grid-row:1/3;width:60px;height:89px;font-size:30px}
 body.touch #joy{width:116px;height:116px;left:calc(14px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom))} body.touch #joyKnob{left:30px;top:30px}
@@ -115,11 +119,11 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 .lock{color:#a89ab8;font-size:18px}
 @keyframes dqShine{to{left:120%}} @keyframes dqBtn{to{box-shadow:0 3px 0 #7a4a10,0 0 20px rgba(255,220,90,.9);transform:translateY(-1px)}} @keyframes dqGlow{to{box-shadow:inset 0 0 0 1px #fff3a0,0 0 22px rgba(255,216,74,.55),0 2px 0 #120c16}}
 @keyframes dqHop{to{transform:translateY(-3px)}} @keyframes dqShake{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
-@media (max-width:760px),(max-height:540px){ .dqc{grid-template-columns:52px 1fr auto;gap:8px} .dqt{width:52px;height:52px} .dqt img{width:48px;height:48px} .dqm b{font-size:16px} .chip{font-size:13px} .btn.dqget{font-size:16px;padding:4px 10px} .stamp{font-size:17px;right:8px} }
+@media (max-width:760px),(max-height:540px){ .dqc{grid-template-columns:52px 1fr auto;gap:8px} .dqt{width:52px;height:52px} .dqt img{width:48px;height:48px} .dqm b{font-size:16px} .chip{font-size:14px} .btn.dqget{font-size:16px;padding:4px 10px} .stamp{font-size:17px;right:8px} }
 /* bảng Hằng ngày */
 .dbadge{display:inline-block;min-width:16px;padding:0 4px;margin-left:4px;background:#e2412f;color:#fff;border-radius:8px;font-size:14px;line-height:16px}
 .daily{margin-top:8px;display:grid;gap:8px} .daily .dim{margin:0;color:var(--muted);font-size:17px}
-.d7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.d7{display:grid;grid-template-columns:repeat(7,1fr);gap:6px} .d30{grid-template-columns:repeat(10,1fr);gap:5px} .d30 .dday{min-height:112px;padding:6px 2px;font-size:14px} .d30 .dday b{font-size:14px} .d30 .dday span{font-size:14px} .d30 .dday.big{border-color:#c8902a;background:linear-gradient(#3a2a14,var(--panel2))} .d30 .dday.huge{border-color:#7fe8ff;background:linear-gradient(#14304a,var(--panel2))}
 .dday{display:grid;justify-items:center;gap:4px;padding:8px 4px;background:var(--panel2);border:2px solid var(--line);text-align:center;font-size:15px;min-height:128px;align-content:start}
 .dday span{color:var(--muted);font-size:15px} .dday b{font-weight:400;font-size:15px;line-height:1.05} .dday i{font-style:normal;color:var(--muted);font-size:14px} .dday .ico{width:34px;height:34px}
 .dday.got{opacity:.55} .dday.got i{color:var(--green)} .dday.now{border-color:var(--gold);box-shadow:0 0 0 2px #1c1516,0 0 12px rgba(255,216,74,.45);animation:dglow 1.2s ease-in-out infinite alternate} .dday.big .ico{width:42px;height:42px}
@@ -129,7 +133,7 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 .dqrow.chest{grid-template-columns:auto 1fr auto;border-style:dashed} .dqrow.chest span{display:block} .dqrow.chest .ico{width:36px;height:36px}
 .dbar{height:8px;background:#1c1516;border:1px solid #0c0a10;margin:3px 0} .dbar i{display:block;height:100%;background:linear-gradient(#ffe680,#f2a33a)}
 .dalb{padding:6px 10px;background:var(--panel2);border:2px solid var(--line)} .dhint{margin:4px 0 0;padding-left:18px;font-size:16px;line-height:1.15;color:var(--muted)} .dhint b{font-weight:400;color:var(--cream)} .dalb.full{border-color:var(--gold)} .dalb h5{margin:0 0 4px;font-weight:400;font-size:19px;color:var(--gold)} .dalb h5 small{color:var(--muted)}
-.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:4px} .dcell{display:grid;justify-items:center;gap:1px;padding:4px 2px;background:#241c26;border:1px solid var(--line);font-size:13px;text-align:center;line-height:1}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:4px} .dcell{display:grid;justify-items:center;gap:1px;padding:4px 2px;background:#241c26;border:1px solid var(--line);font-size:14px;text-align:center;line-height:1}
 .dcell .ico{width:30px;height:30px} .dcell.unk .ico{filter:brightness(0);opacity:.35} .dcell.unk span{color:var(--muted)}
 .drw{margin-top:4px;font-size:15px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap} .drw i{font-style:normal;color:var(--green)}
 .dseason p{margin:0 0 6px;font-size:17px} .dhave{display:flex;gap:8px;align-items:center;font-size:18px;margin-bottom:6px} .dshop{display:grid;gap:6px}
@@ -137,7 +141,7 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 .dcost{display:flex;gap:6px;align-items:center;color:#ffb060;white-space:nowrap} .dcost i{font-style:normal;color:var(--green)}
 .dchest{display:flex;gap:10px;align-items:center;padding:8px 12px;background:#2c2418;border:2px solid var(--gold);font-size:18px} .dchest .ico{width:44px;height:44px} .dchest .ico+div .ico{width:22px;height:22px;vertical-align:middle}
 .pop{animation:dpop .45s cubic-bezier(.3,1.6,.5,1)} @keyframes dpop{from{transform:scale(.6);opacity:0}}
-@media (max-width:760px),(max-height:540px){ .d7{grid-template-columns:repeat(4,1fr)} .dday{min-height:104px} .dqrow b{font-size:16px} }
+@media (max-width:760px),(max-height:540px){ .d7{grid-template-columns:repeat(4,1fr)} .d30{grid-template-columns:repeat(5,1fr)} .dday{min-height:104px} .dqrow b{font-size:16px} }
 /* bảng xếp hạng: ảnh mặt người chơi */
 .lbn{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap} .lbf{width:30px;height:30px;image-rendering:pixelated;background:#f3ecdc;border:2px solid #1c1516;box-shadow:0 0 0 1px var(--line);display:inline-block;flex:none} .row.tt1 .lbf{box-shadow:0 0 0 2px #ffd84a,0 0 8px rgba(255,216,74,.6)} .row.tt2 .lbf{box-shadow:0 0 0 2px #cfe6ff} .row.tt3 .lbf{box-shadow:0 0 0 2px #f0a060}
 /* danh hiệu top 10 đại gia: 10 hiệu ứng óng ánh */
@@ -163,7 +167,7 @@ body.touch:has(#dialog:not([hidden])) #touchUI{display:none} body.touch #dialog{
 #mStat{display:none}
 body.touch #mStat{display:flex;align-items:center;gap:6px;padding:2px 8px;font:15px var(--f);color:var(--cream);pointer-events:auto;cursor:pointer}
 #mStat .mbars{display:flex;gap:2px;height:16px} #mStat .mbars i{width:6px;height:16px;background:#1c1516;border:1px solid #0c0a10;position:relative;display:block} #mStat .mbars b{position:absolute;left:0;right:0;bottom:0;height:100%}
-#mbE{background:#ffd84a} #mbC{background:#7fe0ff} #mbB{background:#7de07a} #mStat b.low{background:var(--red)!important} #mStat .mcar{color:var(--muted);font-size:13px} body.mstat #mStat .mcar{transform:rotate(180deg)}
+#mbE{background:#ffd84a} #mbC{background:#7fe0ff} #mbB{background:#7de07a} #mStat b.low{background:var(--red)!important} #mStat .mcar{color:var(--muted);font-size:14px} body.mstat #mStat .mcar{transform:rotate(180deg)}
 #mStat.warn{border-color:var(--red);animation:keyPulse .8s steps(2) infinite}
 body.touch .hudTop>.muteBtn,body.touch #hudPlayers{display:none}
 body.touch:not(.mstat) #hudLvlBox,body.touch:not(.mstat) #hudNeeds{display:none} body.touch.mstat #hudLvlBox,body.touch.mstat #hudNeeds{width:210px;font-size:14px}
@@ -184,23 +188,23 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 #hudItems{display:flex;gap:4px;padding:5px}
 .lgsep{width:2px;align-self:stretch;margin:2px 3px;background:linear-gradient(#ffd84a,#8a5a1a)}
 .lgslot{border-color:#c8a23a!important;background:radial-gradient(circle,color-mix(in srgb,var(--lc) 35%,transparent),var(--panel2) 70%);cursor:pointer}
-.lgslot.off img{filter:grayscale(1) brightness(.55)} .lgslot.on{box-shadow:0 0 6px var(--lc)} .lgslot i{color:#ffd84a} .lgslot b{position:absolute;right:2px;bottom:0;color:#6ae88a;font-size:13px}
-.lgslot kbd{position:absolute;left:1px;top:0;font:12px/1 var(--f);color:#ffd84a;text-shadow:1px 1px 0 #000} .lgslot em{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);color:#fff;font-style:normal;font-size:20px}
+.lgslot.off img{filter:grayscale(1) brightness(.55)} .lgslot.on{box-shadow:0 0 6px var(--lc)} .lgslot i{color:#ffd84a} .lgslot b{position:absolute;right:2px;bottom:0;color:#6ae88a;font-size:14px}
+.lgslot kbd{position:absolute;left:1px;top:0;font:14px/1 var(--f);color:#ffd84a;text-shadow:1px 1px 0 #000} .lgslot em{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.6);color:#fff;font-style:normal;font-size:20px}
 .lghead{display:flex;gap:12px;align-items:center;border:2px solid var(--lc);padding:8px;margin-bottom:8px} .lghead img{image-rendering:pixelated} .lghead p{margin:2px 0}
 .lgbar{height:8px;background:#2a2230;border:1px solid #000;margin:4px 0} .lgbar.sm{height:4px;margin:0 6px 2px 40px} .lgbar i{display:block;height:100%;background:linear-gradient(90deg,#c8a23a,#ffd84a)}
 .lglist{display:grid;gap:4px} .lgrow{display:grid;grid-template-columns:28px 1fr auto;gap:6px;align-items:center;padding:4px 6px;background:var(--panel2);border:1px solid var(--line)} .lgrow.done{opacity:.6} .lgic{font-size:18px;text-align:center} .lgty{color:#ffd84a}
-.xtlock>img,.xtlock>canvas.xtmain{filter:grayscale(.85) brightness(.55)} canvas.xtanim{image-rendering:pixelated} .xtgal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0} .xtv{display:grid;justify-items:center;align-content:start;gap:1px;width:112px;padding:4px 3px;background:rgba(0,0,0,.28);border:2px solid var(--lc);color:var(--cream);font:inherit;text-align:center} button.xtv{cursor:pointer} button.xtv:hover{background:rgba(255,255,255,.08)} .xtv.on{box-shadow:0 0 0 2px var(--lc),0 0 14px var(--lc)} .xtv b{color:var(--lc)} .xtv small{font-size:12px;line-height:1.05;opacity:.9} .xtv em{font-style:normal;font-size:12px;color:var(--lc)} .xtlock{opacity:.92} .xtq{margin:4px 0;padding-left:16px;font-size:15px;text-align:left} .xtq .qgo{font-size:13px;padding:0 4px}
+.xtlock>img,.xtlock>canvas.xtmain{filter:grayscale(.85) brightness(.55)} canvas.xtanim{image-rendering:pixelated} .xtgal{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0} .xtv{display:grid;justify-items:center;align-content:start;gap:1px;width:112px;padding:4px 3px;background:rgba(0,0,0,.28);border:2px solid var(--lc);color:var(--cream);font:inherit;text-align:center} button.xtv{cursor:pointer} button.xtv:hover{background:rgba(255,255,255,.08)} .xtv.on{box-shadow:0 0 0 2px var(--lc),0 0 14px var(--lc)} .xtv b{color:var(--lc)} .xtv small{font-size:14px;line-height:1.05;opacity:.9} .xtv em{font-style:normal;font-size:14px;color:var(--lc)} .xtlock{opacity:.92} .xtq{margin:4px 0;padding-left:16px;font-size:15px;text-align:left} .xtq .qgo{font-size:14px;padding:0 4px}
 .lgq{font-size:20px;color:#ffe9a0;margin:8px 0} .lgans{display:flex;gap:6px} .lgans input{flex:1;font:18px var(--f);padding:4px 8px;background:#1c1516;color:var(--cream);border:2px solid var(--line)}
 /* MU Online: HUD máu / mana / chiêu, thanh boss, bảng chọn class */
 #muHud{pointer-events:auto;padding:5px 7px;display:grid;gap:4px} #muHud[hidden],#muBoss[hidden]{display:none!important} body:not(.playing) #muBoss{display:none!important}
 #muBoss{pointer-events:none;padding:4px 8px;font-size:14px;display:grid;gap:3px}   /* thanh boss: góc dưới trái, ngay trên khung MU */
 .mucdl{display:block;text-align:center;color:var(--muted);line-height:1.15} .mucdl b{font-weight:400;color:var(--gold)}
 .mub{display:grid;grid-template-columns:minmax(0,150px) 1fr 38px;gap:6px;align-items:center;line-height:1} .mub b{font-weight:400;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mub em{font-style:normal;color:#ff7a5a} .mub small{text-align:right}
-#muHud b{font-weight:400} .mubar{position:relative;display:block;height:12px;background:#2a1a1e;border:1px solid var(--ink)} .mubar i{display:block;height:100%} .mubar em{position:absolute;inset:0;font-style:normal;font-size:13px;line-height:12px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
+#muHud b{font-weight:400} .mubar{position:relative;display:block;height:12px;background:#2a1a1e;border:1px solid var(--ink)} .mubar i{display:block;height:100%} .mubar em{position:absolute;inset:0;font-style:normal;font-size:14px;line-height:15px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
 .mubar.hp i{background:#e8302a} .mubar.mp i{background:#3a6ad8} .mubar.boss i{background:linear-gradient(90deg,#8a1a5a,#e8302a)} #muSk{display:flex;gap:6px}
 .musk{position:relative;width:58px;height:58px;padding:0;display:grid;place-items:center;background:var(--panel2);border:2px solid var(--line);cursor:var(--cur-hand),pointer;overflow:hidden} .musk:hover{border-color:var(--gold)}
-.musk img{image-rendering:pixelated;margin-top:-8px} .musk b{position:absolute;left:3px;top:1px;font-weight:400;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000} .musk small{position:absolute;right:3px;top:1px;font-size:12px;color:#7fb8ff;text-shadow:1px 1px 0 #000}
-.musk span{position:absolute;left:0;right:0;bottom:1px;font-size:11px;line-height:11px;color:var(--cream);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mucd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
+.musk img{image-rendering:pixelated;margin-top:-8px} .musk b{position:absolute;left:3px;top:1px;font-weight:400;font-size:14px;color:var(--gold);text-shadow:1px 1px 0 #000} .musk small{position:absolute;right:3px;top:1px;font-size:14px;color:#7fb8ff;text-shadow:1px 1px 0 #000}
+.musk span{position:absolute;left:0;right:0;bottom:1px;font-size:14px;line-height:15px;color:var(--cream);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mucd{position:absolute;left:0;right:0;bottom:0;height:0;background:rgba(0,0,0,.6);pointer-events:none}
 .mucls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px} .mucl{display:grid;justify-items:center;gap:3px;padding:6px;background:var(--panel2);border:2px solid var(--cc);text-align:center} .mucl img{image-rendering:pixelated} .mucl p{font-size:15px;margin:2px 0} .mucl ul{text-align:left;font-size:14px;margin:2px 0;padding-left:16px}
 @media (max-width:620px){ .mucls{grid-template-columns:1fr} }
 .mulg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px} .mulgc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;background:var(--panel2);border:2px solid var(--line);text-align:center} .mulgc img{image-rendering:pixelated} .mulgc p{font-size:14px;margin:2px 0} .mulgc .star{color:var(--gold)} .mulgc.t3{border-color:#7fb8ff} .mulgc.t4{border-color:#c86aff} .mulgc.t5{border-color:var(--gold)} #muLoot{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:7;width:min(340px,86vw);padding:10px 14px;display:grid;gap:4px;border-color:var(--gold);animation:lootin .35s ease-out} #muLoot[hidden]{display:none} #muLoot h4{margin:0;font-weight:400;font-size:24px;color:var(--gold)} #muLoot .x{position:absolute;right:6px;top:4px;font:16px var(--f);background:none;border:0;color:var(--cream);cursor:pointer} .ll{display:grid;gap:3px;margin-top:4px} .lr{display:flex;gap:8px;align-items:center;font-size:17px} .lr b{font-weight:400;color:#8ae88a} @keyframes lootin{from{transform:translate(-50%,12px) scale(.9);opacity:0}}
@@ -211,14 +215,14 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 .hwgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px} .hwc{display:grid;justify-items:center;gap:3px;padding:5px 3px;background:var(--panel2);border:2px solid var(--line);text-align:center} .hwc img{image-rendering:pixelated} .hwc b{font-weight:400;color:var(--gold);font-size:16px}
 @media (max-width:620px){ .hwgrid{grid-template-columns:repeat(3,1fr)} }
 /* Lính Cát: bảng đội, khởi đầu, sổ, màn đấu */
-.lcimg{image-rendering:pixelated;vertical-align:middle} .lct{display:inline-block;padding:0 5px;color:#120c16;font-size:13px;line-height:16px;vertical-align:middle}
+.lcimg{image-rendering:pixelated;vertical-align:middle} .lct{display:inline-block;padding:0 5px;color:#120c16;font-size:14px;line-height:16px;vertical-align:middle}
 .lcbar{display:inline-block;width:90px;height:6px;background:#3a1a1e;vertical-align:middle;border:1px solid var(--ink)} .lcbar i{display:block;height:100%}
 .lcrow{display:flex;gap:8px;align-items:center} .lcrow>span:nth-of-type(1){flex:1} .lcbtns{display:flex;flex-direction:column;gap:3px;align-items:flex-end}
 .lcstarters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} .lcst{display:grid;justify-items:center;gap:4px;text-align:center;padding:6px;background:var(--panel2);border:2px solid var(--line)} .lcst small{color:var(--muted);font-size:14px}
 .lcdex{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px} .lcdex span{background:var(--panel2);border:1px solid var(--line)} .lcdex .unk img{filter:brightness(0) opacity(.3)} .lcdex .seen img{filter:grayscale(1) opacity(.7)}
 #lcCv{width:100%;display:block;image-rendering:pixelated;border:2px solid var(--line)} .lcmsg{min-height:42px;padding:6px 8px;margin-top:4px;background:var(--panel2);border:2px solid var(--line);font-size:18px}
-.lcctl{margin-top:6px;display:grid;gap:6px} .lcmoves{display:grid;grid-template-columns:repeat(2,1fr);gap:4px} .lcmv{display:grid;text-align:left;border-left:6px solid var(--tc)!important} .lcmv small{font-size:13px;color:var(--muted)} .lcrow2{display:flex;flex-wrap:wrap;gap:4px} .lcctl img{vertical-align:middle}
-.lcmv em{font-style:normal;font-size:13px} .lcmv .e2{color:#5fe06a} .lcmv .e5{color:#c8c0b0} .lcmv .e0{color:#ff6a5a}
+.lcctl{margin-top:6px;display:grid;gap:6px} .lcmoves{display:grid;grid-template-columns:repeat(2,1fr);gap:4px} .lcmv{display:grid;text-align:left;border-left:6px solid var(--tc)!important} .lcmv small{font-size:14px;color:var(--muted)} .lcrow2{display:flex;flex-wrap:wrap;gap:4px} .lcctl img{vertical-align:middle}
+.lcmv em{font-style:normal;font-size:14px} .lcmv .e2{color:#5fe06a} .lcmv .e5{color:#c8c0b0} .lcmv .e0{color:#ff6a5a}
 .lcchart{display:grid;gap:2px;font-size:14px;margin-bottom:6px} .lcchart small{color:var(--cream)}
 @media (max-width:560px){ .lcstarters{grid-template-columns:1fr} }
 /* đấu game đối kháng với Eva */
@@ -226,7 +230,7 @@ body.touch #toasts{right:auto;left:50%;transform:translateX(-50%);top:66px;botto
 .fgPad .btn{padding:8px 2px;font-size:15px;touch-action:none;user-select:none} .fgPad .btn.on{background:var(--gold);color:var(--ink)}
 /* kênh chat tổng ngay trên thanh đồ */
 #wchat{pointer-events:auto;min-width:0;padding:3px 6px 4px;display:grid;gap:3px;background:rgba(28,21,22,.78)} #wcLog{max-height:81px;overflow-y:auto;font-size:16px;line-height:1.15;scrollbar-width:thin}
-#wcLog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #wcLog b{font-weight:400;color:var(--gold)} #wcLog small{color:var(--muted);font-size:13px} #wcLog .me b{color:#7fe0ff} #wcLog .sys{white-space:normal;color:#ffe9a0} #wcLog .sys b{color:#ff9a3a} #wcLog:empty::before{content:'Kênh tổng: chưa ai nói gì, chào cả server đi!';color:var(--muted)}
+#wcLog div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} #wcLog b{font-weight:400;color:var(--gold)} #wcLog small{color:var(--muted);font-size:14px} #wcLog .me b{color:#7fe0ff} #wcLog .sys{white-space:normal;color:#ffe9a0} #wcLog .sys b{color:#ff9a3a} #wcLog:empty::before{content:'Kênh tổng: chưa ai nói gì, chào cả server đi!';color:var(--muted)}
 #wchat.big #wcLog{max-height:247px} #wchat.big #wcLog div{white-space:normal} #wcRow{display:flex;gap:4px} #wcIn{flex:1;min-width:0;font:17px var(--f);background:var(--panel2);color:var(--cream);border:1px solid var(--line);padding:2px 6px} #wcIn:focus{border-color:var(--gold);outline:none}
 #wcFold,#wcHide{font:16px/1 var(--f);padding:0 7px;background:var(--panel2);color:var(--gold);border:1px solid var(--line);cursor:var(--cur-hand),pointer} #wchat.flash{border-color:var(--gold)}
 #wcShow{pointer-events:auto;justify-self:start} #wcNew{font-weight:400;color:#ff7a5a} #wchat[hidden]{display:none}
@@ -398,9 +402,9 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 #homeBar{position:fixed;left:50%;bottom:70px;transform:translateX(-50%);z-index:12;display:grid;gap:6px;width:min(920px,calc(100vw - 32px));padding:8px 12px} #homeBar[hidden]{display:none}
 #homeBar .hbinfo{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline} #homeBar .hbinfo b{color:var(--gold);font-weight:400} #homeBar .hbinv{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px} #homeBar .hbbtn{display:flex;flex-wrap:wrap;gap:6px}
 .hbit{position:relative;flex:none;width:52px;height:44px;padding:1px;background:rgba(0,0,0,.3);border:2px solid #5a4a3a;cursor:pointer} .hbit.on{border-color:var(--gold);box-shadow:0 0 8px var(--gold)} .hbit img{width:48px;height:40px;image-rendering:pixelated} .hbit i{position:absolute;right:2px;bottom:0;font-style:normal;font-size:14px;color:#fff;text-shadow:1px 1px 0 #000}
-.hcard{display:grid;justify-items:center;align-content:start;gap:2px;padding:6px 4px;background:rgba(0,0,0,.25);border:2px solid #5a4a3a;text-align:center} .hcard img{width:96px;height:80px;image-rendering:pixelated} .hcard b{font-weight:400;color:var(--gold)} .hcard small{font-size:13px;line-height:1.1} .hcard .btn{width:100%}
-.hcard{position:relative} .hnew{position:absolute;left:3px;top:3px;padding:0 4px;background:#e8302a;color:#fff;font-size:12px;box-shadow:1px 1px 0 #1c1516}
-.hcz{position:relative;display:inline-block;width:190px;height:16px;background:#2a2026;border:1px solid #1c1516;vertical-align:middle} .hcz i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff9a5a,#ffd84a)} .hcz em{position:relative;display:block;text-align:center;font-style:normal;font-size:13px;line-height:16px;color:#fff;text-shadow:1px 1px 0 #1c1516}
+.hcard{display:grid;justify-items:center;align-content:start;gap:2px;padding:6px 4px;background:rgba(0,0,0,.25);border:2px solid #5a4a3a;text-align:center} .hcard img{width:96px;height:80px;image-rendering:pixelated} .hcard b{font-weight:400;color:var(--gold)} .hcard small{font-size:14px;line-height:1.1} .hcard .btn{width:100%}
+.hcard{position:relative} .hnew{position:absolute;left:3px;top:3px;padding:0 4px;background:#e8302a;color:#fff;font-size:14px;box-shadow:1px 1px 0 #1c1516}
+.hcz{position:relative;display:inline-block;width:190px;height:16px;background:#2a2026;border:1px solid #1c1516;vertical-align:middle} .hcz i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#ff9a5a,#ffd84a)} .hcz em{position:relative;display:block;text-align:center;font-style:normal;font-size:14px;line-height:16px;color:#fff;text-shadow:1px 1px 0 #1c1516}
 .hset{display:grid;gap:4px;padding:6px 8px;margin:6px 0;background:rgba(0,0,0,.22);border:2px solid #5a4a3a} .hset.done{border-color:#5ae86a} .hset b{font-weight:400;color:var(--gold)} .hsetit{display:flex;flex-wrap:wrap;gap:4px} .hsetit span{width:52px;height:44px;background:rgba(0,0,0,.3);border:2px solid #3a3036;opacity:.45} .hsetit span.inv{opacity:.8;border-color:#ffd84a} .hsetit span.on{opacity:1;border-color:#5ae86a} .hsetit img{width:48px;height:40px;image-rendering:pixelated}
 .hsw .hswc{display:block;width:64px;height:40px;border:2px solid #1c1516;margin:0 auto 2px} .hsw.on{box-shadow:0 0 0 2px var(--gold)}
 #pmenu{position:fixed;z-index:30;display:grid;gap:4px;min-width:170px;padding:8px} #pmenu b{color:var(--gold)} #pmenu small{font-size:14px;line-height:1.1} #pmenu .btn{text-align:left}
@@ -473,7 +477,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 .pstages{display:flex;align-items:center;justify-content:center;gap:0;font-size:22px} .pstages span{padding:2px 14px;border:3px solid #2a2a30;background:#1c1e24;color:#8a8a96}
 .pstages span.done{background:#235a30;color:#bfe8c4} .pstages span.cur{background:#ffd84a;color:#1c1516;border-color:#fff} .pstages b{width:26px;height:4px;background:#2a2a30}
 .ptimer{position:relative;width:130px;height:14px;background:#1c1516;border:2px solid #0c0c10} .ptimer i{position:absolute;left:0;top:0;bottom:0;transition:width 1s linear,background .5s}
-.ptimer span{position:absolute;inset:0;font-size:14px;line-height:12px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
+.ptimer span{position:absolute;inset:0;font-size:14px;line-height:15px;text-align:center;color:#fff;text-shadow:1px 1px 0 #000}
 .ptl{max-height:150px;overflow:auto} .ptl div{border-left:3px solid #3a74d0;padding-left:6px} .ptl div:last-child{border-color:var(--gold);color:var(--cream)}
 .garage{display:grid;grid-template-rows:auto 1fr auto;gap:14px;background:linear-gradient(#5a6a7a,#3a3a44 60%,#2a2a30);justify-items:center;overflow:auto}
 .ghint{font-size:24px;color:var(--cream);text-shadow:2px 2px 0 var(--ink)} .ghint b{color:var(--gold);font-weight:400}
@@ -510,8 +514,137 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 @media (max-width:800px){ .chessfs{grid-template-columns:1fr;overflow:auto} .masoifs{grid-template-columns:1fr} .mside{grid-row:auto} .pbar{grid-template-columns:1fr} }
 @media (max-width:700px){ #minimap{display:none!important} #hudSkills{display:none} #hudQuests{width:52vw;font-size:16px} #hudLvlBox,#hudNeeds{width:170px} .chess{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .toast,#banner,#evBanner,#enhRes,#bigtext,#fade{animation:none!important;transition:none!important} }
-#muMe .musub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 8px;margin:3px 0 2px;font-size:12px;line-height:1.2;color:#d8d0e8}#muMe .musub b{color:#ffd84a}#muMe .musub .z{opacity:.45}
-#muHud .mutg,#muBoss .mutg{display:block;background:none;border:0;padding:0 0 2px;color:#a8a0c0;font:inherit;font-size:12px;cursor:pointer;text-align:left;pointer-events:auto}#muHud .mutg:hover,#muBoss .mutg:hover{color:#ffd84a}
+#muMe .musub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 8px;margin:3px 0 2px;font-size:14px;line-height:1.2;color:#d8d0e8}#muMe .musub b{color:#ffd84a}#muMe .musub .z{opacity:.45}
+#muHud .mutg,#muBoss .mutg{display:block;background:none;border:0;padding:0 0 2px;color:#a8a0c0;font:inherit;font-size:14px;cursor:pointer;text-align:left;pointer-events:auto}#muHud .mutg:hover,#muBoss .mutg:hover{color:#ffd84a}
+
+/* Shopee Chande */
+.spDot{font-style:normal;font-size:14px;background:#fff;color:#ee4d2d;padding:0 4px;margin-left:2px;animation:spPulse 1.4s steps(2) infinite;display:inline-block}
+#hudNav button.panel.spBtn{background:linear-gradient(100deg,#ee4d2d,#ff6633 60%,#ffa63a);border-color:#ffb199;color:#fff;position:relative;overflow:hidden;text-shadow:1px 1px 0 #8a250f} #hudNav .spBtn:hover{filter:brightness(1.1)}
+#hudNav .spBtn::after{content:"";position:absolute;top:0;left:-40%;width:30%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:spShine 2.6s linear infinite;pointer-events:none}
+@keyframes spShine{to{left:130%}} @keyframes spPulse{50%{transform:scale(1.08)}}
+.sp{display:grid;grid-template-columns:230px 1fr;gap:12px;align-items:start}
+.spL{background:var(--panel2);border:2px solid var(--line);padding:8px;display:grid;gap:6px}
+.spPv{background:#fdeee8;border:2px solid #ee4d2d;display:grid;place-items:center;padding:6px} .spPv canvas{width:128px;height:192px;image-rendering:pixelated;border:0}
+.spTryTxt{margin:0;font-size:16px} .spTryBtn{display:flex;flex-wrap:wrap;gap:4px}
+.spPerk h5,.spL h5{margin:4px 0 2px} .spPerk span{display:inline-block;margin:0 8px 2px 0;font-size:16px;color:var(--muted)} .spPerk span.on{color:var(--green)} .spPerk p{margin:2px 0;font-size:16px}
+.spMine{max-height:230px;overflow:auto} .spMine .row{padding:2px 4px;font-size:16px} .spOn{color:var(--green)}
+.spHead{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#ee4d2d;color:#fff;padding:6px 10px;font-size:18px} .spHead b{font-weight:400} .spHead>b{font-size:26px}
+.spFl{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;background:#1c1516;color:#ffe2a8;padding:4px 10px;margin:6px 0;font-size:16px} .spFl b{font-weight:400;color:#ff7337;font-size:19px} .spFl span:first-of-type{flex:1;min-width:0}
+#spCd{font-style:normal;background:#ee4d2d;color:#fff;padding:0 6px;letter-spacing:1px}
+.spTabs{margin-bottom:8px}
+.spGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px} @media (max-width:1100px){ .spGrid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.spCard{position:relative;background:#fffaf6;color:#2a1c18;border:2px solid #f3c9bb;padding:20px 6px 8px;display:grid;gap:3px;justify-items:center;align-content:start;text-align:center;cursor:pointer}
+.spCard:hover{border-color:#ee4d2d} .spCard.try{border-color:#ee4d2d;box-shadow:0 0 0 2px #ee4d2d;background:#fff0ea} .spCard.own{background:#f2f7f0;border-color:#bfd8b8}
+.spCard img{width:64px;height:64px;image-rendering:pixelated;background:#f3ecdc}
+.spCard b{font-weight:400;font-size:17px;line-height:1.05} .spCard small{font-size:14px;color:#7a6258;line-height:1.05}
+.spPrice s{color:#9a8a84;font-size:14px;margin-right:4px} .spPrice em{font-style:normal;color:#ee4d2d;font-size:20px}
+.spFlash,.spNew,.spOff{position:absolute;top:3px;font-style:normal;font-size:14px;padding:0 4px;color:#fff}
+.spFlash{left:3px;background:#ee4d2d} .spNew{left:3px;background:#26aa99} .spOff{right:3px;background:#ffd84a;color:#8a250f}
+.spPg{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:8px}
+@media (max-width:760px){ .sp{grid-template-columns:1fr} .spPv canvas{width:96px;height:144px} .spCard b{font-size:15px} .spCard img{width:52px;height:52px} }
+
+/* phòng poker: nền club + mặt bàn da tán đinh (ảnh Magnific, img/), bảng tên ghế kiểu casino */
+.pokerfs{background:radial-gradient(ellipse at 50% 55%,rgba(8,4,6,.15),rgba(8,4,6,.72) 80%),url(img/poker_room.webp) center/cover no-repeat,#140c0e}
+.pokerfs .ptop{padding:6px 10px;background:linear-gradient(rgba(10,6,8,.85),rgba(10,6,8,0))} .pinfo{background:rgba(10,6,8,.75);border:2px solid #8a6a2a;padding:2px 12px;color:#ffe2a8}
+.ptable{margin:18px 6% 26px;min-height:380px}
+.pfelt{inset:4% 2%;border:0;border-radius:0;box-shadow:none;background:url(img/poker_table.webp) center/100% 100% no-repeat;filter:drop-shadow(0 22px 26px rgba(0,0,0,.65))}
+.pwait{color:#e8d8a8;font-size:24px;text-shadow:2px 2px 0 rgba(0,0,0,.6);letter-spacing:1px}
+.ppot{background:rgba(8,20,12,.55);border:2px solid #c8a24a;padding:2px 16px;border-radius:16px;color:#ffe2a8}
+.pname{background:linear-gradient(#2a1c18,#140c0e);border:3px solid #8a6a2a;border-radius:10px;box-shadow:0 4px 0 rgba(0,0,0,.45);color:#f4e6c8}
+.pname b{color:#ffd84a}
+.pseat .pface.round{border:3px solid #c8a24a;box-shadow:0 0 0 3px #1c1012,0 6px 10px rgba(0,0,0,.5)}
+.pseat.empty .pname{background:rgba(20,12,14,.55);border:2px dashed rgba(200,162,74,.55);color:#bfae88;box-shadow:none}
+.pseat.empty .pface.round{background:rgba(20,12,14,.45);border:2px dashed rgba(200,162,74,.55);box-shadow:none}
+.pseat.mine .pname{border-color:#ffd84a;box-shadow:0 0 0 2px #1c1012,0 0 14px rgba(255,216,74,.45)}
+.pseat.act .pname{animation:spPulse 1s steps(2) infinite}
+.pdeal{background:#f4e6c8;border-color:#8a6a2a}
+.pstages span{background:rgba(20,12,14,.8);border-color:#5a3a22;color:#bfae88} .pstages span.done{background:#2a5a34;color:#d8f0c4} .pstages span.cur{background:#ffd84a;color:#1c1516;border-color:#fff} .pstages b{background:#5a3a22}
+.pbar{background:linear-gradient(rgba(24,14,12,.92),rgba(12,8,8,.96));border-top:3px solid #8a6a2a;box-shadow:0 -6px 16px rgba(0,0,0,.5)}
+
+/* phòng cờ: hiên gỗ Ké Retreat nhìn ra hồ Hoà Bình lúc hoàng hôn (ảnh Magnific, img/chess_ke.webp) */
+.chessfs{background:linear-gradient(rgba(12,8,6,.18),rgba(12,8,6,.5)),url(img/chess_ke.webp) center/cover no-repeat,#2a1a12}
+.chessfs #board{box-shadow:0 0 0 4px #3a2414,0 0 0 8px #8a6a2a,0 18px 30px rgba(0,0,0,.6)}
+.chessfs .cside2{background:rgba(20,12,10,.82);border:3px solid #8a6a2a;backdrop-filter:blur(2px)}
+
+/* ma sói: ngồi vòng quanh đống lửa, cột trái chat giãn hết chiều cao, ô nhập luôn ở đáy */
+.mside{display:flex;flex-direction:column} .mside .mchat{flex:1 1 auto;min-height:60px;overflow:auto} .mside .form{margin-top:auto}
+.mring{position:relative;min-height:0;height:100%}
+.mring .mcard{position:absolute;transform:translate(-50%,-50%);width:clamp(100px,9.5vw,156px);transition:left .4s,top .4s}
+.mring .mcard .pface.big{width:min(88px,7.5vw);height:min(88px,7.5vw)}
+.mcard.mempty{background:rgba(10,14,20,.38);border:3px dashed rgba(255,240,200,.4);display:grid;place-items:center;align-content:center;padding:0;color:rgba(255,240,200,.7);font-size:18px;box-shadow:none}
+.mring .mcard.me{box-shadow:0 0 0 3px #ffd84a,0 0 18px rgba(255,216,74,.55)}
+.mnarr{box-shadow:0 6px 18px rgba(0,0,0,.45)}
+@media (max-width:800px){ .mring{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;height:auto;overflow:auto} .mring .mcard{position:relative;left:auto!important;top:auto!important;transform:none;width:auto} }
+
+/* vay vốn nhà nước (bảng Vườn & chuồng) */
+.stl{background:rgba(232,184,58,.08);border:2px solid #8a6a2a;padding:6px 10px;margin-bottom:8px} .stl p{margin:4px 0}
+.stlAmts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px} .stlAmts .btn small{display:block;font-size:14px;opacity:.8}
+
+/* tooltip xông hơi lâu (maps4.js) ngay trên thanh item */
+#steamTip{padding:4px 14px;font-size:17px;white-space:nowrap;max-width:calc(100vw - 24px);color:#ffe8c8;background:rgba(60,30,20,.9);border:2px solid #d8a46a;text-align:center;display:grid;gap:2px;justify-items:center;box-shadow:0 0 14px rgba(255,170,90,.35)} #steamTip[hidden]{display:none}
+body.steam #prompt{transform:translate(-50%,-62px)} #steamTip b{color:#ffd84a;font-weight:400} #steamTip small{font-size:14px;color:#e8c8a0} #steamTip .stbar{display:block;width:220px;height:6px;background:#2a1810;border:1px solid #8a5a32} #steamTip .stbar i{display:block;height:100%;background:linear-gradient(90deg,#ff9a3a,#ffd84a)}
+
+/* chữ tối thiểu 14px cho dễ đọc (24/10); bảng khắc hệ Lính Cát to hơn */
+small{font-size:max(14px,.85em)} .lcchart small{font-size:17px} .lcchart .lct{font-size:16px;line-height:19px}
+
+/* Poke Deck */
+.pdtypes{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 10px} .pdtb{border:2px solid transparent;cursor:pointer;font:16px var(--f)} .pdtb.on{border-color:#fff;box-shadow:0 0 0 2px var(--gold)}
+.pdfam{background:rgba(255,255,255,.04);border:1px solid var(--line);padding:8px;margin-bottom:10px}
+.pdrow{display:flex;flex-wrap:nowrap;align-items:stretch;gap:6px;overflow-x:auto;padding-bottom:2px} .pdbr{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:8px;margin-top:6px}.pdbr .pdarr{width:112px;white-space:normal}
+.pdarr{align-self:center;flex:none;min-width:62px;text-align:center;color:var(--gold);font-size:16px;white-space:nowrap;padding:0 2px}
+.pdgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.pdk{position:relative;display:grid;justify-items:center;align-content:start;gap:3px;width:222px;flex:none;padding:8px;background:#2a2230;border:2px solid #4a3e52;text-align:center}
+.pdgrid .pdk{width:auto} .pdk.got{border-color:#5fae46} .pdk.seen{border-color:#8a7aa8} .pdk.leg{border-color:#f2c43d;box-shadow:0 0 12px rgba(242,196,61,.35);background:linear-gradient(#3a2e20,#2a2230)} .pdk.rare{border-color:#7ae8c8}
+.pdk b{font-weight:400;font-size:19px;color:var(--cream)} .pdk p{margin:2px 0;font-size:15px;line-height:1.15;color:#d8d0e0} .pdk .lcimg{width:64px;height:64px;image-rendering:pixelated}
+.pdst{position:absolute;top:4px;right:6px;font-style:normal;font-size:14px;color:var(--muted)} .pdk.got .pdst{color:#7de07a}
+.pdw{color:#bfe0ff} .pdsb{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;width:100%}
+.pdsb i{position:relative;display:block;height:16px;background:#1c1520;border:1px solid #3a3042} .pdsb em{position:absolute;left:0;top:0;bottom:0;background:#6a5ad8} .pdsb u{position:relative;text-decoration:none;font-style:normal;font-size:14px;line-height:15px;color:#fff}
+
+.lcbadges{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0 8px}.lcbd{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:14px;color:#f4f1ea;background:#3a3040;border:2px solid var(--tc);opacity:.55}.lcbd.on{background:var(--tc);opacity:1;box-shadow:0 0 6px var(--tc)}.lcbadges small{margin-left:6px}
+.lcteamrow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.lcteam{display:flex;flex-direction:column;align-items:center;min-width:52px;padding:4px;background:rgba(28,22,30,.35);border-radius:6px}.lcteam i{display:grid;place-items:center;width:40px;height:40px;font-style:normal;font-size:20px;color:#8a8090}
+.pdasc{display:block;margin:4px 0;padding:4px 6px;border-radius:6px;background:linear-gradient(90deg,rgba(242,196,61,.18),rgba(184,122,255,.18));line-height:1.35}.lcasc{filter:drop-shadow(0 0 3px #f2c43d)}.lcwp{color:#ffd84a;font-size:14px}
+.pdk.asc{border-color:#f2c43d!important;background:linear-gradient(160deg,rgba(242,196,61,.18),rgba(184,122,255,.18) 55%,rgba(74,176,255,.14))!important;box-shadow:0 0 14px rgba(242,196,61,.35)}.pdascn{color:#ffd84a;font-size:14px;text-shadow:0 0 6px #b87aff}
+.pdaura{position:relative;display:inline-block;padding-bottom:4px}.pdaura::before{content:'';position:absolute;left:50%;bottom:0;width:84px;height:20px;margin-left:-42px;border-radius:50%;border:2px dashed #f2c43d;box-shadow:0 0 10px rgba(242,196,61,.8),inset 0 0 10px rgba(184,122,255,.8);animation:pdaura 2.4s ease-in-out infinite}
+.pdaura img{position:relative;animation:pdholo 3s linear infinite}@keyframes pdaura{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.08);opacity:1}}
+@keyframes pdholo{0%,100%{filter:drop-shadow(0 0 3px #f2c43d)}50%{filter:drop-shadow(0 0 9px #b87aff) hue-rotate(20deg) brightness(1.12)}}
+.pdbtn{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;width:100%;margin:0 0 10px;padding:8px 14px;cursor:pointer;text-align:left;color:#fff;font:18px var(--f);
+  background:linear-gradient(100deg,#8a1820,#c8302a 55%,#e8503a);border:2px solid #ffb0a8;box-shadow:inset 0 0 0 2px #4a0c10,0 4px 0 rgba(0,0,0,.35)}
+.pdbtn:hover{filter:brightness(1.1)} .pdbtn img{width:60px;height:66px;image-rendering:pixelated;filter:drop-shadow(2px 3px 0 rgba(0,0,0,.45))}
+.pdbtn b{display:block;font-weight:400;font-size:30px;letter-spacing:2px;text-shadow:2px 2px 0 #4a0c10} .pdbtn small{display:block;font-size:17px;color:#ffe2d8}
+.pdbtn em{font-style:normal;background:#fff;color:#b8202a;padding:2px 10px;font-size:18px}
+
+/* poker 25/10: bong bóng hành động, người thắng, lá thắng sáng, lá mới lật, tố nhanh, chọn trước hành động */
+.pbub{position:absolute;top:-30px;left:50%;transform:translateX(-50%);z-index:4;white-space:nowrap;font-size:16px;padding:1px 10px;border:2px solid #1c1516;border-radius:12px;background:#f4f1ea;color:#1c1516;box-shadow:0 3px 0 rgba(0,0,0,.4);animation:pbubIn .25s ease-out}
+.pbub::after{content:'';position:absolute;left:50%;bottom:-7px;margin-left:-5px;border:5px solid transparent;border-top-color:#1c1516}
+.pbub.k-fold{background:#8a8a92;color:#f4f1ea} .pbub.k-check{background:#9ad8f8} .pbub.k-call{background:#7de07a} .pbub.k-raise{background:#ffb84a} .pbub.k-allin{background:#ff5a4a;color:#fff} .pbub.k-sb,.pbub.k-bb{background:#d8c8a0}
+.pseat.top .pbub{top:auto;bottom:-30px} .pseat.top .pbub::after{bottom:auto;top:-7px;border-top-color:transparent;border-bottom-color:#1c1516}
+@keyframes pbubIn{from{transform:translate(-50%,6px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.pseat.win .pface{box-shadow:0 0 0 4px #ffd84a,0 0 26px #ffd84a;animation:pwinGlow 1s ease-in-out infinite alternate} .pseat.win .pname{border-color:#ffd84a;background:linear-gradient(#5a4214,#2a1c08)}
+.pwon{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:5;font-size:24px;color:#ffe08a;text-shadow:2px 2px 0 #1c1516,0 0 10px #ffb84a;white-space:nowrap;animation:pwonUp 1.4s ease-out forwards}
+@keyframes pwonUp{from{transform:translate(-50%,10px);opacity:0}30%{opacity:1}to{transform:translate(-50%,-26px);opacity:1}} @keyframes pwinGlow{to{box-shadow:0 0 0 4px #ffd84a,0 0 40px #ffd84a}}
+.pcard.hi{box-shadow:0 0 0 3px #ffd84a,0 0 16px #ffd84a;transform:translateY(-6px)} .pcard.mine{box-shadow:0 0 0 2px #7fd8ff,0 0 10px rgba(127,216,255,.7)} .pcard{transition:transform .25s}
+.pcard.flip{animation:pflip .5s ease-out both} .pboard .pcard.flip:nth-child(2){animation-delay:.12s} .pboard .pcard.flip:nth-child(3){animation-delay:.24s}
+@keyframes pflip{from{transform:rotateY(90deg) translateY(-14px);opacity:.2}to{transform:none;opacity:1}}
+.pwinner{background:rgba(20,12,4,.82);border:2px solid #ffd84a;padding:3px 14px;border-radius:12px;color:#ffe2a8;font-size:20px;max-width:80%;text-align:center}
+.pmine{gap:10px} .pmyhand{display:grid;background:rgba(10,6,8,.8);border:2px solid #7fd8ff;padding:4px 12px;border-radius:10px} .pmyhand small{color:#9ad8f8;font-size:14px} .pmyhand b{font-size:22px;color:#fff3d6;font-weight:400}
+.pact kbd{font:inherit;font-size:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.35);padding:0 4px;margin-left:4px;border-radius:3px}
+body:has(#panel.full:not([hidden])) #evBanner{display:none}   
+.pact.turn{display:grid;grid-template-columns:auto auto minmax(220px,1fr) auto auto;align-items:center;gap:6px 10px} .pact.turn .podds{grid-column:1/-1}
+.praise2{display:grid;gap:4px;min-width:0} .pqk{display:flex;gap:4px} .pqk .btn{font-size:15px;padding:2px 6px;min-width:0;flex:1} .praise2 .praise{grid-template-columns:auto 1fr;gap:0 8px;align-items:center} .praise2 .praise input{width:100%} .podds{flex-basis:100%;text-align:center;color:#ffe2a8;font-size:15px}
+.pact .btn{font-size:20px} .pact .pfold{background:#5a4a50;color:#f4f1ea} .pact.pre{gap:6px} .pact.pre .btn{font-size:16px}
+.pbuy{display:flex;gap:4px;align-items:center;color:#ffe2a8;font-size:16px;background:rgba(10,6,8,.7);border:2px solid #8a6a2a;padding:2px 8px} .ptl{font-size:15px}
+/* ma sói 25/10: đồng hồ pha, ô gợi ý, phù thuỷ, phiếu công khai, kênh hồn ma, thẻ to hơn */
+.mtimer{height:10px;background:#1c1516;border:2px solid #0c0c10} .mtimer i{display:block;height:100%;transition:width 1s linear}
+.mhint{background:rgba(255,216,74,.14);border:2px solid var(--gold);padding:6px 10px;font-size:18px;color:#fff3d6;line-height:1.3}
+.mstat{display:flex;flex-wrap:wrap;gap:6px;font-size:16px;color:#d8d0e0} .mstat span{background:rgba(0,0,0,.35);padding:0 6px}
+.mwitch{display:grid;gap:6px;background:rgba(40,90,60,.5);border:2px solid #5fd08a;padding:8px;font-size:17px} .mwitch small{color:#c8f0d8}
+.mvotes{display:grid;gap:2px;background:rgba(80,20,20,.45);border:2px solid #e06048;padding:6px 10px;font-size:16px;max-height:160px;overflow:auto}
+.mchat .ghost{color:#b8c8f0;font-style:italic} .mchat{font-size:17px}
+.mphase small{display:block;font-size:clamp(18px,2.2vw,28px);text-align:center;margin-top:8px}
+.mring .mcard{width:clamp(112px,11vw,176px)} .mring .mcard .pface.big{width:min(96px,8vw);height:min(96px,8vw)}
+.mcard.tgt{box-shadow:0 0 0 4px #ff4a3a,0 0 22px rgba(255,74,58,.7)} .mtg{position:absolute;bottom:44px;font-size:15px;color:#fff;background:#b8302a;padding:0 6px}
+.mcard .mdead{font-size:18px;white-space:normal;text-align:center;max-width:94%;line-height:1.1}
+.mside{display:flex!important;flex-direction:column;overflow:auto} @media (min-width:801px){.masoifs{grid-template-columns:clamp(320px,24vw,460px) 1fr}} .mside .mchat{flex:1 1 auto;min-height:90px} .mside .mroles span{font-size:15px}
 </style>
 <link rel="stylesheet" href="/pixel.css">
 </head>
@@ -523,6 +656,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <div id="hudRight">
   <div class="hudTop"><button id="mStat" class="panel" type="button" aria-label="Xem cấp độ và chỉ số"><span id="mLv">Cấp 1</span><span class="mbars" aria-hidden="true"><i><b id="mbE"></b></i><i><b id="mbC"></b></i><i><b id="mbB"></b></i></span><span class="mcar">▾</span></button><button class="panel muteBtn" type="button" title="Bật/tắt âm thanh"><span class="spk" aria-hidden="true"></span><span class="lbl">Tiếng: bật</span></button>
   <div id="hudReset" class="panel" hidden title="Server sắp reset"><span aria-hidden="true">🔄</span><span id="hudResetT"></span></div>
+  <button id="hudEpl" class="panel" type="button" hidden title="Ngoại Hạng Anh · bấm xem lịch, tỉ số, đội hâm mộ"><span id="hudEplT">⚽</span></button>
   <button id="hudPlayers" class="panel" type="button" title="Ai đang online · bấm xem danh sách"><span class="dot" aria-hidden="true"></span><span id="hudPlayersN">1</span> online</button>
   <div id="hudClock" class="panel" title="Giờ Việt Nam thật"><span id="hudWx" aria-label="Thời tiết"></span><span id="hudDay">Thứ</span><span id="hudTime">00:00</span></div>
   <div id="hudMoneyBox" class="panel"><span id="hudMoney">0đ</span></div></div>
@@ -534,7 +668,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
     <div id="hudMeals"></div><div id="hudBuffs"></div><div id="hudNeedsAct"></div></div>
   <div id="mckBar" hidden><div class="mg"><span>MCK</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>BẠN</span><div class="bar"><i></i></div><b></b></div></div>
   <div id="bossBar" hidden><div class="mg"><span>MEGATRON</span><div class="bar"><i></i></div><b></b></div><div class="vs">VS</div><div class="op"><span>OPTIMUS PRIME</span><div class="bar"><i></i></div><b></b></div></div>
-  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><button id="btnShop" class="panel muteBtn" type="button" title="Xem và mua đồ mọi người đang đăng bán">🛒 Cửa hàng online <kbd>C</kbd></button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
+  <div id="hudNav" class="hudTop"><button id="btnLc" class="panel muteBtn" type="button" title="Đội Lính Cát: xem, đổi đầu đội, cho uống thuốc">🐾 Lính Cát</button><button id="btnShopee" class="panel muteBtn spBtn" type="button" title="Shopee Chande: quần áo, giày dép, mũ kính, phụ kiện, đồ phụ trợ · freeship, flash sale">🛍 Shopee Chande <i class="spDot">SALE</i></button><button id="btnShop" class="panel muteBtn" type="button" title="Chợ đồ cũ: xem và mua đồ mọi người đăng bán lại">🛒 Chợ đồ cũ <kbd>C</kbd></button><div id="chatHint"><span>chat <kbd>Enter</kbd></span><span>gọi Grab <kbd>G</kbd></span><span>menu <kbd>Esc</kbd></span></div><button id="btnSkills" class="panel muteBtn" type="button" title="Hiện/ẩn thanh kỹ năng (N hoặc ~)">Kỹ năng <kbd>N</kbd></button><button id="btnDaily" class="panel muteBtn" type="button" title="Điểm danh, việc hôm nay, sổ sưu tầm, lễ hội">📅 Hằng ngày <kbd>Y</kbd></button><button id="btnWard" class="panel muteBtn" type="button" title="Mở tủ đồ, thay trang phục ở bất cứ đâu">Tủ đồ <kbd>U</kbd></button><button id="btnLb" class="panel muteBtn" type="button" title="Bảng xếp hạng toàn game">Xếp hạng <kbd>L</kbd></button><button id="btnHome" class="panel muteBtn" type="button" hidden title="Tự đi về phòng đã thuê">Về phòng <kbd>B</kbd></button><button id="btnFarm" class="panel muteBtn" type="button" title="Rau đang trồng, vật nuôi, giờ thu hoạch">Vườn &amp; chuồng <kbd>F</kbd></button></div>
   <div id="hudOnline"></div>
 </div>
 <div id="touchUI" aria-label="Điều khiển cảm ứng"><div id="joy"><div id="joyKnob"></div></div>
@@ -626,6 +760,8 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="art20.js"></script>
 <script src="art21.js"></script>
 <script src="art23.js"></script>
+<script src="art24.js"></script>
+<script src="art25.js"></script>
 <script src="world.js?v=7"></script>
 <script src="world2.js?v=7"></script>
 <script src="world3.js"></script>
@@ -637,6 +773,8 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="world9.js"></script>
 <script src="avatar.js?v=8"></script>
 <script src="hw.js"></script>
+<script src="wear.js"></script>
+<script src="sets.js"></script>
 <script src="net.js?v=7"></script>
 <script src="music.js"></script>
 <script src="ambient.js"></script>
@@ -660,6 +798,7 @@ body.racing #hudQuests,body.racing #hudRight,body.racing #hudNav,body.racing #mi
 <script src="farm.js"></script>
 <script src="north.js"></script>
 <script src="epl.js"></script>
+<script src="pets.js"></script>
 <script src="art22.js"></script>
 <script src="homeui.js"></script>
 <script src="auto.js"></script>

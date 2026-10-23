@@ -109,12 +109,12 @@ function drawEva(g,E){ const fr=Math.floor(F.t*2.2)%2+(E.tele>0||E.dash?2:0), c=
     g.fillStyle='#6a3ab0'; g.fillRect(Math.min(x0,x1),y,Math.abs(x1-x0),lo?9:8); g.fillStyle='#5fe06a'; g.fillRect(Math.min(x0,x1),y+(lo?6:5),Math.abs(x1-x0),2); g.fillStyle=lo?'#4a2488':'#5fe06a'; g.fillRect(x1-(E.face>0?0:9),y-1,9,lo?10:10);
     if(E.mv.t<st){ g.fillStyle=Math.floor(F.t*20)%2?'#ffffff':'#ff4a3a'; g.fillRect(X-2,Y-88,5,5); } }
   g.drawImage(img,X-EVA[0].ax*s,Y-EVA[0].ay*s,c.width*s,c.height*s);
-  if(E.tele>0){ g.fillStyle=`rgba(255,40,40,${.4+.4*Math.sin(F.t*40)})`; g.fillRect(X-10,Y-74,7,4); g.fillRect(X+3,Y-74,7,4); g.font='12px VT323, monospace'; g.textAlign='center'; g.fillStyle='#ff4a3a'; g.fillText('BERSERK!',X,Y-94); }
-  if(E.block){ g.strokeStyle='rgba(255,154,58,.95)'; g.fillStyle='rgba(255,154,58,.22)'; hexa(g,X+E.face*20,Y-46,24,8); g.font='10px VT323, monospace'; g.textAlign='center'; g.fillStyle='#ffb05a'; g.fillText('A.T. FIELD',X+E.face*20,Y-74); } }
+  if(E.tele>0){ g.fillStyle=`rgba(255,40,40,${.4+.4*Math.sin(F.t*40)})`; g.fillRect(X-10,Y-74,7,4); g.fillRect(X+3,Y-74,7,4); g.font='14px VT323, monospace'; g.textAlign='center'; g.fillStyle='#ff4a3a'; g.fillText('BERSERK!',X,Y-94); }
+  if(E.block){ g.strokeStyle='rgba(255,154,58,.95)'; g.fillStyle='rgba(255,154,58,.22)'; hexa(g,X+E.face*20,Y-46,24,8); g.font='14px VT323, monospace'; g.textAlign='center'; g.fillStyle='#ffb05a'; g.fillText('A.T. FIELD',X+E.face*20,Y-74); } }
 function hexa(g,x,y,r,n=6){ g.lineWidth=2; g.beginPath(); for(let i=0;i<=n;i++){ const a=i/n*Math.PI*2+Math.PI/n; g.lineTo(x+Math.cos(a)*r*.6,y+Math.sin(a)*r); } g.fill(); g.stroke(); }
 function bar(g,x,y,w,v,right){ g.fillStyle='#120c16'; g.fillRect(x-1,y-1,w+2,9); g.fillStyle='#3a1a1e'; g.fillRect(x,y,w,7); const c=v>50?'#5fe06a':v>25?'#ffd84a':'#ff4a3a', ww=Math.round(w*v/100);
   g.fillStyle=c; g.fillRect(right?x+w-ww:x,y,ww,7); g.fillStyle='rgba(255,255,255,.35)'; g.fillRect(right?x+w-ww:x,y,ww,2); }
-function hud(g){ const P=F.p, E=F.e; g.font='12px VT323, monospace'; g.textBaseline='alphabetic';
+function hud(g){ const P=F.p, E=F.e; g.font='14px VT323, monospace'; g.textBaseline='alphabetic';
   bar(g,8,8,120,P.hp,false); bar(g,W-128,8,120,E.hp,true);
   for(const [f,x,right] of [[P,8,false],[E,W-128,true]]){ g.fillStyle='#120c16'; g.fillRect(x-1,18,62,5); g.fillStyle=f.meter>=100&&Math.floor(F.t*6)%2?'#ffffff':'#7fd0ff'; g.fillRect(right?x+120-Math.round(60*f.meter/100):x,19,Math.round(60*f.meter/100),3); }
   g.textAlign='left'; g.fillStyle='#ffd84a'; g.fillText(String(P.name).slice(0,16),8,33); g.textAlign='right'; g.fillText('EVA-01',W-8,33);

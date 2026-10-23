@@ -112,10 +112,10 @@ const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); if(!here()) return; const no
       list.push({y:o.y*T,d:()=>{ const X0=Math.round(o.x*T-cam.x), Y0=Math.round(o.y*T-cam.y)-(cele?Math.abs(Math.round(Math.sin(clock*14+o.i)*5)):0); GAME.shadow(o.x*T,o.y*T,7); ctx.save(); ctx.translate(X0,Y0); if(o.face<0) ctx.scale(-1,1); ctx.drawImage(fr,-16,-48); ctx.restore(); }}); }
     const b=M.ball; list.push({y:b.y*T+1,d:()=>{ const X0=b.x*T-cam.x, Y0=b.y*T-cam.y-3; ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(X0,Y0+3,3,1.4,0,0,7); ctx.fill(); ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(X0,Y0,2.6,0,7); ctx.fill(); ctx.fillStyle='#1c1516'; ctx.fillRect(Math.round(X0)-1,Math.round(Y0)-1,2,2); }});
     const B=E.block(f.h), far=top(f.h)?B.y0+4.4:B.y1-1.6, bx=(B.x0+B.x1+1)/2;   /* bảng điện tử: tỉ số + phút */
-    list.push({y:far*T+1,d:()=>{ const X0=bx*T-cam.x, Y0=far*T-cam.y-24; ctx.font='16px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#ffd84a'; ctx.fillText(`${CL[f.h].short} ${f.sh} - ${f.sa} ${CL[f.a].short}`,X0,Y0); ctx.fillStyle='#7fe8ff'; ctx.font='12px VT323, monospace'; ctx.fillText(`${Math.min(90,Math.floor((NET.now()-LV.at)/(E.dur*1000)*90))}'`,X0,Y0+10); }}); }
+    list.push({y:far*T+1,d:()=>{ const X0=bx*T-cam.x, Y0=far*T-cam.y-24; ctx.font='16px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#ffd84a'; ctx.fillText(`${CL[f.h].short} ${f.sh} - ${f.sa} ${CL[f.a].short}`,X0,Y0); ctx.fillStyle='#7fe8ff'; ctx.font='14px VT323, monospace'; ctx.fillText(`${Math.min(90,Math.floor((NET.now()-LV.at)/(E.dur*1000)*90))}'`,X0,Y0+10); }}); }
   for(let i=PT.length-1;i>=0;i--){ const p=PT[i]; p.t+=dt; if(p.t>p.life){ PT.splice(i,1); continue; } p.vy+=220*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; list.push({y:99990,d:()=>{ ctx.globalAlpha=Math.max(0,1-p.t/p.life); ctx.fillStyle=p.c; ctx.fillRect(Math.round(p.x-cam.x),Math.round(p.y-cam.y),3,2); ctx.globalAlpha=1; }}); }
   /* tên người thuê sạp */
-  if(FULL&&FULL.stalls) for(const k of IDS){ const n=FULL.stalls[k]; if(!n) continue; const sp=E.stall(k); list.push({y:99970,d:()=>{ ctx.font='12px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#1c1516'; ctx.fillText('Sạp '+n,sp.x*T-cam.x+1,(sp.y-3.3)*T-cam.y+1); ctx.fillStyle='#ffd84a'; ctx.fillText('Sạp '+n,sp.x*T-cam.x,(sp.y-3.3)*T-cam.y); }}); } };
+  if(FULL&&FULL.stalls) for(const k of IDS){ const n=FULL.stalls[k]; if(!n) continue; const sp=E.stall(k); list.push({y:99970,d:()=>{ ctx.font='14px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#1c1516'; ctx.fillText('Sạp '+n,sp.x*T-cam.x+1,(sp.y-3.3)*T-cam.y+1); ctx.fillStyle='#ffd84a'; ctx.fillText('Sạp '+n,sp.x*T-cam.x,(sp.y-3.3)*T-cam.y); }}); } };
 /* ---------- mini-game sút: vạch chạy qua lại, bấm SPACE / chạm khi vạch vào vùng xanh ---------- */
 let MG=null;
 function mini(title,ms,cb){ let el=$('#eplMini'); if(!el){ el=document.createElement('div'); el.id='eplMini'; el.className='panel'; el.style.cssText='position:fixed;left:50%;bottom:140px;transform:translateX(-50%);z-index:8;width:340px;padding:8px 12px;text-align:center';
@@ -157,7 +157,8 @@ UI.epl=()=>{ refresh(); UI.open('🏆 Ngoại Hạng Anh',()=>{ const F=FULL; if
   const live=F.live?`<h5>Đang đá · ${Math.min(90,Math.floor((NET.now()-F.live.at)/(E.dur*1000)*90))}'</h5><div class="list">${F.live.fx.map(f=>`<div class="row"><span>${clubName(f.h)} <b>${f.sh} – ${f.sa}</b> ${clubName(f.a)}</span><small class="muted">sân ${esc(CL[f.h].stadium)}</small></div>`).join('')}</div>`:'';
   const nx=`<h5>Vòng tới · còn ${until(F.next.at)}</h5><div class="list">${F.next.fx.map(([h,a])=>`<div class="row"><span>${clubName(h)} – ${clubName(a)}</span><small class="muted">${esc(CL[h].stadium)}</small></div>`).join('')}</div>`;
   const sc=F.scorers.length?`<h5>Vua phá lưới tuần này</h5><p>${F.scorers.map(([n,c,g])=>`${esc(n)} (${CL[c]?CL[c].short:''}) <b>${g}</b>`).join(' · ')}</p>`:'';
-  return `<p class="muted">Mùa giải tuần ${esc(F.season)} · 3 điểm thắng, 1 điểm hoà</p>${tbl}${live}${nx}${sc}${RULES}`; },{wide:true}); };
+  if(F.me&&F.me.fanq) FAN=F.me.fanq;
+  return `<p class="muted">Mùa giải tuần ${esc(F.season)} · 3 điểm thắng, 1 điểm hoà</p>${tbl}${live}${nx}<h5>💙 Đội hâm mộ</h5>${fanBox(FAN)}${sc}${RULES}`; },{wide:true}); };
 UI.defPlace('epl_mgr',n=>{ const k=n.club, c=CL[k]; refresh(); UI.open(`Giám đốc ${c.name}`,()=>{ const F=FULL, me=F&&F.me, co=F&&F.coaches[k], g=GAME.G;
   const mine=me&&me.club===k, isCoach=mine&&me.role==='coach', isPlayer=mine&&me.role==='player';
   return `<p>${clubName(k)} · sân ${esc(c.stadium)} · sức mạnh ${c.rating} · ngôi sao: ${c.stars.map(esc).join(', ')}</p>
@@ -183,7 +184,37 @@ UI.onAct('eplact',d=>doAct(d));
 UI.onAct('eplq',async d=>{ const r=await GAME.act({t:'quest',id:d.id,op:d.op}); if(r&&!r.err){ GAME.sfx(d.op==='finish'?'quest_complete':'quest_accept',.6); toast(d.op==='finish'?`Hoàn thành: <b>${esc(SD.QUESTS[d.id].title)}</b>`:`Nhận nhiệm vụ: <b>${esc(SD.QUESTS[d.id].title)}</b>`,'quest'); } UI.refresh(); });
 // nút "đi tới" của nhiệm vụ Pháo Thủ: bay sang Anh, tới chỗ Huy Phan / sân Emirates
 const g0=X.go; X.go=id=>{ if(!/^ars_/.test(id)) return g0(id); if(!here()){ GAME.autoGo('epl',()=>GAME.questGo(id)); return true; }
-  const n=SD.NPCS.find(x=>x.id==='huyphan_epl'); GAME.walkTo(n.x,n.y+1.2,'Huy Phan'); return true; };
+  const at=k=>SD.NPCS.find(x=>x.id===k), w=(k,l)=>{ const n=at(k); GAME.walkTo(n.x,n.y+1.2,l); return true; }, g=GAME.G;
+  if(g.quests[id]!=='active'||GAME.canFinish(id)) return w('huyphan_epl','Huy Phan');   /* nhận / báo xong */
+  if(id==='ars_kit') return w('epl_shop_ars','Quầy áo đấu Arsenal');
+  if(id==='ars_goal'||id==='ars_coach') return w('epl_mgr_ars','Giám đốc Arsenal');
+  const F=FULL, lf=F&&F.live&&F.live.fx.find(f=>f.h==='ars'||f.a==='ars'), nf=F&&F.next.fx.find(([h,a])=>h==='ars'||a==='ars'), host=lf?lf.h:nf?nf[0]:'ars';   /* xem / có mặt trận Arsenal: quầy vé sân đang (sắp) có trận */
+  return w('epl_shop_'+host,'Quầy vé sân '+CL[host].stadium); };
+/* ---------- dòng tỉ số trên thanh trên cùng (mọi map): vòng đang đá (LIVE phút, tỉ số), vòng tới (đếm ngược), kết quả vòng trước; trận của đội hâm mộ đứng đầu + ★ ---------- */
+let BAR=null, barI=0, FAN=null; const short=k=>CL[k]?CL[k].short:k;
+function barText(){ if(!BAR) return ''; const t=NET.now(), fav=(FAN&&FAN.fan)||(FULL&&FULL.me&&FULL.me.fan)||'', fx=BAR.fx.slice().sort((a,b)=>((b[0]===fav||b[1]===fav)?1:0)-((a[0]===fav||a[1]===fav)?1:0));
+  const one=f=>`${f[0]===fav||f[1]===fav?'<span class="fav">★</span>':''}${esc(short(f[0]))} ${BAR.live?`<b>${f[2]}–${f[3]}</b>`:'–'} ${esc(short(f[1]))}`;
+  if(BAR.live){ const min=Math.min(90,Math.max(1,Math.floor((t-BAR.at)/(E.dur*1000)*90))); return `<span class="lv">● LIVE</span>${min}' · ${one(fx[barI%fx.length])}`; }
+  const L0=BAR.last; if(L0&&L0.at&&t-L0.at<120000){ const r=L0.res[barI%L0.res.length]; return `⚽ KT vòng ${L0.md%1000}: ${esc(short(r[0]))} <b>${r[1]}–${r[2]}</b> ${esc(short(r[3]))}`; }
+  return `⚽ Vòng ${BAR.md%1000} sau ${until(BAR.at)} · ${one(fx[barI%fx.length])}`; }
+function barDraw(){ const b=$('#hudEpl'), tx=$('#hudEplT'); if(!b||!tx) return; b.hidden=!BAR; if(!BAR) return; b.classList.toggle('live',!!BAR.live); tx.innerHTML=barText(); }
+setInterval(()=>{ barI++; barDraw(); },3000); setInterval(barDraw,1000);
+NET.listen('eplbar',m=>{ BAR=m.v; barDraw(); if(m.goal){ const b=$('#hudEpl'); if(b){ b.classList.remove('goal'); void b.offsetWidth; b.classList.add('goal'); } const fav=(FAN&&FAN.fan)||'', mine=m.goal.h===fav||m.goal.a===fav;
+  if(!here()) toast(`⚽ ${m.goal.min}' VÀO! ${esc(m.goal.who)} (${esc(short(m.goal.team?m.goal.a:m.goal.h))}) · ${esc(short(m.goal.h))} ${BAR.fx.find(f=>f[0]===m.goal.h)?BAR.fx.find(f=>f[0]===m.goal.h)[2]:''}–${BAR.fx.find(f=>f[0]===m.goal.h)?BAR.fx.find(f=>f[0]===m.goal.h)[3]:''} ${esc(short(m.goal.a))}${mine?' ★':''}`,mine?'quest':'item'); } });
+setTimeout(()=>{ const b=$('#hudEpl'); if(b) b.addEventListener('click',e=>{ e.currentTarget.blur(); if(GAME.S) UI.eplFan(); }); },0);
+// đội hâm mộ: chọn đội, 7 nhiệm vụ trong ngày, điểm trung thành (mở được ở mọi map)
+const fanBox=F=>{ if(!F) return '<p class="muted">Đang tải...</p>'; const lv=E.loyalOf(F.lp), nx=E.loyal.find(x=>x.lp>F.lp), day=SD.realTime().day, canSwap=!F.fan||F.favDay!==day;
+  const pick=`<div class="eplclubs">${IDS.map(k=>F.fan===k?`<span class="btn sm pri">💙 ${esc(CL[k].short)}</span>`:btn('eplfav',CL[k].short,{club:k},canSwap?'':'dis')).join('')}</div>`;
+  if(!F.fan) return `<p>Chọn 1 đội để hâm mộ: mỗi ngày có ${E.fanq.length} nhiệm vụ riêng cho đội đó (tiền + EXP + điểm trung thành), đội thắng được thêm tiền thưởng theo bậc trung thành.</p>${pick}`;
+  return `<p>Đội của bạn: ${clubName(F.fan)} · bậc <b>${esc(lv.name)}</b> (${F.lp} điểm${nx?`, lên ${esc(nx.name)} ở ${nx.lp}`:''})${lv.bonus?` · đội thắng +${Math.round(lv.bonus*100)}% tiền thưởng cổ động viên`:''}</p>
+    <div class="list rows eplfq">${E.fanq.map(Q=>{ const n=Math.min(Q.n,F.prog[Q.k]||0), done=F.done[Q.k]; return `<div class="row"><span><b>${esc(Q.name)}</b> <small class="muted">${n}/${Q.n} · ${fmt(Q.vnd)} · ${Q.exp} EXP · +${Q.lp} trung thành</small></span>${done?'<small class="good">✔ Đã nhận</small>':n>=Q.n?btn('eplfq','Nhận thưởng',{k:Q.k},'pri'):''}</div>`; }).join('')}</div>
+    <p class="muted">${canSwap?'Đổi đội (mất nửa điểm trung thành):':'Hôm nay đã chọn đội, mai mới đổi được.'}</p>${pick}`; };
+UI.eplFan=async()=>{ const r=await NET.req({t:'epl',op:'fanview'}); if(r&&r.fan){ FAN=r.fan; BAR=r.bar||BAR; } UI.open('⚽ Ngoại Hạng Anh · đội hâm mộ',()=>{ const B=BAR;
+  const fx=B?`<h5>${B.live?`● Đang đá · vòng ${B.md%1000}`:`Vòng ${B.md%1000} · còn ${until(B.at)}`}</h5><div class="list">${B.fx.map(f=>`<div class="row"><span>${clubName(f[0])} ${B.live?`<b>${f[2]} – ${f[3]}</b>`:'–'} ${clubName(f[1])}</span><small class="muted">sân ${esc(CL[f[0]].stadium)}</small></div>`).join('')}</div>`:'';
+  return `${fx}<h5>💙 Đội hâm mộ</h5>${fanBox(FAN)}${here()?btn('eplopen','🏆 Bảng xếp hạng + luật giải'):btn('eplgo','✈ Gọi Grab sang Ngoại Hạng Anh',{},'pri')}`; },{wide:true}); };
+UI.onAct('eplfav',async d=>{ const r=await GAME.act({t:'epl',op:'fav',club:d.club}); if(r&&r.fan){ FAN=r.fan; GAME.sfx('quest_accept',.6); if(r.msg) toast(esc(r.msg),'quest'); } UI.refresh(); barDraw(); });
+UI.onAct('eplfq',async d=>{ const r=await GAME.act({t:'epl',op:'fq',k:d.k}); if(r&&r.fan){ FAN=r.fan; GAME.sfx('quest_complete',.6); } UI.refresh(); });
+UI.onAct('eplopen',()=>UI.epl()); UI.onAct('eplgo',()=>{ UI.closeAll(); GAME.autoGo('epl',()=>{}); });
 // minimap: chấm vàng ở cổng mỗi sân
 const mi0=X.mini; X.mini=(dot,k)=>{ if(mi0) mi0(dot,k); if(k!=='epl') return; for(const c of IDS){ const C0=CL[c]; dot((C0.bx+(E.gate[0]+E.gate[1]+1)/2)*T,(top(c)?C0.by+E.bh+1:C0.by-1)*T,'#ffd84a',2); } };
 })();

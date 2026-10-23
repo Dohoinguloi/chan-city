@@ -65,7 +65,7 @@ function drawEdit(ctx){ const S=GAME.S, cam=GAME.cam, h=home(), W=S.W, H=S.H; ct
       ctx.fillStyle=ok?'rgba(90,232,106,.28)':'rgba(255,74,90,.32)'; ctx.fillRect(F.x0*T-cam.x,(d.wall?0:F.y0)*T-cam.y,(F.x1-F.x0+1)*T,(d.wall?2:F.y1-F.y0+1)*T); ctx.strokeStyle=ok?'#5ae86a':'#ff4a5a'; ctx.strokeRect(F.x0*T-cam.x+.5,(d.wall?0:F.y0)*T-cam.y+.5,(F.x1-F.x0+1)*T-1,(d.wall?2:F.y1-F.y0+1)*T-1);
       if(!d.rug){ const s=ghost(d,ED.hold.f), [ax,ay]=SD.homeAnchor(d,it), fx=d.flat?(F.x0+d.fw/2)*T-s.c.width/2:ax*T-s.ax, fy=d.flat?(F.y0+(d.fh||1)/2)*T-s.c.height/2:ay*T-s.ay; ctx.globalAlpha=.7; ctx.drawImage(s.c,Math.round(fx-cam.x),Math.round(fy-cam.y)); ctx.globalAlpha=1; } }
     else { const i=itemAt(t); if(i>=0){ const it=h.items[i], d=HM.items[it.k], F=SD.homeFoot(d,it); ctx.strokeStyle='#ffd84a'; ctx.setLineDash([3,2]); ctx.strokeRect(F.x0*T-cam.x+.5,(d.wall?0:F.y0)*T-cam.y+.5,(F.x1-F.x0+1)*T-1,(d.wall?2:F.y1-F.y0+1)*T-1); ctx.setLineDash([]);
-      ctx.font='11px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#1c1516'; ctx.fillText(d.name,(F.x0+F.x1+1)/2*T-cam.x+1,F.y0*T-cam.y-2); ctx.fillStyle='#ffd84a'; ctx.fillText(d.name,(F.x0+F.x1+1)/2*T-cam.x,F.y0*T-cam.y-3); } } }
+      ctx.font='14px VT323, monospace'; ctx.textAlign='center'; ctx.fillStyle='#1c1516'; ctx.fillText(d.name,(F.x0+F.x1+1)/2*T-cam.x+1,F.y0*T-cam.y-2); ctx.fillStyle='#ffd84a'; ctx.fillText(d.name,(F.x0+F.x1+1)/2*T-cam.x,F.y0*T-cam.y-3); } } }
   ctx.restore(); }
 const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); if(ED.on&&ownHome()) list.push({y:99990,d:()=>drawEdit(ctx)}); };
 

@@ -10,6 +10,15 @@ const {S,T,on,hook,send,now,near,take,give,reward,markDirty,note,players,byUid,s
 const E=S.EPL, CL=E.clubs, IDS=S.EPL_CLUBS, fmt=S.fmt, MT=E.match;
 const DIR=process.env.DATA_DIR||path.join(__dirname,'data'), FILE=path.join(DIR,'epl.json');
 const rec=p=>{ const r=p.epl=p.epl||{club:'',role:'',sk:0,apps:0,goals:0,fan:'',stock:{}}; r.stock=r.stock||{}; return r; };
+// nhiệm vụ đội hâm mộ trong ngày: k ∈ EPL.fanq, cộng khi việc đó làm cho đúng đội mình hâm mộ
+const fqOf=r=>{ const d=S.realTime().day; if(!r.fq||r.fq.day!==d) r.fq={day:d,prog:{},done:{}}; return r.fq; };
+function fq(pl,k,n=1,club){ const p=pl&&pl.prof; if(!p) return; const r=rec(p); if(!r.fan||club&&club!==r.fan) return; const Q=E.fanq.find(x=>x.k===k); if(!Q) return; const F=fqOf(r), old=F.prog[k]||0; if(old>=Q.n) return;
+  F.prog[k]=Math.min(Q.n,old+n); markDirty(pl); if(F.prog[k]>=Q.n) note(pl,`💙 Nhiệm vụ đội ${CL[r.fan].short}: ${Q.name} xong! Mở bảng Ngoại Hạng Anh (hoặc dòng tỉ số trên cùng) để nhận thưởng`,'quest'); }
+// dòng tỉ số trên thanh trên cùng (gửi mọi người ở mọi map): vòng đang đá / vòng tới + kết quả vòng trước
+function barView(){ const t=now(); if(LIVE) return {live:1,md:LIVE.md,at:LIVE.at,end:LIVE.end,fx:LIVE.fx.map(f=>[f.h,f.a,f.sh,f.sa])}; const md=mdNow(t), nx=t>=mdAt(md)+E.dur*1000-15000||ST.last&&ST.last.md===md?md+1:md;
+  return {live:0,md:nx,at:mdAt(nx),fx:fixtures(nx).map(([h,a])=>[h,a,0,0]),last:ST.last}; }
+const pushBar=()=>C.broadcastAll({t:'eplbar',v:barView()});
+hook('login',pl=>setTimeout(()=>{ if(pl.prof) send(pl,{t:'eplbar',v:barView()}); },1500));
 /* ---------- mùa giải (lưu file) ---------- */
 const weekOf=()=>{ const R=S.realTime(); return S.addDays(R.day,-((R.wd+6)%7)); };   /* thứ Hai của tuần thật */
 const blankTable=()=>Object.fromEntries(IDS.map(k=>[k,{p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}]));
@@ -34,20 +43,20 @@ function stateView(pl){ const t=now(), md=mdNow(t), nx=LIVE&&LIVE.md===md?md+1:m
   return {season:ST.season,table:ranked().map(k=>[k,ST.table[k]]),live:liveView(),next:{md:nx,at:mdAt(nx),fx:fixtures(nx)},
     scorers:Object.entries(ST.scorers).sort((a,b)=>b[1].g-a[1].g).slice(0,8).map(([,s])=>[s.n,s.c,s.g]),coaches:Object.fromEntries(IDS.map(k=>[k,coachOf(k)?{n:coachOf(k).n,tac:coachOf(k).tac}:null])),
     stalls:Object.fromEntries(IDS.map(k=>[k,ST.stalls[k]&&ST.stalls[k].day===S.realTime().day?ST.stalls[k].n:''])),last:ST.last,
-    me:r&&{club:r.club,role:r.role,sk:Math.round(r.sk*10)/10,apps:r.apps,goals:r.goals,fan:r.fan,stock:r.stock,paid:(pl.prof.daily.eplPaid||0),train:(pl.prof.daily.eplTrain||0),vend:(pl.prof.daily.eplVend||0),
+    me:r&&{fanq:fanView(pl.prof),club:r.club,role:r.role,sk:Math.round(r.sk*10)/10,apps:r.apps,goals:r.goals,fan:r.fan,stock:r.stock,paid:(pl.prof.daily.eplPaid||0),train:(pl.prof.daily.eplTrain||0),vend:(pl.prof.daily.eplVend||0),
       tix:LIVE?LIVE.fx.map(f=>f.tix[pl.uid]?f.tix[pl.uid].side:''):[]}}; }
 const pushAll=()=>{ const v=liveView(); for(const q of sceneOf('epl')) send(q,{t:'epl',v}); };
 hook('enter',(pl,id)=>{ if(id==='epl') setTimeout(()=>{ if(pl.prof) send(pl,{t:'epl',v:liveView(),full:stateView(pl)}); },400); });
 /* ---------- vòng đấu ---------- */
 function kickoff(md,t){ const at=mdAt(md); LIVE={md,at,end:at+E.dur*1000,fx:fixtures(md).map(([h,a])=>({h,a,sh:0,sa:0,heat:[0,0],ev:[],ppl:{},coach:{},tix:(PRE[md]||{})[h]||{},sold:{}}))}; delete PRE[md];
   for(const k of Object.keys(PRE)) if(+k<md) delete PRE[k];
-  for(const q of sceneOf('epl')) note(q,`⚽ Vòng ${md%1000}: ${LIVE.fx.map(f=>`${CL[f.h].short}–${CL[f.a].short}`).join(' · ')} bắt đầu!`,'quest'); pushAll(); }
+  for(const q of sceneOf('epl')) note(q,`⚽ Vòng ${md%1000}: ${LIVE.fx.map(f=>`${CL[f.h].short}–${CL[f.a].short}`).join(' · ')} bắt đầu!`,'quest'); pushAll(); pushBar(); }
 const PRE={};   /* vé mua trước cho vòng tới: md → sân → {uid:{side,n,cheers}} */
 function strength(f,i,t){ const k=i?f.a:f.h, c=CL[k]; let R=c.rating+(i?0:MT.home)+Math.min(MT.heatMax,f.heat[i])/MT.heatPer;
   let hum=0; for(const x of Object.values(f.ppl)) if(x.team===i&&x.here>t-2500) hum+=MT.human[0]+x.sk/MT.human[1]; R+=Math.min(5,hum);
   const co=Object.values(f.coach).find(x=>x.team===i&&x.here>t-2500); if(co) R+=1+co.lv; return R; }
 function goal(f,i,who,t){ if(i) f.sa++; else f.sh++; const k=i?f.a:f.h, min=Math.min(90,Math.max(1,Math.floor((t-LIVE.at)/(E.dur*1000)*90)));
-  const ev=[min,i,who]; f.ev.push(ev); for(const q of sceneOf('epl')) send(q,{t:'eplgoal',h:f.h,a:f.a,team:i,who,min,sh:f.sh,sa:f.sa}); }
+  const ev=[min,i,who]; f.ev.push(ev); for(const q of sceneOf('epl')) send(q,{t:'eplgoal',h:f.h,a:f.a,team:i,who,min,sh:f.sh,sa:f.sa}); C.broadcastAll({t:'eplbar',v:barView(),goal:{h:f.h,a:f.a,team:i,who,min}}); }
 function tickMatch(t){ const L=LIVE, frac=E.dur;
   L.fx.forEach(f=>{ const B=E.block(f.h), Pt=E.pitch(f.h);
     for(const q of sceneOf('epl')){ const p=q.prof, r=rec(p), [x,y]=tileOf(q); if(!inRect(B,x,y)) continue;   /* ai đang ở trong sân đấu: cầu thủ trên mặt cỏ, HLV ở trong sân */
@@ -71,17 +80,18 @@ function finish(t){ const L=LIVE; LIVE=null;
     for(const [uid,x] of Object.entries(f.ppl)){ const q=byUid.get(uid); if(!q||!q.prof||x.sec<60) continue; const p=q.prof, r=rec(p), won=res===x.team, PY=E.pay.player, paid=paidOk(p);
       r.apps++; p.needs.energy=Math.max(0,p.needs.energy-MT.energy); P.stat(q,'eplApps',1); const sp=ST.players[uid]||(ST.players[uid]={n:p.name,c:r.club,apps:0}); sp.apps++; sp.c=r.club;
       reward(q,{exp:PY.exp+x.g*PY.goalExp,vnd:paid?PY.wage+(won?PY.win:0)+x.g*PY.goal:0},`⚽ ${line} · ${won?'thắng':res<0?'hoà':'thua'}${x.g?` · bạn ghi ${x.g} bàn`:''}${paid?'':` (đủ ${E.pay.paidPerDay} trận có lương hôm nay)`}`);
-      if(arsWin&&r.club==='ars') qp(q,'ars_big'); markDirty(q); }
+      if(arsWin&&r.club==='ars') qp(q,'ars_big'); if(won) fq(q,'win',1,r.club); markDirty(q); }
     // HLV: có mặt ở sân ≥ 60 giây (tên CLB lấy theo trận: HLV có thể vừa nghỉ việc giữa trận, r.club đã rỗng)
     for(const [uid,x] of Object.entries(f.coach)){ const q=byUid.get(uid); if(!q||!q.prof||x.sec<60) continue; const p=q.prof, r=rec(p), won=res===x.team, CO=E.pay.coach, paid=paidOk(p);
-      r.apps++; reward(q,{exp:CO.exp,vnd:paid?CO.wage+(won?CO.win:0):0},`📋 HLV ${CL[x.team?f.a:f.h].name}: ${line}${paid?'':' (hết lượt có lương hôm nay)'}`); if(won&&r.club==='ars') qp(q,'ars_coach'); if(arsWin&&r.club==='ars') qp(q,'ars_big'); markDirty(q); }
+      r.apps++; reward(q,{exp:CO.exp,vnd:paid?CO.wage+(won?CO.win:0):0},`📋 HLV ${CL[x.team?f.a:f.h].name}: ${line}${paid?'':' (hết lượt có lương hôm nay)'}`); if(won&&r.club==='ars') qp(q,'ars_coach'); if(arsWin&&r.club==='ars') qp(q,'ars_big'); if(won) fq(q,'win',1,r.club); markDirty(q); }
     // cổ động viên có vé: cổ vũ đủ số lần
     for(const [uid,x] of Object.entries(f.tix)){ const q=byUid.get(uid); if(!q||!q.prof) continue; const p=q.prof, FA=E.pay.fan, side=x.side==='a'?1:0, club=side?f.a:f.h, won=res===side;
       P.stat(q,'eplFan',1); const sf=ST.fans[uid]||(ST.fans[uid]={n:p.name,c:club,att:0}); sf.att++; sf.c=club;
       if(x.cheers<FA.cheers){ reward(q,{exp:Math.round(FA.exp/2)},`🎟 ${line}: cổ vũ ít quá (${x.cheers}/${FA.cheers} lần)`); continue; }
-      const paid=won&&paidOk(p); reward(q,{exp:FA.exp+(won?10:0),vnd:paid?FA.win:0},`📣 ${line}${won?` · đội ${CL[club].short} thắng! Cháy cùng đội: EXP ×${FA.buff.mul} trong ${FA.buff.min} phút`:''}`);
+      const fav=rec(p).fan===club, bonus=fav?E.loyalOf(rec(p).lp).bonus:0; fq(q,'watch',1,club); if(won) fq(q,'win',1,club);   /* đội hâm mộ: bậc trung thành thêm % tiền thắng */
+      const paid=won&&paidOk(p); reward(q,{exp:FA.exp+(won?10:0),vnd:paid?Math.round(FA.win*(1+bonus)):0},`📣 ${line}${won?` · đội ${CL[club].short} thắng! Cháy cùng đội: EXP ×${FA.buff.mul} trong ${FA.buff.min} phút`:''}`);
       if(won) p.ebuff={mul:FA.buff.mul,until:t+FA.buff.min*60e3}; if(club==='ars') qp(q,'ars_fan',1,2); if(arsWin&&club==='ars') qp(q,'ars_big'); markDirty(q); } }
-  ST.last={md:L.md,res:L.fx.map(f=>[f.h,f.sh,f.sa,f.a])}; save();
+  ST.last={md:L.md,res:L.fx.map(f=>[f.h,f.sh,f.sa,f.a]),at:t}; save(); pushBar();
   for(const q of sceneOf('epl')) send(q,{t:'epl',v:null,full:stateView(q)}); }
 /* ---------- hết tuần: trao thưởng mùa giải ---------- */
 function payPend(uid,vnd,exp,msg,champ){ const q=byUid.get(uid); if(q&&q.prof){ reward(q,{vnd,exp},msg); if(champ) P.stat(q,'eplChamp',1); return; } (ST.pend[uid]=ST.pend[uid]||[]).push({vnd,exp,msg,champ:champ?1:0}); }
@@ -100,7 +110,16 @@ setInterval(()=>{ try{ const t=now();
   if(LIVE){ tickMatch(t); if(t%3000<1000) pushAll(); } }catch(e){ console.error('[epl]',e); } },1000);
 /* ---------- thao tác ---------- */
 const nearMgr=(pl,k)=>P.nearNpc(pl,'epl_mgr_'+k), nearShop=(pl,k)=>P.nearNpc(pl,'epl_shop_'+k);
-on('epl',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(), k=String(m.club||''); if(pl.scene!=='epl') return {err:'Bay sang Ngoại Hạng Anh đã (Grab)'};
+const fanView=p=>{ const r=rec(p), F=fqOf(r); return {fan:r.fan,lp:r.lp||0,favDay:r.favDay||'',prog:F.prog,done:F.done}; };
+on('epl',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(), k=String(m.club||'');
+  if(op==='fanview') return {fan:fanView(p),bar:barView()};
+  if(op==='fav'){ if(!CL[k]) return {err:'?'}; const day=S.realTime().day; if(r.fan===k) return {err:`Bạn đang hâm mộ ${CL[k].name} rồi`}; if(r.fan&&r.favDay===day) return {err:'Hôm nay đã chọn đội rồi, mai mới đổi được'};
+    const lost=r.fan?Math.floor((r.lp||0)/2):0; if(r.fan) r.lp=(r.lp||0)-lost; r.fan=k; r.favDay=day; r.fq={day,prog:{},done:{}}; markDirty(pl);
+    return {msg:`💙 Bạn là cổ động viên ${CL[k].name}!${lost?` (đổi đội mất ${lost} điểm trung thành)`:''} Mỗi ngày có 7 nhiệm vụ cho đội`,fan:fanView(p)}; }
+  if(op==='fq'){ const Q=E.fanq.find(x=>x.k===m.k); if(!Q||!r.fan) return {err:'?'}; const F=fqOf(r); if(F.done[Q.k]) return {err:'Đã nhận thưởng việc này hôm nay'}; if((F.prog[Q.k]||0)<Q.n) return {err:'Chưa xong'};
+    F.done[Q.k]=1; const before=E.loyalOf(r.lp).name; r.lp=(r.lp||0)+Q.lp; reward(pl,{vnd:Q.vnd,exp:Q.exp},`💙 Nhiệm vụ đội ${CL[r.fan].short}: ${Q.name} · +${Q.lp} điểm trung thành`); const after=E.loyalOf(r.lp).name;
+    if(after!==before) note(pl,`📣 Lên bậc trung thành ${CL[r.fan].short}: ${after}!`,'quest'); markDirty(pl); return {fan:fanView(p)}; }
+  if(pl.scene!=='epl') return {err:'Bay sang Ngoại Hạng Anh đã (Grab)'};
   if(op==='view') return {v:stateView(pl)};
   if(op==='dbgkick'&&process.env.CHAN_TEST==='1'){ if(LIVE) finish(t); const md=mdNow(t); kickoff(md,t); LIVE.at=t; LIVE.end=t+(m.dur||40)*1000; pushAll(); return {v:stateView(pl)}; }   /* chỉ server test: đá ngay 1 vòng ngắn */
   if(op==='dbgepl'&&process.env.CHAN_TEST==='1'){ if(m.sk!=null) r.sk=+m.sk; if(m.apps!=null) r.apps=m.apps|0; markDirty(pl); return {v:stateView(pl)}; }
@@ -117,10 +136,11 @@ on('epl',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(), k=String(m.club|
     ST.coaches[k]={uid:pl.uid,n:p.name,seen:t,tac:'canbang'}; Object.assign(r,{club:k,role:'coach'}); save(); markDirty(pl); return {msg:`📋 Bạn là HLV trưởng ${CL[k].name}! Chọn chiến thuật, có trận thì vào sân chỉ đạo`,v:stateView(pl)}; }
   if(op==='resign'){ if(r.role!=='coach') return {err:'Bạn không phải HLV'}; if(coachOf(r.club)&&coachOf(r.club).uid===pl.uid) delete ST.coaches[r.club]; Object.assign(r,{role:'',club:''}); save(); markDirty(pl); return {msg:'Đã từ chức HLV',v:stateView(pl)}; }
   if(op==='tactic'){ const co=coachOf(r.club); if(r.role!=='coach'||!co||co.uid!==pl.uid) return {err:'Chỉ HLV trưởng chọn chiến thuật'}; if(!MT.tac[m.k]) return {err:'?'}; co.tac=m.k; save(); return {msg:`Chiến thuật: ${MT.tac[m.k].name}`,v:stateView(pl)}; }
-  if(op==='fan'){ if(!CL[k]) return {err:'?'}; if(!nearShop(pl,k)) return {err:'Tới quầy vé & áo đấu trước cổng sân'}; r.fan=k; markDirty(pl); return {msg:`💙 Bạn là cổ động viên ${CL[k].name}`,v:stateView(pl)}; }
+  if(op==='fan'){ if(!CL[k]) return {err:'?'}; if(!nearShop(pl,k)) return {err:'Tới quầy vé & áo đấu trước cổng sân'}; const day=S.realTime().day; if(r.fan===k) return {err:`Bạn đang hâm mộ ${CL[k].name} rồi`}; if(r.fan&&r.favDay===day) return {err:'Hôm nay đã chọn đội rồi, mai mới đổi được'};
+    if(r.fan) r.lp=Math.ceil((r.lp||0)/2); r.fan=k; r.favDay=day; r.fq={day,prog:{},done:{}}; markDirty(pl); return {msg:`💙 Bạn là cổ động viên ${CL[k].name}`,v:stateView(pl)}; }
   if(op==='kit'){ if(!CL[k]) return {err:'?'}; if(!nearShop(pl,k)) return {err:'Tới quầy vé & áo đấu trước cổng sân'}; const id='kit_'+k;
     if(!p.owned[id]){ if(!shopPay(pl,E.kitPrice)) return {err:`Áo đấu ${fmt(E.kitPrice)}`}; p.owned[id]=1; }
-    if(p.look){ p.look.outfit={...p.look.outfit,top:id}; C.refreshInfo(pl); } if(k==='ars') qp(pl,'ars_kit'); markDirty(pl); return {msg:`👕 Đã mặc ${S.CLOTHES[id].name}`,look:p.look}; }
+    if(p.look){ p.look.outfit={...p.look.outfit,top:id}; C.refreshInfo(pl); } if(k==='ars') qp(pl,'ars_kit'); fq(pl,'kit',1,k); markDirty(pl); return {msg:`👕 Đã mặc ${S.CLOTHES[id].name}`,look:p.look}; }
   if(op==='ticket'){ if(!CL[k]) return {err:'?'}; if(!nearShop(pl,k)) return {err:'Tới quầy vé trước cổng sân'}; const side=m.side==='a'?'a':'h';
     const md=mdNow(t), live=LIVE&&LIVE.fx.find(f=>f.h===k), nx=LIVE?LIVE.md+1:(t>=mdAt(md)+E.dur*1000-15000?md+1:md), nf=fixtures(nx).find(([h])=>h===k);
     let bag=null, f0=null; if(live&&t<LIVE.end-30000){ bag=live.tix; f0=[live.h,live.a]; } else if(nf){ bag=((PRE[nx]=PRE[nx]||{})[k]=PRE[nx][k]||{}); f0=nf; }
@@ -129,16 +149,16 @@ on('epl',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(), k=String(m.club|
     bag[pl.uid]={side,n:p.name,cheers:0}; const club=side==='a'?f0[1]:f0[0]; return {msg:`🎟 Vé ${CL[f0[0]].short}–${CL[f0[1]].short}, khán đài ${CL[club].short}. Vào sân bấm E cổ vũ (đủ ${E.pay.fan.cheers} lần)`,v:stateView(pl)}; }
   if(op==='cheer'){ const [x,y]=tileOf(pl), at=E.clubAt(x,y), f=at&&LIVE&&LIVE.fx.find(f=>f.h===at); if(!f) return {err:'Sân này đang không có trận'}; const tk=f.tix[pl.uid]; if(!tk) return {err:'Chưa có vé trận này (mua ở quầy vé trước cổng)'};
     if(t<(pl.eplCheerAt||0)) return {}; pl.eplCheerAt=t+4000; const side=tk.side==='a'?1:0, club=side?f.a:f.h, kit=p.look&&p.look.outfit&&p.look.outfit.top==='kit_'+club;
-    f.heat[side]=Math.min(MT.heatMax,f.heat[side]+(kit?1.5:1)); tk.cheers++; for(const q of sceneOf('epl')) send(q,{t:'eplcheer',pid:pl.pid,club,kit:kit?1:0}); return {cheers:tk.cheers,heat:Math.round(f.heat[side])}; }
+    f.heat[side]=Math.min(MT.heatMax,f.heat[side]+(kit?1.5:1)); tk.cheers++; fq(pl,'cheer',1,club); for(const q of sceneOf('epl')) send(q,{t:'eplcheer',pid:pl.pid,club,kit:kit?1:0}); return {cheers:tk.cheers,heat:Math.round(f.heat[side])}; }
   if(op==='shot'){ const ch=pl.eplCh; if(!ch||ch.id!==m.id||t>ch.until+800||!LIVE) return {ok:false}; pl.eplCh=null; const f=LIVE.fx[ch.fx], x=f&&f.ppl[pl.uid]; if(!x) return {ok:false};
     const q=Math.max(0,Math.min(1,+m.q||0)), pr=Math.max(.05,Math.min(.8,.12+.4*q+r.sk/300)); if(Math.random()>=pr){ send(pl,{t:'eplmiss'}); return {ok:true,goal:false}; }
     x.g++; r.goals++; P.stat(pl,'goals',1); const sc=ST.scorers[pl.uid]||(ST.scorers[pl.uid]={n:p.name,c:r.club,g:0}); sc.g++; sc.c=r.club; save(); if(r.club==='ars') qp(pl,'ars_goal',1,3);
-    goal(f,ch.team,p.name,t); markDirty(pl); return {ok:true,goal:true}; }
+    goal(f,ch.team,p.name,t); fq(pl,'goal',1,r.club); markDirty(pl); return {ok:true,goal:true}; }
   if(op==='train'){ const [x,y]=tileOf(pl), at=E.clubAt(x,y); if(!at||!inRect(E.pitch(at),x,y)) return {err:'Ra chấm phạt đền trên mặt cỏ để tập sút'}; if(LIVE&&LIVE.fx.some(f=>f.h===at)) return {err:'Sân đang có trận, tập ở sân khác'};
     const TR=E.train, d=p.daily; if((d.eplTrain||0)>=TR.perDay) return {err:`Hôm nay tập đủ ${TR.perDay} buổi rồi`}; if(t<(pl.eplTrainAt||0)) return {err:`Nghỉ ${Math.ceil((pl.eplTrainAt-t)/1000)} giây rồi sút tiếp`};
     if(p.needs.energy<TR.energy) return {err:'Hết sức rồi, ăn uống / ngủ nghỉ đã'}; pl.eplTrainAt=t+TR.cd*1000; d.eplTrain=(d.eplTrain||0)+1; p.needs.energy-=TR.energy;
     const q=Math.max(0,Math.min(1,+m.q||0)), g=(TR.gain[0]+(TR.gain[1]-TR.gain[0])*r.sk/100)*(.4+.6*q), goalIn=Math.random()<.25+.65*q; r.sk=Math.min(100,r.sk+g);
-    reward(pl,{exp:TR.exp},`🥅 ${goalIn?'VÀO!':'Trượt!'} Sút bóng ${Math.floor(r.sk)} (+${g.toFixed(1)})`); markDirty(pl); return {goal:goalIn,sk:r.sk,v:stateView(pl)}; }
+    reward(pl,{exp:TR.exp},`🥅 ${goalIn?'VÀO!':'Trượt!'} Sút bóng ${Math.floor(r.sk)} (+${g.toFixed(1)})`); fq(pl,'train',1,at); markDirty(pl); return {goal:goalIn,sk:r.sk,v:stateView(pl)}; }
   // bán hàng: thuê sạp, nhập hàng, rao bán
   if(op==='rent'){ if(!CL[k]) return {err:'?'}; const sp=E.stall(k); if(!near(pl,sp.x,sp.y,48)) return {err:'Đứng cạnh sạp hàng trước cổng sân'}; const day=S.realTime().day, cur=ST.stalls[k];
     if(cur&&cur.day===day) return {err:cur.uid===pl.uid?'Sạp này bạn thuê rồi':`${cur.n} đã thuê sạp này hôm nay`}; for(const x of IDS) if(ST.stalls[x]&&ST.stalls[x].uid===pl.uid&&ST.stalls[x].day===day) return {err:'Hôm nay bạn đã thuê 1 sạp rồi'};
@@ -152,7 +172,7 @@ on('epl',(pl,m)=>{ const p=pl.prof, r=rec(p), op=m.op, t=now(), k=String(m.club|
     const f=LIVE&&LIVE.fx.find(f=>f.h===k2), key=f?LIVE.md+':'+k2:'idle:'+mdNow(t), st=ST.stalls[k2], n0=(st.sold[key]||0); if(n0>=(f?V.perMatch:V.perIdle)) return {err:f?'Khán giả trận này mua đủ rồi':'Giờ vắng khách, đợi có trận ở sân này'};
     pl.eplSellAt=t+V.cd*1000; const gk=ks[Math.floor(Math.random()*ks.length)], g=V.goods[gk], heat=f?(f.heat[0]+f.heat[1])/(2*MT.heatMax):0, mul=f?V.mul[0]+(V.mul[1]-V.mul[0])*Math.min(1,heat+.25):V.quiet;
     const price=Math.round(g.cost*mul/1000)*1000, gain=Math.min(price-g.cost,V.dailyCap-(p.daily.eplVend||0)); r.stock[gk]--; st.sold[key]=n0+1; for(const x of Object.keys(st.sold)) if(x!==key) delete st.sold[x];
-    p.daily.eplVend=(p.daily.eplVend||0)+Math.max(0,gain); give(pl,g.cost+Math.max(0,gain)); markDirty(pl); return {msg:`Bán ${g.name} giá ${fmt(price)} (lãi ${fmt(Math.max(0,gain))})`,v:stateView(pl)}; }
+    p.daily.eplVend=(p.daily.eplVend||0)+Math.max(0,gain); fq(pl,'sell',1,k2); give(pl,g.cost+Math.max(0,gain)); markDirty(pl); return {msg:`Bán ${g.name} giá ${fmt(price)} (lãi ${fmt(Math.max(0,gain))})`,v:stateView(pl)}; }
   return {err:'?'}; });
 // reset server (reset.js): bỏ tài khoản bị reset khỏi bảng mùa giải, ghế HLV, sạp hàng, thưởng chờ
 hook('reset',gone=>{ for(const o of [ST.scorers,ST.players,ST.fans,ST.pend]) for(const u of Object.keys(o)) if(gone(u)) delete o[u]; for(const k of IDS){ if(ST.coaches[k]&&gone(ST.coaches[k].uid)) delete ST.coaches[k]; if(ST.stalls[k]&&gone(ST.stalls[k].uid)) delete ST.stalls[k]; } save(); });

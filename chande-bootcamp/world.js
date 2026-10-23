@@ -133,6 +133,23 @@ function buildRetreat(){
   ell(185,22,6,5,'G',['F']); trail([[175,52],[180,36],[185,27]]);
   ell(200,40,8,5,'G',['F']); trail([[195,58],[200,46]]);
   trail([[100,25],[112,16]]); trail([[132,16],[150,20],[170,22],[180,22]]); trail([[190,24],[200,35]]);
+  // ===== đường rừng núi đi tắt đan xen (24/10): lối mòn ngoằn ngoèo nối các khu rừng, mỏm đá, bãi trống có người ở (15 NPC nhiệm vụ ẩn Lính Cát) =====
+  const wind=(pts,amp=1.6)=>{ const out=[]; for(let i=0;i<pts.length-1;i++){ const [ax,ay]=pts[i],[bx,by]=pts[i+1], n=Math.max(2,Math.round(Math.hypot(bx-ax,by-ay)/4)), nx=-(by-ay), ny=bx-ax, L=Math.hypot(nx,ny)||1;
+    for(let k=0;k<n;k++){ const t=k/n, w=k?Math.sin((i*n+k)*1.3)*amp:0; out.push([ax+(bx-ax)*t+nx/L*w,ay+(by-ay)*t+ny/L*w]); } } out.push(pts[pts.length-1]); return out; };   /* lắc lư như lối mòn thật, đầu mút giữ nguyên để nối khớp */
+  for(const n of SHARED.LCFOREST.npcs) ell(n.x,n.y+.5,3.4,2.6,'G',['F']);                                                    // bãi trống chỗ NPC rừng đứng
+  const FOREST_TRAILS=[[[76,54],[82,46],[78,40],[84,30],[80,22],[86,12],[92,5]],[[90,40],[94,48],[104,52],[116,50],[124,54],[132,52]],[[104,52],[104,55]],[[110,44],[106,36],[112,30],[108,24]],[[128,46],[132,38],[128,30],[134,24]],
+    [[162,40],[170,34],[176,40],[184,36],[192,30],[198,22],[202,12]],[[163,52],[172,47],[180,48],[188,44],[196,48],[202,52]],[[170,22],[174,14],[168,8],[176,4]],[[136,40],[130,44]],
+    [[8,30],[14,22],[10,14],[18,8],[30,6],[40,10],[51,14]],[[24,30],[28,22],[36,16],[44,22],[51,20]],[[60,20],[64,12],[58,6]],[[62,30],[66,24],[66,8]],[[4,58],[8,50],[4,42],[10,36],[8,30]],
+    [[226,70],[230,58],[240,48],[230,40],[240,30],[232,20],[244,12]],[[258,60],[248,50],[256,40],[264,32]],[[310,56],[320,62],[326,72],[318,84]],[[292,58],[296,48]]];
+  for(const pts of FOREST_TRAILS) trail(wind(pts));
+  EXTRA_ZONES.push({name:'Lối mòn Thông Reo',x0:73,y0:3,x1:92,y1:55},{name:'Dốc Đá Xám',x0:124,y0:23,x1:135,y1:46},{name:'Đường mòn Sơn Ca',x0:163,y0:3,x1:203,y1:34},{name:'Rừng trúc Ké',x0:3,y0:3,x1:68,y1:22},
+    {name:'Trung tâm Lính Cát',x0:163,y0:33,x1:181,y1:55});
+  // Trung tâm Lính Cát cạnh Khu tâm linh: bãi rộng, sân lát đá, lối sang sân chùa + xuống đường Hà Phạm
+  rect(163,33,181,55,'G',['F']); rect(164,45,178,50,'C'); line([[163,47.5],[156,48]],1,'P',['F','G']); line([[171,50],[171,55]],1,'P',['F','G']);
+  // 15 CLB Lính Cát ở chỗ vắng (rừng phía Bắc, vườn quốc gia, xa khu dân cư): bãi trống, sân lát đá giữa lối mòn · Tế đàn Rồng Thần trên thác Đà Bắc
+  const LCCB=SHARED.LCCLUB, CLUB_SITES=[...LCCB.gyms.map(g0=>({x:g0.x,y:g0.y,t:g0.t,name:'Võ đài CLB '+SHARED.LC_TYPES[g0.t].name})),...LCCB.train.map(t0=>({x:t0.x,y:t0.y,t:'',name:t0.name}))];
+  for(const c of CLUB_SITES){ ell(c.x,c.y,6.5,4.6,'G',['F']); rect(c.x-4,c.y-1,c.x+4,c.y+2,'C'); EXTRA_ZONES.unshift({name:c.name,x0:c.x-6,y0:c.y-4,x1:c.x+6,y1:c.y+4}); }
+  { const A0=SHARED.LINHCAT.dragon.altar, ax=Math.floor(A0.x), ay=Math.floor(A0.y); ell(A0.x,A0.y+1,6,4.4,'G',['F']); rect(ax-3,ay+1,ax+3,ay+3,'C'); EXTRA_ZONES.unshift({name:'Tế đàn Rồng Thần',x0:ax-6,y0:ay-4,x1:ax+6,y1:ay+5}); }
   // vườn quốc gia: lối tắt nối các trạm quan sát + đường vòng sát tường
   for(const pts of [[[GX-.5,88],[226,70],[238,56],[250,40],[262,26],[276,14],[300,10],[315,14]],[[270,48],[290,48],[318,48]],[[257,60],[270,72],[282,80]],[[282,80],[294,70],[305,72]],[[281,38],[300,30],[325,28]],
     [[216,7],[331,7]],[[331,7],[331,90]],[[216,7],[216,84]],[[238,70],[226,70]]]) trail(pts,1);
@@ -173,6 +190,7 @@ function buildRetreat(){
   bld('Cafe Đà Bắc',78,89,82,91,{shop:true,roof:'tile',wall:'ochre',doors:[30],windows:[6,50],sign:'CAFE',awning:'#3f6e9a'});
   bld('Siêu thị Đà Bắc',86,88,96,91,{shop:true,roof:'stone',wall:'stone',doors:[80],windows:[10,40,120,150],sign:'SIEU THI',awning:'#e04848'});
   bld('Tiệm net Cỏ',100,89,104,91,{shop:true,roof:'tile',wall:'stone',doors:[30],windows:[6,50],sign:'NET',awning:'#2a2a30'});
+  bld('Phòng Bay',180,60,187,63,{shop:true,roof:'stone',wall:'stone',doors:[56],windows:[10,100],sign:'PHONG BAY',awning:'#a259ff'});   /* sàn nhảy Audition: nhà riêng ở phố Đà Bắc, cửa nhìn ra vỉa hè */
   bld('Quán nhậu đặc sản Mường',108,88,115,91,{shop:true,roof:'thatch',wall:'wood',open:true,tables:true,sign:'QUAN NHAU'});
   bld('Trại ngựa Đà Bắc',156,84,163,86,{shop:true,roof:'thatch',wall:'wood',doors:[56],windows:[10,90],sign:'TRAI NGUA',awning:'#8a5a36'});
   // nhà dân trong thị trấn
@@ -182,7 +200,7 @@ function buildRetreat(){
   bld('UBND xã Đà Bắc',114,60,122,63,{roof:'tile',wall:'yellow',doors:[65],windows:[10,28,100,118],sign:'UBND XA DA BAC',stoneBase:true});
   bld('Trường tiểu học Đà Bắc',129,60,140,63,{roof:'tile_blue',wall:'cream',doors:[89],windows:[10,26,42,58,118,134,150,166],sign:'TRUONG TIEU HOC'});
   bld('Chợ Đà Bắc',152,61,163,64,{roof:'tile_green',wall:'white',open:true,tables:true,sign:'CHO DA BAC'});
-  bld('Trung tâm Lính Cát',172,60,181,63,{shop:true,roof:'tile',wall:'white',doors:[62],windows:[10,30,110,130],sign:'TRUNG TAM LINH CAT',signBg:'#d23a2e',signFg:'#ffffff',awning:'#d23a2e'});
+  bld('Trung tâm Lính Cát',164,39,177,44,{shop:true,roof:'tile',wall:'white',doors:[100],windows:[14,38,62,138,162,186],sign:'TRUNG TAM LINH CAT',signBg:'#d23a2e',signFg:'#ffffff',awning:'#d23a2e'});
   bld('Trạm y tế xã',196,61,203,64,{roof:'tile',wall:'white',doors:[57],windows:[10,96],sign:'TRAM Y TE',awning:'#2f9a52'});
   bld('Bưu điện Đà Bắc',87,75,95,78,{roof:'tile',wall:'yellow',doors:[65],windows:[12,36,96,116],sign:'BUU DIEN',awning:'#f2c43d'});
   bld('Khách sạn Đà Bắc',152,75,162,80,{roof:'tile_purple',wall:'brick',doors:[81],windows:[10,26,42,58,112,128,144],sign:'KHACH SAN',awning:'#7a52b0',wallH:30});
@@ -239,6 +257,14 @@ function buildRetreat(){
   // quán bánh mì Dân Tổ (xe đẩy) + cờ ở đồn công an
   put(A.stall('#f2c43d',['#d9a14a','#c4382e','#5fae46']),11.5,92.6); solid.push([10,92,12,92]); put(A.signPost('BANH MI DAN TO','#f2c43d'),14,91.6); put(A.flagPole(),9.6,92.2);
   // khu mở rộng: chùa, cổng vườn quốc gia, đèn đường thị trấn, trạm quan sát
+  { const unacc=t=>t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toUpperCase();   /* CLB Lính Cát: cổng băng rôn + 2 cờ màu hệ, biển tên */
+    for(const c of CLUB_SITES){ const col=c.t?SHARED.LC_TYPES[c.t].col:'#e8dcc0'; put(A.lcGate(col),c.x,c.y+3.6); for(const dx of [-5,5]){ put(A.lcFlagT(col),c.x+dx,c.y+.9); solid.push([Math.floor(c.x+dx),Math.floor(c.y),Math.floor(c.x+dx),Math.floor(c.y)]); }
+      put(A.signPost(unacc(c.name)),c.x-3.6,c.y-2.6); }
+    const A0=SHARED.LINHCAT.dragon.altar; put(A.lcAltar(),A0.x,A0.y+.6); solid.push([Math.floor(A0.x)-1,Math.floor(A0.y)-1,Math.floor(A0.x)+1,Math.floor(A0.y)]); put(A.signPost('TE DAN RONG THAN'),A0.x+4.5,A0.y+2.4); }
+  put(A.lcStatue(),171,49.6); solid.push([170,48,172,49]); for(const x of [165,177]) put(A.lcFlag(),x,46.4); solid.push([165,45,165,45],[177,45,177,45]); for(const x of [167.5,174.5]) put(A.flowerBed(),x,51.2,{flat:true});   /* Trung tâm Lính Cát: tượng Bóng Cát, cờ, bồn hoa */
+  spot(171,50.8,'Ngắm tượng Bóng Cát',['Tượng Bóng Cát khổng lồ trước Trung tâm Lính Cát. Ai đi ngang cũng xoa đầu bóng lấy may trước khi đi bắt Lính Cát.']);
+  put(A.signPost('LINH CAT - LEN KHU TAM LINH'),172.5,64.4);   /* chỗ Trung tâm cũ: biển chỉ đường */
+  for(const [x,y] of [[80.5,41],[86.5,15],[133.5,36],[127.5,26],[171.5,12],[193.5,33],[13.5,12],[45.5,19],[236.5,24],[252.5,47],[323.5,77]]) put(A.rock(x|0),x,y);   /* mỏm đá dọc đường rừng núi */
   put(A.pagoda(),148.5,45,{name:'Chùa Đà Bắc',house:true}); rect(143,36,154,44,'B'); put(A.bellTower(),157.5,50.4); solid.push([156,48,158,49]); put(A.urn(),148.5,49.6); solid.push([148,48,148,48]);
   put(A.banyan(),139,52.6); solid.push([138,51,140,51]); put(A.signPost('CHUA DA BAC','#a8322a'),150.5,91.8);
   put(A.parkGate(),SHARED.PARK.gate,94.3,{name:'Vườn quốc gia Đà Bắc',front:true}); put(A.kiosk(),209.5,92.4); solid.push([208,91,210,91]);
@@ -321,7 +347,7 @@ function buildRetreat(){
     {name:'Sân đá khu trên',x0:27,y0:36,x1:33,y1:41},{name:'Nhà Ngủ 1·2·3',x0:31,y0:31,x1:38,y1:36},{name:'Nhà Chiềng',x0:40,y0:31,x1:47,y1:36},
     {name:'Nhà Mái Đá',x0:40,y0:37,x1:47,y1:41},{name:'Nền khu cắm trại',x0:45,y0:24,x1:56,y1:31},{name:'Đường vòng lên đồi',x0:20,y0:42,x1:58,y1:46},
     {name:'Thị trấn Đà Bắc',x0:72,y0:60,x1:206,y1:94},{name:'Chùa Đà Bắc',x0:136,y0:26,x1:162,y1:58},{name:'Vườn quốc gia Đà Bắc',x0:212,y0:2,x1:337,y1:93},{name:'Cầu qua hồ Hoà Bình',x0:108,y0:98,x1:113,y1:121},{name:'Hồ Hoà Bình',x0:72,y0:98,x1:339,y1:121}];
-  const districts=[{name:'Khu nghỉ dưỡng Ké',x:34,y:66},{name:'Phố Đà Bắc',x:140,y:80},{name:'Khu tâm linh',x:149,y:34},{name:'Rừng phía Bắc',x:110,y:30},{name:'Vườn quốc gia',x:272,y:50},
+  const districts=[{name:'Khu nghỉ dưỡng Ké',x:34,y:66},{name:'Phố Đà Bắc',x:140,y:80},{name:'Khu tâm linh',x:149,y:34},{name:'⭐ Trung tâm Lính Cát',x:171,y:36,hot:1},{name:'Rừng phía Bắc',x:110,y:30},{name:'Vườn quốc gia',x:272,y:50},
     {name:'Hồ Hoà Bình',x:170,y:110}];
   const labels=[...B.map(b=>({name:b.name,x:(b.x0+b.x1+1)/2,y:b.y0})),{name:'Lều 1',x:31.5,y:72},{name:'Lều 2',x:25.5,y:71},{name:'Cổng',x:39.5,y:94},
     {name:'Bể bơi',x:22,y:76},{name:'Deck ngắm cảnh',x:23.5,y:42},{name:'Vườn rau phía Đông',x:62.5,y:51},{name:'Vườn rau phía Tây',x:8.5,y:62},{name:'Vườn rau Ké',x:58,y:76.5},{name:'Sân gà',x:63.5,y:43},{name:'Nền khu cắm trại',x:50,y:25},
