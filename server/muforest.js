@@ -59,7 +59,7 @@ function die(o){ const m=F.mobs[o.k], t=now(); o.dead=t+F.respawn*1000; o.hp=0; 
   top.forEach(([uid,dd],rank)=>{ const pl=C.byUid.get(uid); if(!pl||!pl.prof) return; const sh=dd/total, items={};
     if(rank===0){ if(Math.random()<F.mat) items[m.mat]=1; if(Math.random()<F.gem(m.tier)) items.ngoc_ch=1; if(Math.random()<F.gemHt(m.tier)) items.ngoc_ch_ht=1; }
     const g=C.gainExp(pl,Math.round(m.exp*(sh>=.15||rank===0?1:sh))), vnd=Math.max(1,Math.round(m.vnd*sh)), mu=Math.max(1,Math.round(m.mu*(sh>=.15?1:sh)));
-    give(pl,vnd); for(const [k,n] of Object.entries(items)) addItem(pl,k,n); MU.gainMu(pl,mu); const r=MU.rec(pl.prof); r.mobs=(r.mobs||0)+1; markDirty(pl);
+    C.earn(pl,vnd); for(const [k,n] of Object.entries(items)) addItem(pl,k,n); MU.gainMu(pl,mu); const r=MU.rec(pl.prof); r.mobs=(r.mobs||0)+1; markDirty(pl);
     if(g.level){ send(pl,{t:'rw',msg:'',level:g.level}); C.refreshInfo(pl); }
     if(items.ngoc_ch||items.ngoc_ch_ht) C.note(pl,`💎 ${m.name} rơi ${items.ngoc_ch_ht?'Ngọc Cường Hoá Huyền Thoại':'Ngọc Cường Hoá'}!`,'item');
     send(pl,{t:'mobloot',id:o.id,x:o.x,y:o.y,exp:g.exp||0,vnd,mu,items}); MU.push(pl); }); }
@@ -74,6 +74,6 @@ function asTarget(o,d){ const m=F.mobs[o.k]; return {id:o.id,x:o.x,y:o.y,d,max:o
 // thu mua chiến lợi phẩm rừng (Phù Thuỷ Cường Hoá): bán 1 loại hoặc tất cả
 on('mobsell',(pl,m)=>{ if(pl.scene!=='mu'||!P.nearNpc(pl,'mu_enchant')) return {err:'Gặp Phù Thuỷ Cường Hoá ở quảng trường'}; const it=pl.prof.items, ks=m.k?[String(m.k)]:Object.keys(S.MU.matPrice);
   let sum=0, n=0; for(const k of ks){ const c=it[k]|0, pr=Math.round(S.MU.matPrice[k]*(1+S.hsBonus(pl.prof))); if(!c||!pr) continue; addItem(pl,k,-c); sum+=c*pr; n+=c; }
-  if(!n) return {err:'Chưa có chiến lợi phẩm rừng để bán'}; give(pl,sum); markDirty(pl); return {msg:`Bán ${n} chiến lợi phẩm được ${S.fmt(sum)}`}; });
+  if(!n) return {err:'Chưa có chiến lợi phẩm rừng để bán'}; C.earn(pl,sum); markDirty(pl); return {msg:`Bán ${n} chiến lợi phẩm được ${S.fmt(sum)}`}; });
 C.hook('enter',pl=>{ pl._mobKey=''; });
 module.exports={MOBS};

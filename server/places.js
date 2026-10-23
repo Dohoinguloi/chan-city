@@ -37,8 +37,11 @@ on('quest',(pl,m)=>{ const q=S.QUESTS[m.id], p=pl.prof; if(!q) return {err:'Khô
     for(const [k,n] of Object.entries(q.need||{})) addItem(pl,k,-n);
     if(m.id==='beagle') p.flags.beagleFollow=false; if(m.id==='cui') p.flags.fire=true;
     if(q.cloth&&S.CLOTHES[q.cloth]){ p.owned[q.cloth]=1; C.note(pl,`Nhận trang phục ${S.CLOTHES[q.cloth].name}! Mở Tủ đồ (U) để mặc`,'item'); }   // nhiệm vụ thưởng trang phục
-    p.quests[m.id]='done'; reward(pl,q.reward,'Hoàn thành: '+q.title);
-    if(q.secret){ addItem(pl,'ngoc_ch',1); C.note(pl,'🔮 Nhiệm vụ ẩn tặng thêm 1 Ngọc Cường Hoá (khắc lỗ ở Phù Thuỷ Cường Hoá, MU)','item'); }   /* nhiệm vụ ẩn ở mọi map rơi ngọc cường hoá */
+    const LCQ=String(m.id).startsWith('lcq_'), again=LCQ&&!!(p.flags.lcqAgain||{})[m.id];   /* nhiệm vụ NPC rừng Đà Bắc: làm lại mỗi ngày (thưởng nửa EXP), lần nào xong cũng 25% rơi Mảnh Triệu Hồi */
+    p.quests[m.id]='done'; reward(pl,again?{exp:Math.round((q.reward.exp||0)/2)}:q.reward,'Hoàn thành: '+q.title);
+    if(LCQ){ (p.daily.lcqd=p.daily.lcqd||{})[m.id]=1; (p.flags.lcqAgain=p.flags.lcqAgain||{})[m.id]=1; const DR=S.LINHCAT.dragon;
+      if(Math.random()<DR.chance){ addItem(pl,DR.item,1); C.note(pl,`🐉 ${S.NPC_LOOKS[q.giver].name.split(' (')[0]} tặng thêm 1 ${S.ITEMS[DR.item].name}! (${p.items[DR.item]}/${DR.need}) Đủ ${DR.need} mảnh mang tới Tế đàn Rồng Thần`,'item'); } }
+    if(q.secret&&!again){ addItem(pl,'ngoc_ch',1); C.note(pl,'🔮 Nhiệm vụ ẩn tặng thêm 1 Ngọc Cường Hoá (khắc lỗ ở Phù Thuỷ Cường Hoá, MU)','item'); }   /* nhiệm vụ ẩn ở mọi map rơi ngọc cường hoá */
     markDirty(pl); return {}; }
   return {err:'?'}; });
 // hết pin ở ngoài (không gọi được Grab về phòng): xin cắm sạc nhờ người gần đó: chủ quán, nhân viên, người quen. Map không có ai thì nhờ người qua đường
@@ -198,7 +201,7 @@ on('ra',(pl,m)=>{ const act=String(m.act||''), def=S.ROOM_ACTS[act], p=pl.prof, 
     return startTask(pl,'songao',def.dur,()=>{ p.photos.splice(i,1); n.battery-=def.battery; p.daily.posts++;
       const outfit=Object.values(p.look.outfit||{}).reduce((a,id)=>a+(S.CLOTHES[id]?S.CLOTHES[id].price:0),0);
       const likes=Math.round((15+p.level*6+outfit/20000+Math.random()*20)*ph.mul*(.8+r.wifi*.2));
-      const vnd=likes*250, g=C.gainExp(pl,likes/4); give(pl,vnd); markDirty(pl);
+      const vnd=likes*250, g=C.gainExp(pl,likes/4); C.earn(pl,vnd); markDirty(pl);
       return {msg:`Ảnh "${ph.name}" được ${likes} like · nhãn hàng tài trợ ${fmt(vnd)} · +${g.exp} EXP`,likes,vnd,exp:g.exp}; },{anim:'phone',name:'Up ảnh sống ảo'}); }
   return {err:'?'}; });
 // chụp ảnh sống ảo (P)
@@ -299,7 +302,7 @@ function buyerOk(pl,item){ if(nearNpc(pl,'coke')) return item in S.CROPS||item i
   if(nearNpc(pl,'quancom')) return item in S.FISH; if(nearNpc(pl,'bactrang')) return item in S.SELL; return false; }
 on('sell',(pl,m)=>{ const item=String(m.item||''), p=pl.prof, n=Math.min(p.items[item]||0,Math.max(1,m.n|0||p.items[item]||0));
   if(!(item in S.SELL)) return {err:'Món này không ai mua'}; if(!buyerOk(pl,item)) return {err:'Người này không mua món đó'}; if(!n) return {err:'Không có'};
-  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))*(1+S.hsBonus(p))), v=price*n;   /* bậc hảo sảng: bán được giá hơn */   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); give(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
+  const price=Math.round(S.SELL[item]*(p.skills.damphan?1.1:1)*(1+(C.simPerk(p).sell||0))*(1+S.hsBonus(p))), v=price*n;   /* bậc hảo sảng: bán được giá hơn */   /* SIM Lộc phát / Sảnh tiến: bán được thêm */ addItem(pl,item,-n); C.earn(pl,v); { const c=S.CROPS[item]; if(item.startsWith('buom_')) stat(pl,'bugSold',n); else if(c&&!['hoa','cafe','caosu','cay'].includes(c.kind)) stat(pl,'vegSold',v); }   /* thành tựu: bán bướm, bán rau */ return {n,vnd:v}; });
 // hạt giống: rau Ké ở tiệm cô Ké, cây Đà Lạt ở bác Trang
 on('seed',(pl,m)=>{ const c=S.CROPS[m.crop], n=Math.max(1,Math.min(20,m.n|0||1)); if(!c) return {err:'?'};
   const ok=c.map==='dalat'?nearNpc(pl,'bactrang'):nearNpc(pl,'coke'); if(!ok) return {err:c.map==='dalat'?'Mua ở chỗ bác Trang':'Mua ở tiệm cô Ké'};

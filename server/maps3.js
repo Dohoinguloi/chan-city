@@ -23,7 +23,7 @@ on('bp',(pl,m)=>{ const p=pl.prof, B=S.BEARPLUS, q=pr(p), op=m.op, here=pl.scene
     if(active(p,'bp_fix')&&!q.bp_fix){ if(!night) return {err:`Bug chỉ hiện lúc đêm khuya (${B.night.from}h–${B.night.to}h), giờ deploy làm gì có lỗi`}; return job('bp_fix',15,'Deploy bản vá lúc 2 giờ sáng'); }
     if(active(p,'bp_wire')&&!q.bp_wire) return job('bp_wire',20,'Dựng wireframe trang chủ');
     const d2=p.daily, G=B.gig; if((d2.bpgig||0)>=G.max) return {err:`Hôm nay làm đủ ${G.max} việc freelance rồi, mai quay lại`};
-    return P.startTask(pl,'work',G.dur,()=>{ d2.bpgig=(d2.bpgig||0)+1; const mul=night?2:1; give(pl,G.vnd); const g=C.gainExp(pl,G.exp*mul); markDirty(pl);
+    return P.startTask(pl,'work',G.dur,()=>{ d2.bpgig=(d2.bpgig||0)+1; const mul=night?2:1; C.earn(pl,G.vnd); const g=C.gainExp(pl,G.exp*mul); markDirty(pl);
       return {msg:`Xong việc freelance ${d2.bpgig}/${G.max}: +${S.fmt(G.vnd)}, +${g.exp} EXP${night?' (làm đêm ×2)':''}`}; },{anim:'work',name:'Việc freelance ở Bearplus'}); }
   if(op==='render'){ if(!near(pl,B.render.x,B.render.y+.9,30)) return {err:'Lại gần trạm render'}; if(!active(p,'bp_3d')||q.bp_3d) return {err:'Máy đang render cảnh khác, quạt kêu vù vù'}; return job('bp_3d',25,'Render Bé Gấu 3D cùng chị My'); }
   if(op==='motion'){ if(!near(pl,B.motion.x,B.motion.y+.9,30)) return {err:'Lại gần góc motion'}; if(!active(p,'bp_motion')||q.bp_motion) return {err:'Bảng vẽ đang tắt. Nhận việc với anh Khoa trước'}; return job('bp_motion',20,'Làm intro Bé Gấu vẫy tay'); }
@@ -77,7 +77,7 @@ on('vn',(pl,m)=>{ const p=pl.prof, V=S.VNPT, op=m.op, t=now(), serving=S.vnptSer
     return {msg:`Bạn đứng ngắm phòng máy chủ: hàng trăm đèn nháy, quạt làm mát ù ù. Học thêm được chút kiến thức mạng (+${g.exp} EXP)`}; }
   if(op==='call'){ const ct=V.desks[m.i|0]; if(!ct||!near(pl,ct[0],ct[1]+.9,28)) return {err:'Ngồi vào bàn tổng đài'}; const d=p.daily;
     if((d.vncall||0)>=V.shifts) return {err:`Hôm nay trực đủ ${V.shifts} ca rồi`}; pl._call={k:0,ok:0,list:shuffle([...CALLS.keys()]).slice(0,V.shift)}; return callQ(pl); }
-  if(op==='answer'){ const c=pl._call; if(!c) return {err:'Chưa vào ca'}; const right=(m.a|0)===c.right; if(right){ c.ok++; give(pl,V.callPay.vnd); C.gainExp(pl,V.callPay.exp); }
+  if(op==='answer'){ const c=pl._call; if(!c) return {err:'Chưa vào ca'}; const right=(m.a|0)===c.right; if(right){ c.ok++; C.earn(pl,V.callPay.vnd); C.gainExp(pl,V.callPay.exp); }
     const good=CALLS[c.list[c.k]][1]; c.k++; if(c.k<c.list.length){ markDirty(pl); return {right,good,next:callQ(pl),ok:c.ok}; }
     pl._call=null; const d=p.daily; d.vncall=(d.vncall||0)+1; if(active(p,'vn_call')&&c.ok>=4) q.vn_call=1; markDirty(pl); P.stat(pl,'calls',c.ok);
     return {right,good,done:true,ok:c.ok,of:c.list.length}; }
@@ -94,7 +94,7 @@ on('mieu',(pl,m)=>{ const p=pl.prof, M=S.MIEU, op=m.op, d=p.daily, holy=S.holyDa
       return {msg:`Thắp hương xong. Phúc bình an: +${Math.round((b.mul-1)*100)}% EXP trong ${b.min/60} giờ${holy?` (${holy}: phúc gấp đôi)`:''}`}; },{name:'Thắp hương cầu an'}); }
   if(op==='que'){ if(!near(pl,M.fortune.x,M.fortune.y+.9,30)) return {err:'Lại gần ống xăm'}; if(d.que) return {err:'Mỗi ngày xin 1 quẻ thôi, mai xin tiếp nhé'};
     const r=Math.random(), pool=M.que.filter(x=>x[2]===(r<.25?'good':r<.75?'mid':'low')), z=pool[Math.floor(Math.random()*pool.length)]; d.que=1; cauan(pl,'que');
-    if(z[2]==='good') give(pl,50000); markDirty(pl); return {tier:z[0],poem:z[1],kind:z[2]}; }
+    if(z[2]==='good') C.earn(pl,50000); markDirty(pl); return {tier:z[0],poem:z[1],kind:z[2]}; }
   if(op==='wish'){ const w=M.wishes[m.k]; if(!w) return {err:'?'}; if(!near(pl,M.wish.x,M.wish.y,34)) return {err:'Lại gần cây đa'}; if(p.wish&&p.wish.day===today()) return {err:'Hôm nay bạn buộc dải lụa rồi'};
     if(!take(pl,M.wishPrice)) return {err:'Không đủ tiền mua dải lụa'}; p.wish={k:m.k,day:today()}; cauan(pl,'wish'); markDirty(pl);
     return {msg:`Đã buộc dải lụa cầu ${w.name}. Mai quay lại game xem điều ước có linh không nhé!`}; }

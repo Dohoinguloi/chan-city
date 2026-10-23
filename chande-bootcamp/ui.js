@@ -42,7 +42,7 @@ UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi 
   ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('qlog','📖 Sổ nhiệm vụ')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
-ACT.phone=()=>UI.phone(); ACT.ach=()=>UI.ach(); ACT.qlog=()=>UI.qlog(); ACT.close=()=>UI.closeAll(); ACT.mute=()=>{ GAME.setMute(!GAME.AUD.muted); draw(); }; ACT.bag=()=>UI.bag();
+ACT.gearuse=d=>GAME.gearUse(d.op); ACT.phone=()=>UI.phone(); ACT.ach=()=>UI.ach(); ACT.qlog=()=>UI.qlog(); ACT.close=()=>UI.closeAll(); ACT.mute=()=>{ GAME.setMute(!GAME.AUD.muted); draw(); }; ACT.bag=()=>UI.bag();
 ACT.nosoc=async()=>{ await NET.req({t:'opt',noSocial:!G().opts.noSocial}); setTimeout(draw,200); };
 ACT.logout=async()=>{ try{ await NET.api('logout',{token:NET.token}); localStorage.removeItem('chan-token'); sessionStorage.removeItem('chan-token'); }catch(e){} location.reload(); };
 
@@ -98,8 +98,11 @@ UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g
 ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to,xt:d.xt?1:0}); if(!r.err) UI.closeAll(); };
 
 /* ---------- túi đồ + tủ quần áo ---------- */
-UI.bag=()=>open('Túi đồ',()=>{ const g=G(), it=Object.entries(g.items);
-  return money()+`<div class="grid">${it.length?it.map(([k,n])=>`<div class="cell" title="${esc(SD.ITEMS[k]?SD.ITEMS[k].name:k)}">${ico(k)}<span>${esc(SD.ITEMS[k]?SD.ITEMS[k].name:k)}</span><i>${n}</i></div>`).join(''):'<p class="muted">Túi trống</p>'}</div>
+UI.bag=()=>open('Túi đồ',()=>{ const g=G(), it=Object.entries(g.items), GR=SD.GEAR, own=g.gear||{}, left=GR.pbank.per-((g.daily||{}).pbank||0);
+  const gear=own.pbank||own.bag||(g.items.luong_kho||0)>0?`<h5>🎒 Đồ mang theo</h5><div class="list rows">${own.pbank?`<div class="row">${ico('sp_pbank')}<span><b>${GR.pbank.name}</b><br><small class="muted">còn ${left}/${GR.pbank.per} lần hôm nay · +${GR.pbank.charge}% pin</small></span>${btn('gearuse','🔋 Sạc',{op:'pbank'},left>0?'pri':'')}</div>`:''}
+    ${own.bag?`<div class="row">${ico('sp_sleep')}<span><b>${GR.bag.name}</b><br><small class="muted">ngủ ở đâu cũng được · +${GR.bag.rest} năng lượng</small></span>${btn('gearuse','🛌 Ngủ',{op:'bag'},'pri')}</div>`:''}
+    ${(g.items.luong_kho||0)>0?`<div class="row">${ico('luong_kho')}<span><b>Lương khô</b> ×${g.items.luong_kho}<br><small class="muted">ăn thay bữa chính ở bất cứ đâu</small></span>${btn('gearuse','🍙 Ăn',{op:'luong'},'pri')}</div>`:''}</div>`:'';
+  return gear+money()+`<div class="grid">${it.length?it.map(([k,n])=>`<div class="cell" title="${esc(SD.ITEMS[k]?SD.ITEMS[k].name:k)}">${ico(k)}<span>${esc(SD.ITEMS[k]?SD.ITEMS[k].name:k)}</span><i>${n}</i></div>`).join(''):'<p class="muted">Túi trống</p>'}</div>
   <h5>Ảnh đã chụp (${g.photos.length}/6)</h5><p class="muted">${g.photos.map(p=>esc(p.name)).join(' · ')||'Chưa có. Bấm P ở chỗ đẹp để chụp, rồi về phòng up ảnh sống ảo.'}</p>
   <h5>Kỹ năng</h5><p class="muted">${Object.keys(g.skills).map(k=>SD.SKILLS[k]?SD.SKILLS[k].name:k).join(' · ')}</p>`; },{wide:true});
 function outfitHtml(shop){ const g=G(), out=g.look.outfit||{};
@@ -254,6 +257,15 @@ let shopQ='', shopSort='new';
 UI.shop=()=>{ open('Chợ đồ cũ',()=>shopHtml(),{wide:true}); loadMarket(); };
 /* ---------- Shopee Chande (nút cam riêng ở HUD): thẻ món theo mục, bấm thẻ là mặc thử lên nhân vật, flash sale, giá sau ưu đãi, đồ đã mua + đơn hàng ---------- */
 { const old=ART.icon, IC={sp_helmet:P=>{ P.rect(3,3,8,6,'#e8302a'); P.rect(2,6,10,3,'#c8201a'); P.rect(4,4,3,2,'#ff8a7a'); P.rect(8,7,4,2,'#7fd0ff'); P.rect(3,9,8,1,'#1c1820'); },
+    lcshard:P=>{ P.rect(6,1,3,12,'#8a6ac8'); P.rect(5,3,5,8,'#a86ae8'); P.rect(4,5,7,4,'#b8a0e8'); P.rect(7,2,1,9,'#f4e8ff'); P.px(3,6,'#f2c43d'); P.px(11,7,'#f2c43d'); P.rect(5,13,5,1,'#5a2a8a'); },
+    lcw_rapier:P=>{ P.rect(7,0,2,10,'#e8ecf4'); P.rect(7,0,1,10,'#ffffff'); P.rect(3,10,10,2,'#f2c43d'); P.rect(7,12,2,3,'#8a5a32'); P.px(6,13,'#e8302a'); },
+    lcw_aegis:P=>{ P.rect(3,1,10,9,'#f2c43d'); P.rect(4,10,8,2,'#f2c43d'); P.rect(6,12,4,2,'#f2c43d'); P.rect(5,3,6,6,'#e8302a'); P.rect(7,4,2,4,'#ffd84a'); P.rect(3,1,10,1,'#fff0a0'); },
+    lcw_satanic:P=>{ P.rect(7,0,2,9,'#a81a2a'); P.rect(7,0,1,9,'#e8404a'); P.rect(4,9,8,2,'#3a1a1e'); P.rect(7,11,2,3,'#3a1a1e'); P.px(5,8,'#e8302a'); P.px(10,8,'#e8302a'); P.rect(6,14,4,1,'#e8302a'); },
+    lcw_butterfly:P=>{ P.rect(2,2,5,5,'#4ab0ff'); P.rect(9,2,5,5,'#4ab0ff'); P.rect(3,8,4,4,'#7fd8f0'); P.rect(9,8,4,4,'#7fd8f0'); P.rect(7,2,2,11,'#2a2228'); P.px(4,4,'#ffffff'); P.px(11,4,'#ffffff'); },
+    lcw_aghanim:P=>{ P.rect(7,4,2,11,'#6a4228'); P.rect(5,1,6,4,'#4a88f0'); P.rect(6,0,4,1,'#9ad8ff'); P.rect(7,2,2,2,'#ffffff'); P.rect(4,5,8,1,'#f2c43d'); },
+    sp_pbank:P=>{ P.rect(3,2,8,11,'#2a2a30'); P.rect(4,3,6,9,'#3a3a44'); P.rect(5,4,4,2,'#7de07a'); P.rect(5,7,4,1,'#7de07a'); P.rect(5,9,3,1,'#7de07a'); P.rect(6,0,2,2,'#c8ccd4'); P.px(9,11,'#ffd84a'); },
+    sp_sleep:P=>{ P.rect(1,6,12,6,'#2a62c8'); P.rect(1,6,4,6,'#f4f1ea'); P.rect(2,7,2,2,'#f0c4a0'); P.rect(2,6,2,1,'#3a2418'); P.rect(5,8,8,1,'#1f4a9a'); P.rect(5,10,8,1,'#1f4a9a'); P.rect(1,12,12,1,'#1c3a7a'); },
+    sp_ration:P=>{ P.rect(2,3,10,9,'#8a7a4a'); P.rect(2,3,10,2,'#6a5a30'); P.rect(4,6,6,4,'#e8d8a0'); P.px(5,7,'#a8783a'); P.px(8,8,'#a8783a'); P.rect(3,12,8,1,'#5a4a28'); },
     sp_food:P=>{ P.rect(3,2,8,10,'#e8a050'); P.rect(3,2,8,2,'#c8782a'); P.rect(5,5,4,4,'#f4f1ea'); P.px(6,6,'#8a5428'); P.px(7,7,'#8a5428'); P.px(6,8,'#8a5428'); P.rect(4,12,6,1,'#8a5428'); },
     sp_4g:P=>{ P.rect(4,1,6,12,'#26242a'); P.rect(5,2,4,9,'#7fd0ff'); P.rect(6,12,2,1,'#8a8a96'); P.rect(5,3,1,1,'#1f5fcf'); P.rect(5,4,2,1,'#1f5fcf'); P.rect(5,5,3,1,'#1f5fcf'); P.rect(5,6,4,1,'#1f5fcf'); P.rect(6,8,2,2,'#ffffff'); }};
   ART.icon=function(name,scale=1){ const f=IC[name]; if(!f) return old(name,scale); const c=ART.cv(14,14); f(ART.painter(c.getContext('2d'))); ART.outline(c);
@@ -278,11 +290,11 @@ function petMine(){ const g=G(), t=NET.now(), list=Object.keys(g.pets||{});
 ACT.petuse=async d=>{ const r=await GAME.act({t:'pet',op:'use',k:d.k}); if(!r.err) GAME.toast(esc(r.msg),'item'); UI.refresh(); };
 ACT.petfeed=async d=>{ const r=await GAME.act({t:'pet',op:'feed',k:d.k}); if(!r.err){ GAME.sfx('item_pickup',.5); GAME.toast(esc(r.msg),'quest'); } UI.refresh(); };
 function shopeeHtml(){ const g=G(), SP=SD.SHOPEE, t=NET.now(), fl=SP.flash(t), at=spPerks(g), hs=SD.hsTier(g), out=g.look.outfit||{}, ids=SP.ids();
-  const card=k=>{ const it=SP.item(k); if(!it) return ''; if(String(k).startsWith('pet:')) return petCard(k,it); const aux=String(k).startsWith('aux:'), o=!aux&&!!g.owned[k], pay=spPay(g,SP.base(k,t)), fla=fl.ids.includes(k), pct=Math.round((1-pay/it.price)*100);
+  const card=k=>{ const it=SP.item(k); if(!it) return ''; if(String(k).startsWith('pet:')) return petCard(k,it); const aux=String(k).startsWith('aux:'), o=aux?!!(it.gear&&(g.gear||{})[it.gear]):!!g.owned[k], pay=spPay(g,SP.base(k,t)), fla=fl.ids.includes(k), pct=Math.round((1-pay/it.price)*100);
     const img=aux?`<img src="${GAME.icon64(it.item||it.icon)}" alt="">`:`<img data-thumb="${k}" src="${thumbOf(k)}" alt="">`;
     return `<div class="spCard ${!aux&&spTry[it.slot]===k?'try':''} ${o?'own':''}" ${aux?'':`data-a="sptry" data-k="${k}"`}>${fla?'<i class="spFlash">⚡ FLASH</i>':it.shopee?'<i class="spNew">Độc quyền</i>':''}${!o&&pct>0?`<i class="spOff">-${pct}%</i>`:''}
       ${img}<b>${esc(it.name)}</b>${aux?`<small>${esc(it.desc)}</small>`:''}
-      ${o?(out[it.slot]===k?'<small class="spOn">✔ Đang mặc</small>':btn('equip','Mặc',{k,slot:it.slot})):`<span class="spPrice">${pay<it.price?`<s>${fmt(it.price)}</s>`:''}<em>${fmt(pay)}</em></span>${btn('spbuy','Mua ngay',{k},g.money>=pay?'pri':'')}`}</div>`; };
+      ${o?(aux?'<small class="spOn">✔ Đã có · dùng ở Túi đồ (I)</small>':out[it.slot]===k?'<small class="spOn">✔ Đang mặc</small>':btn('equip','Mặc',{k,slot:it.slot})):`<span class="spPrice">${pay<it.price?`<s>${fmt(it.price)}</s>`:''}<em>${fmt(pay)}</em></span>${btn('spbuy','Mua ngay',{k},g.money>=pay?'pri':'')}`}</div>`; };
   // thẻ thú cưng: ảnh con vật, ăn loại hạt nào; nuôi rồi thì cho đi theo / cho ăn
   const petCard=(k,it)=>{ const pk=k.slice(4), e=(g.pets||{})[pk], pay=spPay(g,SP.base(k,t)), fla=fl.ids.includes(k), pct=Math.round((1-pay/it.price)*100), food=SD.PETFOOD[it.food], fn=(g.items['petfood_'+it.food]||0);
     return `<div class="spCard ${e?'own':''}">${fla?'<i class="spFlash">⚡ FLASH</i>':''}${!e&&pct>0?`<i class="spOff">-${pct}%</i>`:''}<img src="${window.PETART?window.PETART.icon(pk):''}" alt=""><b>${esc(it.name)}</b><small>Ăn: ${esc(food.name.replace('Gói ',''))}</small>
@@ -1026,7 +1038,7 @@ function loLoop(){ if(!LOG||LOG.done) return; const c=$('#loCv'); if(!c){ loEnd(
   LOG.v=Math.max(0,LOG.v-dt*.22); const z=LOG.v>=.55&&LOG.v<=.85; if(z) LOG.inZone+=dt;
   const g=c.getContext('2d'); g.imageSmoothingEnabled=false; g.fillStyle='#1c1516'; g.fillRect(0,0,160,110); g.fillStyle='#2a2a30'; g.fillRect(40,4,80,102);
   for(let y=10;y<100;y+=6) for(let x=46;x<114;x+=6){ const h=Math.floor((Math.sin(x*.3+t/300)+Math.cos(y*.2+t/250))*40+120); g.fillStyle=`rgb(${h+60},${h-20},${h})`; g.fillRect(x,y,6,6); }   // màn hình đã che mờ
-  g.fillStyle='#e04848'; g.fillRect(64,46,32,16); g.fillStyle='#fff'; g.font='12px VT323, monospace'; g.textAlign='center'; g.fillText('18+ ĐÃ CHE',80,58);
+  g.fillStyle='#e04848'; g.fillRect(64,46,32,16); g.fillStyle='#fff'; g.font='14px VT323, monospace'; g.textAlign='center'; g.fillText('18+ ĐÃ CHE',80,58);
   const f=$('#loFill'); if(f){ f.style.height=Math.round(Math.min(1,LOG.v)*100)+'%'; f.style.background=LOG.v>.85?'#ff6a55':z?'#7de07a':'#ffd84a'; }
   const m=$('#loMsg'); if(m) m.textContent=`Trong vùng xanh: ${LOG.inZone.toFixed(1)}/${SD.LO.hold}s`;
   if(LOG.v>1){ if(m) m.textContent='Ối... xong sớm quá!'; setTimeout(()=>loEnd(false),600); LOG.done=true; return; }

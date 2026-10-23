@@ -4,6 +4,15 @@
 'use strict';
 const fs=require('fs'), path=require('path'), W=require('./world');
 const LOG=[
+  {v:'2026-10-24v',title:'24/10 · Lính Cát 200 loài, võ đài, rồng thần, Ngoại Hạng Anh',items:[
+    '🐾 Lính Cát lên 200 loài: 41 họ tiến hoá mới, nhiều loài mang 2 hệ (khắc hệ nhân cả 2). Lính Cát hoang ra nhiều hơn ở Ké (thêm 40 điểm, vùng 4 sâu trong vườn quốc gia Lv20–32) và trang trại bác Trang (16 điểm + ao). Trên tên con hoang có nhãn hệ',
+    '👑 Đủ Lv50 mọi loài (trừ huyền thoại) thức tỉnh dạng Huyền Thoại: to hơn, ánh hologram, vòng aura dưới chân, chỉ số ×1,2 và bộ chỉ số phụ theo lối 1 tướng Dota (hút máu, trừ giáp, trói, giảm sát thương, đánh lan; cho chủ: giảm hồi chiêu, mana, sát thương, hút máu, tốc đánh, kháng phép 2 giây, chạy nhanh, thêm % tiền)',
+    '🏟 15 CLB Lính Cát ở chỗ vắng trong rừng Bắc và vườn quốc gia: 12 võ đài (đội HLV nhiều con, phải tính khắc hệ, không nhận thần thú), thắng nhận Huy hiệu Chande; đủ 12 huy hiệu chọn 1 trong 5 vũ khí tối thượng (Rapier, Aegis, Satanic, Butterfly, Aghanim). 3 CLB luyện tập đấu lấy EXP',
+    '🐉 Hắc Long và Bạch Long: gom 7 Mảnh Triệu Hồi (15 NPC rừng Đà Bắc tặng 25% mỗi lần xong việc, việc của họ làm lại được mỗi ngày), mang tới Tế đàn Rồng Thần trên thác. Cả server mỗi con chỉ có 1 chủ',
+    '💩 Mèn Mén (Huyền Thoại / Motion) thi thoảng lang thang rừng Ké: mạnh theo cấp chủ, Ném Cứt độc cộng dồn 10 tầng, làm chậm, giảm hồi máu. 🐱 Blacknut ghé nơi làm việc 10 giây rồi biến, chỉ Bóng Huyền Thoại bắt được; đứng đầu đội thì chỉ số chủ ×1,2, tiền + EXP ×2',
+    '🎒 Shopee Chande bán đồ mang theo: sạc dự phòng (10 lần/ngày), lương khô (4 bữa), túi ngủ di động (ngủ ở đâu cũng được). Dùng ở Túi đồ, nút cạnh cảnh báo chỉ số; Auto cũng tự dùng',
+    '⚽ Ngoại Hạng Anh: chọn đội hâm mộ (đổi 1 lần/ngày), mỗi ngày 7 nhiệm vụ cho đội, điểm trung thành lên bậc. Thanh trên cùng có dòng tỉ số: vòng tới đếm ngược, LIVE, kết quả, có bàn thắng là báo',
+    '📖 Poke Deck (sổ tay mọi loài, họ tiến hoá, huyền thoại, thẻ dạng Lv50) · Lính Cát cá, hải sản, rồng nước sống dưới sông hồ · Trung tâm Lính Cát dời cạnh Khu tâm linh · thêm nhiều đường rừng đi tắt ở Đà Bắc · chữ trong game to hơn · thú cưng và Lính Cát không đè nhau']},
   {v:'2026-10-24u',title:'24/10 (sửa lỗi)',items:['Bấm các nút bên phải (Shopee, Chợ đồ cũ, Kỹ năng, Hằng ngày, Tủ đồ...) không còn tự bật / tắt tiếng nữa']},
   {v:'2026-10-24t',title:'24/10 · Shopee Chande, ngân khố nhà nước, thú cưng',items:[
     '🛍 Shopee Chande (nút cam riêng cạnh Chợ đồ cũ): mua ở đâu cũng được, freeship, Flash Sale -30% đổi mỗi 3 tiếng, bấm thẻ là mặc thử lên người, giá hiện sẵn ưu đãi Lumen / Bearplus / DAS / Everfit -20%',

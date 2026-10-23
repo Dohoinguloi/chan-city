@@ -18,7 +18,7 @@ hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'mck',v:view()}); });
 const say=()=>{ BOSS.line=B.lines[Math.floor(Math.random()*B.lines.length)]; BOSS.lineAt=now(); };
 function end(win){ const M=BOSS; if(!M) return; BOSS=null; bossCd=now()+B.cd*1000; C.broadcastScene('retreat',{t:'ev',k:'mckEnd',win,x:M.x,y:M.y});
   if(win){ const tot=[...M.dmg.values()].reduce((a,b)=>a+b,0)||1; for(const [pid,d] of M.dmg){ const pl=players.get(pid); if(!pl) continue; const k=d/tot, v=Math.round(B.prize*k);
-      tries(pl).win=1; markDirty(pl); give(pl,v); reward(pl,{exp:Math.round(B.exp*(.4+.6*k))},`Hạ boss MCK! Góp ${Math.round(k*100)}% sát thương · +${fmt(v)} (hôm nay hết lượt đấu MCK)`); P.stat(pl,'mck',1); } }
+      tries(pl).win=1; markDirty(pl); C.earn(pl,v); reward(pl,{exp:Math.round(B.exp*(.4+.6*k))},`Hạ boss MCK! Góp ${Math.round(k*100)}% sát thương · +${fmt(v)} (hôm nay hết lượt đấu MCK)`); P.stat(pl,'mck',1); } }
   push(); }
 on('mck',(pl,m)=>{ const t=now();
   if(m.op==='call'){ if(BOSS) return {err:'MCK đang trên sân khấu rồi!'}; if(!canFight(pl)) return {err:noTry(pl)}; if(!near(pl,B.stage.x,B.stage.y+2,64)) return {err:'Lên sân khấu đấu trường MCK đã'};

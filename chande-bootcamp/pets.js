@@ -38,16 +38,16 @@ const ICON={}; function icon(k){ if(ICON[k]) return ICON[k]; const s=sprite(k,0)
 /* ---------- đi theo: con của mình + của người khác ---------- */
 const mine={x:0,y:0,face:1,t:0,kind:'',scene:''}, rem=new Map(); let last=performance.now();
 NET.listen('pj',m=>{ const r=GAME.REM&&GAME.REM.get(m.id); if(r) r.pt=m.pt||''; });
-function follow(f,tx,ty,face,dt){ const bx=tx-face*16, by=ty+2, dx=bx-f.x, dy=by-f.y, d=Math.hypot(dx,dy);
+function follow(f,tx,ty,face,dt){ const bx=tx+face*18, by=ty+4,   /* đi phía trước chủ: Lính Cát đầu đội đi phía sau (lc.js), 2 con không đè nhau */ dx=bx-f.x, dy=by-f.y, d=Math.hypot(dx,dy);
   if(d>220){ f.x=bx; f.y=by; } else if(d>4){ const sp=Math.min(d,(d>40?160:70)*dt); f.x+=dx/d*sp; f.y+=dy/d*sp; f.t+=dt; if(Math.abs(dx)>1) f.face=dx>0?1:-1; } return d>4; }
 function put(list,ctx,k,f,moving,hungry){ const s=sprite(k,moving?Math.floor(f.t*8)%2:0); if(!s) return; const cam=GAME.cam;
   list.push({y:f.y,d:()=>{ GAME.shadow(f.x,f.y,6); const X0=Math.round(f.x-cam.x), Y0=Math.round(f.y-cam.y); ctx.save(); if(f.face<0){ ctx.translate(X0*2,0); ctx.scale(-1,1); } ctx.drawImage(s.c,X0-s.ax,Y0-s.ay); ctx.restore();
-    if(hungry){ ctx.font='10px sans-serif'; ctx.textAlign='center'; ctx.fillText('🍖',X0,Y0-18+Math.sin(performance.now()/300)*1.5); } }}); }
+    if(hungry){ ctx.font='14px sans-serif'; ctx.textAlign='center'; ctx.fillText('🍖',X0,Y0-18+Math.sin(performance.now()/300)*1.5); } }}); }
 const d0=X.draw; X.draw=(list,ctx)=>{ d0(list,ctx); const S=GAME.S, G=GAME.G, P=GAME.P; if(!S||!G||!P) return; const t=performance.now(), dt=Math.min(.05,(t-last)/1000); last=t;
   const st=SD.petState(G,NET.now()), k=G.pet;
-  if(k&&st!=='sulk'&&!P.riding&&!P.moto&&!P.pcar&&!P.kayak){ if(mine.kind!==k||mine.scene!==S.kind){ mine.kind=k; mine.scene=S.kind; mine.x=P.x-16; mine.y=P.y+2; } const mv=follow(mine,P.x,P.y,P.face||1,dt); put(list,ctx,k,mine,mv,st==='hungry'); }
+  if(k&&st!=='sulk'&&!P.riding&&!P.moto&&!P.pcar&&!P.kayak){ if(mine.kind!==k||mine.scene!==S.kind){ mine.kind=k; mine.scene=S.kind; mine.x=P.x+18; mine.y=P.y+4; } const mv=follow(mine,P.x,P.y,P.face||1,dt); put(list,ctx,k,mine,mv,st==='hungry'); }
   else mine.kind='';
-  for(const r of (GAME.REM||new Map()).values()){ if(!r.pt||!SD.PETS[r.pt]||r.scene&&r.scene!==S.kind) continue; let f=rem.get(r.id); if(!f||f.kind!==r.pt){ f={x:r.x-16,y:r.y+2,face:1,t:0,kind:r.pt}; rem.set(r.id,f); }
+  for(const r of (GAME.REM||new Map()).values()){ if(!r.pt||!SD.PETS[r.pt]||r.scene&&r.scene!==S.kind) continue; let f=rem.get(r.id); if(!f||f.kind!==r.pt){ f={x:r.x+18,y:r.y+4,face:1,t:0,kind:r.pt}; rem.set(r.id,f); }
     const mv=follow(f,r.x,r.y,r.face||1,dt); put(list,ctx,r.pt,f,mv,false); } };
 window.PETART={sprite,icon};
 })();

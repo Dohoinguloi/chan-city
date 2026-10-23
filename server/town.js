@@ -112,7 +112,7 @@ const pushMega=()=>C.broadcastScene('retreat',{t:'mega',v:megaView()});
 hook('enter',(pl,id)=>{ if(id==='retreat') send(pl,{t:'mega',v:megaView()}); });
 function megaEnd(win,why){ const M=MEGA; if(!M) return; MEGA=null; megaCd=now()+MG.cd*1000; const pl=M.foe;
   C.broadcastScene('retreat',{t:'ev',k:'megaEnd',win,x:M.x,y:M.y,id:pl.pid});
-  if(win){ const d=pl.prof.daily, paid=(d.mega||0)<(MG.daily||99); if(paid){ d.mega=(d.mega||0)+1; give(pl,MG.prize); } reward(pl,{exp:paid?MG.winExp:Math.round(MG.winExp/5)},paid?`Đánh bại Megatron! +${fmt(MG.prize)}`:'Đánh bại Megatron! (hôm nay nhận thưởng rồi, mai đánh tiếp có tiền)'); P.stat(pl,'megatron',1); }   /* MG.daily lần thắng có thưởng mỗi ngày */
+  if(win){ const d=pl.prof.daily, paid=(d.mega||0)<(MG.daily||99); if(paid){ d.mega=(d.mega||0)+1; C.earn(pl,MG.prize); } reward(pl,{exp:paid?MG.winExp:Math.round(MG.winExp/5)},paid?`Đánh bại Megatron! +${fmt(MG.prize)}`:'Đánh bại Megatron! (hôm nay nhận thưởng rồi, mai đánh tiếp có tiền)'); P.stat(pl,'megatron',1); }   /* MG.daily lần thắng có thưởng mỗi ngày */
   else if(why==='ko'){ const p=pl.prof; p.needs.energy=Math.max(0,p.needs.energy-MG.loseEnergy); optOff(pl); markDirty(pl); C.note(pl,`Optimus gục ngã, trở lại làm Kaixa (-${MG.loseEnergy} năng lượng). Hồi sức rồi gọi Megatron đấu lại!`,'lock'); }
   else C.note(pl,'Megatron rút lui: "Ta sẽ quay lại, Optimus!"','item');
   pushMega(); }

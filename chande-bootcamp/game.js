@@ -511,6 +511,8 @@ function needsCheck(n){ const acts=[], t=NET.now();
   const ms=SD.mealStatus(G.meals,t), now=ms.find(m=>m.st==='now'), hung=SD.hunger(G.meals,t), key=now?now.name:hung?'doi'+hung:'';
   if(key&&NEED_LV.meal!==key) toast(now?`🍚 Đến giờ <b>${now.name.toLowerCase()}</b> (${now.from}:00–${now.to}:00): ra quán ăn kẻo đói. Bấm <b>🍚 Đi ăn</b> để tự đi tới quán gần nhất.`:`🍚 <b>Đang đói</b> (bỏ ${hung} bữa): ăn bù ở quán. Bấm <b>🍚 Đi ăn</b>.`,'lock');
   NEED_LV.meal=key; if(key) acts.push(['eat','🍚 Đi ăn',hung>1]);
+  { const own=G.gear||{}, left=SD.GEAR.pbank.per-((G.daily||{}).pbank||0);   /* đồ mang theo mua ở Shopee: dùng ngay tại chỗ */
+    if(n.battery<25&&own.pbank&&left>0) acts.unshift(['gear_pbank',`🔋 Sạc dự phòng (${left})`,false]); if(n.energy<25&&own.bag) acts.unshift(['gear_bag','🛌 Túi ngủ',false]); if(key&&(G.items.luong_kho||0)>0) acts.unshift(['gear_luong',`🍙 Lương khô (${G.items.luong_kho})`,false]); }
   const html=acts.map(([k,label,crit])=>`<button class="needGo${crit?' crit':''}" type="button" data-k="${k}">${label} ➜</button>`).join('');
   if(html!==needsCheck.h){ needsCheck.h=html; $('#hudNeedsAct').innerHTML=html; } }
 // ở phòng mình (phòng Hà Nội / phòng đã thuê) thì có ổ cắm; ở ngoài hết pin thì xin sạc nhờ người gần nhất trong map
@@ -522,7 +524,8 @@ function nhoSac(){ UI.closeAll&&UI.closeAll(); if(TASK) return toast('Đang làm
   if(!near.length) return go('');                                                                   // map không có ai: nhờ người qua đường
   const [n,d]=near[0], name=speakerName(n.id).split(' (')[0]; if(d<60) return go(n.id);
   toast(`Pin yếu: tới chỗ <b>${esc(name)}</b> xin cắm sạc nhờ`,'quest'); walkTo(n.x/T,n.y/T+1.1,name,()=>go(n.id)); }
-function needGo(k){ UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac'||(k==='battery'&&S.kind==='vnpt')) return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
+async function gearUse(op){ const r=await act({t:'gear',op}); if(r&&!r.err&&r.msg) toast(esc(r.msg),'item'); if(UI.refresh) UI.refresh(); return r&&!r.err; }
+function needGo(k){ if(String(k).startsWith('gear_')) return gearUse(k.slice(5)); UI.closeAll&&UI.closeAll(); if(k==='eat') return eatGo(); if(k==='nhosac'||(k==='battery'&&S.kind==='vnpt')) return nhoSac(); const H=NEED_HELP[k], today=vn().day, stay=G.stay&&G.stay.paid===today&&G.stay.room;
   if(S.kind==='room'||(S.kind==='stay'&&S.own)){ const it=(S.map.inter||[]).find(i=>i.do==='ra'&&i.act===H.act);
     if(it) return walkTo(it.x/T,it.y/T,it.label,()=>interact({type:'obj',it,label:it.label}));   // gọi đúng việc (ngủ/tắm/sạc), không lấy điểm gần nhất (dễ trúng điện thoại)
     if(k==='clean'){ toast('Lều không có chỗ tắm: ra nhà tắm chung cạnh khu cắm trại','quest'); NEED_AFTER=k; homeAfterExit=false; return act({t:'exit'}); } }
@@ -1597,13 +1600,13 @@ function drawMini(){ const box=$('#minimap'); if(!hasMini()){ box.hidden=true; d
   for(const n of npcs) dot(n.x,n.y,STORY[n.id]?'#ffd84a':'#f4f1ea');
   const EDGE=[]; for(const r of REM.values()){ const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X>=0&&Y>=0&&X<=c.width&&Y<=c.height){ g.strokeStyle='#7fe0ff'; g.globalAlpha=.4+.4*Math.abs(Math.sin(clock*3)); g.lineWidth=1; g.beginPath(); g.arc(Math.round(X),Math.round(Y),5,0,7); g.stroke(); g.globalAlpha=1; dot(r.x,r.y,'#7fe0ff',3); continue; }   /* người chơi khác: chấm to + vòng nhấp nháy */
     const cx=Math.max(5,Math.min(c.width-5,X)), cy=Math.max(5,Math.min(c.height-5,Y)), a=Math.atan2(Y-c.height/2,X-c.width/2); g.save(); g.translate(cx,cy); g.rotate(a); g.fillStyle='#1c1516'; g.beginPath(); g.moveTo(6,0); g.lineTo(-5,-5); g.lineTo(-5,5); g.closePath(); g.fill(); g.fillStyle='#7fe0ff'; g.beginPath(); g.moveTo(4,0); g.lineTo(-3.5,-3); g.lineTo(-3.5,3); g.closePath(); g.fill(); g.restore(); if(r.name) EDGE.push([cx,cy,r.name]); }   /* ngoài khung: mũi tên ở mép chỉ hướng + tên */
-  g.font='10px VT323, monospace'; for(const [cx,cy,nm] of EDGE){ const t=nm.length>9?nm.slice(0,8)+'…':nm, w=g.measureText(t).width+4, X=Math.max(w/2+1,Math.min(c.width-w/2-1,cx-Math.sign(cx-c.width/2)*(w/2+5))), Y=Math.max(10,Math.min(c.height-2,cy+3));
+  g.font='14px VT323, monospace'; for(const [cx,cy,nm] of EDGE){ const t=nm.length>9?nm.slice(0,8)+'…':nm, w=g.measureText(t).width+4, X=Math.max(w/2+1,Math.min(c.width-w/2-1,cx-Math.sign(cx-c.width/2)*(w/2+5))), Y=Math.max(10,Math.min(c.height-2,cy+3));
     g.fillStyle='rgba(16,40,56,.85)'; g.fillRect(Math.round(X-w/2),Math.round(Y-8),Math.ceil(w),9); g.fillStyle='#7fe0ff'; g.textAlign='center'; g.fillText(t,Math.round(X),Math.round(Y)); }
   for(const s of khogaHere()) dot(s.x*T,s.y*T,'#ff9f2e',1); for(const s of pumpkinsHere()) dot(s.x*T,s.y*T,'#ff7a1a',1); if(S.kind==='retreat'&&MCKB) dot(MCKB.x*T,MCKB.y*T,'#c070ff',3);
   if(window.MAPX&&MAPX.mini) MAPX.mini(dot,S.kind);   /* chấm riêng của từng map (boss MU...) */
   if(S.kind==='retreat'&&WDINO) dot(WDINO.x*T,WDINO.y*T,'#b6ff3a',2); if(S.kind==='retreat'&&WCROC&&!WCROC.dive) dot(WCROC.x*T,WCROC.y*T,'#3a6a2a',1);
   // người chơi ở gần (trong khung minimap): hiện tên nhỏ trên chấm
-  g.font='10px VT323, monospace'; g.textAlign='center'; for(const r of REM.values()){ if(!r.name) continue; const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X<0||Y<8||X>c.width||Y>c.height) continue;
+  g.font='14px VT323, monospace'; g.textAlign='center'; for(const r of REM.values()){ if(!r.name) continue; const X=(r.x/T-sx)*k, Y=(r.y/T-sy)*k; if(X<0||Y<8||X>c.width||Y>c.height) continue;
     const w=g.measureText(r.name).width+4; g.fillStyle='rgba(28,21,22,.8)'; g.fillRect(Math.round(X-w/2),Math.round(Y-12),Math.ceil(w),9); g.fillStyle='#7fe0ff'; g.fillText(r.name,Math.round(X),Math.round(Y-4)); }
   // dấu tích phòng đã thuê; nằm ngoài khung thì ghim ở mép chỉ hướng
   if(S.kind==='retreat'&&G.stay&&G.stay.paid===vn().day){ const [dx_,dy_]=SD.ROOMS[G.stay.room].doors[0]; let X=(dx_-sx)*k, Y=(dy_-sy)*k; const out=X<4||Y<4||X>c.width-4||Y>c.height-4;
@@ -1634,9 +1637,9 @@ function drawMap(){ const c=$('#mapCv'), g=c.getContext('2d'), m=S.map, ret=S.ki
   for(const o of S.objs) if(o.house){ const s=o.spr; g.drawImage(s.c,(o.x-s.ax-sx)*k,(o.y-s.ay-sy)*k,s.c.width*k,s.c.height*k); }
   g.font=`${Math.max(13,Math.min(20,Math.round(13*k*2.4)))}px VT323, monospace`; g.textAlign='center';
   MAPHIT=[]; const doors=[...Object.values(SD.PLACES).filter(p=>p.door&&(p.map||'retreat')===S.kind).map(p=>p.door),...(ret?Object.values(SD.ROOMS).flatMap(r=>(r.doors||[]).map(([x,y])=>({x,y}))):[])];
-  const fs=Math.max(13,Math.min(20,Math.round(13*k*2.4)));
+  const fs=Math.max(14,Math.min(20,Math.round(13*k*2.4)));
   const PLACED=[], hitAny=r=>PLACED.some(q=>r.x0<q.x1&&r.x1>q.x0&&r.y0<q.y1&&r.y1>q.y0);
-  for(const dz of m.districts||[]){ const x=(dz.x*T-sx)*k, y=(dz.y*T-sy)*k, f=Math.max(22,Math.min(40,Math.round(22*k*2.2))); g.font=`${f}px VT323, monospace`; g.lineWidth=4; g.strokeStyle='rgba(28,21,22,.85)'; g.strokeText(dz.name,x,y); g.fillStyle='#ffe066'; g.fillText(dz.name,x,y);
+  for(const dz of m.districts||[]){ const x=(dz.x*T-sx)*k, y=(dz.y*T-sy)*k, f=Math.max(22,Math.min(40,Math.round(22*k*2.2))); g.font=`${f}px VT323, monospace`; g.lineWidth=4; g.strokeStyle='rgba(28,21,22,.85)'; g.strokeText(dz.name,x,y); if(dz.hot){ const w=g.measureText(dz.name).width+18; g.fillStyle='rgba(210,40,46,.9)'; g.fillRect(x-w/2,y-f*.85,w,f*1.1); g.strokeStyle='#ffd84a'; g.lineWidth=2; g.strokeRect(x-w/2,y-f*.85,w,f*1.1); g.fillStyle='#ffffff'; } else g.fillStyle='#ffe066'; g.fillText(dz.name,x,y);   /* khu nổi bật (Trung tâm Lính Cát): nhãn nền đỏ viền vàng */
     const w=g.measureText(dz.name).width; PLACED.push({x0:x-w/2,x1:x+w/2,y0:y-f*.8,y1:y+f*.2}); }   // tên khu to
   g.font=`${Math.max(13,Math.min(20,Math.round(13*k*2.4)))}px VT323, monospace`;
   for(const l of m.labels||[]){ const x=(l.x*T-sx)*k, hov=MAPHOV===l.name; let y=(l.y*T-sy)*k-4; g.font=`${hov?fs+4:fs}px VT323, monospace`; const w=g.measureText(l.name).width+8, h=hov?19:15;
@@ -1793,7 +1796,7 @@ async function boot(){ await loadAudio(); setMute(AUD.muted);
 function start(prof,sceneMsg){ G=prof; P.look=JSON.stringify(G.look); P.av=AVATAR.build(G.look); started=true; document.body.classList.add('playing'); if(sceneMsg) enterScene(sceneMsg); renderHUD(); }
 window.GAME={get HOME(){ return HOME_NOW; },get HOME_MINE(){ return HOME_MINE; },pickAt,autoGo,npcScene,shake,worldAt,get PK(){ return PK; },get DQ(){ return DQ; },dqGo,nhoSac,get cam(){ return cam; },get clock(){ return clock; },get fx(){ return fx; },shadow,pick,sayLine,pkFace,walkTo,walkToNpc,destThumb,rideChoices,rideGo,MOTO_NAME,get oii(){ return OIS; },get herds(){ return HERDS; },get dogs(){ return DOGLIST; },snd:{howl:howlSnd,rooster:roosterSnd,bell:bellSnd,death:deathSnd,win:winSnd,nightAmb},get DANCE(){return DANCE;},get STUNT(){return STUNT;},officeOpen,boot,start,toast,esc,act,say,ask,sfx,setMute,AUD,banner,bigText,renderHUD,portrait,icon64,
   get G(){return G;},get P(){return P;},get S(){return S;},get REM(){return REM;},get PLOTS(){return PLOTS;},get TABLE(){return TABLE;},get RACE(){return RACE;},
-  set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,questGo,questProgress,speakerName,sceneName,finishQuest,needGo,eatGo,get AUTOWALK(){return AUTO;},get TASK(){return TASK;},get npcs(){return npcs;},
+  set HERD(v){HERD=v;},get HERD(){return HERD;},get FISH(){return FISH;},get lands(){return LANDS;},mountMoto,get plots(){return PLOTS;},bikeIcon,remoteAv:n=>{ for(const r of REM.values()) if(r.name===n&&r.av) return r.av; return null; },plotState,canFinish,startRoomAct,bedSpot,interact,nearest,keys,questGo,questProgress,speakerName,sceneName,gearUse,finishQuest,needGo,eatGo,get AUTOWALK(){return AUTO;},get TASK(){return TASK;},get npcs(){return npcs;},
   get started(){return started;}};
 // hook kiểm thử: chạy mô phỏng theo bước khi tab bị ẩn (rAF bị hãm)
 window.CHANDE={get G(){return G;},get P(){return P;},get S(){return S;},REM,nearest,interact,

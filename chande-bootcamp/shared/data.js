@@ -668,7 +668,7 @@ Object.assign(NPC_LOOKS,{rf_rambo:{name:'Rambo (Refund Gaming)',look:{gender:'na
   haky:{name:'Haky Food',look:{gender:'nam',hair:'swept',hairColor:'2a1c16',skin:'f0c0a0',outfit:{top:'ao_bep_haky',bottom:'quan_da',shoes:'giay_den'},opts:{mouth:'smile'}}}});
 ITEMS.tai_nghe_rf={name:'Tai nghe Refund Gaming',icon:'headset'}; ITEMS.chia_khoa_rf={name:'Chìa khoá phòng Jikey',icon:'key'};
 /* ---------- Lính Cát (sinh vật đồng hành, kiểu thú bỏ túi) ----------
-   Học "Huấn luyện Lính Cát" ở Trung tâm Lính Cát (thị trấn Đà Bắc, cạnh đường lớn phía Đông chợ), chọn 1 trong 3 con khởi đầu.
+   Học "Huấn luyện Lính Cát" ở Trung tâm Lính Cát (cạnh Khu tâm linh, phía Đông chùa Đà Bắc), chọn 1 trong 3 con khởi đầu.
    Mang theo tối đa 5 con, còn lại gửi ở máy gửi giữ trong Trung tâm. Muốn thu phục con hoang thì cho Lính Cát của mình đấu, đánh yếu rồi ném Bóng Cát.
    Đấu theo lượt (server tính), chỉ số theo cấp: máu = base×2×lv/100+lv+10, chỉ số khác = base×2×lv/100+5. Chiêu học theo hệ ở cấp 1 / 10 / 22. */
 const LC_TYPES={thuong:{name:'Thường',col:'#b8b0a0'},hoa:{name:'Lửa',col:'#ff7a3a'},thuy:{name:'Nước',col:'#4ab0ff'},moc:{name:'Cỏ',col:'#5fae46'},loi:{name:'Điện',col:'#f2c43d'},
@@ -725,7 +725,7 @@ const LC_SPECIES={
 const LINHCAT={party:5,box:60,learnFee:200000,starters:['lua_nhi','mam_nhi','rua_nhi'],startLv:6,startBalls:5,startPotions:3,
   shop:{bong_cat:20000,bong_vang:60000,thuoc_cat:30000,da_lua:150000,da_nuoc:150000,da_sam:150000,da_la:150000,da_bang:150000,da_tien:150000,da_trang:150000,da_tam:150000},
   ball:{bong_cat:1,bong_vang:1.8},potion:40,period:12*60e3,jail:{chance:.2,sec:60,fine:150000},trainerExp:12,
-  door:{x:176.5,y:64.7},at:{nurse:[12,6],starter:[5.4,9.8],box:[20.4,5.4],shop:[20.4,10.2]},
+  door:{x:171,y:45.7},at:{nurse:[12,6],starter:[5.4,9.8],box:[20.4,5.4],shop:[20.4,10.2]},
   // vật nuôi thả rông quanh sân Ké (đấu lấy EXP, không bắt được) · thú vườn quốc gia: điểm PARK.spots có loài tương ứng
   farm:[[59.4,45.6,'bo'],[59.4,48.8,'lon'],[63,51.2,'ga'],[66.6,51.2,'vit']],park:{huou:'huou',raica:'raica',gau:'gau',vooc:'voc'},
   // điểm có Lính Cát hoang ở Ké: z vùng (1 gần, 2 giữa, 3 xa) quyết định cấp và loài
@@ -813,25 +813,310 @@ Object.assign(LC_SPECIES,{chuot_vuong:{name:'Chuột Vương',t:'thuong',st:3,b:
   lc_raikou:{name:'Lôi Thần Thú (Raikou)',t:'loi',st:3,legend:1,sl:15,b:[90,85,75,115],rate:0,desc:'Mây giông trên lưng, gầm một tiếng là sấm sét giáng xuống.'},
   lc_entei:{name:'Hoả Thần Thú (Entei)',t:'hoa',st:3,legend:1,sl:15,b:[115,115,85,100],rate:0,desc:'Mỗi lần gầm là một ngọn núi lửa phun trào.'},
   lc_suicune:{name:'Thuỷ Thần Thú (Suicune)',t:'thuy',st:3,legend:1,sl:15,b:[100,75,115,85],rate:0,desc:'Chạy trên mặt nước, gió bắc theo sau, nước đục hoá trong.'}});
+// lời giới thiệu cho Poke Deck (loài nào chưa có desc)
+{ const D={hoa_binh:'Thằn lằn lửa tuổi teen, cáu lên là phun lửa, móng cào cháy xém cỏ.',hoa_tuong:'Rồng lửa đầu đàn, cánh rộng che cả sân Ké, hơi thở nóng chảy đá.',
+  la_binh:'Ếch lá trưởng thành, nụ hoa trên lưng sắp nở, đi đâu cũng thơm mùi cỏ.',moc_tuong:'Cây đại thụ biết đi, hoa trên lưng nở rộ, rễ quật như roi.',
+  thuy_binh:'Rùa nước tai lông xù, lặn giỏi nhất hồ Hoà Bình.',thuy_tuong:'Rùa pháo thủ, hai nòng nước trên mai bắn thủng cả vách đá.',
+  set_binh:'Chuột điện đuôi tia chớp, chạy nhanh như sét đánh ngang tai.',loi_tuong:'Tướng sét lông vàng rực, tích điện cả đêm giông rồi tung đòn sấm.',
+  bong_hong:'Cục bông biết bay, giọng hát ru cả xóm ngủ say.',tien_bong:'Tiên bông cánh hồng, rắc phấn tiên chữa lành vết thương cho cả đội.',
+  bong_ma_binh:'Bóng ma tinh nghịch hay nấp sau lưng người đi đêm rồi doạ "hù".',quy_tuong:'Quỷ bóng cười toe toét, nuốt luôn cái bóng của đối thủ.',
+  rong_may:'Rồng con đã biết cưỡi mây, vảy xanh óng ánh sau mưa.',long_vuong:'Vua rồng cát, bay một vòng quanh Ké chỉ mất một nhịp tim.',
+  cat_hoa:'Cát Con chạm Đá Lửa: lông đỏ rực, hắt hơi ra tia lửa.',cat_thuy:'Cát Con chạm Đá Nước: đuôi vây cá, bơi lặn như rái cá.',cat_loi:'Cát Con chạm Đá Sấm: lông dựng đứng tích điện, chạm vào là giật.',
+  cat_la:'Cát Con chạm Đá Lá: tai lá non, nằm phơi nắng là khoẻ lại.',cat_bang:'Cát Con chạm Đá Băng: lông xanh ngọc, thở ra hơi sương lạnh.',cat_tien:'Cát Con chạm Đá Tiên: ruy băng hồng quấn người, ai nhìn cũng mềm lòng.',
+  cat_nguyet:'Cát Con chạm Đá Trăng: vòng sáng vàng trên lông đen, săn mồi trong bóng tối.',cat_than:'Cát Con chạm Đá Tâm Linh: đọc được suy nghĩ, đoán trước đòn đánh.',
+  lon:'Lợn nhà béo tròn ở sân Ké, đói là chạy loạn khắp sân.',bo:'Bò vàng hiền lành của trại, nhưng húc một phát là nhớ đời.',ga:'Gà ri gáy sáng đúng giờ, mổ ai lạ vào sân.',vit:'Vịt cỏ lội ao cả ngày, bơi giỏi hơn chạy.',
+  huou:'Hươu sao của vườn quốc gia, thú bảo tồn: đấu xong dễ bị kiểm lâm bắt.',raica:'Rái cá ven suối vườn quốc gia, bắt cá khéo nhất vùng, là thú bảo tồn.',gau:'Gấu ngựa ngực có vầng trăng trắng, thú bảo tồn khoẻ như voi.',
+  voc:'Voọc leo cây thoăn thoắt, thú bảo tồn quý hiếm của vườn quốc gia.',ken_cat:'Kén cát cứng như vỏ sò, nằm im chờ ngày hoá bướm.',buom_tien:'Bướm tiên cánh óng, rắc phấn ngủ khắp cánh đồng.',
+  chim_ung:'Chim ưng mắt tinh, từ trên trời thấy cả con kiến dưới cỏ.',dai_bang:'Đại bàng cát sải cánh che nắng, lao xuống nhanh như mũi tên.',chuot_tuong:'Chuột tướng răng cửa to, gặm đứt cả dây phơi đồ.',
+  chuot_vuong:'Chuột vương ria dài, cả bầy chuột trong vùng nghe lệnh.',ho_mang:'Hổ mang cát bành mang doạ đối thủ, nọc độc làm tê tay.',mang_xa:'Mãng xà vương dài như con đường làng, siết một vòng là hết thở.',
+  doi_dem:'Dơi đêm bay không một tiếng động, hút sinh lực đối thủ.',da_doi:'Dạ dơi vương cánh như áo choàng, đêm trăng tròn mới lộ mặt.',da_lan:'Đá lăn tròn xuống dốc đèo, va vào là mẻ đầu.',
+  nui_da:'Núi đá biết đi, đứng yên thì tưởng một hòn non bộ.',vo_si:'Võ sĩ cát tập quyền mỗi sáng ở sân lửa trại.',vo_tuong:'Võ lâm tướng đai đen, một quyền phá đôi tảng đá.',
+  long_ngu:'Cá chép vượt vũ môn thành long ngư, vây vàng như lửa.',hai_long:'Hải long vương cuộn sóng, gầm lên là hồ Hoà Bình nổi bão.',niem_su:'Niệm sư bẻ cong thìa bằng ý nghĩ, nhìn ai người đó nhức đầu.',
+  dai_niem:'Đại niệm sư thiền định bay lơ lửng, thấy trước tương lai ba giây.',hoa_hoi:'Hoa hôi nở toang, mùi hôi khiến đối thủ chảy nước mắt.',hoa_doc:'Hoa độc tướng to như cái ô, phấn hoa làm cả trận tê liệt.'};
+  for(const [k,d] of Object.entries(D)) if(LC_SPECIES[k]&&!LC_SPECIES[k].desc) LC_SPECIES[k].desc=d; }
+/* Lính Cát dưới nước (24/10): cá, hải sản, rồng nước chỉ sống ở sông hồ — đứng sát bờ bấm E để đấu. Điểm ở mép nước: hồ Hoà Bình (gần khu nghỉ: vùng 1, giữa hồ: 2, cuối hồ: 3),
+   ao Rừng phía Bắc (2), suối Vườn quốc gia (3). Thuồng Luồng hồ Hoà Bình rất hiếm ở vùng 3. */
+Object.assign(LC_SPECIES,{
+  tom_nhi:{name:'Tôm Nhí',t:'thuy',st:1,b:[40,55,45,60],evo:{to:'tom_hum',lv:18},rate:.45,water:1,desc:'Tôm con búng nước tanh tách dưới sông, ai lại gần là búng đuôi chạy.'},
+  tom_hum:{name:'Tôm Hùm Cát',t:'thuy',st:2,b:[65,95,80,60],rate:.15,water:1,desc:'Tôm hùm càng to như cái kéo, kẹp một phát gãy cả mái chèo.'},
+  cua_nhi:{name:'Cua Nhí',t:'thuy',st:1,b:[45,60,70,35],evo:{to:'cua_hoang',lv:26},rate:.4,water:1,desc:'Cua con đi ngang, giơ càng doạ cả cá to hơn mình.'},
+  cua_hoang:{name:'Cua Hoàng Đế',t:'thuy',st:3,b:[85,110,125,40],rate:.08,water:1,desc:'Cua hoàng đế vỏ gai như đá, giáp cứng nhất hồ Hoà Bình.'},
+  muc_nhi:{name:'Mực Nhí',t:'thuy',st:1,b:[45,50,45,70],evo:{to:'bach_tuoc',lv:22},rate:.4,water:1,desc:'Mực con phun mực đen rồi biến mất dưới làn nước.'},
+  bach_tuoc:{name:'Bạch Tuộc Mực Đen',t:'am',st:2,b:[75,90,70,85],rate:.15,water:1,desc:'Tám xúc tu quấn chặt, phun mực che mắt cả trận đấu.'},
+  thuong_luong:{name:'Thuồng Luồng Hồ Hoà Bình',t:'long',st:3,b:[120,130,110,105],rate:.03,water:1,rare:1,desc:'Rồng nước trong truyền thuyết hồ Hoà Bình, cuộn sóng lớn mỗi mùa lũ.'}});
+for(const k of ['ca_chep','long_ngu','hai_long']) LC_SPECIES[k].water=1;
+for(const z of Object.values(LINHCAT.zones)) z.pool=z.pool.filter(k=>!LC_SPECIES[k].water);   /* cá không lên bờ */
+LINHCAT.wzones={1:{lv:[2,5],pool:['ca_chep','ca_chep','tom_nhi','tom_nhi','cua_nhi']},2:{lv:[6,12],pool:['ca_chep','tom_nhi','cua_nhi','muc_nhi','long_ngu','tom_hum']},
+  3:{lv:[12,22],pool:['long_ngu','tom_hum','cua_nhi','muc_nhi','bach_tuoc','cua_hoang','hai_long']}};
+LINHCAT.wRare={sp:'thuong_luong',chance:.03,lv:25};
+LINHCAT.water={retreat:[[38.5,100.5,1],[19.5,101.5,1],[84.5,105.5,1],[123.5,106.5,2],[171.5,105.5,2],[210.5,105.5,2],[247.5,105.5,3],[286.5,106.5,3],[326.5,106.5,3],
+  [105.5,18.5,2],[94.5,19.5,2],[298.5,5.5,3],[301.5,22.5,3],[301.5,38.5,3],[298.5,52.5,3],[304.5,64.5,3],[300.5,81.5,3]]};
+const LCFOREST={npcs:[]};
+/* 15 NPC sống rải rác trong rừng Đà Bắc (đường rừng núi mới ở world.js) giao nhiệm vụ ẩn về Lính Cát: nói chuyện mới lộ nhiệm vụ (server lcquest.js),
+   tiến độ cộng khi thắng / thu phục / lên cấp / tiến hoá Lính Cát. lcq: k win | catch | lv | evo | dex, t hệ, sp loài, water dưới nước */
+{ const F=[
+  ['coi','Cụ Cối kiểm lâm',82,46,{gender:'nam',hair:'buzz',hairColor:'d8d4cc',skin:'d8a47a',outfit:{top:'sp_khoac_reu',bottom:'kaki',shoes:'sp_g_boot_bo',head:'sp_m_10'}},
+    'Rừng này cụ canh 40 năm rồi. Lính Cát hoang dạo này hung lắm, cháu có dám thử sức không?','🔍 Nhật ký rừng xanh','Thắng 3 trận với Lính Cát hoang ngoài tự nhiên.',{k:'win'},3,{exp:180,vnd:200000,items:{bong_vang:2}}],
+  ['meo','Cô Mèo hái nấm',84,30,{gender:'nu',hair:'ponytail',hairColor:'8a5428',skin:'f0c4a0',outfit:{top:'sp_a_caro',bottom:'sp_q_v_jean',shoes:'sp_g_ung_mua',head:'sp_m_05'}},
+    'Hôm qua cô thấy một cục bông hồng hát ru trong bụi nấm, cả giỏ nấm rơi hết vì buồn ngủ!','🔍 Bông Bông trong bụi nấm','Thu phục 1 Lính Cát hệ Tiên.',{k:'catch',t:'tien'},1,{exp:200,vnd:220000,items:{thuoc_cat:3}}],
+  ['suoi','Anh Suối câu cá',91,26,{gender:'nam',hair:'messy',hairColor:'2b2326',skin:'e0a878',outfit:{top:'sp_a_soc_ngang',bottom:'sp_q_short_kaki',shoes:'sp_g_xo_ngon',head:'sp_m_14'}},
+    'Câu cả buổi chẳng được con cá nào, toàn Lính Cát dưới nước giật mồi. Bắt hộ anh một con đi!','🔍 Mồi câu bị cướp','Thu phục 1 Lính Cát sống dưới nước (sông, hồ, ao).',{k:'catch',water:1},1,{exp:220,vnd:250000,items:{bong_vang:2}}],
+  ['tom','Bé Tôm ven suối',292,58,{gender:'nu',hair:'bun',hairColor:'2b2326',skin:'f6d2b8',outfit:{top:'sp_a_tim',bottom:'sp_q_short_trang',shoes:'sp_g_sandal_hong',head:'sp_m_34'}},
+    'Em muốn nuôi một bạn Tôm Nhí để ngày nào cũng ngắm nó búng nước tanh tách!','🔍 Bạn tôm của bé','Thu phục 1 Tôm Nhí (dưới hồ Hoà Bình hoặc suối).',{k:'catch',sp:'tom_nhi'},1,{exp:200,vnd:220000,items:{sach_kn:2}}],
+  ['dem','Bà đồng đêm',36,16,{gender:'nu',hair:'long',hairColor:'f4f0e0',skin:'e8c4a0',outfit:{top:'cardigan',bottom:'vay_den',shoes:'giay_den',neck:'sp_c_ngoc_trai'}},
+    'Đêm trăng, bóng ma ở rừng này hay trêu người. Cháu giúp bà dạy chúng một bài học nhé.','🔍 Bóng ma đêm trăng','Thắng 2 trận với Lính Cát hệ Ma (chỉ hiện ban đêm).',{k:'win',t:'ma'},2,{exp:260,vnd:280000,items:{bong_vang:3}}],
+  ['set','Thợ điện Sét',190,30,{gender:'nam',hair:'fade',hairColor:'1c1820',skin:'d8a47a',outfit:{top:'sp_a_bomber',bottom:'sp_q_cargo_be',shoes:'sp_g_boot_vang',head:'sp_m_21'}},
+    'Trạm điện rừng hết pin dự phòng. Nghe nói Lính Cát hệ Điện tích được điện, bắt giúp tôi 2 con!','🔍 Pin cho trạm rừng','Thu phục 2 Lính Cát hệ Điện.',{k:'catch',t:'loi'},2,{exp:280,vnd:300000,items:{da_sam:1}}],
+  ['da','Lão đá núi',128,30,{gender:'nam',hair:'bald',hairColor:'9a9a9a',skin:'c8946a',outfit:{top:'sp_a_gile',bottom:'kaki',shoes:'sp_g_sandal_nau'},opts:{beard:'full'}},
+    'Đá lăn từ đèo xuống chắn lối mòn của lão. Đánh bại mấy con Lính Cát hệ Đá cho lão đi qua với!','🔍 Đá lăn chắn lối','Thắng 3 trận với Lính Cát hệ Đá.',{k:'win',t:'da'},3,{exp:300,vnd:320000,items:{sach_kn:3}}],
+  ['bay','Chị chim rừng',198,22,{gender:'nu',hair:'long',hairColor:'6a4228',skin:'f0c4a0',outfit:{hairx:'sp_t_wavy',top:'sp_a_tiedye',bottom:'sp_q_v_mint',shoes:'sp_g_bup_be',head:'sp_m_49'}},
+    'Chị nghiên cứu các loài biết bay trong rừng. Em bắt giúp chị 1 con để chị vẽ lại nhé.','🔍 Đôi cánh rừng xanh','Thu phục 1 Lính Cát hệ Bay.',{k:'catch',t:'bay'},1,{exp:220,vnd:240000,items:{bong_vang:2}}],
+  ['vo','Võ sư ẩn cư',14,22,{gender:'nam',hair:'buzz',hairColor:'1c1820',skin:'d8a47a',outfit:{hairx:'sp_t_bun',top:'set_superman',bottom:'kaki',shoes:'dep_to_ong'}},
+    'Ta ở ẩn đã lâu, chỉ truyền võ cho người có Lính Cát đủ mạnh. Luyện một con lên cấp 20 rồi quay lại.','🔍 Quyền pháp Lính Cát','Luyện 1 Lính Cát đạt cấp 20.',{k:'lv',lv:20},1,{exp:400,vnd:400000,items:{sach_kn5:1}}],
+  ['tien','Bé Hoa tiên rừng',64,12,{gender:'nu',hair:'long',hairColor:'f29ab0',skin:'f6d2b8',outfit:{hairx:'sp_t_twin',top:'sp_a_hoodie_hong',bottom:'sp_q_v_xep_ly',shoes:'sp_g_bup_be',head:'sp_m_48'}},
+    'Tiến hoá là phép màu đẹp nhất của Lính Cát đó! Anh chị cho em xem một lần được không?','🔍 Phép màu tiến hoá','Cho 1 Lính Cát tiến hoá (đủ cấp hoặc dùng đá).',{k:'evo'},1,{exp:300,vnd:300000,items:{da_tien:1}}],
+  ['dex','Học giả Poke Deck',116,50,{gender:'nam',hair:'swept',hairColor:'2b2326',skin:'f0c4a0',outfit:{hairx:'sp_t_side',top:'somi_dai',bottom:'sp_q_tay_xam',shoes:'sp_g_oxford',eyes:'kinh_can'}},
+    'Tôi đang viết thêm cho cuốn Poke Deck. Ai đã gặp đủ 25 loài Lính Cát thì kể tôi nghe với!','🔍 Sổ tay dày thêm','Gặp đủ 25 loài trong Poke Deck.',{k:'dex',n:25},25,{exp:350,vnd:350000,items:{bong_vang:3}}],
+  ['thuoc','Ông lang rừng',196,48,{gender:'nam',hair:'messy',hairColor:'d8d4cc',skin:'c8946a',outfit:{hairx:'sp_t_wavy',top:'sp_a_ringer',bottom:'kaki',shoes:'sp_g_sandal_nau',head:'sp_m_15'},opts:{beard:'full'}},
+    'Mấy con thú rừng bị thương nằm ở hang kia. Cháu mang giúp ông 3 lọ thuốc hồi máu Lính Cát nhé.','🔍 Thuốc cho thú bị thương','Mang 3 Thuốc hồi máu Lính Cát cho ông lang.',null,0,{exp:200,vnd:250000,items:{sach_kn:2}},{thuoc_cat:3}],
+  ['doc','Người nuôi rắn',240,30,{gender:'nam',hair:'undercut',hairColor:'3a2418',skin:'c8946a',outfit:{top:'sp_a_camo',bottom:'sp_q_cargo_reu',shoes:'sp_g_boot_den',head:'sp_m_26'}},
+    'Nọc Lính Cát hệ Độc làm thuốc giải được đấy. Bắt cho tôi một con, đeo găng vào kẻo bị cắn!','🔍 Nọc độc quý','Thu phục 1 Lính Cát hệ Độc.',{k:'catch',t:'doc'},1,{exp:240,vnd:260000,items:{bong_vang:2}}],
+  ['rong','Thầy phong thuỷ',256,40,{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e0a878',outfit:{hairx:'sp_t_braid',top:'vest',bottom:'kaki',shoes:'giay_den',eyes:'sp_k_round_0'}},
+    'Long mạch Đà Bắc đang động. Phải có người thắng được Lính Cát hệ Rồng thì mới yên.','🔍 Long mạch rung chuyển','Thắng 1 trận với Lính Cát hệ Rồng.',{k:'win',t:'long'},1,{exp:420,vnd:450000,items:{ngoc_ch:1}}],
+  ['luong','Ngư ông hồ Hoà Bình',320,62,{gender:'nam',hair:'buzz',hairColor:'d8d4cc',skin:'b8845a',outfit:{top:'sp_a_soc_do',bottom:'sp_q_short_kaki',shoes:'sp_g_xo_ngon',head:'sp_m_16'},opts:{beard:'full'}},
+    'Ông kể cháu nghe truyền thuyết Thuồng Luồng hồ Hoà Bình. Muốn gặp nó thì phải đấu thật nhiều với Lính Cát dưới nước.','🔍 Truyền thuyết Thuồng Luồng','Thắng 5 trận với Lính Cát dưới nước.',{k:'win',water:1},5,{exp:450,vnd:500000,items:{bong_vang:5}}]];
+  LCFOREST.npcs=F.map(([k,name,x,y])=>({id:'lcf_'+k,name,x,y}));
+  for(const [k,name,x,y,look,say,title,desc,lcq,prog,reward,need] of F){ const id='lcf_'+k, qid='lcq_'+k;
+    NPCS.push({id,x,y,place:'lcforest'}); NPC_LOOKS[id]={name,look};
+    QUESTS[qid]={giver:id,secret:true,title,desc,say,reward,...(lcq?{lcq,prog}:{}),...(need?{need}:{})}; } }
+/* ===== Lính Cát 200 loài (25/10): 41 họ tiến hoá mới phỏng theo Pokemon (vẽ tự động ở art25.js theo `art`), loài 2 hệ (t2: khắc hệ nhân cả 2 hệ, học thêm chiêu hệ 2),
+   2 rồng huyền thoại Hắc Long / Bạch Long (triệu hồi bằng 7 Mảnh Triệu Hồi, cả server chỉ 2 người có), thêm điểm Lính Cát hoang ở Ké + trang trại bác Trang ===== */
+{ const X=[
+  /* [khoá 3 bậc], [tên 3 bậc], hệ, hệ 2, dáng vẽ, màu [thân, tối, sáng, điểm nhấn] (hoặc 3 bộ màu theo bậc), dáng chỉ số [máu, công, thủ, tốc], [lv lên bậc 2, bậc 3], [mô tả 3 bậc], thêm */
+  [['cun_lua','hoa_khuyen','than_khuyen'],['Cún Lửa','Hoả Khuyển','Thần Hoả Khuyển'],'hoa','','quad',['e8743a','b8481a','ffe0a0','2a1a1c'],[55,70,48,60],[16,25],
+    ['Cún con lông cam, sủa một tiếng là phì ra tia lửa nhỏ.','Chó lửa trung thành, canh cổng nhà ai là trộm không dám bén mảng.','Thần khuyển bờm lửa, chạy một ngày ngàn dặm quanh núi Đà Bắc.'],{f:{ear:'pointy',tail:'fluffy',mane:2,pat3:'stripes'}}],
+  [['ga_choi','ga_lua','hoa_ke'],['Gà Chọi Nhí','Gà Chiến Lửa','Hoả Kê Vương'],'hoa','vo','biped',[['f2c43d','c8901a','fff0b0','e8743a'],['e8743a','b8481a','ffe0a0','f2c43d'],['c8302a','8a1a1a','f4e0b0','f2c43d']],[50,70,45,55],[16,25],
+    ['Gà con lông vàng, mổ đất cả ngày để tập võ.','Gà chọi chân có cựa lửa, đá một phát cháy cả cọc gỗ.','Vua gà lửa, cổ tay bốc lửa, tung cước nhanh như chớp.'],{f:{beak:1,crest:1,glove3:1}}],
+  [['rai_nhi','rai_kiem','thuy_kiem'],['Rái Nhí','Rái Kiếm Sĩ','Thuỷ Kiếm Vương'],'thuy','','quad',['7ab8e8','4a88c8','f4f1ea','f2c43d'],[55,58,45,48],[16,25],
+    ['Rái cá con mang vỏ sò trên bụng làm khiên.','Rái kiếm sĩ, rút vỏ sò ra là thành thanh kiếm nước.','Kiếm vương sông nước, một nhát chém tách đôi con sóng.'],{f:{ear:'round',tail:'thin',shell:1,sword3:1}}],
+  [['ech_com','ech_ninja','nhan_gia'],['Ếch Cốm','Ếch Ninja','Thuỷ Nhẫn Giả'],'thuy','am','biped',['5ab8e8','2a6ab0','d8f0ff','ff7aa0'],[41,56,40,71],[16,25],
+    ['Ếch con bọt nước quanh cổ, nhảy xa gấp 10 lần thân mình.','Ếch ninja ném phi tiêu nước, thoắt ẩn thoắt hiện.','Nhẫn giả lưỡi dài quấn cổ như khăn, phi tiêu nước xuyên đá.'],{f:{frog:1,scarf2:1}}],
+  [['map_nhi','map_rang','map_vuong'],['Cá Mập Nhí','Mập Răng Cưa','Mập Hải Vương'],'thuy','am','fish',['3a5a9a','1c3a6a','e8e8f0','f2c43d'],[45,90,25,65],[16,25],
+    ['Cá mập con hàm răng tí hon nhưng cắn rất đau.','Răng cưa sắc lẹm, ngửi thấy mùi máu từ cuối hồ.','Hải vương của hồ Hoà Bình, lao nhanh như thuyền máy.'],{water:1,f:{teeth:1,fin:1}}],
+  [['khi_la','khi_rung','tinh_tinh'],['Khỉ Lá','Khỉ Rừng Xanh','Đại Tinh Tinh Rừng'],'moc','vo','biped',['6ab84a','3a8a2a','f0d8a8','8a5a32'],[50,68,50,62],[16,25],
+    ['Khỉ con cài lá trên đầu, gõ cành cây thành nhạc.','Khỉ rừng đánh trống bằng gậy tre, cả rừng nhún nhảy theo.','Đại tinh tinh vỗ ngực, gốc cây quanh nó mọc lá non.'],{f:{ear:'round',tail:'curl',leaf:1,stick2:1}}],
+  [['nai_co','nai_hoa','than_loc'],['Nai Cỏ','Nai Hoa Bốn Mùa','Thần Lộc Rừng'],'moc','tien','quad',['c8a06a','8a6a3a','f4e8d0','ff8ab0'],[60,60,50,75],[16,25],
+    ['Nai con đốm trắng, lông đổi màu theo mùa.','Gạc nai nở hoa, mùa xuân hồng, mùa thu vàng.','Thần lộc của rừng Đà Bắc, bước tới đâu cỏ cây xanh tới đó.'],{f:{ear:'pointy',tail:'short',horn:'antler',pat1:'spots'}}],
+  [['sen_nhi','sen_hong','lien_hoa'],['Sen Nhí','Sen Hồng','Liên Hoa Tiên'],'moc','thuy','plant',['f29ab8','c8607a','f8e0e8','5fae46'],[55,40,55,45],[16,25],
+    ['Mầm sen trôi trên mặt hồ, ngủ trên lá sen to.','Sen hồng nở trên đầu, toả hương thơm cả mặt hồ.','Liên hoa tiên ngồi thiền trên đài sen, nước quanh nó trong veo.'],{water:1,f:{lotus:1}}],
+  [['cuu_bong','cuu_set','dien_cuu'],['Cừu Bông Điện','Cừu Sét','Điện Long Cừu'],'loi','','quad',['f2d84a','c8a020','f8f6ee','4a6ad8'],[60,52,45,42],[16,25],
+    ['Cừu bông tích điện tĩnh, chạm vào là tóc dựng đứng.','Lông cừu rụng bớt, đuôi sáng đèn như bóng đèn pin.','Đuôi và trán phát sáng như ngọn hải đăng, chiếu xa cả cây số.'],{f:{wool:1,ear:'flop',tail:'bolt'}}],
+  [['luon_dien','luon_sam','loi_xa'],['Lươn Điện Nhí','Lươn Sấm','Lôi Xà Vương'],'loi','thuy','serpent',['3a6ab8','1c3a7a','d8e8f8','f2c43d'],[50,70,50,45],[16,25],
+    ['Lươn con phát điện yếu, cá nhỏ quanh nó tê rần.','Lươn sấm cuộn mình dưới bùn, quẫy lên là tia điện lan cả khúc sông.','Rắn điện vương miệng hút như giác, phóng điện làm sôi nước.'],{water:1,f:{spots:1}}],
+  [['tho_bong','tho_trang','nguyet_tho'],['Thỏ Bông','Thỏ Trăng','Nguyệt Thỏ Tiên'],'tien','','quad',['f4f1ea','c8c0d0','ffd0e0','ffd84a'],[55,45,45,75],[16,25],
+    ['Thỏ con lông trắng, đêm rằm hay ngồi ngắm trăng.','Trán có vầng trăng khuyết, nhảy một cái cao ngang mái nhà.','Thỏ ngọc trên cung trăng xuống trần, giã thuốc tiên chữa bệnh.'],{f:{ear:'long',tail:'puff',moon:2}}],
+  [['tien_nho','tien_canh','tien_hau'],['Tiên Tí Hon','Tiên Cánh Bướm','Tiên Hậu'],'tien','than','biped',['f4f4f8','c8c8e0','ffffff','5fd08a'],[45,38,42,48],[16,25],
+    ['Tiên tí hon tóc xanh lá, cảm nhận được vui buồn của người khác.','Mọc đôi cánh bướm mỏng, múa một vòng là ai cũng vui.','Tiên hậu áo dài trắng, dùng niệm lực che chở cho người mình thương.'],{f:{dress:1,hair:1,wings2:1}}],
+  [['bi_ma','bi_quy','bi_vuong'],['Bí Ma','Bí Ngô Quỷ','Bí Vương Đêm'],'ma','moc','blob',['e8843a','a8541a','ffd080','3a2a3a'],[55,65,70,45],[16,25],
+    ['Quả bí khoét mắt, đêm rằm lăn ra đồng doạ trẻ con.','Bí ngô quỷ tóc dây leo, hát ru người đi lạc vào rừng.','Vua bí đêm Halloween, ánh nến trong bụng soi đường cho hồn ma.'],{night:1,f:{pumpkin:1}}],
+  [['den_ma','long_den','chuc_dang'],['Đèn Ma Trơi','Lồng Đèn Ma','Chúc Đăng Quỷ'],'ma','hoa','float',['f4f1ea','c8c0d0','ffffff','a86ae8'],[50,50,55,40],[16,25],
+    ['Ngọn nến nhỏ cháy lửa tím, ai lại gần là thấy lạnh gáy.','Lồng đèn ma lơ lửng trong rừng đêm, dụ người đi theo ánh lửa.','Đèn chùm quỷ nhiều ngọn lửa tím, đốt cháy cả linh hồn đối thủ.'],{night:1,f:{flame:1,arms3:1}}],
+  [['rong_dat','sa_long','bao_cat_long'],['Rồng Đất Nhí','Sa Long','Bão Cát Long'],'long','da','dragon',['5a6ab8','3a4a8a','e86a4a','f2c43d'],[58,72,48,48],[16,25],
+    ['Rồng con sống trong hang cát, thấy gì cũng cắn thử.','Sa long đào hang nhanh như máy xúc, vây tay sắc như dao.','Bão cát long lao đi như phản lực, cát xoáy theo sau thành bão.'],{f:{fins:1,horn:1}}],
+  [['rong_bien','thuy_long','hai_than'],['Rồng Biển Nhí','Thuỷ Long','Hải Long Thần'],'long','thuy','serpent',['6aa8f0','3a6ac8','f4f1ea','ffffff'],[55,62,55,55],[16,25],
+    ['Rồng con thân dài như lươn, lột da mấy lần mới lớn.','Thuỷ long có ngọc trên cổ, điều khiển được mưa gió.','Hải long thần, bay lượn trên mặt hồ là trời đổi mưa.'],{water:1,f:{whisker:1,horn:1,orb:2}}],
+  [['rong_canh','phi_long','thien_long'],['Rồng Cánh Nhí','Phi Long','Thiên Long Vương'],'long','bay','dragon',['5ab8d8','3a88a8','f2e8c8','e8302a'],[45,78,62,50],[16,25],
+    ['Rồng con mơ ước được bay, ngày nào cũng nhảy từ vách đá xuống.','Phi long mai cứng như khiên, chưa bay được nhưng húc rất đau.','Thiên long vương đôi cánh đỏ, bay vút lên mây khi vui sướng.'],{f:{wings3:1,horn:1}}],
+  [['cut_nhi','cut_bang','bang_de'],['Cụt Nhí','Cánh Cụt Băng','Băng Đế Vương'],'bang','thuy','bird',['3a6ab0','1c3a6a','f4f4f8','f2c43d'],[53,51,53,42],[16,25],
+    ['Chim cánh cụt con kiêu hãnh, ngã cũng không chịu khóc.','Cánh cụt băng trượt bụng trên hồ như ván lướt.','Đế vương băng với vương miện ba chạc, một cái vỗ cánh đóng băng mặt hồ.'],{f:{penguin:1,crown3:1}}],
+  [['tuyet_nhi','nguoi_tuyet','tuyet_vuong'],['Tuyết Nhí','Người Tuyết','Tuyết Sơn Vương'],'bang','moc','biped',['f4f8ff','c8d8e8','ffffff','5fae46'],[60,62,52,40],[16,25],
+    ['Cục tuyết biết đi, trên đầu mọc mấy lá thông.','Người tuyết vai phủ lá kim, thổi ra bão tuyết nhỏ.','Tuyết sơn vương cao như cây thông, đi tới đâu tuyết rơi tới đó.'],{f:{fluff:1,leafy:1}}],
+  [['soi_bang','soi_tuyet','bang_lang'],['Sói Băng Nhí','Sói Tuyết','Băng Lang Vương'],'bang','','quad',['b8e0f8','6aa8d8','f8fcff','4ab0ff'],[55,62,45,70],[16,25],
+    ['Sói con lông trắng xanh, hơi thở đọng thành sương.','Sói tuyết săn mồi theo đàn, tru lên là trời trở lạnh.','Băng lang vương lưng mọc gai băng, đứng đâu đất đóng băng tới đó.'],{f:{ear:'pointy',tail:'fluffy',ice3:1}}],
+  [['meo_mun','bao_dem','hac_bao'],['Mèo Mun','Báo Đêm','Hắc Báo Vương'],'am','','quad',['3a2a4a','1c1424','8a6aa8','f2c43d'],[45,55,40,70],[16,25],
+    ['Mèo mun mắt vàng, thích trộm cá phơi của hàng xóm.','Báo đêm lông đốm tím, đi không một tiếng động.','Hắc báo vương nấp trong bóng tối, vồ một cái là xong trận.'],{f:{ear:'cat',tail:'thin',pat2:'spots'}}],
+  [['qua_nhi','qua_dem','qua_chua'],['Quạ Nhí','Quạ Đêm','Quạ Chúa'],'am','bay','bird',['2a2a3a','141420','5a5a7a','f2c43d'],[60,80,45,85],[16,25],
+    ['Quạ con thích nhặt đồ lấp lánh về tổ.','Quạ đêm đậu trên mái chùa, kêu một tiếng là mất ngủ cả xóm.','Quạ chúa đội mũ lông như bố già, cả bầy quạ nghe lệnh.'],{night:1,f:{crest3:1}}],
+  [['soi_con','soi_xam','lang_vuong'],['Sói Con','Sói Xám','Lang Vương Đêm Trăng'],'am','','quad',['6a6a7a','3a3a46','c8c8d4','e8302a'],[50,72,45,60],[16,25],
+    ['Sói con xám, cắn ống quần người lạ không buông.','Sói xám mắt đỏ, đêm trăng tròn tru vang cả núi.','Lang vương bờm đen, cả đàn sói rừng Đà Bắc theo nó.'],{f:{ear:'pointy',tail:'fluffy',mane:2}}],
+  [['khi_thien','hau_niem','te_thien'],['Khỉ Thiền','Hầu Niệm Sư','Tề Thiên Đại Thánh'],'than','vo','biped',['c8843a','8a541a','f8e0b0','f2c43d'],[55,75,50,80],[16,25],
+    ['Khỉ con ngồi thiền trên tảng đá, nhắm mắt vẫn bắt được ruồi.','Hầu niệm sư nhấc đá bằng ý nghĩ, đánh gậy như múa.','Tề thiên đại thánh vòng kim cô trên đầu, gậy như ý dài ngắn tuỳ ý.'],{f:{ear:'round',tail:'curl',band3:1,staff3:1}}],
+  [['cu_meo','cu_dem','cu_than'],['Cú Mèo Nhí','Cú Đêm','Cú Thần Thông'],'than','bay','bird',['8a6a4a','5a4228','e8d0a8','f2c43d'],[70,45,45,55],[16,25],
+    ['Cú con đứng một chân, đầu xoay được nửa vòng.','Cú đêm mắt to tròn, đọc được suy nghĩ của con mồi.','Cú thần thông biết trước tương lai, gật đầu ba cái là có chuyện.'],{f:{owl:1}}],
+  [['mong_nhi','mong_mo','mong_than'],['Mộng Nhí','Mộng Mơ','Mộng Thần'],'than','','float',['f8c0d8','c890b0','ffe8f0','a86ae8'],[80,40,55,40],[16,25],
+    ['Mộng nhí ăn giấc mơ xấu, thở ra khói hồng thơm ngát.','Mộng mơ bay lơ lửng, ngủ cạnh nó là mơ đẹp cả đêm.','Mộng thần dệt giấc mơ cho cả xóm, khói hồng thành hình bông hoa.'],{f:{dream:1}}],
+  [['bo_ngua','bo_ngua_kiem','duong_lang'],['Bọ Ngựa Nhí','Bọ Ngựa Kiếm','Đường Lang Vương'],'trung','vo','bug',['6ad84a','3a9a2a','d8f8c0','c8ccd4'],[60,95,65,90],[16,25],
+    ['Bọ ngựa con chắp tay như đang cầu nguyện, thật ra là rình mồi.','Hai lưỡi liềm sắc như dao, chém cỏ ngọt như máy cắt.','Đường lang vương múa liềm như kiếm khách, chém gió thành đường.'],{f:{claw:1,wings2:1}}],
+  [['ong_nhi','ong_vo','ong_chua'],['Ong Mật Nhí','Ong Võ Vẽ','Ong Chúa'],'trung','doc','bug',['f2c43d','c8901a','fff0a0','2a2228'],[50,72,45,75],[16,25],
+    ['Ong con vụng về, hay lạc vào vườn hoa nhà người ta.','Ong võ vẽ đuôi kim độc, cả đàn bay theo như mây đen.','Ong chúa đội vương miện, ra lệnh một tiếng là ngàn ong xông lên.'],{f:{stripe:1,wings:1,stinger:1,crown3:1}}],
+  [['bo_hung','bo_sung','kim_giap'],['Bọ Hung Nhí','Bọ Sừng','Kim Giáp Thần Trùng'],'trung','da','bug',['3a5ad8','1c2a8a','8aa8f0','f2c43d'],[80,110,80,70],[16,25],
+    ['Bọ hung con lăn viên đất to gấp đôi người.','Bọ sừng nhấc bổng khúc gỗ gấp trăm lần cân nặng.','Thần trùng giáp vàng, sừng hất văng cả tảng đá núi.'],{f:{horn:1,wings2:1}}],
+  [['vet_nhi','vet_noi','vet_than'],['Vẹt Nhí','Vẹt Nói','Vẹt Thần Ngũ Sắc'],'bay','thuong','bird',['4ac84a','2a8a2a','f2e84a','e8302a'],[70,65,45,85],[16,25],
+    ['Vẹt con bắt chước tiếng người, nói câu nào cũng sai chính tả.','Vẹt nói nhại giọng đối thủ làm họ rối trí.','Vẹt thần năm màu, hót một bài là cả rừng im lặng nghe.'],{f:{crest:1}}],
+  [['hac_con','hac_trang','tien_hac'],['Hạc Con','Hạc Trắng','Tiên Hạc'],'bay','tien','bird',['f4f4f8','c8c8d8','2a2a36','e8302a'],[60,58,50,70],[16,25],
+    ['Hạc con chân dài lêu nghêu, đứng một chân ngủ gật.','Hạc trắng đỉnh đầu đỏ, múa giữa đồng như tranh thuỷ mặc.','Tiên hạc cõng người tu tiên bay lên núi cao, sống ngàn năm.'],{f:{neck:1,crest:1}}],
+  [['cong_con','cong_mua','khong_tuoc'],['Công Con','Công Múa','Khổng Tước Vương'],'bay','than','bird',['2a6ad8','1c3a9a','4ab8a8','f2c43d'],[55,65,55,80],[16,25],
+    ['Công con lông còn xám, ngày nào cũng soi gương mong lớn.','Công múa xoè đuôi, ai nhìn vào mắt đuôi là chóng mặt.','Khổng tước vương xoè đuôi ngàn mắt, thôi miên cả trận đấu.'],{f:{fan:2,crest:1}}],
+  [['coc_nhi','coc_doc','thiem_thu'],['Cóc Nhí','Cóc Độc','Thiềm Thừ Vương'],'doc','vo','biped',['5a5ab8','3a3a7a','c8c8f0','e8843a'],[50,65,42,52],[16,25],
+    ['Cóc con má phồng, phì ra chất nhờn làm tay ngứa ran.','Cóc độc võ sĩ, móng tay có nọc độc làm tê đối thủ.','Thiềm thừ vương ngậm đồng xu, đánh độc như rắn, giàu như thần tài.'],{f:{frog:1,cheek:1}}],
+  [['bo_cap','cap_doc','hat_vuong'],['Bọ Cạp Nhí','Bọ Cạp Độc','Hạt Vương Sa Mạc'],'doc','da','bug',['a85ac8','6a2a8a','e8c8f0','2a2228'],[45,60,90,65],[16,25],
+    ['Bọ cạp con giơ đuôi doạ ai cũng tưởng là đồ chơi.','Bọ cạp độc càng to như kìm, đuôi chích một phát tê nửa người.','Hạt vương sa mạc giáp tím, kìm kẹp nát cả đá tảng.'],{f:{claw2:1,stinger:1}}],
+  [['te_giac','te_giac_da','thach_te'],['Tê Giác Nhí','Tê Giác Đá','Thạch Tê Vương'],'da','thuong','quad',['9a9aa8','6a6a78','c8c8d4','e8e0c8'],[80,85,95,30],[16,25],
+    ['Tê giác con da sần như đá, chạy thẳng chẳng biết rẽ.','Tê giác đá sừng như mũi khoan, húc thủng cả vách núi.','Thạch tê vương giáp đá dày, đứng yên như một quả đồi.'],{f:{horn:'nose',ear:'round',tail:'short',plates:1}}],
+  [['rua_da','rua_nui','kim_quy'],['Rùa Đá','Rùa Núi','Kim Quy Thần'],'da','moc','shell',[['8ac85a','5a8a3a','f0e0a0','8a5a32'],['6a9a4a','4a6a2a','e0d090','8a5a32'],['f2c43d','b8901a','fff0b0','5fae46']],[60,68,70,32],[16,25],
+    ['Rùa con trên mai mọc mầm cây, ngủ đông trong đất.','Rùa núi mai thành vách đá, cây con mọc thành bụi.','Kim Quy thần mai vàng óng, truyền thuyết trả gươm ở hồ Gươm.'],{f:{sprout:1,tree3:1}}],
+  [['pha_le','thach_anh','kim_cuong'],['Pha Lê Nhí','Thạch Anh','Kim Cương Thần Thạch'],'da','tien','rock',['e88ac8','a8508a','f8d0ec','7ad8f0'],[50,60,110,50],[16,25],
+    ['Viên pha lê biết đi, ánh nắng chiếu qua thành cầu vồng.','Thạch anh hồng mọc thêm nhiều mũi tinh thể.','Thần thạch kim cương, viên đá quý giữa trán sáng như sao.'],{f:{crystal:1,gem3:1}}],
+  [['gau_truc','gau_truc_vo','dai_hung_mieu'],['Gấu Trúc Nhí','Gấu Trúc Võ Sĩ','Đại Hùng Miêu Quyền'],'vo','am','biped',['f4f4f2','2a2a30','ffffff','5fae46'],[67,82,62,43],[16,25],
+    ['Gấu trúc con ngậm lá tre, cố tỏ ra ngầu nhưng toàn ngã.','Gấu trúc võ sĩ đeo kính đen, đấm phát nào chắc phát đó.','Đại hùng miêu quyền, một tay chặn đứng cả xe tải.'],{f:{panda:1,leaf1:1,ear:'round'}}],
+  [['tui_nhi','tui_quyen','quyen_vuong_thu'],['Chuột Túi Nhí','Chuột Túi Quyền Anh','Quyền Vương Đại Thử'],'vo','','biped',['c8945a','8a5a32','f4d8b0','e8302a'],[70,85,60,62],[16,25],
+    ['Chuột túi con thò đầu khỏi túi mẹ, tập đấm vào không khí.','Đeo găng quyền anh đỏ, nhảy chân sáo quanh đối thủ.','Quyền vương đại thử, cú đấm móc làm rung cả võ đài.'],{f:{glove:1,ear:'long',tail:'thick'}}],
+  [['meo_muop','meo_ba_tu','meo_than_tai'],['Mèo Mướp','Mèo Ba Tư','Mèo Thần Tài'],'thuong','','quad',['e8c88a','b88a4a','fff4dc','f2c43d'],[45,50,40,90],[16,25],
+    ['Mèo mướp nhặt đồng xu rơi về dấu dưới gầm giường.','Mèo ba tư lông dài sang chảnh, nhìn đâu là thấy tiền ở đó.','Mèo thần tài đồng xu vàng trên trán, vẫy tay là tiền về.'],{f:{ear:'cat',tail:'thin',pat:'stripes',coin3:1}}],
+  [['nghe_con','trau_mong','than_nguu'],['Nghé Con','Trâu Mộng','Thần Ngưu Vương'],'thuong','vo','quad',['5a5a62','3a3a42','8a8a92','f4f1ea'],[75,95,80,65],[16,25],
+    ['Nghé con theo mẹ ra đồng, thích đầm mình trong vũng bùn.','Trâu mộng sừng cong như lưỡi liềm, cày một ngày cả mẫu ruộng.','Thần ngưu vương của làng Mường, húc một phát nát cả cổng thành.'],{f:{horn:'buffalo',ear:'round',tail:'thin'}}]];
+  for(const [ks,ns,t,t2,plan,cols,b,lv,ds,ex] of X) ks.forEach((k,i)=>{ const c=Array.isArray(cols[0])?cols[i]:cols;
+    LC_SPECIES[k]={name:ns[i],t,...(t2?{t2}:{}),st:i+1,b:b.slice(),...(i<2?{evo:{to:ks[i+1],lv:lv[i]}}:{}),rate:[.45,.2,.06][i],desc:ds[i],art:{plan,c,st:i+1,f:ex.f||{}},...(ex.water?{water:1}:{}),...(ex.night?{night:1}:{})}; });
+  /* 2 rồng huyền thoại: chỉ triệu hồi được ở Tế đàn Rồng Thần (rừng Bắc Đà Bắc) bằng 7 Mảnh Triệu Hồi; cả server mỗi con chỉ 1 chủ, 1 người chỉ có 1 con */
+  Object.assign(LC_SPECIES,{hac_long:{name:'Hắc Long Lôi Đế',t:'long',t2:'loi',st:3,legend:1,sl:18,b:[100,150,120,90],rate:0,desc:'Rồng đen huyền thoại, đuôi là lò phát điện, gầm lên là sấm sét xé trời Đà Bắc.'},
+    bach_long:{name:'Bạch Long Viêm Đế',t:'long',t2:'hoa',st:3,legend:1,sl:18,b:[100,150,120,90],rate:0,desc:'Rồng trắng huyền thoại, đuôi là lò lửa, vỗ cánh một cái là cả khu rừng nóng như mùa hè.'}});
+  Object.assign(LINHCAT.superSkill,{hac_long:{name:'Hắc Lôi Diệt Thế',mul:5.5,chain:8,slow:2,every:1},bach_long:{name:'Bạch Viêm Thánh Hoả',mul:5.5,aoe:4,heal:.1,team:6,every:1.1}});
+  LINHCAT.dragon={item:'manh_trieu_hoi',need:7,chance:.25,choices:['hac_long','bach_long'],lv:50,altar:{x:99.5,y:8.6}};
+  ITEMS.manh_trieu_hoi={name:'Mảnh Triệu Hồi Rồng Thần',icon:'lcshard'};
+  /* thêm Lính Cát hoang: 40 điểm mới ở Ké (vùng 4 sâu trong vườn quốc gia, Lv20–32), trang trại bác Trang 16 điểm + ao 4 điểm dưới nước */
+  const Z=LINHCAT.zones, st1=ks=>ks.filter(k=>LC_SPECIES[k]&&!LC_SPECIES[k].water);
+  Z[1].pool.push(...st1(['cun_lua','ga_choi','rai_nhi','khi_la','nai_co','cuu_bong','tho_bong','meo_mun','soi_con','cu_meo','vet_nhi','hac_con','ong_nhi','meo_muop','nghe_con','bo_ngua']));
+  Z[2].pool.push(...st1(['cun_lua','ga_choi','ech_com','khi_la','nai_co','cuu_bong','tho_bong','tien_nho','bi_ma','den_ma','cut_nhi','tuyet_nhi','soi_bang','meo_mun','qua_nhi','soi_con','khi_thien','cu_meo','mong_nhi','bo_ngua','ong_nhi','bo_hung','vet_nhi','hac_con','cong_con','coc_nhi','bo_cap','te_giac','rua_da','pha_le','gau_truc','tui_nhi','meo_muop','nghe_con',
+    'hoa_khuyen','rai_kiem','cuu_set','nai_hoa']));
+  Z[3].pool.push(...st1(['rong_dat','rong_canh','tien_nho','bi_ma','den_ma','cut_nhi','tuyet_nhi','soi_bang','qua_nhi','khi_thien','mong_nhi','bo_hung','cong_con','coc_nhi','bo_cap','te_giac','rua_da','pha_le','gau_truc','tui_nhi',
+    'hoa_khuyen','ga_lua','khi_rung','tho_trang','bi_quy','long_den','soi_tuyet','bao_dem','soi_xam','hau_niem','cu_dem','mong_mo','bo_ngua_kiem','ong_vo','bo_sung','vet_noi','hac_trang','cong_mua','coc_doc','cap_doc','te_giac_da','rua_nui','thach_anh','gau_truc_vo','tui_quyen','meo_ba_tu','trau_mong']));
+  Z[4]={lv:[20,32],pool:st1(['rong_dat','rong_canh','sa_long','phi_long','tien_canh','qua_dem','ech_ninja','nguoi_tuyet','cut_bang','hoa_khuyen','ga_lua','khi_rung','nai_hoa','cuu_set','tho_trang','bi_quy','long_den','soi_tuyet','bao_dem','soi_xam','hau_niem','cu_dem',
+    'mong_mo','bo_ngua_kiem','ong_vo','bo_sung','vet_noi','hac_trang','cong_mua','coc_doc','cap_doc','te_giac_da','rua_nui','thach_anh','gau_truc_vo','tui_quyen','meo_ba_tu','trau_mong','rong_may','chim_ung','vo_si','da_lan','niem_su','hoa_hoi','gau_ngu',
+    'than_khuyen','hoa_ke','tinh_tinh','than_loc','dien_cuu','bang_lang','hac_bao','lang_vuong','duong_lang','kim_giap','khong_tuoc'])};
+  Object.assign(LINHCAT.wzones[1],{pool:LINHCAT.wzones[1].pool.concat(['map_nhi','sen_nhi','luon_dien'])}); LINHCAT.wzones[2].pool.push('map_nhi','sen_nhi','luon_dien','rong_bien','sen_hong');
+  LINHCAT.wzones[3].pool.push('map_rang','sen_hong','luon_sam','rong_bien','thuy_long','map_vuong','lien_hoa','loi_xa');
+  LINHCAT.spots.push([31.5,18.5,1],[49.5,18.5,1],[11.5,26.5,1],[64.5,32.5,1],[7.5,38.5,1],[32.5,43.5,1],[20.5,49.5,1],[12.5,61.5,1],
+    [107.5,13.5,3],[143.5,17.5,3],[118.5,18.5,3],[193.5,25.5,2],[79.5,29.5,2],[96.5,29.5,2],[182.5,30.5,2],[107.5,34.5,2],[128.5,35.5,2],[77.5,41.5,2],[114.5,44.5,2],[191.5,45.5,2],[97.5,47.5,2],
+    [234.5,18.5,3],[273.5,18.5,3],[295.5,21.5,4],[255.5,33.5,3],[290.5,33.5,4],[215.5,34.5,3],[323.5,37.5,4],[266.5,40.5,3],[277.5,45.5,3],[300.5,47.5,4],[240.5,53.5,3],[311.5,54.5,4],[246.5,64.5,3],[227.5,67.5,3],[273.5,73.5,3],
+    [220.5,78.5,3],[319.5,78.5,4],[289.5,79.5,4],[265.5,83.5,3]);
+  const DL=LINHCAT.maps.dalat; DL.spots.push([33.5,20.5,1],[60.5,15.5,2],[70.5,24.5,2],[47.5,26.5,1],[25.5,27.5,1],[11.5,23.5,1],[70.5,38.5,2],[50.5,40.5,2],[33.5,43.5,1],[20.5,47.5,2],[50.5,47.5,2],[10.5,53.5,1],[33.5,57.5,2],[22.5,63.5,2],[46.5,65.5,2],[35.5,66.5,2]);
+  DL.pool.push('nai_co','tho_bong','cuu_bong','ong_nhi','bo_ngua','hac_con','vet_nhi','khi_la','meo_muop','nghe_con','cong_con','tien_nho','mong_nhi','nai_hoa','cuu_set','ong_vo','hac_trang');
+  LINHCAT.water.dalat=[[61.5,54.5,1],[49.5,56.5,1],[73.5,58.5,2],[63.5,63.5,2]]; }
+/* Mèn Mén: huyền thoại meme của Nghiện Motion, thi thoảng hiện ở rừng Ké (mỗi chu kỳ 12 phút 12% hiện ở 1 bãi rừng xa), mỗi người chỉ thu phục được 1 con.
+   Chỉ số ×1,5 và tăng theo cấp chủ: ×(1 + cấp chủ / 50); ở MU công lấy theo công của chủ nếu cao hơn. Chiêu Ném Cứt: độc cộng dồn mỗi lần trúng (tối đa 10 tầng, trừ máu mỗi lượt / mỗi giây), làm chậm, giảm hồi máu */
+LC_SPECIES.men_men={name:'Mèn Mén',t:'doc',t2:'thuong',st:3,legend:1,men:1,b:[95,105,85,95],rate:.25,desc:'Huyền thoại của Nghiện Motion: tai nhọn, mũi to, mào xanh. Thấy ai là bốc cứt ném rồi cười khành khạch, dính một cục là thối cả trận.'};
+LC_MOVES.nem_cut={name:'Ném Cứt',t:'doc',pow:60,acc:.95,poop:1};
+LINHCAT.men={sp:'men_men',cap:1,lv:45,chance:.12,mul:1.5,perLv:1/50,poison:{max:10,per:.03,slow:.7,healCut:.5},mu:{dot:.05,slow:1.5,sec:5},
+  spots:[[107.5,13.5],[143.5,17.5],[118.5,18.5],[79.5,29.5],[193.5,25.5],[234.5,18.5],[273.5,18.5],[255.5,33.5],[215.5,34.5],[266.5,40.5],[290.5,33.5],[227.5,67.5]]};
+/* Blacknut: mèo trắng trùm khăn kín mặt, hay lảng vảng ở nơi làm việc (Lumen, Bearplus, Everfit, VNPT, Nghiện Motion, Lavi, 120 Yên Lãng, DAS): mỗi chu kỳ 40 giây hiện 10 giây ở 1 nơi rồi biến sang map khác.
+   Chỉ Bóng Huyền Thoại bắt được, mỗi người 1 con. Đứng đầu đội: chỉ số MU của chủ ×1,2, mọi tiền + EXP chủ tự kiếm được ×2. Thi thoảng nói "Cũng đúng nhờ" / "Cũng là rỉ luôn đấy chứ" */
+LC_SPECIES.blacknut={name:'Blacknut',t:'thuong',t2:'than',st:3,legend:1,bn:1,b:[90,85,90,125],rate:.6,desc:'Mèo trắng trùm khăn kín mặt, chỉ ló đôi mắt hổ phách. Hay lảng vảng ở chỗ làm việc, ở đâu cũng chỉ 10 giây rồi biến. Ai hỏi gì cũng gật gù: "Cũng đúng nhờ".'};
+LINHCAT.bn={sp:'blacknut',lv:40,cycle:40e3,stay:10e3,ball:'bong_ht',stat:.2,mul:2,say:['Cũng đúng nhờ','Cũng là rỉ luôn đấy chứ'],
+  maps:{lumen:[[8.4,26.4]],bearplus:[[18.8,9.4],[13.8,9.2],[17.4,16.4]],everfit:[[9.4,16.4],[13.4,5],[9.4,10]],vnpt:[[12.4,5.8],[22.4,5.8],[27,16.6]],
+    nghienmotion:[[15.4,10.6],[23.8,10.4],[11.8,19.6]],lavi:[[21,13.8],[14.4,14],[10.8,16.8]],yenlang:[[14.6,10.4],[6,7.4],[28.2,12]],das:[[19,15.4],[22.9,8],[8.4,6]]}};
+LINHCAT.ball.bong_ht=3; LINHCAT.shop.bong_ht=1500000; ITEMS.bong_ht={name:'Bóng Huyền Thoại',icon:'lcball3'};
+for(const sc of Object.keys(LINHCAT.bn.maps)) if(!LINHCAT.maps[sc]) LINHCAT.maps[sc]={spots:[],bn:1};   /* nơi làm việc: không có Lính Cát hoang thường, chỉ Blacknut ghé qua */
+function bnWild(ms,scene){ const B=LINHCAT.bn, c=Math.floor(ms/B.cycle); if(ms-c*B.cycle>=B.stay||!B.maps[scene]) return []; let h=(c*2654435761)>>>0; h^=h>>>15; h=Math.imul(h,0x2c1b3c6d)>>>0; h^=h>>>12;
+  const ks=Object.keys(B.maps), sc=ks[h%ks.length]; if(sc!==scene) return []; const sp=B.maps[sc][(h>>>8)%B.maps[sc].length]; return [{i:3000,key:'bn:'+c,sp:B.sp,lv:B.lv,x:sp[0],y:sp[1],bn:1,until:c*B.cycle+B.stay}]; }
+/* con đứng đầu đội là Blacknut (còn sức) */
+const lcLeadBn=p=>{ const m=p&&p.lc&&p.lc.party&&p.lc.party[0]; return !!(m&&m.hp>0&&LC_SPECIES[m.sp]&&LC_SPECIES[m.sp].bn); };
+/* dạng Huyền Thoại Lv50 (mọi loài trừ huyền thoại): đủ Lv50 tự thức tỉnh, chỉ số ×1,2 + bộ chỉ số phụ theo lối chơi 1 tướng Dota (mỗi hệ 3 lối: công / thủ / tốc, chọn theo dáng chỉ số loài).
+   Lính Cát (khi đấu + đánh quái MU): ls hút máu, shred trừ giáp, root đánh ra trói (mất lượt / choáng 1,2 giây ở MU), dr giảm sát thương đối thủ + quái MU, splash đánh lan.
+   Chủ (con đứng đầu đội, ở MU): cdr giảm hồi chiêu, mp mana, atk sát thương, drain hút máu, aspd tốc đánh, bkb kháng phép 2 giây (hồi theo điểm), move chạy nhanh, gold thêm % tiền kiếm được.
+   Cân bằng: mỗi loài cùng 10 điểm (loài cuối dòng chỉ số gốc thấp được thêm điểm), mỗi điểm quy đổi theo unit */
+const LC_ASC={lv:50,mul:1.2,bkb:{sec:2,cd:22,per:3,min:8},
+  unit:{ls:.05,shred:.07,root:.05,dr:.04,splash:.12,cdr:.035,mp:.07,atk:.05,drain:.015,aspd:.05,bkb:1,move:.03,gold:.025},
+  pet:['ls','shred','root','dr','splash'],
+  names:{ls:'Hút máu',shred:'Trừ giáp',root:'Đánh ra trói',dr:'Giảm sát thương đối thủ / quái MU',splash:'Đánh lan',cdr:'Giảm hồi chiêu',mp:'Tăng mana',atk:'Tăng sát thương',drain:'Tăng hút máu',aspd:'Tăng tốc đánh',bkb:'Kháng phép 2 giây',move:'Chạy nhanh hơn',gold:'Thêm tiền kiếm được'},
+  heroes:{hoa:[['Lina',{splash:3,atk:3,cdr:2,shred:1}],['Phoenix',{ls:2,dr:2,splash:2,drain:2,mp:1}],['Ember Spirit',{splash:2,move:3,aspd:2,atk:2}]],
+    thuy:[['Morphling',{ls:2,atk:3,aspd:2,shred:2}],['Tidehunter',{dr:3,root:2,splash:2,mp:2}],['Naga Siren',{root:2,aspd:3,move:2,splash:2}]],
+    moc:[['Nature\'s Prophet',{splash:2,atk:2,move:3,gold:2}],['Treant Protector',{root:3,dr:3,mp:2,cdr:1}],['Dark Willow',{root:3,cdr:2,move:2,atk:2}]],
+    loi:[['Zeus',{splash:3,atk:3,mp:2,cdr:1}],['Razor',{shred:3,drain:2,dr:2,aspd:2}],['Storm Spirit',{splash:2,move:3,mp:2,cdr:2}]],
+    tien:[['Enchantress',{ls:2,mp:2,cdr:3,dr:2}],['Oracle',{dr:3,bkb:2,mp:2,cdr:2}],['Dazzle',{ls:2,bkb:2,cdr:2,mp:3}]],
+    ma:[['Shadow Fiend',{shred:2,atk:3,drain:2,gold:2}],['Spectre',{ls:2,dr:3,drain:2,move:2}],['Death Prophet',{ls:3,drain:3,splash:2,mp:1}]],
+    long:[['Jakiro',{splash:3,root:2,mp:2,cdr:2}],['Dragon Knight',{dr:3,splash:3,drain:2,atk:1}],['Winter Wyvern',{root:2,dr:2,cdr:2,aspd:3}]],
+    bang:[['Ancient Apparition',{shred:2,root:2,atk:3,cdr:2}],['Crystal Maiden',{root:3,mp:3,cdr:2,splash:1}],['Drow Ranger',{root:2,aspd:3,atk:2,shred:2}]],
+    am:[['Night Stalker',{shred:2,ls:2,atk:2,move:3}],['Slardar',{shred:4,root:2,dr:2,move:1}],['Phantom Assassin',{ls:2,shred:2,atk:3,aspd:2}]],
+    than:[['Invoker',{splash:2,cdr:3,mp:2,atk:2}],['Omniknight',{dr:3,bkb:3,ls:2,mp:1}],['Faceless Void',{root:3,aspd:3,bkb:2,ls:1}]],
+    thuong:[['Sven',{splash:3,atk:3,dr:2,gold:1}],['Alchemist',{gold:4,dr:2,ls:2,aspd:1}],['Bounty Hunter',{gold:3,shred:2,move:2,atk:2}]],
+    trung:[['Broodmother',{ls:3,splash:2,aspd:2,move:2}],['Nyx Assassin',{root:2,dr:3,cdr:2,mp:2}],['Weaver',{aspd:3,move:3,ls:2,shred:1}]],
+    bay:[['Skywrath Mage',{shred:3,mp:3,atk:2,cdr:1}],['Batrider',{splash:3,root:2,dr:2,move:2}],['Windranger',{root:2,aspd:3,move:3,cdr:1}]],
+    doc:[['Venomancer',{splash:3,shred:2,atk:2,cdr:2}],['Necrophos',{ls:2,drain:2,dr:2,mp:3}],['Viper',{shred:3,dr:2,root:2,drain:2}]],
+    da:[['Tiny',{splash:3,atk:3,root:2,shred:1}],['Earthshaker',{root:3,splash:2,dr:2,cdr:2}],['Earth Spirit',{root:2,move:3,splash:2,cdr:2}]],
+    vo:[['Ursa',{shred:2,ls:2,aspd:3,atk:2}],['Axe',{dr:3,splash:2,root:2,bkb:2}],['Troll Warlord',{aspd:4,bkb:2,ls:2,move:1}]]}};
+/* bộ chỉ số dạng Lv50 của 1 loài (cache): { hero, style 0 công · 1 thủ · 2 tốc, pts {k: điểm}, v {k: giá trị} } */
+const ASC_C={}; const lcAsc=sp=>{ if(ASC_C[sp]!==undefined) return ASC_C[sp]; const s=LC_SPECIES[sp]; if(!s||s.legend||s.npc) return ASC_C[sp]=null;
+  const b=s.b, style=b[1]>=Math.max(b[0],b[2],b[3])?0:b[3]>=Math.max(b[0],b[2])?2:1, [hero,w]=(LC_ASC.heroes[s.t]||LC_ASC.heroes.thuong)[style], sum=b.reduce((a,v)=>a+v,0), B=Math.min(14,Math.round(10*500/sum)), tw=Object.values(w).reduce((a,v)=>a+v,0);
+  const pts={}; let left=B; for(const [k,v] of Object.entries(w).sort((a,c)=>c[1]-a[1])){ const n=Math.max(1,Math.round(v*B/tw)); pts[k]=Math.min(n,left); left-=pts[k]; } if(left>0){ const k0=Object.keys(pts)[0]; pts[k0]+=left; }
+  const v={}; for(const [k,n] of Object.entries(pts)) v[k]=k==='bkb'?Math.max(LC_ASC.bkb.min,LC_ASC.bkb.cd-LC_ASC.bkb.per*n):+(n*LC_ASC.unit[k]).toFixed(3); return ASC_C[sp]={hero,style,pts,v}; };
+/* con đứng đầu đội đã thức tỉnh Lv50: chỉ số cho chủ (MU, tốc chạy, tiền) */
+const lcLeadAsc=p=>{ const m=p&&p.lc&&p.lc.party&&p.lc.party[0]; if(!m||!m.asc||m.hp<=0) return null; const a=lcAsc(m.sp); return a?a.v:null; };
+/* khắc hệ với loài 2 hệ: nhân hệ số của cả 2 hệ */
+const lcEff=(mt,sp)=>{ const s=LC_SPECIES[sp]||{}, E=LC_EFF[mt]||{}; let e=E[s.t]??1; if(s.t2) e*=E[s.t2]??1; return e; };
+/* ---------- 15 câu lạc bộ Lính Cát ở nơi vắng (rừng Bắc, vườn quốc gia): 12 võ đài có huấn luyện viên giỏi (thắng nhận Huy hiệu Chande), 3 CLB luyện tập đấu tập lấy EXP ----------
+   Võ đài: đội đối thủ nhiều con (con sau ra khi con trước gục), không ném bóng, bỏ chạy là thua; không nhận thần thú siêu huyền thoại (×15, ×18). Đủ 12 huy hiệu: chọn 1 trong 5 vũ khí tối thượng cho Lính Cát */
+const LCCLUB={sparDay:12,rematch:.3,
+  gyms:[
+    {n:1,t:'moc',x:79,y:8,name:'HLV Lá Xanh Thảo My',badge:'Huy hiệu Lá Xanh',bonus:1.05,ai:.75,prize:{vnd:300000,exp:200,items:{sach_kn:2}},team:[['nai_co',12],['khi_la',13],['la_binh',15]],
+      say:'CLB Lá Xanh tập ở rừng thông. Muốn qua chị thì nhớ: Cỏ sợ Lửa, Băng, Bay, Độc, Côn trùng!',look:{gender:'nu',hair:'ponytail',hairColor:'3a6a2a',skin:'f0c4a0',outfit:{top:'sp_khoac_reu',bottom:'sp_q_v_mint',shoes:'sp_g_ung_mua',head:'sp_m_05'}}},
+    {n:2,t:'bay',x:116,y:31,name:'HLV Phi Công Gió',badge:'Huy hiệu Cánh Gió',bonus:1.07,ai:.78,prize:{vnd:450000,exp:260,items:{bong_vang:3}},team:[['se_nhi',16],['vet_noi',17],['chim_ung',18],['hac_trang',19]],
+      say:'Trên trời ai thắng được đội bay của anh? Điện, Băng, Đá là khắc tinh, nhưng đừng mong anh chỉ thêm!',look:{gender:'nam',hair:'swept',hairColor:'2b2326',skin:'e0a878',outfit:{top:'sp_a_bomber',bottom:'sp_q_cargo_be',shoes:'sp_g_boot_den',eyes:'sp_k_avi_0'}}},
+    {n:3,t:'trung',x:147,y:8,name:'HLV Côn Trùng Tí Nị',badge:'Huy hiệu Cánh Bướm',bonus:1.09,ai:.8,prize:{vnd:600000,exp:320,items:{sach_kn:3}},team:[['ong_vo',20],['bo_ngua_kiem',21],['bo_sung',22],['buom_tien',23]],
+      say:'Côn trùng nhỏ mà có võ! Lửa, Bay, Đá đốt bọn chị đau lắm đấy...',look:{gender:'nu',hair:'bun',hairColor:'2b2326',skin:'f6d2b8',outfit:{top:'sp_a_tiedye',bottom:'sp_q_short_kaki',shoes:'sp_g_sandal_hong',head:'sp_m_34'}}},
+    {n:4,t:'thuy',x:175,y:23,name:'HLV Sóng Bạc Hải Nam',badge:'Huy hiệu Sóng Bạc',bonus:1.11,ai:.82,prize:{vnd:800000,exp:400,items:{sach_kn5:1,thuoc_cat:5}},team:[['rai_kiem',24],['ech_ninja',25],['map_rang',26],['thuy_tuong',27]],
+      say:'Nước chảy đá mòn. Điện với Cỏ là thứ duy nhất làm đội anh run tay.',look:{gender:'nam',hair:'messy',hairColor:'1c1820',skin:'c8946a',outfit:{top:'sp_a_soc_ngang',bottom:'sp_q_short_kaki',shoes:'sp_g_xo_ngon',head:'sp_m_14'}}},
+    {n:5,t:'loi',x:245,y:45,name:'HLV Sấm Sét Volt',badge:'Huy hiệu Tia Chớp',bonus:1.13,ai:.84,prize:{vnd:1000000,exp:480,items:{bong_vang:5,da_sam:1}},team:[['cuu_set',28],['luon_sam',29],['set_binh',30],['loi_tuong',31],['cat_loi',31]],
+      say:'Điện áp đội tao cao lắm. Hệ Đá không ăn điện đâu nhé, à mà tao lỡ mồm rồi.',look:{gender:'nam',hair:'fade',hairColor:'f2c43d',skin:'d8a47a',outfit:{top:'sp_a_bomber',bottom:'sp_q_cargo_be',shoes:'sp_g_boot_vang',head:'sp_m_21'}}},
+    {n:6,t:'hoa',x:231,y:56,name:'HLV Hoả Diệm Hồng Nhung',badge:'Huy hiệu Ngọn Lửa',bonus:1.15,ai:.86,prize:{vnd:1200000,exp:560,items:{sach_kn5:1,da_lua:1}},team:[['hoa_khuyen',31],['ga_lua',32],['cat_hoa',33],['than_khuyen',34],['hoa_tuong',34]],
+      say:'Lửa của chị đốt cháy mọi đội Cỏ, Băng, Bọ. Nước với Đá à? Thử xem chị có sợ không!',look:{gender:'nu',hair:'long',hairColor:'c8302a',skin:'f0c4a0',outfit:{top:'sp_a_soc_do',bottom:'vay_den',shoes:'giay_den',neck:'sp_c_ngoc_trai'}}},
+    {n:7,t:'da',x:261,y:26,name:'HLV Thạch Trụ Lão Sơn',badge:'Huy hiệu Đá Tảng',bonus:1.17,ai:.88,prize:{vnd:1400000,exp:640,items:{ngoc_ch:1,sach_kn5:1}},team:[['te_giac_da',34],['rua_nui',35],['thach_anh',36],['nui_da',37],['thach_te',37]],
+      say:'Đội của lão cứng như núi. Nước, Cỏ, Võ thì... thôi lão không nói nữa.',look:{gender:'nam',hair:'bald',hairColor:'9a9a9a',skin:'c8946a',outfit:{top:'sp_a_gile',bottom:'kaki',shoes:'sp_g_sandal_nau'},opts:{beard:'full'}}},
+    {n:8,t:'vo',x:266,y:67,name:'HLV Thiết Quyền Bá Đạo',badge:'Huy hiệu Nắm Đấm',bonus:1.19,ai:.9,prize:{vnd:1700000,exp:720,items:{ngoc_ch:1,sach_kn5:2}},team:[['gau_truc_vo',37],['tui_quyen',38],['vo_tuong',39],['hoa_ke',40],['quyen_vuong_thu',40]],
+      say:'Võ đài này chỉ có một luật: ai đứng cuối cùng là người thắng! Bay, Tâm linh, Tiên làm bọn ta khó chịu lắm.',look:{gender:'nam',hair:'buzz',hairColor:'1c1820',skin:'b8845a',outfit:{top:'set_superman',bottom:'kaki',shoes:'dep_to_ong'}}},
+    {n:9,t:'ma',x:255,y:84,name:'HLV Bóng Đêm U Linh',badge:'Huy hiệu U Linh',bonus:1.21,ai:.92,prize:{vnd:2000000,exp:800,items:{ngoc_ch:2,bong_vang:5}},team:[['bi_quy',40,2],['long_den',41,2],['quy_tuong',42,2],['bi_vuong',43,2],['chuc_dang',43,2]],
+      say:'Hihihi... hồn ma không sợ đấm đá. Chỉ có Ma và Bóng tối mới chạm được vào bọn chị...',look:{gender:'nu',hair:'long',hairColor:'f4f0e0',skin:'e8d8d0',outfit:{top:'cardigan',bottom:'vay_den',shoes:'giay_den'}}},
+    {n:10,t:'bang',x:311,y:28,name:'HLV Băng Giá Tuyết Lan',badge:'Huy hiệu Băng Tuyết',bonus:1.23,ai:.94,prize:{vnd:2400000,exp:900,items:{ngoc_ch:2,sach_kn5:2}},team:[['cut_bang',43,4],['nguoi_tuyet',44,4],['soi_tuyet',45,4],['cat_bang',45,4],['bang_lang',46,4],['bang_de',46,4]],
+      say:'Lạnh thấu xương chưa? Lửa, Võ, Đá là ba thứ đội em ghét nhất.',look:{gender:'nu',hair:'bun',hairColor:'b8e0f8',skin:'f6d2b8',outfit:{top:'sp_khoac_reu',bottom:'sp_q_v_xep_ly',shoes:'sp_g_boot_den',head:'sp_m_48'}}},
+    {n:11,t:'than',x:292,y:70,name:'HLV Thiền Sư Tâm Không',badge:'Huy hiệu Tâm Nhãn',bonus:1.25,ai:.96,prize:{vnd:2800000,exp:1000,items:{ngoc_ch:3,ngoc_ch_ht:1}},team:[['hau_niem',46,5],['cu_than',47,5],['mong_than',48,5],['dai_niem',48,5],['te_thien',49,5],['tien_hau',49,5]],
+      say:'Ta đọc được nước đi của con trước khi con nghĩ ra. Bóng tối, Ma, Côn trùng... con tự hiểu.',look:{gender:'nam',hair:'bald',hairColor:'1c1820',skin:'d8a47a',outfit:{top:'sp_a_ringer',bottom:'kaki',shoes:'sp_g_sandal_nau'},opts:{beard:'full'}}},
+    {n:12,t:'long',x:327,y:72,name:'Long Vương Tối Thượng Đại Long',badge:'Huy hiệu Long Vương',bonus:1.3,ai:.98,prize:{vnd:4000000,exp:1500,items:{ngoc_ch_ht:2,sach_kn5:3}},team:[['long_vuong',50,8,1],['bao_cat_long',50,8,1],['hai_than',50,8,1],['thien_long',50,8,1],['thuong_luong',50,8,1],['phi_long',50,8,1]],
+      say:'Võ đài cuối cùng. 6 con rồng Lv50 dạng Huyền Thoại, +8 ngọc. Băng, Rồng, Tiên... chỉ kẻ mạnh mới được chạm vào vũ khí tối thượng.',look:{gender:'nam',hair:'swept',hairColor:'1c1820',skin:'e0a878',outfit:{hairx:'sp_t_pomp',top:'vest',bottom:'kaki',shoes:'giay_den',eyes:'sp_k_avi_1'}}}],
+  train:[{k:'tanbinh',x:92,y:39,name:'CLB Tân Binh Rừng Thông',coach:'Thầy Tân',off:-2,n:2,mul:1.3,vnd:20000},{k:'luyencong',x:218,y:25,name:'CLB Luyện Công Vườn Quốc Gia',coach:'Cô Luyện',off:1,n:3,mul:1.6,vnd:40000},
+    {k:'caothu',x:286,y:47,name:'CLB Cao Thủ Suối Đá',coach:'Võ sư Cao',off:4,n:3,mul:2,vnd:80000}],
+  /* 5 vũ khí tối thượng: chọn 1 khi đủ 12 huy hiệu, trao cho Lính Cát nào cũng được (đổi qua lại). all: mọi chỉ số, rồi cộng riêng từng chỉ số */
+  weapons:{rapier:{name:'Thần Kiếm Rapier',all:.2,atk:.45,crit:.2,desc:'Mọi chỉ số +20%, công +45%, thêm 20% chí mạng (×1,5)'},
+    aegis:{name:'Khiên Aegis Bất Tử',all:.2,def:.4,hp:.2,revive:.5,desc:'Mọi chỉ số +20%, thủ +40%, máu +20%, gục lần đầu mỗi trận thì hồi sinh 50% máu'},
+    satanic:{name:'Huyết Kiếm Satanic',all:.2,hp:.4,ls:.25,desc:'Mọi chỉ số +20%, máu +40%, hút 25% sát thương gây ra'},
+    butterfly:{name:'Cánh Bướm Butterfly',all:.2,spd:.6,evade:.2,desc:'Mọi chỉ số +20%, tốc +60%, né 20% đòn đánh'},
+    aghanim:{name:'Quyền Trượng Aghanim',all:.32,pow:.1,pierce:1,desc:'Mọi chỉ số +32%, chiêu +10% sức mạnh, xuyên kháng hệ (×0,5 thành ×1, miễn nhiễm thành ×0,5)'}}};
+for(const G0 of LCCLUB.gyms){ const id='lcg_'+G0.n; NPCS.push({id,x:G0.x,y:G0.y-1.4,place:'lcgym'}); NPC_LOOKS[id]={name:G0.name+' (CLB '+LC_TYPES[G0.t].name+')',look:G0.look}; }
+for(const T0 of LCCLUB.train){ const id='lct_'+T0.k; NPCS.push({id,x:T0.x,y:T0.y-1.4,place:'lctrain'}); NPC_LOOKS[id]={name:T0.coach+' ('+T0.name+')',look:{gender:'nam',hair:'buzz',hairColor:'2b2326',skin:'d8a47a',outfit:{top:'sp_a_ringer',bottom:'sp_q_cargo_be',shoes:'sp_g_boot_den',head:'sp_m_26'}}}; }
 for(const [k,to] of [['chuot_tuong','chuot_vuong'],['ho_mang','mang_xa'],['doi_dem','da_doi'],['long_ngu','hai_long']]) LC_SPECIES[k].evo={to,lv:25};
 for(const s of Object.values(LC_SPECIES)){ const nx=s.evo&&LC_SPECIES[s.evo.to]; if(!nx||s.legend) continue; if(s.st===2&&nx.st===3&&s.evo.lv>25) s.evo.lv=25; else if(s.st===1&&nx.evo&&s.evo.lv>=22) s.evo.lv=16; }
 for(const s of Object.values(LC_SPECIES)){ if(s.npc) continue; const tgt=s.legend?580:s.st===1?300:s.st===2?(s.evo?405:450):500, sum=s.b.reduce((a,v)=>a+v,0); s.b=s.b.map(v=>Math.max(15,Math.round(v*tgt/sum))); }
 const lcStats=(sp,lv)=>{ const b=LC_SPECIES[sp].b; return {hp:Math.floor(b[0]*2*lv/100)+lv+10,atk:Math.floor(b[1]*2*lv/100)+5,def:Math.floor(b[2]*2*lv/100)+5,spd:Math.floor(b[3]*2*lv/100)+5}; };
 // chỉ số thật của 1 con (có cấp ngọc cường hoá enh: mỗi cấp +6% · dạng huyền thoại myth: ×1,35)
-const lcStatsOf=m=>{ const b=lcStats(m.sp,m.lv), k=(1+(m.enh||0)*LINHCAT.enh.per)*(m.myth?LINHCAT.myth.mul:1)*(LC_SPECIES[m.sp].sl||1);   /* sl: thần thú siêu huyền thoại ×15 */ return {hp:Math.round(b.hp*k),atk:Math.round(b.atk*k),def:Math.round(b.def*k),spd:Math.round(b.spd*k)}; };
-const lcMoves=(sp,lv)=>{ const tm=LC_TYPE_MOVES[LC_SPECIES[sp].t]||LC_TYPE_MOVES.thuong, out=['hu',tm[0]]; if(lv>=10) out.push(tm[1]); if(lv>=22&&!out.includes(tm[2])) out.push(tm[2]); return out; };
+const lcStatsOf=m=>{ const b=lcStats(m.sp,m.lv), MN=LINHCAT.men, k=(1+(m.enh||0)*LINHCAT.enh.per)*(m.myth?LINHCAT.myth.mul:1)*(LC_SPECIES[m.sp].sl||1)*(m.asc?LC_ASC.mul:1)*(LC_SPECIES[m.sp].men?MN.mul*(1+(m.ol||0)*MN.perLv):1),   /* Mèn Mén: ×1,5 theo cấp chủ (ol) */ W=(m.held&&LCCLUB.weapons[m.held])||{}, a=W.all||0;   /* sl: thần thú siêu huyền thoại ×15 · asc: dạng Huyền Thoại Lv50 · held: vũ khí tối thượng */
+  return {hp:Math.round(b.hp*k*(1+a+(W.hp||0))),atk:Math.round(b.atk*k*(1+a+(W.atk||0))),def:Math.round(b.def*k*(1+a+(W.def||0))),spd:Math.round(b.spd*k*(1+a+(W.spd||0)))}; };
+const lcMoves=(sp,lv)=>{ const s=LC_SPECIES[sp]; if(s.men) return ['nem_cut','axit','bom_doc','dam_sam']; const tm=LC_TYPE_MOVES[s.t]||LC_TYPE_MOVES.thuong, out=['hu',tm[0]]; if(lv>=10) out.push(tm[1]); if(lv>=22&&!out.includes(tm[2])) out.push(tm[2]);
+  const t2=s.t2&&LC_TYPE_MOVES[s.t2]; if(t2){ if(lv>=16&&!out.includes(t2[1])) out.push(t2[1]); if(lv>=36&&!out.includes(t2[2])) out.push(t2[2]); } return out; };   /* loài 2 hệ: Lv16 học chiêu vừa, Lv36 chiêu mạnh của hệ 2 */
 const lcNext=lv=>lv*20;   // EXP lên cấp kế
 // Lính Cát hoang đang ở mỗi điểm (đổi loài mỗi `period`, khớp giữa server và máy khách); ban ngày không có hệ Ma
 function lcWild(ms=Date.now(),scene='retreat'){ const L=LINHCAT, M=L.maps[scene]; if(!M) return []; const per=Math.floor(ms/L.period), h=vnTime(ms).hf, night=h>=19||h<5, salt=scene.length*977+scene.charCodeAt(0);
   return M.spots.map(([x,y,z],i)=>{ const Z=L.zones[z], r=n=>{ let h=(per*73856093)^(i*19349663)^(n*83492791)^salt; h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; return (h>>>0)/4294967296; };
     let pool=(M.pool||Z.pool).filter(k=>night||!LC_SPECIES[k].night); if(!pool.length) pool=['cat_con']; let sp=pool[Math.floor(r(1)*pool.length)], lv=Z.lv[0]+Math.floor(r(2)*(Z.lv[1]-Z.lv[0]+1));
-    if(z===3&&r(5)<L.legendChance){ sp=L.legend[Math.floor(r(6)*L.legend.length)]; lv=Math.max(lv,30); }   // huyền thoại: rất hiếm, chỉ ở vùng xa
-    return {i,key:scene+':'+per+':'+i,sp,lv,x:x+(r(3)-.5)*2,y:y+(r(4)-.5)*1.2}; }); }
+    if(z>=3&&r(5)<L.legendChance){ sp=L.legend[Math.floor(r(6)*L.legend.length)]; lv=Math.max(lv,30); }   // huyền thoại: rất hiếm, chỉ ở vùng xa
+    return {i,key:scene+':'+per+':'+i,sp,lv,x:x+(r(3)-.5)*2,y:y+(r(4)-.5)*1.2}; }).concat(((L.water||{})[scene]||[]).map(([x,y,z],j)=>{ const i=1000+j, Z=L.wzones[z], r=n=>{ let h=(per*73856093)^(i*19349663)^(n*83492791)^salt; h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; return (h>>>0)/4294967296; };
+    let sp=Z.pool[Math.floor(r(1)*Z.pool.length)], lv=Z.lv[0]+Math.floor(r(2)*(Z.lv[1]-Z.lv[0]+1)); if(z===3&&r(5)<L.wRare.chance){ sp=L.wRare.sp; lv=Math.max(lv,L.wRare.lv); }   /* dưới nước: lắc rất ít cho khỏi lên bờ */
+    return {i,key:scene+':'+per+':w'+j,sp,lv,x:x+(r(3)-.5)*.5,y:y+(r(4)-.5)*.4,water:1}; })).concat(scene==='retreat'?menWild(per,salt):[],bnWild(ms,scene)); }
+// Mèn Mén lang thang: mỗi chu kỳ lắc 1 lần xem có hiện không, hiện ở 1 bãi rừng xa
+function menWild(per,salt){ const M=LINHCAT.men, out=[], used=new Set(); for(let j=0;j<M.cap;j++){ const r=n=>{ let h=(per*73856093)^((3000+j)*19349663)^(n*83492791)^salt; h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; h=Math.imul(h,0x45d9f3b); h^=h>>>16; return (h>>>0)/4294967296; };
+    if(r(1)>=M.chance) continue; let s=Math.floor(r(2)*M.spots.length); while(used.has(s)) s=(s+1)%M.spots.length; used.add(s); const [x,y]=M.spots[s]; out.push({i:2000+j,key:'retreat:'+per+':m'+j,sp:M.sp,lv:M.lv,x,y,men:1}); } return out; }
 Object.assign(ITEMS,{bong_cat:{name:'Bóng Cát',icon:'lcball'},bong_vang:{name:'Bóng Cát Vàng',icon:'lcball2'},thuoc_cat:{name:'Thuốc hồi máu Lính Cát',icon:'lcpotion'},
   da_lua:{name:'Đá Lửa',icon:'lcstone_hoa'},da_nuoc:{name:'Đá Nước',icon:'lcstone_thuy'},da_sam:{name:'Đá Sấm',icon:'lcstone_loi'},da_la:{name:'Đá Lá',icon:'lcstone_moc'},
   da_bang:{name:'Đá Băng',icon:'lcstone_bang'},da_tien:{name:'Đá Tiên',icon:'lcstone_tien'},da_trang:{name:'Đá Trăng',icon:'lcstone_am'},da_tam:{name:'Đá Tâm Linh',icon:'lcstone_than'}});
-SKILLS.linhcat={name:'Huấn luyện Lính Cát',key:'—',desc:'Học với Giáo sư Cát ở Trung tâm Lính Cát (thị trấn Đà Bắc): thu phục, huấn luyện Lính Cát'};
-PLACES.linhcat={name:'Trung tâm Lính Cát',where:'thị trấn Đà Bắc, phía Đông chợ',door:{x:LINHCAT.door.x,y:LINHCAT.door.y},scene:'linhcat'};
+SKILLS.linhcat={name:'Huấn luyện Lính Cát',key:'—',desc:'Học với Giáo sư Cát ở Trung tâm Lính Cát (cạnh Khu tâm linh, Đà Bắc): thu phục, huấn luyện Lính Cát'};
+PLACES.linhcat={name:'Trung tâm Lính Cát',where:'cạnh Khu tâm linh (chùa Đà Bắc)',door:{x:LINHCAT.door.x,y:LINHCAT.door.y},scene:'linhcat'};
 INTERIORS.linhcat={name:'Trung tâm Lính Cát',W:24,H:16,spawn:{x:12,y:14.2},exit:'linhcat'};
 NPCS.push({id:'gs_cat',scene:'linhcat',x:5.4,y:6.4,place:'lcgs'},{id:'yta_cat',scene:'linhcat',x:12,y:3.6,place:'lcyta'});
 Object.assign(NPC_LOOKS,{gs_cat:{name:'Giáo sư Cát',look:{gender:'nam',hair:'swept',hairColor:'c8c0b0',skin:'f0c4a0',outfit:{top:'ao_bep_haky',bottom:'kaki',shoes:'giay_den',eyes:'kinh_can'},opts:{beard:'mustache',mouth:'smile'}}},
@@ -1206,7 +1491,7 @@ Object.assign(MU.acc,{
   kh_musk:{slot:'shield',name:'Động Cơ Của Elon Musk',price:10000000,bonus:{aspd:.32,atk:.05},dbl:.1,desc:'Động cơ tên lửa bạc phụt lửa xanh. Tốc đánh +32%, 10% đánh liền 2 đòn'},
   kh_howard:{slot:'shield',name:'Đũa Thần Của Howard Le',price:10000000,bonus:{spell:.3,gw:.3,atk:.1},pierce:.2,silence:{every:5,dur:2},desc:'Đũa phép đầu sao tím lấp lánh. Sức mạnh phép +30%, giảm 20% kháng phép + 30% hồi máu của quái, cứ 5 lần dùng chiêu khoá chiêu quái 2 giây'}});
 // hệ số tốc độ đi bộ / chạy của giày + khiên đang đeo (p.mu.acc.feet / .shield)
-const shoeSpeed=p=>{ const E=(p&&p.mu&&p.mu.acc)||{}; let s=1; for(const k of [E.feet,E.shield]){ const a=k&&MU.acc[k]; if(a&&a.spd) s+=a.spd; } return s; };
+const shoeSpeed=p=>{ const E=(p&&p.mu&&p.mu.acc)||{}; let s=1; for(const k of [E.feet,E.shield]){ const a=k&&MU.acc[k]; if(a&&a.spd) s+=a.spd; } const LA=lcLeadAsc(p); if(LA&&LA.move) s+=LA.move; return s; };   /* + Lính Cát Lv50 đầu đội chạy nhanh */
 NPCS.push({id:'mu_shoes',scene:'mu',x:7.5,y:10.4,place:'mushoes'});
 NPC_LOOKS.mu_shoes={name:'Tiệm Giày Lướt Gió',look:{gender:'nam',hair:'swept',hairColor:'ff7a2a',skin:'f0c4a0',outfit:{top:'mu_elf',bottom:'kaki',shoes:'giay_trang'},opts:{mouth:'smile'}}};
 // lực chiến: 1 con số gộp chỉ số MU (hiện trên HUD, so set legacy)
@@ -2085,6 +2370,13 @@ SCENE_DEST.epl='epl'; SCENE_SIZE.epl=[EPL.W,EPL.H];
 COURSES.hlvbd={name:'Chứng chỉ HLV bóng đá (UEFA C)',price:1500000,level:10,dur:45,desc:'Mở vai Huấn luyện viên ở Giải Ngoại Hạng Anh (cần thêm chỉ số Sút bóng + số trận đã đá).'};
 SKILLS.hlvbd={name:'HLV bóng đá',key:'-',desc:COURSES.hlvbd.desc};
 // áo đấu 6 CLB (bán ở quầy vé & áo đấu mỗi sân), áo Pháo Thủ Huyền Thoại: thưởng chuỗi nhiệm vụ của Huy Phan
+/* đội hâm mộ (25/10): chọn 1 CLB yêu thích (ở bảng giải / quầy vé / dòng tỉ số trên thanh trên cùng, đổi 1 lần mỗi ngày), mỗi ngày 7 nhiệm vụ riêng cho đội đó:
+   thưởng tiền + EXP + điểm trung thành (lp). Trung thành lên bậc thì có danh hiệu, đội thắng được thêm % tiền thưởng cổ động viên */
+EPL.fanq=[{k:'kit',name:'Mặc áo đấu của đội',n:1,vnd:20000,exp:20,lp:2},{k:'cheer',name:'Cổ vũ cho đội trên khán đài',n:15,vnd:40000,exp:40,lp:4},{k:'watch',name:'Xem trọn 1 trận của đội (đủ lượt cổ vũ)',n:1,vnd:50000,exp:50,lp:5},
+  {k:'win',name:'Có mặt khi đội thắng (cổ động viên / cầu thủ / HLV)',n:1,vnd:80000,exp:60,lp:6},{k:'goal',name:'Ghi bàn cho đội (cầu thủ của đội)',n:1,vnd:80000,exp:60,lp:6},
+  {k:'sell',name:'Bán đồ cổ động ở sạp sân nhà của đội',n:5,vnd:30000,exp:30,lp:3},{k:'train',name:'Tập sút ở sân nhà của đội',n:3,vnd:30000,exp:30,lp:3}];
+EPL.loyal=[{lp:0,name:'Fan mới',bonus:0},{lp:30,name:'Fan cứng',bonus:.1},{lp:100,name:'Ultras',bonus:.2},{lp:250,name:'Huyền thoại khán đài',bonus:.35}];
+EPL.loyalOf=lp=>EPL.loyal.filter(x=>(lp||0)>=x.lp).pop();
 for(const [k,c] of Object.entries(EPL.clubs)) CLOTHES['kit_'+k]={name:'Áo đấu '+c.name,slot:'top',price:EPL.kitPrice,hidden:true,opts:{top:'tee',polo:true,logo:true,...(k==='new'?{vstripe:true}:{})},colors:{top:c.col.slice(1),print:c.col2.slice(1),line:k==='new'?'f4f4f0':'1c1516'}};
 { const AWAY={ars:['f6d84a','1e3a8a'],mci:['1c2c5b','6cabdd'],liv:['f4f2ec','c8102e'],mu:['f4f4f0','da291c'],che:['f4f4f0','034694'],new:['3ab0c8','241f20']};   /* áo sân khách: đổi khi màu 2 đội gần nhau */
   for(const [k,[a,b]] of Object.entries(AWAY)) CLOTHES['kit_'+k+'_away']={name:'Áo sân khách '+EPL.clubs[k].name,slot:'top',price:0,hidden:true,opts:{top:'tee',polo:true,logo:true},colors:{top:a,print:b,line:'1c1516'}}; }
@@ -2388,6 +2680,12 @@ const petState=(p,t=Date.now())=>{ const e=p&&p.pets&&p.pets[p.pet]; if(!e) retu
 // vay vốn nhà nước (bảng Vườn & chuồng): tiền lấy từ ngân khố = ví kaixa, để mua hạt giống, vật nuôi, thuê đất. Hạn mức 500K × cấp, tối đa 10 triệu, 1 khoản 1 lúc, lãi 1%/ngày
 const STATE_LOAN={minLv:3,per:500000,max:10000000,amts:[500000,1000000,2000000,5000000,10000000],rate:.01,days:[3,7]};
 STATE_LOAN.cap=lv=>Math.min(STATE_LOAN.max,STATE_LOAN.per*lv);
+// đồ mang theo (Shopee tab Phụ trợ, server gear.js): sạc dự phòng 10 lượt / ngày, túi ngủ di động ngủ ở đâu cũng được, lương khô mỗi gói 4 bữa (ăn ở đâu cũng tính bữa chính)
+const GEAR={pbank:{name:'Sạc dự phòng 20.000mAh',price:350000,per:10,charge:40,sec:4},bag:{name:'Túi ngủ di động',price:450000,rest:45,sec:10},luong:{name:'Lương khô (gói 4 bữa)',price:120000,n:4,exp:8,energy:10}};
+ITEMS.luong_kho={name:'Lương khô (1 bữa)',icon:'sp_ration'};
+Object.assign(SHOPEE.aux,{pbank:{name:GEAR.pbank.name,gear:'pbank',price:GEAR.pbank.price,icon:'sp_pbank',desc:`Mang theo sạc ở đâu cũng được: ${GEAR.pbank.per} lần / ngày, mỗi lần +${GEAR.pbank.charge}% pin`},
+  sleepbag:{name:GEAR.bag.name,gear:'bag',price:GEAR.bag.price,icon:'sp_sleep',desc:`Lôi ra ngủ ở bất cứ đâu: +${GEAR.bag.rest} năng lượng mỗi giấc`},
+  luong:{name:GEAR.luong.name,item:'luong_kho',n:GEAR.luong.n,price:GEAR.luong.price,icon:'sp_ration',desc:`Ăn ở đâu cũng tính là bữa chính, mỗi gói ${GEAR.luong.n} bữa`}});
 // món bán trên Shopee: đồ Shop Chande (có giá, không ẩn) + hàng độc quyền; đồ phụ trợ có tiền tố aux:
 SHOPEE.ids=()=>Object.keys(CLOTHES).filter(k=>CLOTHES[k].price>0&&(!CLOTHES[k].hidden||CLOTHES[k].shopee)).concat(Object.keys(SHOPEE.aux).map(k=>'aux:'+k));
 SHOPEE.item=k=>String(k).startsWith('aux:')?SHOPEE.aux[String(k).slice(4)]:CLOTHES[k];
@@ -2397,7 +2695,7 @@ SHOPEE.flash=(ms=Date.now())=>{ const slot=Math.floor(ms/(SHOPEE.flashH*3600e3))
 SHOPEE.base=(k,ms)=>{ const c=SHOPEE.item(k); if(!c) return 0; return SHOPEE.flash(ms).ids.includes(k)?Math.round(c.price*(1-SHOPEE.flashOff)/1000)*1000:c.price; };   /* giá sau flash sale, trước ưu đãi */
 // thú cưng bán trên Shopee: tiền tố pet:
 { const ids0=SHOPEE.ids, item0=SHOPEE.item; SHOPEE.ids=()=>ids0().concat(Object.keys(PETS).map(k=>'pet:'+k)); SHOPEE.item=k=>String(k).startsWith('pet:')?PETS[String(k).slice(4)]:item0(k); }
-return {PETS,PETFOOD,PETCFG,petState,KENNY,kennyWhere,STATE_LOAN,SHOPEE,EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
+return {LC_ASC,lcAsc,lcLeadAsc,lcLeadBn,lcEff,LCCLUB,GEAR,LCFOREST,PETS,PETFOOD,PETCFG,petState,KENNY,kennyWhere,STATE_LOAN,SHOPEE,EPL,EPL_CLUBS,T,RULES,LOOK,SLOTS,CLOTHES,FOOD,CROPS,FARM,PLACES,INTERIORS,CLUB,ITEMS,SKILLS,QUESTS,DAILY,FISH,KAYAK_PRICE,KAYAK_MIN,CAR_PRICE,TREASURE,FISHING,NPCS,NPC_LOOKS,PICKUPS,SPOTS,COINS,FORAGE,
   KAYAK_SPOT,BUOYS,CARS,BEAGLE_SPOT,CHICKEN_HOME,LAKE_Y,SPAWN,SOCIAL,ROOMS,BATHHOUSE,POOL,ACH,KE_JOB,WHEELIE,BIKES,SONGS,DANCE,RECEPTION,NEEDS,ROOM_ACTS,PHOTO_SPOTS,TRAVEL,JOB,WORK_TASKS,OFFICE_PERKS,WORK_WORDS,INTERVIEW,INTERVIEW_PICK,INTERVIEW_PASS,OFFICE,
   lvSpeed,OPTIMUS,MEGATRON,MCK,WILDLIFE,FOLLOWERS,OII,SHISHA,NPC_ROAM,roamPos,PIG_STEAL,LUMEN,DIEP,YENLANG,PICKLE,PK_SETS,DALAT,DL_FARM,DL_LAND,KE_LAND,MOTO,BIKESHARE,CSGT,PCAR,PARK,MUSEUM,TEMPLE,NETCAFE,BUTTERFLY,LO,DOGS,DAS,KE_YARD,ANIMALS,FEED,INGREDIENTS,RECIPES,COOK,DL_FISH,HORSE,CRATES,RACE,SELL,DEST,GRAB,grabFare,COURSES,MARKET,ACTS,ACT_DUR,FL,SCENE_DEST,SCENE_SIZE,
   ECON,fineOf,HOME,homeTier,homeDefault,homeGrid,homeFoot,homeSolid,homeAnchor,homeFits,homeCozy,homeScore,homeBuff,HAOSANG,hsPts,hsTier,hsBonus,loanOwed,LEGEND,legendDone,legendCount,legendOwn,legendAch,MU,muStats,muPower,mythOf,mythIdx,mountKey,XICHTHO,XT_ELS,xtBonus,ENH,gemCost,enhKind,shoeSpeed,DUONGVU,dvWhere,LAVI,HW_SETS,LC_TYPES,LC_EFF,LC_MOVES,LC_TYPE_MOVES,LC_SPECIES,LINHCAT,lcStats,lcStatsOf,lcHealFee,lcMoves,lcNext,lcWild,RF,NMOTION,GUARD,TOP_TITLES,BEARPLUS,VNPT,MIEU,lunarDate,holyDay,vnptServing,LOGIN7,LOGIN30,DAYQ,ALBUM,SEASON,seasonOn,pumpkinsNow,vnTime,WEEKDAYS,mealStatus,hunger,levelOf,fmt,plotState,lookToTemplate,gameMs,realTime,addDays,dayOfWeek,isWeekend,dailyTasks,otTask};

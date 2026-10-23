@@ -20,7 +20,7 @@ on('nm',(pl,m)=>{ const p=pl.prof, N=S.NMOTION, q=pr(p), op=m.op, d=p.daily; if(
     if(active(p,'nm_easing')&&(q.nm_easing||0)<3) return job('nm_easing',6,`Chỉnh graph editor lần ${(q.nm_easing||0)+1}/3`,'work',()=>({msg:(q.nm_easing||0)>=3?'Đường cong mượt như bơ! Báo Giáo chủ':`Chỉnh xong lần ${q.nm_easing}/3`}));
     if(active(p,'nm_logo')&&!q.nm_logo) return job('nm_logo',20,'Logo animation 3 giây');
     if((d.nmdesk||0)>=3) return {err:'Hôm nay ngồi làm đủ rồi, ra xông hơi thư giãn đi'};
-    return P.startTask(pl,'work',12,()=>{ d.nmdesk=(d.nmdesk||0)+1; const g=C.gainExp(pl,45); give(pl,60000); markDirty(pl); return {msg:`Render xong 1 clip ngắn cho khách: +60.000đ, +${g.exp} EXP (${d.nmdesk}/3 hôm nay)`}; },{anim:'work',name:'Làm motion cho khách'}); }
+    return P.startTask(pl,'work',12,()=>{ d.nmdesk=(d.nmdesk||0)+1; const g=C.gainExp(pl,45); C.earn(pl,60000); markDirty(pl); return {msg:`Render xong 1 clip ngắn cho khách: +60.000đ, +${g.exp} EXP (${d.nmdesk}/3 hôm nay)`}; },{anim:'work',name:'Làm motion cho khách'}); }
   if(op==='tv'){ if(!near(pl,N.tv.x,3.4,56)) return {err:'Lại gần TV lớn'}; if(!active(p,'nm_reel')||q.nm_reel) return {msg:'TV đang chiếu showreel của group, ai cũng gật gù'};
     return job('nm_reel',15,'Chiếu showreel cho cả group','',()=>{ p.flags.nmDisciple=true; p.owned.hoodie_nm=1; return {msg:'Cả group vỗ tay rần rần! Giáo chủ gật đầu: chính thức là đệ tử Nghiện Motion, tặng bạn Hoodie Nghiện Motion (mở Tủ đồ U để mặc). Báo Giáo chủ nhận thưởng'}; }); }
   if(op==='model'){ if(!near(pl,N.model.x,N.model.y+.9,40)) return {err:'Lại gần bàn lắp mô hình'};

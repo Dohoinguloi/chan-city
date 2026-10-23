@@ -51,7 +51,9 @@ const xtOk=()=>((GAME.G.xt&&GAME.G.xt.lv)||0)>=SD.XICHTHO.tele;   /* Xích Thố
 const canBorrow=()=>{ const g=GAME.G, B=SD.NEEDS.borrow; return g.needs.battery<B.max&&((g.daily&&g.daily.nhosac)||0)<B.perDay; };
 function borrow(){ if(!canBorrow()) return false; log('sạc nhờ'); GAME.nhoSac(); return true; }
 // nhu cầu (ngủ / tắm / sạc) theo chỗ đang đứng: ở phòng / phòng thuê / nhà tắm chung thì làm luôn; pin thì sạc nhờ; còn lại tự Grab về phòng Hà Nội rồi làm
-async function needAuto(k,t){ const g=GAME.G, S=GAME.S, today=SD.vnTime(NET.now()).day, stay=g.stay&&g.stay.paid===today&&g.stay.room;
+async function needAuto(k,t){ const g=GAME.G, S=GAME.S, today=SD.vnTime(NET.now()).day, stay=g.stay&&g.stay.paid===today&&g.stay.room, own=g.gear||{};
+  if(k==='battery'&&own.pbank&&((g.daily||{}).pbank||0)<SD.GEAR.pbank.per&&await GAME.gearUse('pbank')){ log('dùng sạc dự phòng'); return true; }   /* đồ mang theo: dùng tại chỗ trước khi phải về phòng */
+  if(k==='energy'&&own.bag&&await GAME.gearUse('bag')){ log('ngủ túi ngủ di động'); return true; }
   const home=S.kind==='room'||(S.kind==='stay'&&S.own), nearStay=stay&&(S.kind==='retreat'||S.kind==='stay'||(SD.INTERIORS[S.kind]&&!SD.INTERIORS[S.kind].map)), bath=k==='clean'&&S.kind==='retreat'&&(!stay||SD.ROOMS[stay].bath==='chung');
   if(k==='battery'&&!home&&S.kind!=='vnpt'&&borrow()) return true;
   if(home||nearStay||bath||(k==='battery'&&S.kind==='vnpt')){ GAME.needGo(k); return true; }
@@ -79,6 +81,7 @@ async function tick(){ if(!ON||!GAME.started) return; const g=GAME.G, S=GAME.S, 
     if(n&&!SKIP_E.test(n.label||'')){ if(Math.hypot(d[0]*T-P.x,d[1]*T-P.y)>12) await approach(d[0]*T,d[1]*T); log('E (tới nơi): '+n.label); GAME.interact(n); wait=t+1200; return; } }
   // 1. nhu cầu: ngủ / tắm / sạc khi dưới 18%, đến giờ ăn hoặc đang đói thì đi ăn
   const nd=g.needs; for(const k of ['battery','energy','clean']) if(nd[k]<18&&!((needSkip[k]||0)>t)){ log('nhu cầu '+k); await needAuto(k,t); wait=t+4000; return; }
+  if(hungry(g)&&(g.items.luong_kho||0)>0&&t-lastMeal>30000){ lastMeal=t; if(await GAME.gearUse('luong')){ log('ăn lương khô'); wait=t+1500; return; } }
   if(hungry(g)&&t-lastMeal>90000){ lastMeal=t; const shop=GAME.npcs.some(n=>{ const d=SD.NPCS.find(x=>x.id===n.id), pc=d&&d.place&&SD.PLACES[d.place]; return pc&&(pc.menu||[]).length; });
     if(shop){ log('đi ăn'); GAME.eatGo(); wait=t+4000; return; } lastMeal=t+480000; log('map không có quán ăn, để sau'); }
   // mới vào game: đi gặp Pháp ở cổng Ké trước
