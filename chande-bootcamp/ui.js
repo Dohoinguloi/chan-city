@@ -4,7 +4,8 @@
 const SD=SHARED, $=s=>document.querySelector(s), fmt=SD.fmt, Gm=()=>GAME, G=()=>GAME.G, esc=s=>GAME.esc(s);
 const UI={}; let cur=null;                              // bảng đang mở: {el, render}
 const box=$('#panel'), inner=$('#panelInner'), title=$('#panelTitle');
-function open(t,render,o={}){ cur={render,t,o}; box.hidden=false; box.classList.toggle('wide',!!o.wide); box.classList.toggle('xwide',!!o.xwide); box.classList.toggle('full',!!o.full); title.textContent=t; draw(); }
+// bảng bị gọi khi còn ở màn tiêu đề / tạo nhân vật (tin server tới sớm) thì để dành, vào game rồi mới mở qua hàng đợi
+function open(t,render,o={}){ if(!$('#title').hidden){ UI.autoOpen('pre:'+t,()=>open(t,render,o)); return; } cur={render,t,o}; box.hidden=false; box.classList.toggle('wide',!!o.wide); box.classList.toggle('xwide',!!o.xwide); box.classList.toggle('full',!!o.full); title.textContent=t; draw(); }
 // vẽ lại bảng nhưng giữ ô đang gõ/kéo (chat ma sói, thanh tố poker) khỏi bị reset mỗi lần server gửi trạng thái mới
 function draw(){ if(!cur) return; const a=document.activeElement, keep=a&&inner.contains(a)&&a.id?{id:a.id,v:a.value,s:a.selectionStart}:null; inner.innerHTML=cur.render(); thumbify(inner);
   if(keep){ const b=document.getElementById(keep.id); if(b){ if(b.type!=='range'||(+keep.v>=+b.min&&+keep.v<=+b.max)) b.value=keep.v; b.focus(); try{ if(keep.s!=null) b.setSelectionRange(keep.s,keep.s); }catch(e){} if(b.id==='raiseTo'){ const l=document.getElementById('raiseLbl'); if(l) l.textContent=fmt(+b.value); } } } }
@@ -22,8 +23,21 @@ function thumbify(root){ for(const row of root.querySelectorAll('.list:not(.rows
 UI.isOpen=()=>!box.hidden;
 UI.open=open;   // cho module ngoài (fight.js) mở bảng
 UI.closeAll=()=>{ cur=null; box.hidden=true; box.classList.remove('full','xwide'); inner.innerHTML=''; stopMini(); };
+// bảng thường đổi được bằng phím tắt; minigame (full / static) và lúc đang hỏi Có/Không thì không
+UI.swappable=()=>!!cur&&!cur.o.full&&!cur.o.static&&$('#ask').hidden&&!/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'');
 UI.blocking=()=>!!cur||!$('#ask').hidden||document.activeElement===$('#chatIn')||document.activeElement===$('#wcIn');
+// bảng tự bật (điểm danh, quà lễ hội...): xếp hàng, mở lần lượt từng cái khi màn hình đã trống 4 giây liền, để không chồng lên nhau
+// và không bật ngay lúc người chơi vừa đóng bảng khác. Người mới thì chờ nghe xong cuộc gọi đầu tiên (đang hướng dẫn) mới mở
+const POPQ=[]; let idleAt=0, lastPos='', lastScene=null, sceneAt=0;
+UI.autoOpen=(key,fn)=>{ if(!POPQ.some(a=>a.key===key)) POPQ.push({key,fn}); };
+setInterval(()=>{ const g=G(), busy=!GAME.S||!g||!g.flags||(!g.flags.called&&GAME.S.kind==='room')||!!cur||!$('#ask').hidden||!$('#dialog').hidden||!$('#travel').hidden||!$('#mapView').hidden||($('#evBanner')||{}).hidden===false||UI.blocking();   /* banner sự kiện đang hiện cũng tính là bận */
+  const P=GAME.P, pos=P?Math.round(P.x)+','+Math.round(P.y):''; if(GAME.S!==lastScene){ lastScene=GAME.S; sceneAt=Date.now(); }   // đang đi / vừa xuống xe sang map mới (8 giây) thì chưa bật
+  if(pos!==lastPos){ lastPos=pos; idleAt=0; return; }
+  if(busy||!POPQ.length||Date.now()-sceneAt<8000){ idleAt=0; return; } if(!idleAt){ idleAt=Date.now(); return; } if(Date.now()-idleAt<4000) return; idleAt=0; POPQ.shift().fn(); },500);
 $('#panelClose').onclick=()=>UI.closeAll();
+// bấm / chạm ra ngoài bảng (vào màn chơi) thì đóng bảng, không đi đâu cả (game.js bỏ qua cú bấm vì bảng đang mở);
+// trừ bảng toàn màn / bảng tĩnh (câu cá, minigame) và lúc đang hỏi Đồng ý / Từ chối
+$('#game').addEventListener('click',()=>{ if(cur&&!cur.o.full&&!cur.o.static&&$('#ask').hidden) UI.closeAll(); });
 // nút trong bảng: data-a="tên hành động" + data-*
 inner.addEventListener('click',e=>{ const b=e.target.closest('[data-a]'); if(!b||b.disabled) return; const f=ACT[b.dataset.a]; if(f) f(b.dataset,b); });
 const ACT={};
@@ -38,8 +52,8 @@ ACT.goto=d=>GAME.walkToNpc(d.id);
 async function req(m,ok){ const r=await GAME.act(m,ok); UI.refresh(); return r; }
 
 /* ---------- menu Esc ---------- */
-UI.menu=()=>open('Tạm dừng',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
-  ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','pri')}</div>
+UI.menu=()=>open('Menu',()=>`<div class="col mcol">${btn('close','Chơi tiếp')}${btn('mute',GAME.AUD.muted?'Bật tiếng':'Tắt tiếng')}${document.body.classList.contains('touch')?btn('mchat','💬 Chat'):''}${document.body.classList.contains('touch')||matchMedia('(max-height:620px),(max-width:900px)').matches?btn('hudbtn','Tủ đồ',{id:'btnWard'})+btn('hudbtn','Xếp hạng',{id:'btnLb'})+btn('hudbtn','Về phòng',{id:'btnHome'})+btn('hudbtn','Vườn & chuồng',{id:'btnFarm'})+btn('hudbtn','Thanh kỹ năng',{id:'btnSkills'})+btn('hudbtn','📅 Hằng ngày',{id:'btnDaily'})+btn('hudbtn','👥 Ai đang online',{id:'hudPlayers'}):''}
+  ${btn('nosoc',G().opts.noSocial?'Nhận lời mời tương tác: TẮT':'Nhận lời mời tương tác: BẬT')}${btn('bag','Túi đồ (I)')}${btn('phone','Điện thoại')}${btn('ach','Thành tích')}${btn('logout','Đăng xuất','','bad')}</div>
   <h5>Kỹ năng</h5><div class="list">${Object.entries(SD.SKILLS).filter(([k])=>G().skills[k]).map(([k,s])=>`<div class="row"><span><b>${s.name}</b> <small class="muted">${s.desc}</small></span><span>${s.key==='-'?'tự động':s.key==='E'?'E ở đúng chỗ':'<kbd>'+s.key+'</kbd>'}</span></div>`).join('')}</div>
   <p class="muted">Phím: WASD đi · Shift chạy · E tương tác · Enter chat · G gọi Grab · P chụp ảnh · I túi đồ · M bản đồ · L xếp hạng · B về phòng · H lên/xuống ngựa · N thanh kỹ năng</p>`,{wide:true});
 ACT.phone=()=>UI.phone(); ACT.ach=()=>UI.ach(); ACT.close=()=>UI.closeAll(); ACT.mute=()=>{ GAME.setMute(!GAME.AUD.muted); draw(); }; ACT.bag=()=>UI.bag();
@@ -93,7 +107,7 @@ UI.grab=()=>open('Gọi Grab',()=>{ const from=destOf(), g=G(), bat=Math.round(g
   `<div class="list grab">${Object.entries(SD.DEST).map(([k,d])=>{ const here=(k==='home'&&GAME.S.kind==='room')||k===GAME.S.kind; let fare=SD.grabFare(from,k), note='';
     if(k==='retreat'&&!g.flags.freeRide){ fare=0; note=' · Pháp bao'; } if(k==='retreat'&&!g.flags.called) note=' · chưa có kèo';
     if(k==='diep'){ const D=SD.DIEP; note=g.level<D.level||g.money<D.money?` · cần cấp ${D.level}, ≥${fmt(D.money)}`:' · Diệp nấu ăn cho'; } if(k==='lumen') note=' · studio làm remote, EXP ×'+SD.LUMEN.expMul; if(k==='das'&&g.level<SD.DAS.level) note=' · cần cấp '+SD.DAS.level;
-    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane); const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?fmt(fare)+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}${here||!xt?'':btn('grab','🔥 Dịch chuyển',{to:k,xt:1},'pri')}</div>`; }).join('')}</div>
+    const fly=d.plane||(SD.DEST[from]&&SD.DEST[from].plane), poor=!here&&fare>g.money; /* không đủ tiền: nút xám ghi thiếu bao nhiêu */ const th=GAME.destThumb(k); return `<div class="row">${th?`<img class="dthumb" src="${th}" alt="">`:'<div class="dthumb load"></div>'}<span>${fly?'✈ ':''}${d.name}</span><span>${here?'đang ở đây':fare?`<b class="${poor?'bad':''}">${fmt(fare)}</b>`+(fly?' (vé máy bay)':''):'miễn phí'}${note}</span>${here?'':poor?`<button class="btn sm" disabled title="Ví còn ${fmt(g.money)}">Thiếu ${fmt(fare-g.money)}</button>`:btn('grab',fly?'Mua vé':'Đi',{to:k},'pri')}${here||!xt?'':btn('grab','🔥 Dịch chuyển',{to:k,xt:1},'pri')}</div>`; }).join('')}</div>
   <p class="muted">Rời map nào cũng phải gọi Grab. Xe Grab cần điện thoại còn pin ≥ ${SD.GRAB.minBattery}%.</p>`; },{xwide:true});
 ACT.grab=async d=>{ const r=await GAME.act({t:'grab',to:d.to,xt:d.xt?1:0}); if(!r.err) UI.closeAll(); };
 
@@ -130,8 +144,9 @@ ACT.buyc=async d=>{ const r=await req({t:'buy',id:d.k}); if(!r.err){ GAME.sfx('c
 UI.place=(place,npc)=>{ const P=PLACE[place]; if(P) P(npc); else GAME.say([[npc.id,'Chào bạn!']]); };
 const PLACE={};
 function menuHtml(pc){ const ms=SD.mealStatus(G().meals,NET.now()), now=NET.now(), cd=G().foodCd||{}, slot=ms.some(m=>m.st==='now'||m.st==='missed');
-  // nút ăn: bữa chính hết suất thì 'Đang no'; đồ ăn vặt/uống còn thời gian chờ thì hiện 'Đã ăn · còn x phút'
-  const eatBtn=(id,f)=>{ if(f.meal&&!slot) return '<button class="btn sm" disabled>Đang no</button>'; const left=cd[id]-now;
+  // nút ăn: bữa chính hết suất thì ghi giờ bữa tới / 'Đã no'; đồ ăn vặt/uống còn thời gian chờ thì hiện 'Đã ăn · còn x phút'
+  const nx=ms.find(m=>m.st==='later'), full=nx?`${nx.name} từ ${nx.from}:00`:'Đã no';   // chưa tới giờ thì ghi giờ mở bữa tới, khỏi ghi "Đang no" lúc 3h sáng
+  const eatBtn=(id,f)=>{ if(f.meal&&!slot) return `<button class="btn sm" disabled>${full}</button>`; const left=cd[id]-now;
     if(!f.meal&&left>0) return `<button class="btn sm" disabled>Đã ${f.buff?'uống':'ăn'} · còn ${Math.ceil(left/60e3)} phút</button>`; return btn('eat',f.meal||f.snack?'Ăn':'Uống',{p:pc.key,id},'pri'); };
   return money()+`<p>Bữa: ${ms.map(m=>`<span class="meal ${m.st}">${m.name.replace('Bữa ','')}</span>`).join(' ')} <span class="muted">· trễ giờ thì ăn bù được</span></p><div class="list">`+
     pc.menu.map(id=>{ const f=SD.FOOD[id]; return `<div class="row"><span>${esc(f.name)} <small class="muted">${f.meal?'no 1 bữa':f.buff?'+'+Math.round((f.buff.mul-1)*100)+'% EXP '+f.buff.min+' phút':'ăn vặt, không tính bữa'} · +${f.exp} EXP</small></span><span>${fmt(f.price)}</span>${eatBtn(id,f)}</div>`; }).join('')+'</div>'; }
@@ -176,8 +191,8 @@ PLACE.quanao=()=>{ open('Shop Chande · Chị Mai',()=>money()+outfitHtml(true),
 PLACE.letan=()=>open('Lễ tân 24h · Nhà Rếch 2',()=>{ const g=G(), st=g.stay, d=SD.vnTime(NET.now()).day;
   return money()+`<p>${st?`Bạn đang thuê <b>${SD.ROOMS[st.room].name}</b> ${st.paid===d?'· đã trả hôm nay':'· chưa trả hôm nay'}. Mỗi ngày tự trừ tiền khi sang ngày mới.`:'Bạn chưa thuê phòng. Mỗi người thuê 1 phòng, tiền trả theo ngày.'}${g.flags.rented?'':' <b>Ngày đầu Pháp bao 100.000đ.</b>'}</p>
   <div class="list">${Object.entries(SD.ROOMS).filter(([k,r])=>!r.home).map(([k,r])=>`<div class="row tall"><span><b>${r.name}</b> · ${r.where}<br><small class="muted">${r.desc}</small><br><small>Nghỉ +${r.rest} năng lượng${r.buff?` · ngủ ngon +${Math.round((r.buff.mul-1)*100)}% EXP`:''} · wifi ×${r.wifi} · ảnh ×${r.view}</small></span><span>${fmt(r.price)}/ngày</span>${st&&st.room===k?'<em>đang ở</em>':btn('rent','Thuê',{k},'pri')}</div>`).join('')}</div>
-  ${st?btn('checkout','Trả phòng'):''}<p class="muted">Có thể gõ cửa phòng người khác (họ phải đang ở trong và đồng ý), xin ngủ lại để dùng giường, nhà tắm, ổ sạc.</p>`; },{wide:true});
-ACT.rent=d=>req({t:'rent',room:d.k}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); ACT.checkout=()=>req({t:'rent',op:'checkout'});
+  ${st?btn('checkout','Trả phòng',{},'bad'):''}<p class="muted">Có thể gõ cửa phòng người khác (họ phải đang ở trong và đồng ý), xin ngủ lại để dùng giường, nhà tắm, ổ sạc.</p>`; },{wide:true});
+ACT.rent=d=>req({t:'rent',room:d.k}).then(r=>{ if(!r.err) GAME.toast(esc(r.msg),'quest'); }); ACT.checkout=()=>quickAsk('Trả phòng luôn? Tiền phòng hôm nay không hoàn lại.',y=>{ if(y) req({t:'rent',op:'checkout'}); },20);   // nút đỏ viền: hỏi lại trước khi làm
 
 /* ---------- cửa phòng: vào phòng mình / gõ cửa ---------- */
 UI.roomDoor=async room=>{ const g=G();
@@ -278,7 +293,7 @@ PLACE.hr=()=>open('Everfit · Chị Vy (HR)',()=>{ const j=G().extra&&G().extra.
   if(!j||!j.hired) return `<p>Everfit làm nền tảng cho huấn luyện viên fitness: AI Workout Builder, thực đơn MacroSnap, habit tracking, nhắn tin 1-1, app gắn thương hiệu riêng.</p>
     <p>Đang có <b>${j?j.count:'?'}/${SD.JOB.max}</b> nhân viên. Lương ${fmt(SD.JOB.wage)}/ngày làm đủ task, trả ${SD.JOB.payEvery} ngày/lần. Thứ Bảy, Chủ Nhật nghỉ, 2 ngày remote.</p>${btn('apply','Nộp đơn + phỏng vấn','', 'pri')}`;
   return `<p>Bạn là nhân viên Everfit từ ${j.since} · bàn số ${j.desk+1}.</p><h5>Chọn 2 ngày làm remote</h5><div class="days">${[1,2,3,4,5].map(d=>`<label><input type="checkbox" class="rday" value="${d}" ${j.remote.includes(d)?'checked':''}> ${WD[d]}</label>`).join('')}</div>${btn('remote','Lưu lịch remote')}
-    ${workHtml(false)}<p>${btn('quit','Nghỉ việc')}</p>`; },{wide:true});
+    ${workHtml(false)}<p>${btn('quit','Nghỉ việc',{},'bad')}</p>`; },{wide:true});
 // phỏng vấn = giải câu đố vui có hình minh hoạ (vẽ pixel ngay trong trình duyệt)
 let quiz=null;
 ACT.apply=async()=>{ const r=await GAME.act({t:'job',op:'apply'}); if(r.err) return; if(r.skip){ UI.refresh(); return; } quiz={qs:r.questions,pass:r.pass,i:0,ans:[]}; showQuiz(); };
@@ -317,7 +332,7 @@ function drawPic(c,id){ if(!c) return; const g=c.getContext('2d'), P=ART.painter
   if(id==='ao'){ P.rect(40,22,80,64,ink); P.rect(42,24,76,60,'#f2a6b8'); P.rect(20,22,24,24,ink); P.rect(22,24,22,20,'#f2a6b8'); P.rect(116,22,24,24,ink); P.rect(116,24,22,20,'#f2a6b8'); P.disc(80,24,10,ink); P.disc(80,23,8,'#f3ecdc'); line(68,18,92,18,2,'#c4382e'); txt('cổ',80,8,14,'#c4382e'); }
   if(id==='convat'){ const sp=[ART.cow(0),ART.chicken(0),ART.pig(0)]; sp.forEach((s,i)=>g.drawImage(s.c,16+i*36,30,s.c.width*1.1,s.c.height*1.1)); g.drawImage(ART.icon('fish',3),120,28); } }
 ACT.remote=()=>req({t:'job',op:'remote',days:[...document.querySelectorAll('.rday:checked')].map(e=>+e.value)});
-ACT.quit=()=>req({t:'job',op:'quit'});
+ACT.quit=()=>quickAsk('Nghỉ việc thật à? Trong hôm nay sẽ <b>không xin lại được</b>.',y=>{ if(y) req({t:'job',op:'quit'}); },20);
 const COWORK={minh:['Coach dùng AI Workout Builder dựng giáo án nhanh lắm, tao đang làm phần kéo thả bài tập.','Bug MacroSnap tuần này là ghi nhầm calo bữa phụ. Fix mãi.'],
   ha:['Màn Habit tracking tao đang vẽ lại cho dễ tích mỗi ngày.','App gắn thương hiệu (branded app) thì mỗi coach đổi được logo, màu riêng.'],
   quan:['Trước mỗi lần release tao test cả iOS lẫn Android. Đừng push bug lúc 5 giờ chiều nhé.','Pantry có cà phê miễn phí, mỗi ngày làm 1 cốc cho tỉnh.'],
@@ -398,7 +413,7 @@ for(const k of Object.keys(SD.DALAT.shops)) PLACE[k]=()=>open(SD.DALAT.shops[k].
 ACT.ing=d=>req({t:'cook',op:'buy',ing:d.i,n:+d.n});
 PLACE.quan_lan=()=>open('Quán cô Lan',()=>{ const g=G(), o=g.cookOrder;
   return menuHtml({...SD.PLACES.quan_lan,key:'quan_lan'})+`<h5>Phụ cô Lan nấu (${g.daily.cook}/${SD.COOK.daily} hôm nay)</h5>`+(g.skills.nauan?'':'<p class="bad">Cần học Nấu ăn (laptop ở phòng)</p>')+
-    (o?`<p>Đơn: <b>${SD.RECIPES[o.r].name}</b> cần ${Object.entries(SD.RECIPES[o.r].need).map(([k,n])=>`${SD.ITEMS[k].name} ${Math.min(g.items[k]||0,n)}/${n}`).join(', ')}. Mua ở 3 quầy chợ rồi vào bếp (cạnh quán) nấu. Tiền công ${fmt(SD.RECIPES[o.r].pay)}.</p>${btn('cookcancel','Huỷ đơn')}`:btn('order','Nhận đơn nấu','', 'pri')); },{wide:true});
+    (o?`<p>Đơn: <b>${SD.RECIPES[o.r].name}</b> cần ${Object.entries(SD.RECIPES[o.r].need).map(([k,n])=>`${SD.ITEMS[k].name} ${Math.min(g.items[k]||0,n)}/${n}`).join(', ')}. Mua ở 3 quầy chợ rồi vào bếp (cạnh quán) nấu. Tiền công ${fmt(SD.RECIPES[o.r].pay)}.</p>${btn('cookcancel','Huỷ đơn',{},'bad')}`:btn('order','Nhận đơn nấu','', 'pri')); },{wide:true});
 ACT.order=d=>req({t:'cook',op:'order'}); ACT.cookcancel=()=>req({t:'cook',op:'cancel'});
 // nấu: 3 nhịp bấm SPACE khi kim vào vùng xanh
 let mini=null; function stopMini(){ if(mini){ cancelAnimationFrame(mini.raf); mini=null; } }
@@ -744,7 +759,10 @@ UI.hwPick=()=>open('🎃 Quà Halloween: chọn 1 bộ trang phục miễn phí'
   <div class="hwgrid">${SD.HW_SETS.map(([id,name])=>`<div class="hwc"><img src="${hwImg(id)}" width="64" height="90" alt=""><b>${esc(name)}</b>${btn('hwclaim','Nhận',{k:id},'pri')}</div>`).join('')}</div>`,{wide:true,static:true});
 ACT.hwopen=()=>UI.hwPick();
 ACT.hwclaim=async d=>{ const r=await GAME.act({t:'dq',op:'hwclaim',k:d.k}); if(r&&!r.err){ UI.closeAll(); GAME.sfx('level_up',.7); GAME.bigText('HAPPY HALLOWEEN!'); GAME.toast(esc(r.msg),'item'); } };
-let HW_ASK=0; NET.listen('dq',m=>{ if(HW_ASK||m.season!=='halloween'||(G()&&G().flags&&G().flags.hwFree)) return; HW_ASK=1; let n=0; const t=setInterval(()=>{ n++; const g=G(); if(!g||(g.flags&&g.flags.hwFree)||n>40){ clearInterval(t); return; } if(!UI.isOpen()&&GAME.S){ clearInterval(t); UI.hwPick(); } },3000); });
+// tự mời nhận quà Halloween tối đa 1 lần/ngày trên mỗi máy (lần sau vào lại từ Hằng ngày → Lễ hội), đi qua hàng đợi bảng tự bật
+let HW_ASK=0; NET.listen('dq',m=>{ if(HW_ASK||m.season!=='halloween'||(G()&&G().flags&&G().flags.hwFree)) return; HW_ASK=1;
+  const day=new Date().toDateString(); try{ if(localStorage.getItem('chande-hw-ask')===day) return; }catch(e){}
+  UI.autoOpen('hw',()=>{ const g=G(); if(g&&g.flags&&g.flags.hwFree) return; try{ localStorage.setItem('chande-hw-ask',day); }catch(e){} UI.hwPick(); }); });
 ACT.dalbum=async d=>{ const r=await GAME.act({t:'dq',op:'album',a:d.al}); /* data-a là tên hành động nên khoá bộ đặt là al */ if(r&&!r.err) GAME.sfx('level_up',.6); UI.refresh(); };
 ACT.dgo=d=>GAME.dqGo(d.id);
 ACT.bingo=async d=>{ const r=await GAME.act({t:'bingo',id:d.id}); if(r&&!r.err) GAME.sfx('item_pickup',.6); UI.refresh(); };
@@ -882,7 +900,7 @@ const LB_TABS=[['exp','Cấp độ',v=>v+' EXP'],['money','Đại gia',v=>fmt(v)
 UI.leaderboard=async()=>{ open('Bảng xếp hạng',()=>lbHtml(),{wide:true}); const r=await NET.req({t:'lb'}); if(r.lb){ LB=r.lb; UI.refresh(); } };
 function lbHtml(){ const tab=LB_TABS.find(t=>t[0]===lbTab), rows=LB&&LB[lbTab]||[], me=G().name;
   return `<div class="tabs">${LB_TABS.map(([k,n])=>`<button class="tab ${k===lbTab?'on':''}" data-a="lbtab" data-k="${k}">${n}</button>`).join('')}</div>
-    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}${lbTab==='home'?'<p class="muted">Điểm nhà = độ ấm cúng (nội thất, sàn, tường) + 2 điểm mỗi người thích. Bấm Ghé thăm để vào xem nhà đang mở cửa.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span class="lbn"><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b>${(f=>f?`<img class="lbf" src="${f}" alt="">`:'<i class="lbf"></i>')(lbFace(r.l))} ${esc(r.n)} <small class="muted">${lbTab==='power'?'MU Lv':'cấp'} ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span>${lbTab==='home'&&r.o?btn('lbvisit','🏠 Ghé thăm',{i,n:r.n}):''}</div>`).join('')||'<p class="muted">Chưa có ai</p>'}</div><p class="muted">${LB.total} người chơi · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
+    ${LB?`${lbTab==='money'?'<p class="muted">Top 10 đại gia được danh hiệu óng ánh hiện trên đầu nhân vật.</p>':''}${lbTab==='home'?'<p class="muted">Điểm nhà = độ ấm cúng (nội thất, sàn, tường) + 2 điểm mỗi người thích. Bấm Ghé thăm để vào xem nhà đang mở cửa.</p>':''}<div class="list rows">${rows.map((r,i)=>`<div class="row ${r.n===me?'on':''}${lbTab==='money'&&i<10?' tt'+(i+1):''}"><span class="lbn"><b>${i<3?['🥇','🥈','🥉'][i]:i+1+'.'}</b>${(f=>f?`<img class="lbf" src="${f}" alt="">`:'<i class="lbf"></i>')(lbFace(r.l))} ${esc(r.n)} <small class="muted">${lbTab==='power'?'MU Lv':'cấp'} ${r.lv}</small>${lbTab==='money'&&i<10?ttl(i+1):''}</span><span>${tab[2](r.v)}</span>${lbTab==='home'&&r.o?btn('lbvisit','🏠 Ghé thăm',{i,n:r.n}):''}</div>`).join('')||`<p class="muted">Chưa ai có thành tích mục ${esc(tab[1])}. Làm trước là lên top 1 luôn!</p>`}</div><p class="muted">${LB.total} người chơi trong game · cập nhật 30 giây/lần</p>`:'<p class="muted">Đang tải...</p>'}`; }
 ACT.lbtab=d=>{ lbTab=d.k; draw(); };
 ACT.lbvisit=async d=>{ const r=await GAME.act({t:'home',op:'visit',i:+d.i,n:d.n}); if(r&&!r.err) UI.closeAll(); };   /* ghé thăm nhà đẹp (home.js) */
 /* ---------- câu cá kiểu Dota 2: chọn bóng cá → phao chìm bấm nhanh → giữ vùng xanh bám cá ---------- */

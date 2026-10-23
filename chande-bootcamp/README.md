@@ -17,7 +17,7 @@ Game top-down pixel art nhiều người chơi, chạy theo giờ Việt Nam th�
 | Enter | Chat với người xung quanh |
 | G | Gọi Grab đi map khác (mất phí, cần pin điện thoại) |
 | P | Chụp ảnh sống ảo ở chỗ đẹp, về phòng up lấy like |
-| I | Túi đồ · M bản đồ · N tắt tiếng · Esc menu |
+| I | Túi đồ · M bản đồ · N thanh kỹ năng · Esc menu (bật/tắt tiếng bằng nút loa) |
 | H | Lên/xuống ngựa (nông trại Đà Lạt) |
 | T Q R K V Space | Skill: nói "VÃI Ò", quẩy, gồng, hoá Hokage, soi xu, lướt |
 | Space / J / X | Vật tay (bấm liên tục) · đấm khi đánh nhau · buông tay / bỏ cuộc |
