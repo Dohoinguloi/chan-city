@@ -143,7 +143,11 @@ on('ring',(pl,m)=>{ const p=pl.prof, t=now(), to=String(m.to||''); if(!p.sim) re
   return {msg:`Đang gọi ${to}...`}; });
 on('pickup',(pl,m)=>{ const c=pl.call, t=now(); if(!c||t>c.until) return {err:'Cuộc gọi đã kết thúc'}; pl.call=null; const o=C.players.get(c.from); if(!o) return {err:'Người gọi đã offline'};
   if(!m.go){ note(o,`📞 ${pl.prof.name} đã nghe máy: "Ừ, alo!"`,'quest'); return {msg:`Đang nói chuyện với ${o.prof.name}`}; }
-  if(!c.come) return {err:'Người gọi đang ở chỗ riêng, không tới được'}; if(pl.task) return {err:'Đang làm việc khác'}; if(pl.prof.jail&&pl.prof.jail.until>t) return {err:'Đang bị tạm giữ ở đồn'};
+  if(!c.come) return {err:'Người gọi đang ở chỗ riêng, không tới được'};
+  // người gọi có thể đã đổi chỗ sau khi gọi: chỉ tới được nếu chỗ hiện tại vẫn cho đón, và người nghe đủ điều kiện vào map đó như đi Grab
+  const ok=kindOf(o.scene), dest=CALL_OK.has(ok)&&S.SCENE_DEST[ok]; if(!dest) return {err:'Người gọi đang ở chỗ riêng, không tới được'};
+  { const why=require('./world').entryErr(pl.prof,dest); if(why) return {err:why}; }
+  if(pl.task) return {err:'Đang làm việc khác'}; if(pl.prof.jail&&pl.prof.jail.until>t) return {err:'Đang bị tạm giữ ở đồn'};
   const fare=Math.round(S.grabFare(S.SCENE_DEST[kindOf(pl.scene)]||'home',S.SCENE_DEST[kindOf(o.scene)])*(1-(C.simPerk(pl.prof).grab||0))); if(fare&&!take(pl,fare)) return {err:`Grab tới đó ${S.fmt(fare)}, ví không đủ`};
   C.moveTo(pl,o.scene,o.x/C.T+.8,o.y/C.T+.4,{ride:{from:S.SCENE_DEST[kindOf(pl.scene)]||'home',to:S.SCENE_DEST[kindOf(o.scene)],fare}}); note(o,`📞 ${pl.prof.name} đang Grab tới chỗ bạn!`,'quest'); return {msg:'Đang tới'}; });
 // điều ước buộc ở cây đa: hôm sau vào game là linh nghiệm

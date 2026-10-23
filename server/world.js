@@ -144,11 +144,16 @@ function destSpawn(pl,to){ if(to==='home') return ['room:'+pl.uid,S.ROOMS.tro.sp
   if(to==='nghienmotion') return ['nghienmotion',S.NMOTION.spawn];
   if(to==='bearplus') return ['bearplus',S.BEARPLUS.spawn]; if(to==='vnpt') return ['vnpt',S.VNPT.spawn]; if(to==='mieu') return ['mieu',S.MIEU.spawn];
   if(to==='everfit') return ['everfit',S.OFFICE.spawn]; if(to==='dalat') return ['dalat',S.DALAT.spawn]; if(to==='das') return ['das',S.DAS.spawn]; if(to==='lumen') return ['lumen',S.LUMEN.spawn]; if(to==='yenlang') return ['yenlang',S.YENLANG.spawn]; if(to==='pickle') return ['pickle',S.PICKLE.spawn]; if(to==='epl') return ['epl',S.EPL.spawn]; if(to==='diep') return ['diep',S.DIEP.spawn]; return ['retreat',S.SPAWN.retreat]; }
+// điều kiện vào các map có khoá (đi Grab, hay nghe điện thoại rồi Grab tới chỗ người gọi): trả về câu báo lỗi, hoặc '' nếu được vào
+function entryErr(p,to){
+  if(to==='diep'){ const why=require('./diep').canVisit(p); if(why) return why; }   // Diệp chỉ tiếp người cấp cao, nhiều tiền
+  if(to==='das'&&p.level<S.DAS.level) return `DAS nhận học viên từ cấp ${S.DAS.level}, lên cấp rồi hãy bay vào`;
+  if(to==='bearplus'&&p.level<S.BEARPLUS.level) return `Bearplus nhận cộng tác viên từ cấp ${S.BEARPLUS.level}. Lên cấp rồi bay vào nhé`;
+  if(to==='retreat'&&!p.flags.called) return 'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.';
+  return ''; }
 on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene)], p=pl.prof;
   if(!S.DEST[to]) return {err:'Không có điểm đến này'}; if(destSpawn(pl,to)[0]===pl.scene) return {err:'Bạn đang ở đây rồi'};
-  if(to==='diep'){ const why=require('./diep').canVisit(p); if(why) return {err:why}; }
-  if(to==='das'&&p.level<S.DAS.level) return {err:`DAS nhận học viên từ cấp ${S.DAS.level}, lên cấp rồi hãy bay vào`};
-  if(to==='bearplus'&&p.level<S.BEARPLUS.level) return {err:`Bearplus nhận cộng tác viên từ cấp ${S.BEARPLUS.level}. Lên cấp rồi bay vào nhé`};   // Diệp chỉ tiếp người cấp cao, nhiều tiền
+  { const why=entryErr(p,to); if(why&&to!=='retreat') return {err:why}; }
   if(pl.race) return {err:'Đang đua ngựa'}; if(pl.stunt) return {err:'Đang đua xe'};
   if(p.jail&&p.jail.until>now()) return {err:'Đang bị tạm giữ ở đồn công an'};
   if(to==='retreat'&&!p.flags.called) return {err:'Chưa có kèo đi Ké Retreat. Đợi Pháp gọi đã.'};
@@ -162,4 +167,4 @@ on('grab',(pl,m)=>{ const to=String(m.to||''), from=S.SCENE_DEST[kindOf(pl.scene
   p.needs.battery=Math.max(0,p.needs.battery-2);
   const [id,sp]=destSpawn(pl,to); moveTo(pl,id,sp.x,sp.y,{ride:{from,to,fare,free}}); C.track(pl,'grab'); return {fare,free}; });
 
-module.exports={setAct,hasBed,inOwnRoom,clean,destSpawn,endSoc,sysChat};
+module.exports={entryErr,setAct,hasBed,inOwnRoom,clean,destSpawn,endSoc,sysChat};
